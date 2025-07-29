@@ -68,20 +68,25 @@ mod_campaign_ui <- function(id) {
           ) |>
             suppressWarnings(), # suppress date NA warning
 
+          # RELIABILITY_EVAL_SYS - Optional string, 50 char ----
+          selectInput(
+            inputId = ns("RELIABILITY_EVAL_SYS"),
+            label = "Reliability Evaluation System",
+            choices = c(
+              "Not relevant",
+              "Not reported",
+              "CREED",
+              "Other (add to comments)"
+            ),
+            width = "100%"
+          ),
+
           # RELIABILITY_SCORE - Optional int, 22 char ----
           textInput(
             inputId = ns("RELIABILITY_SCORE"),
             label = "Reliability Score",
             value = NA,
             placeholder = "Numeric or categorical",
-            width = "100%"
-          ),
-
-          # RELIABILITY_EVAL_SYS - Optional string, 50 char ----
-          selectInput(
-            inputId = ns("RELIABILITY_EVAL_SYS"),
-            label = "Reliability Evaluation System",
-            choices = c("CREED", "Other (add to comments)"),
             width = "100%"
           ),
 
@@ -219,7 +224,11 @@ mod_campaign_server <- function(id) {
     })
 
     iv$add_rule("RELIABILITY_SCORE", function(value) {
-      if (isTruthy(input$RELIABILITY_EVAL_SYS) && !isTruthy(value)) {
+      if (
+        isTruthy(input$RELIABILITY_EVAL_SYS) &&
+          isRelevant(input$RELIABILITY_EVAL_SYS) &&
+          !isTruthy(value)
+      ) {
         "If an evaluation system is selected a score must also be entered."
       }
     })
@@ -269,34 +278,37 @@ mod_campaign_server <- function(id) {
     })
 
     # Clear button observer ----
-    observe({
-      # Reset all inputs to default values
-      updateTextInput(session, "CAMPAIGN_NAME", value = "")
-      updateDateInput(session, "CAMPAIGN_START_DATE", value = as.Date(NA))
-      updateDateInput(session, "CAMPAIGN_END_DATE", value = as.Date(NA))
-      updateNumericInput(session, "RELIABILITY_SCORE", value = NA)
-      updateTextInput(session, "RELIABILITY_EVAL_SYS", value = "")
-      updateDateInput(
-        session,
-        "CONFIDENTIALITY_EXPIRY_DATE",
-        value = as.Date(NA)
-      )
-      updateTextInput(session, "ORGANISATION", value = "")
-      updateTextInput(session, "ENTERED_BY", value = "")
-      updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
-      updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
+    observe(
+      {
+        # Reset all inputs to default values
+        updateTextInput(session, "CAMPAIGN_NAME", value = "")
+        updateDateInput(session, "CAMPAIGN_START_DATE", value = as.Date(NA))
+        updateDateInput(session, "CAMPAIGN_END_DATE", value = as.Date(NA))
+        updateNumericInput(session, "RELIABILITY_SCORE", value = NA)
+        updateTextInput(session, "RELIABILITY_EVAL_SYS", value = "")
+        updateDateInput(
+          session,
+          "CONFIDENTIALITY_EXPIRY_DATE",
+          value = as.Date(NA)
+        )
+        updateTextInput(session, "ORGANISATION", value = "")
+        updateTextInput(session, "ENTERED_BY", value = "")
+        updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
+        updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
 
-      # Clear validation state
-      moduleState$validated_data <- NULL
-      moduleState$is_valid <- FALSE
-    }) |>
+        # Clear validation state
+        moduleState$validated_data <- NULL
+        moduleState$is_valid <- FALSE
+      } |>
+        suppressWarnings()
+    ) |>
       bindEvent(input$clear)
 
     # Validation reporter output ----
     output$validation_reporter <- renderUI({
       if (moduleState$is_valid) {
         div(
-          bs_icon("tick"),
+          bs_icon("clipboard2-check"),
           "All data validated successfully.",
           class = "validation-status validation-complete"
         )
