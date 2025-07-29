@@ -1,15 +1,6 @@
 # Campaign Import Module ----
 # A Shiny module for campaign data entry with validation using shinyvalidate
 
-# Custom truthy operator ----
-`%|truthy|%` <- function(lhs, rhs) {
-  if (shiny::isTruthy(lhs)) {
-    lhs
-  } else {
-    rhs
-  }
-}
-
 #' Campaign UI Function ----
 #'
 #' @description A shiny Module for campaign data entry and validation.
@@ -18,8 +9,9 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textInput dateInput numericInput textAreaInput
-#' @importFrom bslib card card_header card_body layout_column_wrap
+#' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton
+#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bsicons bs_icon
 mod_campaign_ui <- function(id) {
   ns <- NS(id)
 
@@ -28,6 +20,16 @@ mod_campaign_ui <- function(id) {
     card(
       card_header("Campaign Data Entry"),
       card_body(
+        # Info accordion ----
+        accordion(
+          id = ns("info_accordion"),
+          accordion_panel(
+            title = "Campaign Data Information",
+            icon = bs_icon("info-circle"),
+            "This form collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign."
+          )
+        ),
+
         # Input fields layout ----
         layout_column_wrap(
           width = "300px",
@@ -40,7 +42,11 @@ mod_campaign_ui <- function(id) {
             label = "Campaign Name *",
             placeholder = "e.g., 'Vm_Tilt'",
             width = "100%"
-          ),
+          ) |>
+            tooltip(
+              bsicons::bs_icon("info-circle", title = "Campaign Name"),
+              "Text string used to identify the sampling campaign or project. Ensure a consistent Campaign string is used."
+            ),
 
           # CAMPAIGN_START_DATE - Required date ----
           dateInput(
@@ -63,12 +69,11 @@ mod_campaign_ui <- function(id) {
             suppressWarnings(), # suppress date NA warning
 
           # RELIABILITY_SCORE - Optional int, 22 char ----
-          numericInput(
+          textInput(
             inputId = ns("RELIABILITY_SCORE"),
             label = "Reliability Score",
             value = NA,
-            min = NA,
-            max = 9999999999999999999999, # 22 char limit
+            placeholder = "Numeric or categorical",
             width = "100%"
           ),
 
@@ -125,22 +130,40 @@ mod_campaign_ui <- function(id) {
           rows = 3
         ),
 
-        br(),
-
-        # Validation status display ----
-        textOutput(ns("validation_status")),
+        # Validation status and raw data ----
+        uiOutput(ns("validation_reporter")),
+        accordion(
+          id = ns("data_accordion"),
+          open = FALSE,
+          accordion_panel(
+            title = "Click to view raw validated data",
+            icon = bs_icon("code"),
+            verbatimTextOutput(ns("validated_data_display"))
+          )
+        ),
 
         # Action buttons ----
         actionButton(
           inputId = ns("clear"),
-          label = "Clear All",
-          class = "btn-secondary",
+          label = "Clear All Fields",
+          class = "btn-danger",
           width = "300px"
+        ),
+        br(),
+        div(
+          # TODO: Unified nav buttons from v0.3
+          # TODO: Fix observer.
+          class = "navigation-buttons-container",
+          style = "display: flex; flex-direction: row-reverse;",
+          actionButton(
+            inputId = ns("next_section"),
+            label = "Next Section",
+            class = "btn-success",
+            width = "300px",
+          )
         )
       )
-    ),
-
-    verbatimTextOutput(ns("validated_data_display"))
+    )
   )
 }
 
@@ -153,8 +176,8 @@ mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Reactive values ----
-    values <- reactiveValues(
+    # ReactiveValues: moduleState ----
+    moduleState <- reactiveValues(
       validated_data = NULL,
       is_valid = FALSE
     )
@@ -165,7 +188,7 @@ mod_campaign_server <- function(id) {
     # Required field validations ----
     iv$add_rule("CAMPAIGN_NAME", sv_required())
     iv$add_rule("CAMPAIGN_NAME", function(value) {
-      if (shiny::isTruthy(value) && nchar(value) > 100) {
+      if (isTruthy(value) && nchar(value) > 100) {
         "Campaign Name must be 100 characters or less"
       }
     })
@@ -174,44 +197,42 @@ mod_campaign_server <- function(id) {
 
     iv$add_rule("ORGANISATION", sv_required())
     iv$add_rule("ORGANISATION", function(value) {
-      if (shiny::isTruthy(value) && nchar(value) > 50) {
+      if (isTruthy(value) && nchar(value) > 50) {
         "Organisation must be 50 characters or less"
       }
     })
 
     iv$add_rule("ENTERED_BY", sv_required())
     iv$add_rule("ENTERED_BY", function(value) {
-      if (shiny::isTruthy(value) && nchar(value) > 50) {
+      if (isTruthy(value) && nchar(value) > 50) {
         "Entered By must be 50 characters or less"
       }
     })
 
     iv$add_rule("ENTERED_DATE", sv_required())
 
-    # Optional field character limit validations ----
+    # Conditional: if RELIABILITY_EVAL_SYS isTruthy, then require a score ----
     iv$add_rule("RELIABILITY_SCORE", function(value) {
-      if (shiny::isTruthy(value) && nchar(as.character(value)) > 22) {
-        "Reliability Score must be 22 digits or less"
+      if (isTruthy(value) && nchar(as.character(value)) > 22) {
+        "Reliability Score must be 22 characters or less"
       }
     })
 
-    iv$add_rule("RELIABILITY_EVAL_SYS", function(value) {
-      if (shiny::isTruthy(value) && nchar(value) > 50) {
-        "Reliability Evaluation System must be 50 characters or less"
+    iv$add_rule("RELIABILITY_SCORE", function(value) {
+      if (isTruthy(input$RELIABILITY_EVAL_SYS) && !isTruthy(value)) {
+        "If an evaluation system is selected a score must also be entered."
       }
     })
 
     iv$add_rule("CAMPAIGN_COMMENT", function(value) {
-      if (shiny::isTruthy(value) && nchar(value) > 1000) {
+      if (isTruthy(value) && nchar(value) > 1000) {
         "Campaign Comment must be 1000 characters or less"
       }
     })
 
     # Date validation for end date ----
     iv$add_rule("CAMPAIGN_END_DATE", function(value) {
-      if (
-        shiny::isTruthy(value) && shiny::isTruthy(input$CAMPAIGN_START_DATE)
-      ) {
+      if (isTruthy(value) && isTruthy(input$CAMPAIGN_START_DATE)) {
         if (value < input$CAMPAIGN_START_DATE) {
           "Campaign End Date must be after Start Date"
         }
@@ -239,11 +260,11 @@ mod_campaign_server <- function(id) {
           CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
         )
 
-        values$validated_data <- validated_data
-        values$is_valid <- TRUE
+        moduleState$validated_data <- validated_data
+        moduleState$is_valid <- TRUE
       } else {
-        values$validated_data <- NULL
-        values$is_valid <- FALSE
+        moduleState$validated_data <- NULL
+        moduleState$is_valid <- FALSE
       }
     })
 
@@ -266,33 +287,55 @@ mod_campaign_server <- function(id) {
       updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
 
       # Clear validation state
-      values$validated_data <- NULL
-      values$is_valid <- FALSE
+      moduleState$validated_data <- NULL
+      moduleState$is_valid <- FALSE
     }) |>
       bindEvent(input$clear)
 
-    # Validation status display ----
-    output$validation_status <- renderText({
-      if (values$is_valid && shiny::isTruthy(values$validated_data)) {
-        # Format the data for display
-        data_str <- paste(
-          sapply(names(values$validated_data), function(name) {
-            value <- values$validated_data[[name]]
-            formatted_value <- value %|truthy|% "[NULL]"
-            paste0(name, ": ", as.character(formatted_value))
-          }),
-          collapse = "\n"
+    # Validation reporter output ----
+    output$validation_reporter <- renderUI({
+      if (moduleState$is_valid) {
+        div(
+          bs_icon("tick"),
+          "All data validated successfully.",
+          class = "validation-status validation-complete"
         )
-        paste("✓ Data validated successfully!\n\n", data_str)
       } else {
-        "No validated data available. Please fill required fields."
+        div(
+          bs_icon("exclamation-triangle"),
+          "Please ensure all required fields are filled, and all entered data is properly formatted.",
+          class = "validation-status validation-warning"
+        )
+      }
+    })
+
+    # Validated data display ----
+    output$validated_data_display <- renderText({
+      if (isTruthy(moduleState$validated_data)) {
+        # Format as R code
+        data_lines <- sapply(names(moduleState$validated_data), function(name) {
+          value <- moduleState$validated_data[[name]]
+          if (is.na(value) || is.null(value)) {
+            paste0("  ", name, " = NA")
+          } else if (inherits(value, "Date")) {
+            paste0("  ", name, " = as.Date('", as.character(value), "')")
+          } else if (is.character(value)) {
+            paste0("  ", name, " = '", value, "'")
+          } else {
+            paste0("  ", name, " = ", as.character(value))
+          }
+        })
+
+        paste(c(data_lines, collapse = ",\n"))
+      } else {
+        "# Data object will be created when valid data is entered."
       }
     })
 
     # Return validated data for other modules ----
     return(
       reactive({
-        values$validated_data %|truthy|% NULL
+        moduleState$validated_data %|truthy|% NULL
       })
     )
   })
@@ -306,7 +349,7 @@ mod_campaign_server <- function(id) {
 #
 # # Access validated data in other parts of your app:
 # observe({
-#   if (shiny::isTruthy(campaign_data())) {
+#   if (isTruthy(campaign_data())) {
 #     # Do something with the validated data
 #     print("Campaign data validated!")
 #     print(campaign_data())

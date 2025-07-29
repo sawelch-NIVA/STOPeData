@@ -1,0 +1,124 @@
+ /* ===================
+   Root Variables
+   =================== */
+:root {
+    /* Font Families */
+    --font-primary: 'Fira Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-code: 'Fira Code', monospace;
+
+    /* Typography Scale */
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-xs: 12px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-h1: 32px;
+    --font-size-h2: 28px;
+    --font-size-h3: 24px;
+    --font-size-h4: 20px;
+    --font-size-h5: 18px;
+    --font-size-h6: 16px;
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 600;
+    --font-weight-heavy: 700;
+
+    /* Line Heights */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-loose: 1.8;
+
+    /* Core Status Colors */
+    --color-success: #28a745;     /* green: valid/complete states */
+    --color-warning: #ffc107;     /* yellow: in-progress/needs attention */
+    --color-danger: #dc3545;      /* red: errors/problems */
+    --color-neutral: #666666;     /* grey: inactive/not started */
+    --color-info: #337ab7;        /* blue: progress/info states */
+
+    /* Background & Border Colors */
+    --bg-light: #f5f5f5;          /* light grey backgrounds */
+    --bg-lighter: #f8f9fa;        /* slightly lighter grey */
+    --border-light: #ddd;         /* light borders */
+    --border-lighter: #cdcdcd;    /* slightly lighter borders */
+
+    /* Text Colors */
+    --text-dark: #333;            /* dark text on light backgrounds */
+    --text-muted: #666;           /* muted text */
+    --text-disabled: #888;        /* disabled text */
+    --text-nav: #b8c7ce;         /* navigation text */
+    --text-light: #ffffff;         /* white text */
+
+    /* Common Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --spacing-xxl: 32px;
+
+    /* Common Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Button/field heigts */
+    --height-field-standard: 40.45px;}
+
+/* ===================
+   Typography & Font Imports
+   =================== */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+
+/* Base Typography */
+body {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--text-dark);
+}
+
+/* Code Elements */
+code, pre, .code {
+    font-family: var(--font-code);
+}
+
+/* Validation Elements */
+.validation-status {
+    transition: all 0.3s ease;
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm);
+    margin: var(--spacing-sm) 0;
+    display: flex;
+    gap: 1em;
+    opacity: 1 !important;
+    width: 100%;
+}
+
+
+.validation-complete {
+    background-color: var(--color-success) !important;
+        color: var(--text-light) !important;
+}
+
+
+.validation-not-started {
+    background-color: var(--color-neutral) !important;
+}
+
+.validation-warning {
+    background-color: var(--color-warning) !important;
+}
+
+.validation-error {
+    background-color: var(--color-danger) !important;
+}
+
+
+.navigation-buttons-container {
+        border-radius: var(--radius-sm);
+        padding: 15px;
+        background-color: var(--bg-light);
+}
