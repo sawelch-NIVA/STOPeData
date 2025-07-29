@@ -15,6 +15,7 @@ Imports:
     golem,
     htmltools,
     shiny,
+    shinytest2,
     shinyvalidate
 Encoding: UTF-8
 LazyData: true

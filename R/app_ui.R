@@ -18,9 +18,9 @@ app_ui <- function(request) {
         theme = "auto",
         position = "static-top"
       ),
-      nav_panel(title = "Landing", mod_landing_ui("landing")),
+      # nav_panel(title = "Landing", mod_landing_ui("landing")),
       nav_panel(title = "1. Campaign", mod_campaign_ui("campaign")),
-      nav_panel(title = "2. References", mod_references_ui("references")),
+      nav_panel(title = "2. Reference", mod_references_ui("references")),
       nav_panel(title = "3. Sites", mod_sites_ui("sites")),
       nav_panel(title = "4. Parameters", mod_parameters_ui("parameters")),
       nav_panel(title = "5. Compartments", mod_compartments_ui("compartments")),
