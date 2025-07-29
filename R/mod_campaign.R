@@ -39,14 +39,13 @@ mod_campaign_ui <- function(id) {
           # CAMPAIGN_NAME - Required string, 100 char ----
           textInput(
             inputId = ns("CAMPAIGN_NAME"),
-            label = "Campaign Name *",
-            placeholder = "e.g., 'Vm_Tilt'",
-            width = "100%"
-          ) |>
-            tooltip(
-              bsicons::bs_icon("info-circle", title = "Campaign Name"),
+            label = tooltip(
+              list("Campaign Name *", bs_icon("info-circle-fill")),
               "Text string used to identify the sampling campaign or project. Ensure a consistent Campaign string is used."
             ),
+            placeholder = "e.g., 'Vm_Tilt'",
+            width = "100%"
+          ),
 
           # CAMPAIGN_START_DATE - Required date ----
           dateInput(
