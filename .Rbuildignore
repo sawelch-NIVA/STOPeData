@@ -6,3 +6,6 @@ dev_history.R
 $run_dev.*
 ^.here$
 _\.new\.png$
+^app\.R$
+^rsconnect$
+^\.rscignore$
