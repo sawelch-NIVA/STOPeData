@@ -350,7 +350,7 @@ mod_references_ui <- function(id) {
             inputId = ns("next_section"),
             label = "Next Section",
             class = "btn-success",
-            width = "300px",
+            width = "300px"
           )
         )
       )

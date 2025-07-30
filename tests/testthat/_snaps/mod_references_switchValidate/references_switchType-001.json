@@ -20,6 +20,15 @@
     "campaign-data_accordion": null,
     "campaign-info_accordion": "Campaign Data Information",
     "campaign-next_section": 0,
+    "parameters-add_existing": 0,
+    "parameters-add_new": 0,
+    "parameters-data_accordion": null,
+    "parameters-info_accordion": "Parameters Data Information",
+    "parameters-next_section": 0,
+    "parameters-parameter_name_select": "-- New Parameter --",
+    "parameters-parameter_type_select": "Stressor",
+    "parameters-previous_section": 0,
+    "parameters-remove_selected": 0,
     "references-ACCESSION_NUMBER": "",
     "references-ACCESS_DATE": [
 
@@ -56,7 +65,15 @@
     "references-import_bibtex": 0,
     "references-info_accordion": "Reference Data Information",
     "references-lookup_doi": 0,
-    "references-next_section": 0
+    "references-next_section": 0,
+    "sites-add_site": 0,
+    "sites-coordinate_display": "decimal",
+    "sites-data_accordion": null,
+    "sites-info_accordion": "Sites Data Information",
+    "sites-map_center_country": "norway",
+    "sites-next_section": 0,
+    "sites-previous_section": 0,
+    "sites-remove_selected": 0
   },
   "output": {
     "campaign-validation_reporter": {
