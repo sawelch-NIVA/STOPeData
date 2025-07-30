@@ -20,7 +20,7 @@ mod_campaign_ui <- function(id) {
     card(
       card_header("Campaign Data Entry"),
       card_body(
-        # Info accordion ----
+        ## Info accordion ----
         accordion(
           id = ns("info_accordion"),
           accordion_panel(
@@ -30,13 +30,13 @@ mod_campaign_ui <- function(id) {
           )
         ),
 
-        # Input fields layout ----
+        ## Input fields layout ----
         layout_column_wrap(
           width = "300px",
           fill = FALSE,
           fillable = FALSE,
 
-          # CAMPAIGN_NAME - Required string, 100 char ----
+          ### CAMPAIGN_NAME - Required string, 100 char ----
           textInput(
             inputId = ns("CAMPAIGN_NAME"),
             label = tooltip(
@@ -47,7 +47,7 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          # CAMPAIGN_START_DATE - Required date ----
+          ### CAMPAIGN_START_DATE - Required date ----
           dateInput(
             inputId = ns("CAMPAIGN_START_DATE"),
             label = "Campaign Start Date *",
@@ -57,7 +57,7 @@ mod_campaign_ui <- function(id) {
           ) |>
             suppressWarnings(), # suppress date NA warning
 
-          # CAMPAIGN_END_DATE - Optional date ----
+          ### CAMPAIGN_END_DATE - Optional date ----
           dateInput(
             inputId = ns("CAMPAIGN_END_DATE"),
             label = "Campaign End Date",
@@ -67,7 +67,7 @@ mod_campaign_ui <- function(id) {
           ) |>
             suppressWarnings(), # suppress date NA warning
 
-          # RELIABILITY_EVAL_SYS - Optional string, 50 char ----
+          ### RELIABILITY_EVAL_SYS - Optional string, 50 char ----
           selectInput(
             inputId = ns("RELIABILITY_EVAL_SYS"),
             label = "Reliability Evaluation System",
@@ -80,7 +80,7 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          # RELIABILITY_SCORE - Optional int, 22 char ----
+          ### RELIABILITY_SCORE - Optional int, 22 char ----
           textInput(
             inputId = ns("RELIABILITY_SCORE"),
             label = "Reliability Score",
@@ -89,7 +89,7 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          # CONFIDENTIALITY_EXPIRY_DATE - Optional date ----
+          ### CONFIDENTIALITY_EXPIRY_DATE - Optional date ----
           dateInput(
             inputId = ns("CONFIDENTIALITY_EXPIRY_DATE"),
             label = "Confidentiality Expiry Date",
@@ -99,7 +99,7 @@ mod_campaign_ui <- function(id) {
           ) |>
             suppressWarnings(), # suppress date NA warning
 
-          # ORGANISATION - Required string, 50 char ----
+          ### ORGANISATION - Required string, 50 char ----
           textInput(
             inputId = ns("ORGANISATION"),
             label = "Organisation *",
@@ -107,7 +107,7 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          # ENTERED_BY - Required string, 50 char ----
+          ### ENTERED_BY - Required string, 50 char ----
           textInput(
             inputId = ns("ENTERED_BY"),
             label = "Entered By *",
@@ -115,7 +115,7 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          # ENTERED_DATE - Required date ----
+          ### ENTERED_DATE - Required date ----
           dateInput(
             inputId = ns("ENTERED_DATE"),
             label = "Entered Date *",
@@ -125,7 +125,7 @@ mod_campaign_ui <- function(id) {
           )
         ),
 
-        # CAMPAIGN_COMMENT - Full width text area ----
+        ### CAMPAIGN_COMMENT - Full width text area ----
         textAreaInput(
           inputId = ns("CAMPAIGN_COMMENT"),
           label = "Campaign Comment",
@@ -134,7 +134,7 @@ mod_campaign_ui <- function(id) {
           rows = 3
         ),
 
-        # Validation status and raw data ----
+        ## Validation status and raw data ----
         uiOutput(ns("validation_reporter")),
         accordion(
           id = ns("data_accordion"),
@@ -146,7 +146,7 @@ mod_campaign_ui <- function(id) {
           )
         ),
 
-        # Action buttons ----
+        ## Action buttons ----
         actionButton(
           inputId = ns("clear"),
           label = "Clear All Fields",
@@ -180,16 +180,15 @@ mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # ReactiveValues: moduleState ----
+    # 1. Module setup ----
+    ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
       validated_data = NULL,
       is_valid = FALSE
     )
 
-    # Input validator setup ----
+    ## InputValidator$new: iv ----
     iv <- InputValidator$new()
-
-    # Required field validations ----
     iv$add_rule("CAMPAIGN_NAME", sv_required())
     iv$add_rule("CAMPAIGN_NAME", function(value) {
       if (isTruthy(value) && nchar(value) > 100) {
@@ -215,7 +214,8 @@ mod_campaign_server <- function(id) {
 
     iv$add_rule("ENTERED_DATE", sv_required())
 
-    # Conditional: if RELIABILITY_EVAL_SYS isTruthy, then require a score ----
+    ### Conditional field validations
+    # if RELIABILITY_EVAL_SYS isTruthy, then require a score
     iv$add_rule("RELIABILITY_SCORE", function(value) {
       if (isTruthy(value) && nchar(as.character(value)) > 22) {
         "Reliability Score must be 22 characters or less"
@@ -238,7 +238,7 @@ mod_campaign_server <- function(id) {
       }
     })
 
-    # Date validation for end date ----
+    # Date validation for end date
     iv$add_rule("CAMPAIGN_END_DATE", function(value) {
       if (isTruthy(value) && isTruthy(input$CAMPAIGN_START_DATE)) {
         if (value < input$CAMPAIGN_START_DATE) {
@@ -247,13 +247,17 @@ mod_campaign_server <- function(id) {
       }
     })
 
-    # Enable validation ----
+    ## InputValidator$enable() ----
     iv$enable()
 
-    # Validation observer ----
+    # 2. Observers and Reactives ----
+
+    ## observe: check validation status ----
+    # upstream: iv
+    # downstream: moduleState$validated_data, moduleState$is_valid
     observe({
       if (iv$is_valid()) {
-        # Collect validated data ----
+        # Collect validated data
         validated_data <- list(
           CAMPAIGN_NAME = input$CAMPAIGN_NAME,
           CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
@@ -276,7 +280,9 @@ mod_campaign_server <- function(id) {
       }
     })
 
-    # Clear button observer ----
+    ## observe ~ bindEvent: Clear fields button ----
+    # upstream: user clicks input$clear
+    # downstream: all input fields
     observe(
       {
         # Reset all inputs to default values
@@ -303,7 +309,11 @@ mod_campaign_server <- function(id) {
     ) |>
       bindEvent(input$clear)
 
-    # Validation reporter output ----
+    # 3. Outputs ----
+
+    ## output: validation_reporter ----
+    # upstream: moduleState$is_valid
+    # downstream: UI update
     output$validation_reporter <- renderUI({
       if (moduleState$is_valid) {
         div(
@@ -320,7 +330,9 @@ mod_campaign_server <- function(id) {
       }
     })
 
-    # Validated data display ----
+    ## output: validated_data_display ----
+    # upstream: moduleState$validated_data
+    # downstream: UI update
     output$validated_data_display <- renderText({
       if (isTruthy(moduleState$validated_data)) {
         # Format as R code
@@ -343,7 +355,10 @@ mod_campaign_server <- function(id) {
       }
     })
 
-    # Return validated data for other modules ----
+    # 4. Return ----
+    ## return: validated data for other modules ----
+    # upstream: moduleState$validated_data
+    # downstream: server.R
     return(
       reactive({
         moduleState$validated_data %|truthy|% NULL
