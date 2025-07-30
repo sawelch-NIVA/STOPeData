@@ -335,21 +335,7 @@ mod_campaign_server <- function(id) {
     # downstream: UI update
     output$validated_data_display <- renderText({
       if (isTruthy(moduleState$validated_data)) {
-        # Format as R code
-        data_lines <- sapply(names(moduleState$validated_data), function(name) {
-          value <- moduleState$validated_data[[name]]
-          if (is.na(value) || is.null(value)) {
-            paste0("  ", name, " = NA")
-          } else if (inherits(value, "Date")) {
-            paste0("  ", name, " = as.Date('", as.character(value), "')")
-          } else if (is.character(value)) {
-            paste0("  ", name, " = '", value, "'")
-          } else {
-            paste0("  ", name, " = ", as.character(value))
-          }
-        })
-
-        paste(c(data_lines, collapse = ",\n"))
+        printreactiveValues(moduleState$validated_data)
       } else {
         "# Data object will be created when valid data is entered."
       }

@@ -41,3 +41,35 @@ isRelevant <- function(input) {
   stopifnot(is.character(input))
   !(input %in% c("Not relevant", "Not reported"))
 }
+
+#' print content of reactiveValues object
+#'
+#' @param data A reactiveValues object with named variables
+#' @description
+#' Print a reactiveValues object, with each named variable and its value on a new
+#' line
+#'
+#'
+#' @returns a string of variable names and values
+#' @export
+#'
+#' @examples
+#' reactiveValues(x = 1, y = 2) |> printreactiveValues()
+printreactiveValues <- function(data) {
+  data_lines <- sapply(
+    names(data),
+    function(name) {
+      value <- data[[name]]
+      if (is.na(value) || is.null(value)) {
+        paste0(name, " = NA")
+      } else if (inherits(value, "Date")) {
+        paste0(name, " = as.Date('", as.character(value), "')")
+      } else if (is.character(value)) {
+        paste0(name, " = '", value, "'")
+      } else {
+        paste0(name, " = ", as.character(value), "")
+      }
+    }
+  )
+  paste(data_lines, collapse = "\n")
+}

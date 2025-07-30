@@ -16,6 +16,7 @@ Imports:
     htmltools,
     pkgload,
     shiny,
+    shinyjs,
     shinytest2,
     shinyvalidate
 Encoding: UTF-8
