@@ -516,7 +516,6 @@ mod_compartments_server <- function(id) {
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
         rhandsontable(init_compartments_df(), width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
           hot_col(
             "ENVIRON_COMPARTMENT",
             type = "dropdown",
@@ -534,10 +533,10 @@ mod_compartments_server <- function(id) {
             type = "dropdown",
             source = measured_categories,
             strict = TRUE
-          )
+          ) |>
+          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(moduleState$compartments_data, width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
           hot_col(
             "ENVIRON_COMPARTMENT",
             type = "dropdown",
@@ -556,6 +555,8 @@ mod_compartments_server <- function(id) {
             source = measured_categories,
             strict = TRUE
           )
+        |>
+          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       }
     })
 
