@@ -570,26 +570,7 @@ mod_parameters_server <- function(id) {
     output$parameters_table <- renderRHandsontable({
       if (nrow(moduleState$parameters_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_parameters_df(), width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
-          hot_col(
-            "STRESSOR_TYPE",
-            type = "dropdown",
-            source = stressor_types,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "STRESSOR_TYPE_SUB",
-            type = "dropdown",
-            source = stressor_type_subs,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "MEASURED_TYPE",
-            type = "dropdown",
-            source = measured_types,
-            strict = TRUE
-          )
+        rhandsontable(init_parameters_df(), width = "100%")
       } else {
         rhandsontable(moduleState$parameters_data, width = "100%") |>
           hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
@@ -610,7 +591,8 @@ mod_parameters_server <- function(id) {
             type = "dropdown",
             source = measured_types,
             strict = TRUE
-          )
+          ) |>
+          hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text")
       }
     })
 
