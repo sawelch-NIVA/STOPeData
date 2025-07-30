@@ -9,4 +9,5 @@ app_server <- function(input, output, session) {
   reference_data <- mod_references_server("references")
   sites_data <- mod_sites_server("sites")
   parameters_data <- mod_parameters_server("parameters")
+  compartments_data <- mod_compartments_server("compartments")
 }
