@@ -29,7 +29,9 @@ app_ui <- function(request) {
       nav_panel(title = "8. Export", mod_export_ui("export")),
       nav_panel(title = "9. Review", mod_review_ui("review")),
       nav_spacer(),
-      footer = p("footer")
+      footer = HTML(
+        "<a href='https://github.com/sawelch-NIVA/STOPeData'>stop-e-data</a> developed by <a href='https://www.niva.no/en/projects/expect'>EXPECT</a>, and <a href='https://www.niva.no/en/featured-pages/nctp'>NCTP</a>."
+      )
     )
   )
 }

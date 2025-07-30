@@ -44,13 +44,13 @@ mod_references_ui <- function(id) {
           div(
             textInput(
               inputId = ns("doi_lookup"),
-              label = "DOI Lookup",
+              label = "DOI Lookup (Disabled)",
               placeholder = "Enter DOI to auto-populate fields",
               width = "100%"
             ),
             actionButton(
               inputId = ns("lookup_doi"),
-              label = "Lookup DOI",
+              label = "Lookup DOI (Disabled)",
               class = "btn-info",
               width = "100%"
             )
@@ -60,14 +60,14 @@ mod_references_ui <- function(id) {
           div(
             textAreaInput(
               inputId = ns("bibtex_import"),
-              label = "BibTeX Import",
+              label = "BibTeX Import (Disabled)",
               placeholder = "Paste BibTeX entry here",
               rows = 1,
               width = "100%"
             ),
             actionButton(
               inputId = ns("import_bibtex"),
-              label = "Import BibTeX",
+              label = "Import BibTeX (Disabled)",
               class = "btn-info",
               width = "100%"
             )
@@ -142,7 +142,7 @@ mod_references_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
-          ### ACCESS_DATE - Required for all except always ----
+          ### ACCESS_DATE - Required for all  ----
           dateInput(
             inputId = ns("ACCESS_DATE"),
             label = "Date Accessed *",

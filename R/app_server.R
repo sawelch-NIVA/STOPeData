@@ -10,4 +10,5 @@ app_server <- function(input, output, session) {
   sites_data <- mod_sites_server("sites")
   parameters_data <- mod_parameters_server("parameters")
   compartments_data <- mod_compartments_server("compartments")
+  methods_data <- mod_methods_server("methods")
 }

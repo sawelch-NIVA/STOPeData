@@ -1,31 +1,549 @@
-#' methods UI Function
+# Methods Import Module ----
+# A Shiny module for analytical and sampling methods with categorized protocol selection
+
+#' Methods UI Function ----
 #'
-#' @description A shiny Module.
+#' @description A shiny Module for methods data entry with categorized protocol selection.
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
-#' @noRd 
+#' @noRd
 #'
-#' @importFrom shiny NS tagList 
+#' @importFrom shiny NS tagList selectInput actionButton
+#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bsicons bs_icon
+#' @importFrom rhandsontable rHandsontableOutput
+#' @importFrom shinyjs useShinyjs
 mod_methods_ui <- function(id) {
   ns <- NS(id)
+
   tagList(
- 
+    # Enable shinyjs
+    useShinyjs(),
+
+    # Main content card ----
+    card(
+      card_header("Methods Data Management"),
+      card_body(
+        ## Info accordion ----
+        accordion(
+          id = ns("info_accordion"),
+          accordion_panel(
+            title = "Methods Data Information",
+            icon = bs_icon("info-circle"),
+            "This module manages analytical and sampling methods that will be used in your study. Select a protocol category (e.g., Analytical Protocol), then choose the specific method (e.g., GCMS) to add it to your methods basket. You can add multiple methods of each type as needed."
+          )
+        ),
+
+        ## Method selection form ----
+        div(
+          style = "padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin: 15px 0;",
+          h5("Add New Method"),
+
+          layout_column_wrap(
+            width = "300px",
+            fill = FALSE,
+            fillable = FALSE,
+
+            selectInput(
+              inputId = ns("protocol_category_select"),
+              label = tooltip(
+                list("Protocol Category", bs_icon("info-circle-fill")),
+                "Type of protocol or method being used"
+              ),
+              choices = c(
+                "Sampling Method" = "Sampling Method",
+                "Fractionation Protocol" = "Fractionation Protocol",
+                "Extraction Protocol" = "Extraction Protocol",
+                "Analytical Protocol" = "Analytical Protocol"
+              ),
+              width = "100%"
+            ),
+
+            selectInput(
+              inputId = ns("protocol_name_select"),
+              label = tooltip(
+                list("Protocol Name", bs_icon("info-circle-fill")),
+                "Specific method or protocol within the category"
+              ),
+              choices = c("Select category first..." = ""),
+              width = "100%",
+              multiple = TRUE
+            )
+          ),
+
+          ## Add method button ----
+          div(
+            style = "margin-top: 15px;",
+            input_task_button(
+              id = ns("add_method"),
+              label = "Add Method",
+              icon = icon("plus-circle"),
+              class = "btn-success",
+              width = "200px"
+            )
+          )
+        ),
+
+        ## Action buttons for table management ----
+        div(
+          style = "margin: 15px 0;",
+          input_task_button(
+            id = ns("remove_selected"),
+            label = "Remove Selected",
+            icon = icon("trash"),
+            class = "btn-danger",
+            width = "200px"
+          )
+        ),
+
+        ## Methods table ----
+        rHandsontableOutput(ns("methods_table")),
+
+        ## Validation status ----
+        div(
+          style = "margin-top: 15px;",
+          uiOutput(ns("validation_reporter"))
+        ),
+
+        ## Raw data accordion ----
+        accordion(
+          id = ns("data_accordion"),
+          open = FALSE,
+          accordion_panel(
+            title = "Click to view raw validated data",
+            icon = bs_icon("code"),
+            verbatimTextOutput(ns("validated_data_display"))
+          )
+        )
+      )
+    ),
+
+    ## Navigation buttons ----
+    div(
+      class = "navigation-buttons-container",
+      style = "display: flex; justify-content: space-between; margin-top: 20px;",
+
+      actionButton(
+        inputId = ns("previous_section"),
+        label = "Previous Section",
+        class = "btn-secondary",
+        width = "200px"
+      ),
+
+      actionButton(
+        inputId = ns("next_section"),
+        label = "Next Section",
+        class = "btn-success",
+        width = "200px"
+      )
+    )
   )
 }
-    
-#' methods Server Functions
+
+#' Methods Server Functions ----
 #'
-#' @noRd 
-mod_methods_server <- function(id){
-  moduleServer(id, function(input, output, session){
+#' @noRd
+#' @importFrom shinyvalidate InputValidator sv_required
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom shinyjs enable disable
+mod_methods_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
     ns <- session$ns
- 
+
+    # 1. Module setup ----
+    ## ReactiveValues: moduleState ----
+    moduleState <- reactiveValues(
+      methods_data = data.frame(),
+      validated_data = NULL,
+      is_valid = FALSE
+    )
+
+    ## Protocol options by category ----
+    protocol_options <- list(
+      "Sampling Method" = c(
+        "Not relevant" = "Not relevant",
+        "Not reported" = "Not reported",
+        "Point" = "Point",
+        "Composite" = "Composite",
+        "Trawl" = "Trawl",
+        "Grab" = "Grab",
+        "SPMD" = "SPMD",
+        "SPE" = "SPE",
+        "LVSPE" = "LVSPE",
+        "DGT" = "DGT",
+        "Blood sample" = "Blood sample",
+        "Biopsy" = "Biopsy",
+        "Other" = "Other"
+      ),
+      "Fractionation Protocol" = c(
+        "Not relevant" = "Not relevant",
+        "Not reported" = "Not reported",
+        "Total" = "Total",
+        "Particles" = "Particles",
+        "Colloidal" = "Colloidal",
+        "LMM" = "LMM",
+        "Aqueous" = "Aqueous",
+        "Filtered_045" = "Filtered_045",
+        "Dissolved" = "Dissolved",
+        "Filtered" = "Filtered",
+        "Other" = "Other"
+      ),
+      "Extraction Protocol" = c(
+        "Not relevant" = "Not relevant",
+        "Not reported" = "Not reported",
+        "None" = "None",
+        "Methanol extraction" = "Methanol extraction",
+        "Dichloromethane extraction" = "Dichloromethane extraction",
+        "SPE Isolute Env+" = "SPE Isolute Env+",
+        "Membrane filtration_0.45um" = "Membrane filtration_0.45um",
+        "Membrane filtration_0.2um" = "Membrane filtration_0.2um",
+        "Membrane filtration" = "Membrane filtration",
+        "Filtration" = "Filtration",
+        "Other" = "Other"
+      ),
+      "Analytical Protocol" = c(
+        "Not relevant" = "Not relevant",
+        "Not reported" = "Not reported",
+        "GCMS" = "GCMS",
+        "LCMS" = "LCMS",
+        "UPLC" = "UPLC",
+        "ICPMS" = "ICPMS",
+        "GCMS/MS" = "GCMS/MS",
+        "LCMS/MS" = "LCMS/MS",
+        "Other" = "Other"
+      )
+    )
+
+    ## Controlled vocabulary for validation ----
+    protocol_categories <- c(
+      "Sampling Method",
+      "Fractionation Protocol",
+      "Extraction Protocol",
+      "Analytical Protocol"
+    )
+
+    all_protocol_names <- unique(unlist(protocol_options, use.names = FALSE))
+
+    ## Initialize empty methods data frame ----
+    init_methods_df <- function() {
+      data.frame(
+        PROTOCOL_CATEGORY = character(0),
+        PROTOCOL_NAME = character(0),
+        stringsAsFactors = FALSE
+      )
+    }
+
+    ## Set initial empty data frame ----
+    moduleState$methods_data <- init_methods_df()
+
+    ## InputValidator for table-level validation ----
+    iv <- InputValidator$new()
+    iv$add_rule("methods_table_validation", function(value) {
+      if (nrow(moduleState$methods_data) == 0) {
+        "At least one method must be added"
+      } else {
+        # Check required fields
+        required_fields <- c("PROTOCOL_CATEGORY", "PROTOCOL_NAME")
+
+        for (i in 1:nrow(moduleState$methods_data)) {
+          for (field in required_fields) {
+            value <- moduleState$methods_data[i, field]
+            if (is.na(value) || value == "") {
+              return(paste("Row", i, "is missing required field:", field))
+            }
+          }
+
+          # Validate category/protocol combinations
+          category <- moduleState$methods_data[i, "PROTOCOL_CATEGORY"]
+          protocol <- moduleState$methods_data[i, "PROTOCOL_NAME"]
+
+          # Check if protocol is valid for the category
+          if (category %in% names(protocol_options)) {
+            valid_protocols <- protocol_options[[category]]
+            if (!protocol %in% valid_protocols) {
+              return(paste(
+                "Row",
+                i,
+                "has invalid protocol",
+                protocol,
+                "for category",
+                category
+              ))
+            }
+          }
+        }
+        NULL # All validations passed
+      }
+    })
+
+    iv$enable()
+
+    # 2. Helper functions ----
+
+    ## Create new method entry ----
+    create_method_entry <- function(category, protocol) {
+      data.frame(
+        PROTOCOL_CATEGORY = category,
+        PROTOCOL_NAME = protocol,
+        stringsAsFactors = FALSE
+      )
+    }
+
+    # 3. Observers and Reactives ----
+
+    ## observe: Update protocol name dropdown when category changes ----
+    # upstream: input$protocol_category_select
+    # downstream: input$protocol_name_select choices
+    observe({
+      category <- input$protocol_category_select
+
+      if (isTruthy(category)) {
+        available_protocols <- protocol_options[[category]]
+
+        if (!is.null(available_protocols)) {
+          choices <- c("Select protocol..." = "", available_protocols)
+          updateSelectInput(
+            session,
+            "protocol_name_select",
+            choices = choices
+          )
+        } else {
+          updateSelectInput(
+            session,
+            "protocol_name_select",
+            choices = c("No protocols available" = "")
+          )
+        }
+      } else {
+        updateSelectInput(
+          session,
+          "protocol_name_select",
+          choices = c("Select category first..." = "")
+        )
+      }
+    })
+
+    ## observe ~bindEvent(add_method): Add method to basket ----
+    # upstream: user clicks input$add_method
+    # downstream: moduleState$methods_data
+    observe({
+      category <- input$protocol_category_select
+      protocols <- input$protocol_name_select
+
+      if (
+        isTruthy(category) &&
+          isTruthy(protocols) &&
+          length(protocols) > 0 &&
+          all(protocols != "")
+      ) {
+        # Use lapply instead of sapply to avoid issues with the assignment
+        lapply(protocols, function(protocol) {
+          # Changed parameter name for clarity
+          # Add new method (allow duplicates as user might need multiple instances)
+          new_method <- create_method_entry(category, protocol)
+          moduleState$methods_data <<- rbind(
+            # Use <<- for assignment in lapply
+            moduleState$methods_data,
+            new_method
+          )
+        })
+
+        # Reset form
+        updateSelectInput(session, "protocol_category_select", selected = "")
+        updateSelectInput(
+          session,
+          "protocol_name_select",
+          choices = c("Select category first..." = "")
+        )
+
+        showNotification(
+          paste(
+            "Added",
+            length(protocols),
+            "method(s):",
+            category,
+            "→",
+            paste(protocols, collapse = ", ")
+          ),
+          type = "message"
+        )
+      } else {
+        showNotification(
+          "Please select both category and protocol(s) before adding",
+          type = "warning"
+        )
+      }
+    }) |>
+      bindEvent(input$add_method)
+
+    ## observe ~bindEvent(remove_selected): Remove selected rows ----
+    # upstream: user clicks input$remove_selected
+    # downstream: moduleState$methods_data
+    observe({
+      if (!is.null(input$methods_table)) {
+        current_data <- hot_to_r(input$methods_table)
+
+        # Remove last row (simplified - proper row selection is complex in rhandsontable)
+        if (nrow(current_data) > 0) {
+          removed_row <- current_data[nrow(current_data), ]
+          moduleState$methods_data <- current_data[
+            -nrow(current_data),
+            ,
+            drop = FALSE
+          ]
+
+          showNotification(
+            paste(
+              "Removed method:",
+              removed_row$PROTOCOL_CATEGORY,
+              "→",
+              removed_row$PROTOCOL_NAME
+            ),
+            type = "message"
+          )
+        } else {
+          showNotification("No rows to remove", type = "warning")
+        }
+      } else {
+        showNotification("No data to remove", type = "warning")
+      }
+    }) |>
+      bindEvent(input$remove_selected)
+
+    ## observe: Handle table changes ----
+    # upstream: input$methods_table changes
+    # downstream: moduleState$methods_data
+    observe({
+      if (!is.null(input$methods_table)) {
+        updated_data <- hot_to_r(input$methods_table)
+        moduleState$methods_data <- updated_data
+      }
+    })
+
+    ## observe: Check overall validation status ----
+    # upstream: moduleState$methods_data, iv
+    # downstream: moduleState$is_valid, moduleState$validated_data
+    observe({
+      validation_result <- iv$is_valid()
+
+      if (validation_result && nrow(moduleState$methods_data) > 0) {
+        moduleState$is_valid <- TRUE
+        moduleState$validated_data <- moduleState$methods_data
+      } else {
+        moduleState$is_valid <- FALSE
+        moduleState$validated_data <- NULL
+      }
+    })
+
+    # 4. Outputs ----
+
+    ## output: methods_table ----
+    # upstream: moduleState$methods_data
+    # downstream: UI table display
+    output$methods_table <- renderRHandsontable({
+      if (nrow(moduleState$methods_data) == 0) {
+        # Show empty table structure
+        rhandsontable(init_methods_df(), width = "100%") |>
+          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
+          hot_col(
+            "PROTOCOL_CATEGORY",
+            type = "dropdown",
+            source = protocol_categories,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "PROTOCOL_NAME",
+            type = "dropdown",
+            source = all_protocol_names,
+            strict = TRUE
+          )
+      } else {
+        rhandsontable(moduleState$methods_data, width = "100%") |>
+          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
+          hot_col(
+            "PROTOCOL_CATEGORY",
+            type = "dropdown",
+            source = protocol_categories,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "PROTOCOL_NAME",
+            type = "dropdown",
+            source = all_protocol_names,
+            strict = TRUE
+          )
+      }
+    })
+
+    ## output: validation_reporter ----
+    # upstream: moduleState$is_valid
+    # downstream: UI validation status
+    output$validation_reporter <- renderUI({
+      if (moduleState$is_valid) {
+        div(
+          bs_icon("clipboard2-check"),
+          paste(
+            "All methods data validated successfully.",
+            nrow(moduleState$methods_data),
+            "method(s) ready."
+          ),
+          class = "validation-status validation-complete"
+        )
+      } else {
+        div(
+          bs_icon("exclamation-triangle"),
+          "Add at least one valid method to proceed. Use the form above to add methods.",
+          class = "validation-status validation-warning"
+        )
+      }
+    })
+
+    ## output: validated_data_display ----
+    # upstream: moduleState$validated_data
+    # downstream: UI data display
+    output$validated_data_display <- renderText({
+      if (isTruthy(moduleState$validated_data)) {
+        # Format each method as a separate entry
+        method_entries <- lapply(
+          1:nrow(moduleState$validated_data),
+          function(i) {
+            method <- moduleState$validated_data[i, ]
+            method_lines <- sapply(names(method), function(name) {
+              value <- method[[name]]
+              if (is.na(value) || is.null(value) || value == "") {
+                paste0("  ", name, " = NA")
+              } else if (is.character(value)) {
+                paste0("  ", name, " = '", value, "'")
+              } else {
+                paste0("  ", name, " = ", as.character(value))
+              }
+            })
+            paste0("Method ", i, ":\n", paste(method_lines, collapse = "\n"))
+          }
+        )
+
+        paste(method_entries, collapse = "\n\n")
+      } else {
+        "# Methods data will appear here when valid methods are added"
+      }
+    })
+
+    # 5. Return ----
+    ## return: validated data for other modules ----
+    # upstream: moduleState$validated_data
+    # downstream: app_server.R
+    return(
+      reactive({
+        moduleState$validated_data %|truthy|% NULL
+      })
+    )
   })
 }
-    
-## To be copied in the UI
+
+## To be copied in the UI ----
 # mod_methods_ui("methods_1")
-    
-## To be copied in the server
-# mod_methods_server("methods_1")
+
+## To be copied in the server ----
+# methods_data <- mod_methods_server("methods_1")
