@@ -14,7 +14,6 @@ app_ui <- function(request) {
     page_navbar(
       title = "STOP eData",
       window_title = "STOP eData",
-      header = input_dark_mode(id = "darkmode"),
       navbar_options = navbar_options(
         underline = TRUE,
         theme = "auto",
@@ -75,6 +74,7 @@ app_ui <- function(request) {
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),
+      nav_item(input_dark_mode(id = "darkmode")),
       nav_spacer(),
       footer = tags$span(
         tags$a(
