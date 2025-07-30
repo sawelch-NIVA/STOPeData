@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput numericInput textInput dateInput textAreaInput actionButton tags
-#' @importFrom bslib css card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib css card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -46,15 +46,15 @@ mod_sites_ui <- function(id) {
           ### Table controls ----
           div(
             style = "margin: 15px 0;",
-            actionButton(
-              inputId = ns("add_site"),
+            input_task_button(
+              id = ns("add_site"),
               label = "Add New Site",
               icon = icon("plus"),
               class = "btn-success",
               width = "200px"
             ),
-            actionButton(
-              inputId = ns("remove_selected"),
+            input_task_button(
+              id = ns("remove_selected"),
               label = "Remove Selected",
               icon = icon("trash"),
               class = "btn-danger",
