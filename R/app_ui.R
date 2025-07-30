@@ -46,6 +46,12 @@ app_ui <- function(request) {
         icon = bs_icon("flag")
       ),
       nav_panel(
+        title = "5. Compartments",
+        value = "04-compartments",
+        mod_compartments_ui("compartments"),
+        icon = bs_icon("box")
+      ),
+      nav_panel(
         title = "6. Methods",
         value = "06-methods",
         mod_methods_ui("methods"),

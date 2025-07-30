@@ -19,16 +19,17 @@ app_server <- function(input, output, session) {
     "09-review"
   )
 
-  # Causes epilepsy, disabled.
-  # observe({
-  #   toggle_dark_mode()
-  # }) |>
-  #   bindEvent(input$darkmode, ignoreNULL = TRUE, ignoreInit = TRUE)
-
   campaign_data <- mod_campaign_server("campaign")
   reference_data <- mod_references_server("references")
   sites_data <- mod_sites_server("sites")
   parameters_data <- mod_parameters_server("parameters")
   compartments_data <- mod_compartments_server("compartments")
   methods_data <- mod_methods_server("methods")
+
+  samples_data <- mod_samples_server(
+    "samples",
+    sites_data,
+    parameters_data,
+    compartments_data
+  )
 }
