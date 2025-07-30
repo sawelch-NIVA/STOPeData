@@ -6,4 +6,5 @@
 #' @noRd
 app_server <- function(input, output, session) {
   campaign_data <- mod_campaign_server("campaign")
+  reference_data <- mod_references_server("references")
 }
