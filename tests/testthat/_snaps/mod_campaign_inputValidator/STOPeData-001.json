@@ -1,74 +1,4 @@
 {
-  "input": {
-    "campaign-CAMPAIGN_COMMENT": "",
-    "campaign-CAMPAIGN_END_DATE": "2025-07-31",
-    "campaign-CAMPAIGN_NAME": "Sam Campaign",
-    "campaign-CAMPAIGN_START_DATE": "2025-07-18",
-    "campaign-CONFIDENTIALITY_EXPIRY_DATE": "2025-07-23",
-    "campaign-ENTERED_BY": "Sam Welch",
-    "campaign-ENTERED_DATE": "2025-07-30",
-    "campaign-ORGANISATION": "Sam Himself",
-    "campaign-RELIABILITY_EVAL_SYS": "CREED",
-    "campaign-RELIABILITY_SCORE": "11",
-    "campaign-clear": 0,
-    "campaign-data_accordion": null,
-    "campaign-info_accordion": "Campaign Data Information",
-    "campaign-next_section": 0,
-    "parameters-add_existing": 0,
-    "parameters-add_new": 0,
-    "parameters-data_accordion": null,
-    "parameters-info_accordion": "Parameters Data Information",
-    "parameters-next_section": 0,
-    "parameters-parameter_name_select": "-- New Parameter --",
-    "parameters-parameter_type_select": "Stressor",
-    "parameters-previous_section": 0,
-    "parameters-remove_selected": 0,
-    "references-ACCESSION_NUMBER": "",
-    "references-ACCESS_DATE": [
-
-    ],
-    "references-AUTHOR": "",
-    "references-DB_NAME": "",
-    "references-DB_PROVIDER": "",
-    "references-DOCUMENT_NUMBER": "",
-    "references-DOI": "",
-    "references-EDITION": "",
-    "references-INSTITUTION": "",
-    "references-ISBN_ISSN": "",
-    "references-ISSUE": null,
-    "references-NUMBER_OF_PAGES": "",
-    "references-NUMBER_OF_VOLUMES": "",
-    "references-PAGES": "",
-    "references-PERIODICAL_JOURNAL": "",
-    "references-PMCID": "",
-    "references-PUBLISHED_PLACE": "",
-    "references-PUBLISHER": "",
-    "references-REFERENCE_TYPE": "journal",
-    "references-REF_COMMENT": "",
-    "references-SERIES_EDITOR": "",
-    "references-SERIES_TITLE": "",
-    "references-SERIES_VOLUME": null,
-    "references-TITLE": "",
-    "references-URL": "",
-    "references-VOLUME": null,
-    "references-YEAR": 2025,
-    "references-bibtex_import": "",
-    "references-clear": 0,
-    "references-data_accordion": null,
-    "references-doi_lookup": "",
-    "references-import_bibtex": 0,
-    "references-info_accordion": "Reference Data Information",
-    "references-lookup_doi": 0,
-    "references-next_section": 0,
-    "sites-add_site": 0,
-    "sites-coordinate_display": "decimal",
-    "sites-data_accordion": null,
-    "sites-info_accordion": "Sites Data Information",
-    "sites-map_center_country": "norway",
-    "sites-next_section": 0,
-    "sites-previous_section": 0,
-    "sites-remove_selected": 0
-  },
   "output": {
     "campaign-validation_reporter": {
       "html": "<div class=\"validation-status validation-complete\">\n  <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" class=\"bi bi-clipboard2-check \" style=\"height:1em;width:1em;fill:currentColor;vertical-align:-0.125em;\" aria-hidden=\"true\" role=\"img\" ><path d=\"M9.5 0a.5.5 0 0 1 .5.5.5.5 0 0 0 .5.5.5.5 0 0 1 .5.5V2a.5.5 0 0 1-.5.5h-5A.5.5 0 0 1 5 2v-.5a.5.5 0 0 1 .5-.5.5.5 0 0 0 .5-.5.5.5 0 0 1 .5-.5h3Z\"><\/path>\n<path d=\"M3 2.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 0 0-1h-.5A1.5 1.5 0 0 0 2 2.5v12A1.5 1.5 0 0 0 3.5 16h9a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 12.5 1H12a.5.5 0 0 0 0 1h.5a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-12Z\"><\/path>\n<path d=\"M10.854 7.854a.5.5 0 0 0-.708-.708L7.5 9.793 6.354 8.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3Z\"><\/path><\/svg>\n  All data validated successfully.\n<\/div>",
@@ -76,8 +6,5 @@
 
       ]
     }
-  },
-  "export": {
-
   }
 }

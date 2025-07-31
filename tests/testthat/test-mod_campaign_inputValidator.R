@@ -1,6 +1,6 @@
 library(shinytest2)
 
-test_that("{shinytest2} recording: STOPeData", {
+test_that("{shinytest2} does mod_campaign correctly validate dummy data?", {
   app <- AppDriver$new(name = "STOPeData", height = 1351, width = 2259)
   app$set_inputs(`campaign-CAMPAIGN_NAME` = "Sam Campaign", wait_ = FALSE)
   app$set_inputs(`campaign-CAMPAIGN_START_DATE` = "2025-07-18", wait_ = FALSE)
@@ -13,5 +13,5 @@ test_that("{shinytest2} recording: STOPeData", {
   )
   app$set_inputs(`campaign-ORGANISATION` = "Sam Himself", wait_ = FALSE)
   app$set_inputs(`campaign-ENTERED_BY` = "Sam Welch", wait_ = FALSE)
-  app$expect_values()
+  app$expect_values(output = TRUE)
 })

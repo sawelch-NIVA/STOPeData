@@ -13,6 +13,7 @@ app_ui <- function(request) {
     # Your application UI logic
     page_navbar(
       title = "STOP eData",
+      id = "main-page",
       window_title = "STOP eData",
       navbar_options = navbar_options(
         underline = TRUE,
