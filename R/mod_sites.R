@@ -154,7 +154,7 @@ mod_sites_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
 mod_sites_server <- function(id) {
@@ -420,7 +420,7 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df()) |>
+        rhandsontable(init_sites_df(), stretchH = "all") |>
           hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(
@@ -431,36 +431,67 @@ mod_sites_server <- function(id) {
           width = NULL
         ) |>
           hot_table(overflow = "all", stretchH = "all") |>
-          #   hot_col("SITE_CODE") |>
+          hot_col("SITE_CODE") |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE",
             type = "dropdown",
             source = geographic_features,
             strict = TRUE
+          ) |>
+          hot_col(
+            "SITE_GEOGRAPHIC_FEATURE_SUB",
+            type = "dropdown",
+            source = geographic_features_sub,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "SITE_COORDINATE_SYSTEM",
+            type = "dropdown",
+            source = coordinate_systems,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "ALTITUDE_UNIT",
+            type = "dropdown",
+            source = altitude_units,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "LATITUDE",
+            type = "numeric",
+            format = "0.000000",
+          ) |>
+          hot_col(
+            "LONGITUDE",
+            type = "numeric",
+            format = "0.000000",
+            allowInvalid = FALSE
+          ) |>
+          hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE) |>
+          hot_col(
+            "ENTERED_DATE",
+            type = "date",
+            dateFormat = "YYYY-MM-DD",
+            allowInvalid = FALSE
+          ) |>
+          hot_validate_numeric(
+            "LATITUDE",
+            min = -90,
+            max = 90,
+            allowInvalid = TRUE
+          ) |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
           )
-        #   hot_col(
-        #     "SITE_GEOGRAPHIC_FEATURE_SUB",
-        #     type = "dropdown",
-        #     source = geographic_features_sub,
-        #     strict = TRUE
-        #   ) |>
-        #   hot_col(
-        #     "SITE_COORDINATE_SYSTEM",
-        #     type = "dropdown",
-        #     source = coordinate_systems,
-        #     strict = TRUE
-        #   ) |>
-        #   hot_col(
-        #     "ALTITUDE_UNIT",
-        #     type = "dropdown",
-        #     source = altitude_units,
-        #     strict = TRUE
-        #   ) |>
-        #   hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
-        #   hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
-        #   hot_col("ALTITUDE_VALUE", type = "numeric") |>
-        #   hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
-        # hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       }
     })
 
