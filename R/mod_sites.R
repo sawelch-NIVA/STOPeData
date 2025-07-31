@@ -31,6 +31,7 @@ mod_sites_ui <- function(id) {
 
       ## Left panel: Table and controls ----
       card(
+        full_screen = TRUE,
         card_header("Sites Data Management"),
         card_body(
           ### Info accordion ----
@@ -88,39 +89,9 @@ mod_sites_ui <- function(id) {
 
       ## Right panel: Map ----
       card(
+        full_screen = TRUE,
         card_header("Site Locations Map"),
         card_body(
-          ### Map controls ----
-          layout_column_wrap(
-            width = "200px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            selectInput(
-              inputId = ns("map_center_country"),
-              label = "Center Map On",
-              choices = c(
-                "Norway" = "norway",
-                "Europe" = "europe",
-                "World" = "world",
-                "Custom" = "custom"
-              ),
-              selected = "norway",
-              width = "100%"
-            ),
-
-            selectInput(
-              inputId = ns("coordinate_display"),
-              label = "Show Coordinates As",
-              choices = c(
-                "Decimal Degrees" = "decimal",
-                "Degrees Minutes Seconds" = "dms"
-              ),
-              selected = "decimal",
-              width = "100%"
-            )
-          ),
-
           ### Leaflet map ----
           leafletOutput(ns("sites_map"), height = "500px")
         )
@@ -321,28 +292,6 @@ mod_sites_server <- function(id) {
       )
     }
 
-    ## Get map center coordinates ----
-    get_map_center <- function(country) {
-      centers <- list(
-        "norway" = c(lat = 60.472, lng = 8.469),
-        "europe" = c(lat = 54.526, lng = 15.255),
-        "world" = c(lat = 20.0, lng = 0.0),
-        "custom" = c(lat = 60.472, lng = 8.469)
-      )
-      centers[[country]] %||% centers[["world"]]
-    }
-
-    ## Get map zoom level ----
-    get_map_zoom <- function(country) {
-      zooms <- list(
-        "norway" = 5,
-        "europe" = 4,
-        "world" = 2,
-        "custom" = 5
-      )
-      zooms[[country]] %||% zooms[["world"]]
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Add new site ----
@@ -500,12 +449,9 @@ mod_sites_server <- function(id) {
     # upstream: moduleState$sites_data, input$map_center_country
     # downstream: UI map display
     output$sites_map <- renderLeaflet({
-      center <- get_map_center(input$map_center_country)
-      zoom <- get_map_zoom(input$map_center_country)
 
       map <- leaflet() |>
-        addTiles() |>
-        setView(lng = center[["lng"]], lat = center[["lat"]], zoom = zoom)
+        addTiles()
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
@@ -539,18 +485,6 @@ mod_sites_server <- function(id) {
 
       map
     })
-
-    ## observe: Update map center ----
-    # upstream: input$map_center_country
-    # downstream: sites_map view
-    observe({
-      center <- get_map_center(input$map_center_country)
-      zoom <- get_map_zoom(input$map_center_country)
-
-      leafletProxy("sites_map") |>
-        setView(lng = center[["lng"]], lat = center[["lat"]], zoom = zoom)
-    }) |>
-      bindEvent(input$map_center_country)
 
     ## output: validation_reporter ----
     # upstream: moduleState$is_valid
