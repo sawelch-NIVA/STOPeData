@@ -154,7 +154,7 @@ mod_sites_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_validate_numeric hot_validate_character
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
 mod_sites_server <- function(id) {
@@ -438,6 +438,7 @@ mod_sites_server <- function(id) {
             source = geographic_features,
             strict = TRUE
           ) |>
+          hot_cell(1, 1, comment = 'test') |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE_SUB",
             type = "dropdown",
