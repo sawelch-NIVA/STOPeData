@@ -122,3 +122,7 @@ code, pre, .code {
         padding: 15px;
         background-color: var(--bg-light);
 }
+
+.ht_master {
+  height: inherit !important
+}

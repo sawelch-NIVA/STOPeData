@@ -53,6 +53,8 @@ mod_sites_ui <- function(id) {
               class = "btn-success",
               width = "200px"
             ),
+            # TODO: Fix "remove selected"
+            div("remove selected actually removes last row, oops"),
             input_task_button(
               id = ns("remove_selected"),
               label = "Remove Selected",
@@ -152,7 +154,7 @@ mod_sites_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
 mod_sites_server <- function(id) {
@@ -419,68 +421,46 @@ mod_sites_server <- function(id) {
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
         rhandsontable(init_sites_df()) |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
-          hot_col("SITE_CODE", readOnly = TRUE) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE",
-            type = "dropdown",
-            source = geographic_features,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE_SUB",
-            type = "dropdown",
-            source = geographic_features_sub,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_COORDINATE_SYSTEM",
-            type = "dropdown",
-            source = coordinate_systems,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "ALTITUDE_UNIT",
-            type = "dropdown",
-            source = altitude_units,
-            strict = TRUE
-          ) |>
-          hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("ALTITUDE_VALUE", type = "numeric") |>
-          hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
+          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
-        rhandsontable(moduleState$sites_data) |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
-          hot_col("SITE_CODE", readOnly = TRUE) |>
+        rhandsontable(
+          moduleState$sites_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
+          hot_table(overflow = "all", stretchH = "all") |>
+          #   hot_col("SITE_CODE") |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE",
             type = "dropdown",
             source = geographic_features,
             strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE_SUB",
-            type = "dropdown",
-            source = geographic_features_sub,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_COORDINATE_SYSTEM",
-            type = "dropdown",
-            source = coordinate_systems,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "ALTITUDE_UNIT",
-            type = "dropdown",
-            source = altitude_units,
-            strict = TRUE
-          ) |>
-          hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("ALTITUDE_VALUE", type = "numeric") |>
-          hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
+          )
+        #   hot_col(
+        #     "SITE_GEOGRAPHIC_FEATURE_SUB",
+        #     type = "dropdown",
+        #     source = geographic_features_sub,
+        #     strict = TRUE
+        #   ) |>
+        #   hot_col(
+        #     "SITE_COORDINATE_SYSTEM",
+        #     type = "dropdown",
+        #     source = coordinate_systems,
+        #     strict = TRUE
+        #   ) |>
+        #   hot_col(
+        #     "ALTITUDE_UNIT",
+        #     type = "dropdown",
+        #     source = altitude_units,
+        #     strict = TRUE
+        #   ) |>
+        #   hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
+        #   hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
+        #   hot_col("ALTITUDE_VALUE", type = "numeric") |>
+        #   hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
+        # hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       }
     })
 
