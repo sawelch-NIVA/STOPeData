@@ -40,7 +40,11 @@ mod_sites_ui <- function(id) {
             accordion_panel(
               title = "Sites Data Information",
               icon = bs_icon("info-circle"),
-              "This module manages sampling site information. Add sites by clicking 'Add New Site' which creates an editable row in the table. Edit fields directly in the table. Use the map to verify coordinates are correct. At least one complete site is required to proceed."
+              "This module manages sampling site information.
+              Add sites by clicking 'Add New Site' which creates an editable row in the table.
+              Edit fields directly in the table. Use the map to verify coordinates are correct.
+              At least one complete site is required to proceed.
+              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards."
             )
           ),
 
@@ -54,15 +58,6 @@ mod_sites_ui <- function(id) {
               class = "btn-success",
               width = "200px"
             ),
-            # TODO: Fix "remove selected"
-            div("remove selected actually removes last row, oops"),
-            input_task_button(
-              id = ns("remove_selected"),
-              label = "Remove Selected",
-              icon = icon("trash"),
-              class = "btn-danger",
-              width = "200px"
-            )
           ),
 
           ### Sites table ----
