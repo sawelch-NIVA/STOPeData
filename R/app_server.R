@@ -31,7 +31,7 @@ app_server <- function(input, output, session) {
                                                       samplesData = tibble(NULL),
                                                       methodsData = tibble(NULL),
                                                       exportData = tibble(NULL),
-                                                      biotaData = tibble(NULL),
+                                                      biotaData = tibble(NULL)
                                                       )
   }
 
@@ -43,5 +43,14 @@ app_server <- function(input, output, session) {
   moduleMethods <- mod_methods_server("methods")
   moduleSamples <- mod_samples_server(
     "samples"
+  )
+  moduleBiota <- mod_biota_server(
+    "biota"
+  )
+  moduleExport <- mod_export_server(
+    "export"
+  )
+  moduleReview <- mod_review_server(
+    "review"
   )
 }

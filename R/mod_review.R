@@ -4,28 +4,31 @@
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
-#' @noRd 
+#' @noRd
 #'
-#' @importFrom shiny NS tagList 
+#' @importFrom shiny NS tagList
 mod_review_ui <- function(id) {
   ns <- NS(id)
   tagList(
- 
+    h1("Export"),
+    verbatimTextOutput(ns("exportData")),
   )
 }
-    
+
 #' review Server Functions
 #'
-#' @noRd 
+#' @noRd
 mod_review_server <- function(id){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
- 
+    print_dev("mod_review_server initialised")
+    output$exportData <- renderPrint((paste(session$userData$reactiveValues$exportData %|truthy|% "exportData not found")))
+
   })
 }
-    
+
 ## To be copied in the UI
 # mod_review_ui("review_1")
-    
+
 ## To be copied in the server
 # mod_review_server("review_1")
