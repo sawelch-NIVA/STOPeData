@@ -49,6 +49,8 @@ isRelevant <- function(input) {
 #' Print a reactiveValues object, with each named variable and its value on a new
 #' line
 #'
+#' @importFrom shiny reactiveValues
+#'
 #'
 #' @returns a string of variable names and values
 #' @export
