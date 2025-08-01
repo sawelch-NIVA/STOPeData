@@ -32,7 +32,7 @@ mod_sites_ui <- function(id) {
       ## Left panel: Table and controls ----
       card(
         full_screen = TRUE,
-        card_header("Sites Data Management"),
+        card_header("Sites Data"),
         card_body(
           ### Info accordion ----
           accordion(
@@ -85,12 +85,9 @@ mod_sites_ui <- function(id) {
       ## Right panel: Map ----
       card(
         full_screen = TRUE,
-        card_header("Site Locations Map"),
-        card_body(
           ### Leaflet map ----
           leafletOutput(ns("sites_map"), height = "500px")
         )
-      )
     ),
 
     ## Navigation buttons ----
