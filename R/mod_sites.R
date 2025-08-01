@@ -404,6 +404,11 @@ mod_sites_server <- function(id,   user_id = reactive(NULL)) {
       if (validation_result && nrow(moduleState$sites_data) > 0) {
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- moduleState$sites_data
+
+        session$userData$reactiveValues$sitesData <- moduleState$validated_data
+        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"))
+
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL

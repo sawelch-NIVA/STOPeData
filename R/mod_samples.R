@@ -15,6 +15,7 @@
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom shinyWidgets airDatepickerInput
+#' @importFrom golem get_golem_wd
 mod_samples_ui <- function(id) {
   ns <- NS(id)
 
@@ -265,50 +266,6 @@ mod_samples_server <- function(
       available_compartments = NULL
     )
 
-    ## Dummy data for standalone testing ----
-    dummy_sites <- data.frame(
-      SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
-      SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
-      stringsAsFactors = FALSE
-    )
-
-    dummy_parameters <- data.frame(
-      STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
-      STRESSOR_TYPE = c(
-        "Stressor",
-        "Stressor",
-        "Quality parameter",
-        "Quality parameter"
-      ),
-      stringsAsFactors = FALSE
-    )
-
-    dummy_compartments <- data.frame(
-      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
-      ENVIRON_COMPARTMENT_SUB = c(
-        "Freshwater",
-        "Marine/Salt Water",
-        "Soil A Horizon (Topsoil)"
-      ),
-      MEASURED_CATEGORY = c("External", "External", "External"),
-      stringsAsFactors = FALSE
-    )
-
-    ## Initialize empty samples data frame ----
-    init_samples_df <- function() {
-      data.frame(
-        SITE_CODE = character(0),
-        SITE_NAME = character(0),
-        PARAMETER_NAME = character(0),
-        PARAMETER_TYPE = character(0),
-        COMPARTMENT = character(0),
-        COMPARTMENT_SUB = character(0),
-        SAMPLING_DATE = character(0),
-        SAMPLE_ID = character(0),
-        stringsAsFactors = FALSE
-      )
-    }
-
     ## Set initial empty data frame ----
     moduleState$samples_data <- init_samples_df()
 
@@ -341,255 +298,48 @@ mod_samples_server <- function(
 
     iv$enable()
 
-    # 2. Helper functions ----
-
-    ## Generate unique sample ID ----
-    generate_sample_id <- function(
-      site_code,
-      parameter_name,
-      compartment,
-      date
-    ) {
-      # Create a unique sample ID combining key identifiers
-      paste(
-        site_code,
-        substr(gsub("[^A-Za-z0-9]", "", parameter_name), 1, 10),
-        substr(gsub("[^A-Za-z0-9]", "", compartment), 1, 10),
-        gsub("-", "", date),
-        sep = "_"
-      )
-    }
-
-    ## Create sample combinations ----
-    create_sample_combinations <- function(
-      sites,
-      parameters,
-      compartments,
-      date
-    ) {
-      combinations <- expand.grid(
-        SITE_CODE = sites,
-        PARAMETER_NAME = parameters,
-        COMPARTMENT = compartments,
-        SAMPLING_DATE = as.character(date),
-        stringsAsFactors = FALSE
-      )
-
-      # Add additional columns
-      combinations$SITE_NAME <- ""
-      combinations$PARAMETER_TYPE <- ""
-      combinations$COMPARTMENT_SUB <- ""
-      combinations$SAMPLE_ID <- mapply(
-        generate_sample_id,
-        combinations$SITE_CODE,
-        combinations$PARAMETER_NAME,
-        combinations$COMPARTMENT,
-        combinations$SAMPLING_DATE
-      )
-
-      # Reorder columns
-      combinations <- combinations[, c(
-        "SITE_CODE",
-        "SITE_NAME",
-        "PARAMETER_NAME",
-        "PARAMETER_TYPE",
-        "COMPARTMENT",
-        "COMPARTMENT_SUB",
-        "SAMPLING_DATE",
-        "SAMPLE_ID"
-      )]
-
-      return(combinations)
-    }
-
-    combination_exists <- function(
-      existing_data,
-      site,
-      parameter,
-      compartment,
-      date
-    ) {
-      if (nrow(existing_data) == 0) return(FALSE)
-
-      any(
-        existing_data$SITE_CODE == site &
-          existing_data$PARAMETER_NAME == parameter &
-          existing_data$COMPARTMENT == compartment &
-          existing_data$SAMPLING_DATE == as.character(date)
-      )
-    }
-
-    ## Update selectize choices helper ----
-    update_selectize_choices <- function(
-      session,
-      sites,
-      parameters,
-      compartments
-    ) {
-      # Update sites choices
-      site_choices <- setNames(
-        sites$SITE_CODE,
-        paste(sites$SITE_CODE, "-", sites$SITE_NAME)
-      )
-      updateSelectizeInput(
-        session,
-        "sites_select",
-        choices = site_choices,
-        options = list(placeholder = "Select sites...")
-      )
-
-      # Update parameters choices
-      param_choices <- setNames(
-        parameters$STRESSOR_NAME,
-        paste(
-          parameters$STRESSOR_NAME,
-          paste0("(", parameters$STRESSOR_TYPE, ")")
-        )
-      )
-      updateSelectizeInput(
-        session,
-        "parameters_select",
-        choices = param_choices,
-        options = list(placeholder = "Select parameters...")
-      )
-
-      # Update compartments choices
-      comp_choices <- setNames(
-        paste(
-          compartments$ENVIRON_COMPARTMENT,
-          compartments$ENVIRON_COMPARTMENT_SUB,
-          sep = " | "
-        ),
-        paste(
-          compartments$ENVIRON_COMPARTMENT,
-          "→",
-          compartments$ENVIRON_COMPARTMENT_SUB,
-          "→",
-          compartments$MEASURED_CATEGORY
-        )
-      )
-      updateSelectizeInput(
-        session,
-        "compartments_select",
-        choices = comp_choices,
-        options = list(placeholder = "Select compartments...")
-      )
-    }
-
-    ## Create sample combinations with duplicate checking ----
-    create_sample_combinations <- function(
-      sites,
-      parameters,
-      compartments,
-      dates,
-      existing_data
-    ) {
-      all_combinations <- data.frame()
-      skipped_count <- 0
-
-      for (date in dates) {
-        date_combinations <- expand.grid(
-          SITE_CODE = sites,
-          PARAMETER_NAME = parameters,
-          COMPARTMENT = compartments,
-          SAMPLING_DATE = as.character(date),
-          stringsAsFactors = FALSE
-        )
-
-        # Filter out existing combinations
-        new_combinations <- data.frame()
-        for (i in 1:nrow(date_combinations)) {
-          if (
-            !combination_exists(
-              existing_data,
-              date_combinations$SITE_CODE[i],
-              date_combinations$PARAMETER_NAME[i],
-              date_combinations$COMPARTMENT[i],
-              date_combinations$SAMPLING_DATE[i]
-            )
-          ) {
-            new_combinations <- rbind(new_combinations, date_combinations[i, ])
-          } else {
-            skipped_count <- skipped_count + 1
-          }
-        }
-
-        all_combinations <- rbind(all_combinations, new_combinations)
-      }
-
-      if (nrow(all_combinations) > 0) {
-        # Add additional columns
-        all_combinations$SITE_NAME <- ""
-        all_combinations$PARAMETER_TYPE <- ""
-        all_combinations$COMPARTMENT_SUB <- ""
-        all_combinations$SAMPLE_ID <- mapply(
-          generate_sample_id,
-          all_combinations$SITE_CODE,
-          all_combinations$PARAMETER_NAME,
-          all_combinations$COMPARTMENT,
-          all_combinations$SAMPLING_DATE
-        )
-
-        # Reorder columns
-        all_combinations <- all_combinations[, c(
-          "SITE_CODE",
-          "SITE_NAME",
-          "PARAMETER_NAME",
-          "PARAMETER_TYPE",
-          "COMPARTMENT",
-          "COMPARTMENT_SUB",
-          "SAMPLING_DATE",
-          "SAMPLE_ID"
-        )]
-      }
-
-      return(list(combinations = all_combinations, skipped = skipped_count))
-    }
-
-    ## Update combination preview (now supports multiple dates) ----
-    update_combination_preview <- function(
-      sites_count,
-      params_count,
-      comps_count,
-      dates_count
-    ) {
-      total_combinations <- sites_count *
-        params_count *
-        comps_count *
-        dates_count
-
-      div(
-        strong("Preview: "),
-        sprintf(
-          "%d sites × %d parameters × %d compartments × %d dates = %d total combinations",
-          sites_count,
-          params_count,
-          comps_count,
-          dates_count,
-          total_combinations
-        )
-      )
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Update selectize choices from other modules or dummy data ----
     # upstream: sites_data(), parameters_data(), compartments_data()
     # downstream: selectize input choices and moduleState
     observe({
-      # Use provided data or fallback to dummy data
-      sites <- dummy_sites
-      parameters <- dummy_parameters
-      compartments <- dummy_compartments
+      # Update sites if data is available
+      if (!is.null(session$userData$reactiveValues$sitesData)) {
+        update_sites_selectize(session, session$userData$reactiveValues$sitesData)
+        moduleState$available_sites <- session$userData$reactiveValues$sitesData
+      } else {
+        update_sites_selectize(session, dummy_sites)
+        moduleState$available_sites <- dummy_sites
+      }
 
-      # Store available options
-      moduleState$available_sites <- sites
-      moduleState$available_parameters <- parameters
-      moduleState$available_compartments <- compartments
+      # Update parameters if data is available
+      if (!is.null(session$userData$reactiveValues$parametersData)) {
+        update_parameters_selectize(session, session$userData$reactiveValues$parametersData)
+        moduleState$available_parameters <- session$userData$reactiveValues$parametersData
+      } else {
+        update_parameters_selectize(session, dummy_parameters)
+        moduleState$available_parameters <- dummy_parameters
+      }
 
-      # Update choices using helper function
-      update_selectize_choices(session, sites, parameters, compartments)
-    })
+      # Update compartments if data is available
+      if (!is.null(session$userData$reactiveValues$compartmentsData)) {
+        update_compartments_selectize(session, session$userData$reactiveValues$compartmentsData)
+        moduleState$available_compartments <- session$userData$reactiveValues$compartmentsData
+      } else {
+        update_compartments_selectize(session, dummy_compartments)
+        moduleState$available_compartments <- dummy_compartments
+      }
+
+
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$sitesData,
+        session$userData$reactiveValues$parametersData,
+        session$userData$reactiveValues$compartmentsData,
+        ignoreNULL = FALSE,
+        ignoreInit = FALSE
+      )
 
     ## observe: Update combination preview ----
     # upstream: input selections
@@ -788,7 +538,7 @@ mod_samples_server <- function(
       }
     })
 
-    ## observe: Check overall validation status ----
+    ## observe: Check overall validation, send data to session$userData ----
     # upstream: moduleState$samples_data, iv
     # downstream: moduleState$is_valid, moduleState$validated_data
     observe({
@@ -797,6 +547,11 @@ mod_samples_server <- function(
       if (validation_result && nrow(moduleState$samples_data) > 0) {
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- moduleState$samples_data
+
+        session$userData$reactiveValues$sampleData <- moduleState$validated_data
+        print_dev(glue("mod_samples is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$sampleData: {session$userData$reactiveValues$sampleData}"))
+
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -882,16 +637,6 @@ mod_samples_server <- function(
         "# Sample combinations will appear here when generated"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

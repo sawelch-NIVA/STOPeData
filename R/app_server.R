@@ -4,6 +4,7 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom bslib toggle_dark_mode
+#' @importFrom tibble tibble
 #' @noRd
 app_server <- function(input, output, session) {
   module_order <- c(
@@ -21,7 +22,17 @@ app_server <- function(input, output, session) {
 
   # reactiveValues: initialise reactiveValues in session$userData to store data ----
   if (!is.reactivevalues(session$userData$reactiveValues)) {
-    session$userData$reactiveValues <- reactiveValues()
+    session$userData$reactiveValues <- reactiveValues(ENTERED_BY = character(0),
+                                                      sitesData = tibble(NULL),
+                                                      parametersData = tibble(NULL),
+                                                      compartmentsData = tibble(NULL),
+                                                      referenceData = tibble(NULL),
+                                                      campaignData = tibble(NULL),
+                                                      samplesData = tibble(NULL),
+                                                      methodsData = tibble(NULL),
+                                                      exportData = tibble(NULL),
+                                                      biotaData = tibble(NULL),
+                                                      )
   }
 
   moduleCampaign <- mod_campaign_server("campaign")

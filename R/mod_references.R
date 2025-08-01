@@ -616,7 +616,7 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(input$import_bibtex)
 
-    ## observe: check validation status ----
+    ## observe: check validation status and send to session$userData ----
     # upstream: iv
     # downstream: moduleState$validated_data, moduleState$is_valid
     observe({
@@ -654,6 +654,11 @@ mod_references_server <- function(id) {
 
         moduleState$validated_data <- validated_data
         moduleState$is_valid <- TRUE
+
+        session$userData$reactiveValues$referencesData <- moduleState$validated_data
+        print_dev(glue("mod_references is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"))
+
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE
