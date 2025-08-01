@@ -152,6 +152,17 @@ mod_references_ui <- function(id) {
           ) |>
             suppressWarnings(),
 
+          ### ENTERED_BY - From mod_campaign if available ----
+          textInput(
+            inputId = ns("ENTERED_BY"),
+            label = tooltip(
+              list("Entered by", bs_icon("info-circle-fill")),
+              "Your name or initials. Autofilled from campaign module if availible."
+            ),
+            placeholder = "Your name or initials...",
+            width = "100%"
+          ),
+
           ### Journal-specific fields ----
           textInput(
             inputId = ns("PERIODICAL_JOURNAL"),
@@ -369,7 +380,7 @@ mod_references_server <- function(id) {
     ns <- session$ns
 
     # 1. Module setup ----
-    ## ReactiveValues: moduleState ----
+    ## reactiveValues: moduleState ----
     moduleState <- reactiveValues(
       validated_data = NULL,
       is_valid = FALSE
@@ -495,6 +506,13 @@ mod_references_server <- function(id) {
     iv$enable()
 
     # 2. Observers and Reactives ----
+
+    ## observe: update ENTERED_BY field with user_id ----
+    # upstream: session$userData$reactiveValues$ENTERED_BY
+    # downstream: input$ENTERED_BY
+    observe({
+        updateTextInput(session, "ENTERED_BY", value = session$userData$reactiveValues$ENTERED_BY)
+    }) |> bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
     ## observe: conditional field enable/disable based on reference type ----
     # upstream: input$REFERENCE_TYPE

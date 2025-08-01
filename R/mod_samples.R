@@ -249,10 +249,7 @@ mod_samples_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu
 #' @importFrom shinyjs enable disable
 mod_samples_server <- function(
-  id,
-  sites_data = reactive(NULL),
-  parameters_data = reactive(NULL),
-  compartments_data = reactive(NULL)
+  id
 ) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -581,16 +578,9 @@ mod_samples_server <- function(
     # downstream: selectize input choices and moduleState
     observe({
       # Use provided data or fallback to dummy data
-      sites <- if (isTruthy(sites_data()) && nrow(sites_data()) > 0)
-        sites_data() else dummy_sites
-      parameters <- if (
-        isTruthy(parameters_data()) && nrow(parameters_data()) > 0
-      )
-        parameters_data() else dummy_parameters
-      compartments <- if (
-        isTruthy(compartments_data()) && nrow(compartments_data()) > 0
-      )
-        compartments_data() else dummy_compartments
+      sites <- dummy_sites
+      parameters <- dummy_parameters
+      compartments <- dummy_compartments
 
       # Store available options
       moduleState$available_sites <- sites

@@ -176,6 +176,7 @@ mod_campaign_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput bindEvent
+#' @importFrom glue glue
 mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -309,6 +310,17 @@ mod_campaign_server <- function(id) {
     ) |>
       bindEvent(input$clear)
 
+    ## observe ~ bindEvent: Set session user name ----
+    observe({
+      # Set the reactive value
+      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+      showNotification(
+        glue("Saved your username {input$ENTERED_BY} to session data."),
+        type = "message"
+      )
+    }) |> bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+
     # 3. Outputs ----
 
     ## output: validation_reporter ----
@@ -346,10 +358,7 @@ mod_campaign_server <- function(id) {
     # upstream: moduleState$validated_data
     # downstream: server.R
     return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
+        reactive(moduleState$validated_data %|truthy|% NULL))
   })
 }
 
