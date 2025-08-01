@@ -13,7 +13,7 @@
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
-#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyjs useShinyjs enable disable
 #' @importFrom shinyWidgets airDatepickerInput
 #' @importFrom golem get_golem_wd
 mod_samples_ui <- function(id) {
@@ -69,7 +69,7 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-outline-primary",
                   style = "margin-right: 5px;"
-                ),
+                ) |> disabled(), # until sites are available,
                 actionButton(
                   ns("remove_all_sites"),
                   "Remove All",
@@ -100,7 +100,7 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-outline-primary",
                   style = "margin-right: 5px;"
-                ),
+                ) |> disabled(), # until parameters are available,
                 actionButton(
                   ns("remove_all_parameters"),
                   "Remove All",
@@ -131,7 +131,7 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-outline-primary",
                   style = "margin-right: 5px;"
-                ),
+                ) |> disabled(), # until compartments are available,
                 actionButton(
                   ns("remove_all_compartments"),
                   "Remove All",
@@ -248,7 +248,7 @@ mod_samples_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectizeInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu
-#' @importFrom shinyjs enable disable
+#' @importFrom shinyjs enable disable disabled
 mod_samples_server <- function(
   id
 ) {
@@ -362,15 +362,19 @@ mod_samples_server <- function(
     # upstream: user clicks input$add_all_sites
     # downstream: input$sites_select
     observe({
-      if (!is.null(moduleState$available_sites)) {
+      if (isTruthy(moduleState$available_sites) && nrow(moduleState$available_sites)>0) {
         updateSelectizeInput(
           session,
           "sites_select",
           selected = moduleState$available_sites$SITE_CODE
         )
-      }
+        enable(id = "add_all_sites")
+        enable(id = "sites_select")
+      } else {disable(id = "add_all_sites")
+        disable(id = "sites_select")
+        }
     }) |>
-      bindEvent(input$add_all_sites)
+      bindEvent(input$add_all_sites, moduleState$available_sites)
 
     ## observe ~bindEvent(remove_all_sites): Remove all sites ----
     # upstream: user clicks input$remove_all_sites
@@ -384,15 +388,21 @@ mod_samples_server <- function(
     # upstream: user clicks input$add_all_parameters
     # downstream: input$parameters_select
     observe({
-      if (!is.null(moduleState$available_parameters)) {
+      if (isTruthy(moduleState$available_parameters) && nrow(moduleState$available_parameters) > 0) {
         updateSelectizeInput(
           session,
           "parameters_select",
           selected = moduleState$available_parameters$STRESSOR_NAME
         )
+        enable(id = "add_all_parameters")
+        enable(id = "parameters_select")
+      } else {
+        disable(id = "add_all_parameters")
+        disable(id = "parameters_select")
+
       }
     }) |>
-      bindEvent(input$add_all_parameters)
+      bindEvent(input$add_all_parameters, moduleState$available_parameters)
 
     ## observe ~bindEvent(remove_all_parameters): Remove all parameters ----
     # upstream: user clicks input$remove_all_parameters
@@ -410,7 +420,7 @@ mod_samples_server <- function(
     # upstream: user clicks input$add_all_compartments
     # downstream: input$compartments_select
     observe({
-      if (!is.null(moduleState$available_compartments)) {
+      if (isTruthy(moduleState$available_compartments) && nrow(moduleState$available_compartments) > 0) {
         compartment_values <- paste(
           moduleState$available_compartments$ENVIRON_COMPARTMENT,
           moduleState$available_compartments$ENVIRON_COMPARTMENT_SUB,
@@ -421,9 +431,15 @@ mod_samples_server <- function(
           "compartments_select",
           selected = compartment_values
         )
+        enable(id = "add_all_compartments")
+        enable(id = "compartments_select")
+      } else {
+        disable(id = "add_all_compartments")
+        disable(id = "compartments_select")
+
       }
     }) |>
-      bindEvent(input$add_all_compartments)
+      bindEvent(input$add_all_compartments, moduleState$available_compartments)
 
     ## observe ~bindEvent(remove_all_compartments): Remove all compartments ----
     # upstream: user clicks input$remove_all_compartments
