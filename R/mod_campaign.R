@@ -176,6 +176,7 @@ mod_campaign_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput bindEvent
+#' @importFrom glue glue
 mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -252,9 +253,9 @@ mod_campaign_server <- function(id) {
 
     # 2. Observers and Reactives ----
 
-    ## observe: check validation status ----
+    ## observe: check validation status and send to session$userData ----
     # upstream: iv
-    # downstream: moduleState$validated_data, moduleState$is_valid
+    # downstream: moduleState$validated_data, moduleState$is_valid, session$userData$reactiveValues
     observe({
       if (iv$is_valid()) {
         # Collect validated data
@@ -274,6 +275,10 @@ mod_campaign_server <- function(id) {
 
         moduleState$validated_data <- validated_data
         moduleState$is_valid <- TRUE
+
+        session$userData$reactiveValues$campaignData <- moduleState$validated_data
+        print_dev(glue("mod_campaign is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE
@@ -309,6 +314,17 @@ mod_campaign_server <- function(id) {
     ) |>
       bindEvent(input$clear)
 
+    ## observe ~ bindEvent: Set session user name ----
+    observe({
+      # Set the reactive value
+      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+      showNotification(
+        glue("Saved your username {input$ENTERED_BY} to session data."),
+        type = "message"
+      )
+    }) |> bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+
     # 3. Outputs ----
 
     ## output: validation_reporter ----
@@ -340,16 +356,6 @@ mod_campaign_server <- function(id) {
         "# Data object will be created when valid data is entered."
       }
     })
-
-    # 4. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

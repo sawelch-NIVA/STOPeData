@@ -155,7 +155,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
-mod_sites_server <- function(id) {
+mod_sites_server <- function(id,   user_id = reactive(NULL)) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -312,7 +312,7 @@ mod_sites_server <- function(id) {
         SITE_COORDINATE_SYSTEM = "WGS 84",
         ALTITUDE_VALUE = NA,
         ALTITUDE_UNIT = "m",
-        ENTERED_BY = "",
+        ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
         ENTERED_DATE = as.character(Sys.Date()),
         SITE_COMMENT = "",
         stringsAsFactors = FALSE
@@ -404,6 +404,11 @@ mod_sites_server <- function(id) {
       if (validation_result && nrow(moduleState$sites_data) > 0) {
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- moduleState$sites_data
+
+        session$userData$reactiveValues$sitesData <- moduleState$validated_data
+        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"))
+
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL

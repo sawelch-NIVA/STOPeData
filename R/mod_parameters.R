@@ -139,6 +139,8 @@ mod_parameters_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
+#' @importFrom golem print_dev
+#' @importFrom glue glue
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -547,7 +549,7 @@ mod_parameters_server <- function(id) {
       }
     })
 
-    ## observe: Check overall validation status ----
+    ## observe: Check overall validation status and update reactiveValues ----
     # upstream: moduleState$parameters_data, iv
     # downstream: moduleState$is_valid, moduleState$validated_data
     observe({
@@ -556,6 +558,10 @@ mod_parameters_server <- function(id) {
       if (validation_result && nrow(moduleState$parameters_data) > 0) {
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- moduleState$parameters_data
+
+        session$userData$reactiveValues$parametersData <- moduleState$validated_data
+        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
