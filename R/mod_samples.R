@@ -67,13 +67,13 @@ mod_samples_ui <- function(id) {
                 actionButton(
                   ns("add_all_sites"),
                   "Add All",
-                  class = "btn-sm btn-outline-primary",
+                  class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
                 ) |> disabled(), # until sites are available,
                 actionButton(
                   ns("remove_all_sites"),
                   "Remove All",
-                  class = "btn-sm btn-outline-danger"
+                  class = "btn-sm btn-danger"
                 )
               )
             ),
@@ -98,13 +98,13 @@ mod_samples_ui <- function(id) {
                 actionButton(
                   ns("add_all_parameters"),
                   "Add All",
-                  class = "btn-sm btn-outline-primary",
+                  class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
                 ) |> disabled(), # until parameters are available,
                 actionButton(
                   ns("remove_all_parameters"),
                   "Remove All",
-                  class = "btn-sm btn-outline-danger"
+                  class = "btn-sm btn-danger"
                 )
               )
             ),
@@ -129,18 +129,19 @@ mod_samples_ui <- function(id) {
                 actionButton(
                   ns("add_all_compartments"),
                   "Add All",
-                  class = "btn-sm btn-outline-primary",
+                  class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
                 ) |> disabled(), # until compartments are available,
                 actionButton(
                   ns("remove_all_compartments"),
                   "Remove All",
-                  class = "btn-sm btn-outline-danger"
+                  class = "btn-sm btn-danger"
                 )
               )
             ),
 
             ## Sampling dates ----
+            div(
             airDatepickerInput(
               inputId = ns("sampling_date"),
               label = tooltip(
@@ -148,12 +149,35 @@ mod_samples_ui <- function(id) {
                 "Dates when samples were collected"
               ),
               dateFormat = "yyyy-MM-dd",
-              language = "en",
               width = "100%",
               multiple = TRUE,
               todayButton = TRUE,
-              addon = "none"
+              update_on = "change",
+              addon = "none"),
+            div(
+              style = "margin-top: 5px;",
+              actionButton(
+                ns("remove_all_dates"),
+                "Remove All",
+                class = "btn-sm btn-danger"
+              ) |> disabled()  # start disabled until dates are selected
             )
+            ),
+
+            ## Sample replicates ----
+            numericInput(
+              inputId = ns("sample_replicates"),
+              label = tooltip(
+                list("Sample Replicates", bs_icon("info-circle-fill")),
+                "Number of replicate samples for each combination"
+              ),
+              value = 1,
+              min = 1,
+              max = 20,
+              step = 1,
+              width = "100%"
+            )
+          )
           ),
 
           ## Generate combinations button ----
@@ -166,14 +190,13 @@ mod_samples_ui <- function(id) {
               class = "btn-success",
               width = "250px"
             )
-          ),
+          ) |> disabled(),
 
           ## Preview info ----
           div(
-            style = "margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 5px;",
+            style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
             uiOutput(ns("combination_preview"))
-          )
-        ),
+          ),
 
         ## Action buttons for table management ----
         div(
@@ -217,7 +240,6 @@ mod_samples_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
-      )
     ),
 
     ## Navigation buttons ----
@@ -239,6 +261,7 @@ mod_samples_ui <- function(id) {
         width = "200px"
       )
     )
+    )
   )
 }
 
@@ -249,9 +272,9 @@ mod_samples_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectizeInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu
 #' @importFrom shinyjs enable disable disabled
-mod_samples_server <- function(
-  id
-) {
+#' @importFrom shinyWidgets updateAirDateInput
+
+mod_samples_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -281,6 +304,7 @@ mod_samples_server <- function(
           "PARAMETER_NAME",
           "COMPARTMENT",
           "SAMPLING_DATE",
+          "REPLICATE",
           "SAMPLE_ID"
         )
 
@@ -295,7 +319,6 @@ mod_samples_server <- function(
         NULL # All validations passed
       }
     })
-
     iv$enable()
 
     # 3. Observers and Reactives ----
@@ -341,22 +364,7 @@ mod_samples_server <- function(
         ignoreInit = FALSE
       )
 
-    ## observe: Update combination preview ----
-    # upstream: input selections
-    # downstream: combination_preview output
-    output$combination_preview <- renderUI({
-      sites_count <- length(input$sites_select %||% character(0))
-      params_count <- length(input$parameters_select %||% character(0))
-      comps_count <- length(input$compartments_select %||% character(0))
-      dates_count <- length(input$sampling_date %||% character(0)) # Now supports multiple dates
 
-      update_combination_preview(
-        sites_count,
-        params_count,
-        comps_count,
-        dates_count
-      )
-    })
 
     ## observe ~bindEvent(add_all_sites): Add all sites ----
     # upstream: user clicks input$add_all_sites
@@ -453,6 +461,88 @@ mod_samples_server <- function(
     }) |>
       bindEvent(input$remove_all_compartments)
 
+    ## observe: Enable/disable remove all sites button ----
+    # upstream: input$sites_select
+    # downstream: remove_all_sites button state
+    observe({
+      if (isTruthy(input$sites_select) && length(input$sites_select) > 0) {
+        enable("remove_all_sites")
+      } else {
+        disable("remove_all_sites")
+      }
+    }) |>
+      bindEvent(input$sites_select, ignoreNULL = FALSE)
+
+    ## observe: Enable/disable remove all parameters button ----
+    # upstream: input$parameters_select
+    # downstream: remove_all_parameters button state
+    observe({
+      if (isTruthy(input$parameters_select) && length(input$parameters_select) > 0) {
+        enable("remove_all_parameters")
+      } else {
+        disable("remove_all_parameters")
+      }
+    }) |>
+      bindEvent(input$parameters_select, ignoreNULL = FALSE)
+
+    ## observe: Enable/disable remove all compartments button ----
+    # upstream: input$compartments_select
+    # downstream: remove_all_compartments button state
+    observe({
+      if (isTruthy(input$compartments_select) && length(input$compartments_select) > 0) {
+        enable("remove_all_compartments")
+      } else {
+        disable("remove_all_compartments")
+      }
+    }) |>
+      bindEvent(input$compartments_select, ignoreNULL = FALSE)
+
+    ## observe: Enable/disable remove all dates button ----
+    # upstream: input$sampling_date
+    # downstream: remove_all_dates button state
+    observe({
+      golem::print_dev(glue("input$sampling_date: {input$sampling_date}"))
+      if (isTruthy(input$sampling_date) && length(input$sampling_date) > 0) {
+        enable("remove_all_dates")
+      } else {
+        disable("remove_all_dates")
+      }
+    }) |>
+      bindEvent(input$sampling_date, ignoreNULL = FALSE)
+
+    ## observe ~bindEvent(remove_all_dates): Remove all dates ----
+    # upstream: user clicks input$remove_all_dates
+    # downstream: input$sampling_date
+    observe({
+      updateAirDateInput(
+        session,
+        "sampling_date",
+        clear = TRUE
+      )
+    }) |>
+      bindEvent(input$remove_all_dates)
+
+    ## observe ~bindEvent(generate_combinations): Enable generate button when options valid ----
+    observe({
+      if(
+        all(
+          isTruthy(c(input$sites_select,
+                     input$compartments_select,
+                     input$parameters_select,
+                     input$sampling_date,
+                     input$sample_replicates))
+        )
+      ) {
+        enable("generate_combinations")
+      } else {
+        disable("generate_combinations")
+      }
+    }) |> bindEvent(input$sites_select,
+                    input$compartments_select,
+                    input$parameters_select,
+                    input$sampling_date,
+                    input$sample_replicates)
+
     ## observe ~bindEvent(generate_combinations): Generate sample combinations ----
     # upstream: user clicks input$generate_combinations
     # downstream: moduleState$samples_data
@@ -461,12 +551,13 @@ mod_samples_server <- function(
       parameters <- input$parameters_select
       compartments <- input$compartments_select
       dates <- input$sampling_date
+      replicates <- input$sample_replicates %||% 1
 
       if (
         length(sites) == 0 ||
-          length(parameters) == 0 ||
-          length(compartments) == 0 ||
-          length(dates) == 0
+        length(parameters) == 0 ||
+        length(compartments) == 0 ||
+        length(dates) == 0
       ) {
         showNotification(
           "Please select at least one site, parameter, compartment, and date",
@@ -481,6 +572,7 @@ mod_samples_server <- function(
         parameters,
         compartments,
         dates,
+        replicates,
         moduleState$samples_data
       )
       new_combinations <- result$combinations
@@ -499,7 +591,7 @@ mod_samples_server <- function(
         paste(
           "Generated",
           nrow(new_combinations),
-          "new combinations,",
+          "new sample combinations,",
           skipped_count,
           "duplicates skipped"
         )
@@ -544,6 +636,8 @@ mod_samples_server <- function(
     }) |>
       bindEvent(input$clear_all)
 
+
+
     ## observe: Handle table changes ----
     # upstream: input$samples_table changes
     # downstream: moduleState$samples_data
@@ -575,6 +669,25 @@ mod_samples_server <- function(
     })
 
     # 4. Outputs ----
+
+    ## output: Update combination preview ----
+    # upstream: input selections
+    # downstream: combination_preview output
+    output$combination_preview <- renderUI({
+      sites_count <- length(input$sites_select %||% character(0))
+      params_count <- length(input$parameters_select %||% character(0))
+      comps_count <- length(input$compartments_select %||% character(0))
+      dates_count <- length(input$sampling_date %||% character(0))
+      replicates_count <- input$sample_replicates %||% 1
+
+      update_combination_preview(
+        sites_count,
+        params_count,
+        comps_count,
+        dates_count,
+        replicates_count
+      )
+    })
 
     ## output: samples_table ----
     # upstream: moduleState$samples_data
