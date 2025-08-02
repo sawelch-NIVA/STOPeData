@@ -155,7 +155,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
-mod_sites_server <- function(id,   user_id = reactive(NULL)) {
+mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
