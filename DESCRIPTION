@@ -20,7 +20,7 @@ Imports:
     leaflet,
     pkgload,
     rhandsontable,
-    shiny,
+    shiny (>= 1.11.1),
     shinyjs,
     shinytest2,
     shinyvalidate,
