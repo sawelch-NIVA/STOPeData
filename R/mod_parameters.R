@@ -141,6 +141,9 @@ mod_parameters_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom golem print_dev
 #' @importFrom glue glue
+#' @importFrom dplyr mutate bind_rows pull filter
+#' @importFrom arrow read_parquet
+
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -156,54 +159,31 @@ mod_parameters_server <- function(id) {
     )
 
     ## Dummy parameter database ----
-    dummy_parameters <- list(
-      "Stressor" = list(
-        "Copper" = list(
-          PARAMETER_NAME = "Copper",
-          STRESSOR_TYPE_SUB = "Metal/metalloid",
-          MEASURED_TYPE = "Concentration",
-          CAS_RN = "7440-50-8",
-          PUBCHEM_CID = "23978",
-          INCHIKEY_SD = "RYGMFSIKBFXOCR-UHFFFAOYSA-N"
-        ),
-        "Lead" = list(
-          PARAMETER_NAME = "Lead",
-          STRESSOR_TYPE_SUB = "Metal/metalloid",
-          MEASURED_TYPE = "Concentration",
-          CAS_RN = "7439-92-1",
-          PUBCHEM_CID = "5352425",
-          INCHIKEY_SD = "WABPQHHGFIMREM-UHFFFAOYSA-N"
-        ),
-        "Benzene" = list(
-          PARAMETER_NAME = "Benzene",
-          STRESSOR_TYPE_SUB = "Organic chemical",
-          MEASURED_TYPE = "Concentration",
-          CAS_RN = "71-43-2",
-          PUBCHEM_CID = "241",
-          INCHIKEY_SD = "UHOVQNZJYSORNB-UHFFFAOYSA-N"
-        )
-      ),
-      "Quality parameter" = list(
-        "pH" = list(
-          PARAMETER_NAME = "pH",
-          STRESSOR_TYPE_SUB = "pH",
-          MEASURED_TYPE = "Physical parameter",
-          CAS_RN = NA,
-          PUBCHEM_CID = NA,
-          INCHIKEY_SD = NA
-        ),
-        "Dissolved oxygen" = list(
-          PARAMETER_NAME = "Dissolved oxygen",
-          STRESSOR_TYPE_SUB = "Dissolved oxygen",
-          MEASURED_TYPE = "Concentration",
-          CAS_RN = "7782-44-7",
-          PUBCHEM_CID = "977",
-          INCHIKEY_SD = "MYMOFIZGZYHOMD-UHFFFAOYSA-N"
-        )
-      ),
-      "Normalization" = list(),
-      "Background" = list()
+    # Convert dummy_parameters list to dataframe manually ----
+    dummy_params_df <- data.frame(
+      category = c("Quality parameter", "Quality parameter"),
+      PARAMETER_NAME = c("pH", "Dissolved oxygen"),
+      STRESSOR_TYPE_SUB = c("pH", "Dissolved oxygen"),
+      MEASURED_TYPE = c("Physical parameter", "Concentration"),
+      CAS_RN = c(NA, "7782-44-7"),
+      PUBCHEM_CID = c(NA, "977"),
+      INCHIKEY_SD = c(NA, "MYMOFIZGZYHOMD-UHFFFAOYSA-N"),
+      stringsAsFactors = FALSE
     )
+
+    # Read and prepare chemical_parameters ----
+    chemical_parameters <- read_parquet(file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet") |>
+      mutate(
+        category = "Chemical",  # Add category column to match dummy_params structure
+        STRESSOR_TYPE_SUB = "dunno",
+        MEASURED_TYPE = "dunno",
+        CAS_RN = NA,
+        PUBCHEM_CID = NA,
+        INCHIKEY_SD = NA
+      )
+
+    # Merge datasets ----
+    dummy_parameters <- bind_rows(dummy_params_df, chemical_parameters)
 
     ## Controlled vocabulary options ----
     stressor_types <- c(
@@ -354,7 +334,12 @@ mod_parameters_server <- function(id) {
 
     ## Get available parameter names for selected type ----
     get_parameter_names <- function(param_type) {
-      base_params <- names(dummy_parameters[[param_type]] %||% list())
+      # Get base parameters from dummy_parameters dataframe
+      base_params <- dummy_parameters |>
+        filter(category == param_type) |>
+        pull(PARAMETER_NAME)
+
+      # Get session parameters (assuming this remains a list structure)
       session_params <- names(
         moduleState$session_parameters[[param_type]] %||% list()
       )
