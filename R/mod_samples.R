@@ -695,12 +695,45 @@ mod_samples_server <- function(id) {
     output$samples_table <- renderRHandsontable({
       if (nrow(moduleState$samples_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_samples_df(), width = "100%", height = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-      } else {
-        rhandsontable(moduleState$samples_data, width = "100%") |>
+        rhandsontable(init_samples_df(),
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
+      } else {
+        rhandsontable(moduleState$samples_data,
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
+          hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
+          # TODO: Fix date formatting.
+          hot_col("SAMPLING_DATE", readOnly = TRUE, format = "date", dateFormat = "YYYY-mm-dd") |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       }
     })
 

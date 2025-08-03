@@ -122,3 +122,8 @@ code, pre, .code {
         padding: 15px;
         background-color: var(--bg-light);
 }
+
+/* Make hot_table() use the full available height of its container */
+.ht_master {
+  height: inherit !important
+}

@@ -31,7 +31,8 @@ mod_sites_ui <- function(id) {
 
       ## Left panel: Table and controls ----
       card(
-        card_header("Sites Data Management"),
+        full_screen = TRUE,
+        card_header("Sites Data"),
         card_body(
           ### Info accordion ----
           accordion(
@@ -39,7 +40,11 @@ mod_sites_ui <- function(id) {
             accordion_panel(
               title = "Sites Data Information",
               icon = bs_icon("info-circle"),
-              "This module manages sampling site information. Add sites by clicking 'Add New Site' which creates an editable row in the table. Edit fields directly in the table. Use the map to verify coordinates are correct. At least one complete site is required to proceed."
+              "This module manages sampling site information.
+              Add sites by clicking 'Add New Site' which creates an editable row in the table.
+              Edit fields directly in the table. Use the map to verify coordinates are correct.
+              At least one complete site is required to proceed.
+              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards."
             )
           ),
 
@@ -53,13 +58,6 @@ mod_sites_ui <- function(id) {
               class = "btn-success",
               width = "200px"
             ),
-            input_task_button(
-              id = ns("remove_selected"),
-              label = "Remove Selected",
-              icon = icon("trash"),
-              class = "btn-danger",
-              width = "200px"
-            )
           ),
 
           ### Sites table ----
@@ -86,43 +84,10 @@ mod_sites_ui <- function(id) {
 
       ## Right panel: Map ----
       card(
-        card_header("Site Locations Map"),
-        card_body(
-          ### Map controls ----
-          layout_column_wrap(
-            width = "200px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            selectInput(
-              inputId = ns("map_center_country"),
-              label = "Center Map On",
-              choices = c(
-                "Norway" = "norway",
-                "Europe" = "europe",
-                "World" = "world",
-                "Custom" = "custom"
-              ),
-              selected = "norway",
-              width = "100%"
-            ),
-
-            selectInput(
-              inputId = ns("coordinate_display"),
-              label = "Show Coordinates As",
-              choices = c(
-                "Decimal Degrees" = "decimal",
-                "Degrees Minutes Seconds" = "dms"
-              ),
-              selected = "decimal",
-              width = "100%"
-            )
-          ),
-
+        full_screen = TRUE,
           ### Leaflet map ----
           leafletOutput(ns("sites_map"), height = "500px")
         )
-      )
     ),
 
     ## Navigation buttons ----
@@ -152,7 +117,7 @@ mod_sites_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
 mod_sites_server <- function(id) {
@@ -202,12 +167,30 @@ mod_sites_server <- function(id) {
     )
 
     coordinate_systems <- c(
+      "Not relevant",
+      "Not reported",
       "WGS 84",
       "UTM 32",
       "UTM 33",
       "UTM 34",
       "UTM 35",
       "ETRS89",
+      "Other"
+    )
+
+    countries <- c(
+      "Not relevant",
+      "Not reported",
+      "Norway",
+      "Other"
+    )
+
+    areas <- c(
+      "Not relevant",
+      "Not reported",
+      "Area 1",
+      "Area 2",
+      "Area 3",
       "Other"
     )
 
@@ -305,11 +288,11 @@ mod_sites_server <- function(id) {
         SITE_NAME = "",
         SITE_GEOGRAPHIC_FEATURE = "Not reported",
         SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
-        COUNTRY = "",
-        AREA = "",
+        SITE_COORDINATE_SYSTEM = "WGS 84",
         LATITUDE = NA,
         LONGITUDE = NA,
-        SITE_COORDINATE_SYSTEM = "WGS 84",
+        COUNTRY = "",
+        AREA = "",
         ALTITUDE_VALUE = NA,
         ALTITUDE_UNIT = "m",
         ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
@@ -317,28 +300,6 @@ mod_sites_server <- function(id) {
         SITE_COMMENT = "",
         stringsAsFactors = FALSE
       )
-    }
-
-    ## Get map center coordinates ----
-    get_map_center <- function(country) {
-      centers <- list(
-        "norway" = c(lat = 60.472, lng = 8.469),
-        "europe" = c(lat = 54.526, lng = 15.255),
-        "world" = c(lat = 20.0, lng = 0.0),
-        "custom" = c(lat = 60.472, lng = 8.469)
-      )
-      centers[[country]] %||% centers[["world"]]
-    }
-
-    ## Get map zoom level ----
-    get_map_zoom <- function(country) {
-      zooms <- list(
-        "norway" = 5,
-        "europe" = 4,
-        "world" = 2,
-        "custom" = 5
-      )
-      zooms[[country]] %||% zooms[["world"]]
     }
 
     # 3. Observers and Reactives ----
@@ -423,69 +384,107 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df()) |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
-          hot_col("SITE_CODE", readOnly = TRUE) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE",
-            type = "dropdown",
-            source = geographic_features,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE_SUB",
-            type = "dropdown",
-            source = geographic_features_sub,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "SITE_COORDINATE_SYSTEM",
-            type = "dropdown",
-            source = coordinate_systems,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "ALTITUDE_UNIT",
-            type = "dropdown",
-            source = altitude_units,
-            strict = TRUE
-          ) |>
-          hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("ALTITUDE_VALUE", type = "numeric") |>
-          hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
+        rhandsontable(init_sites_df(), stretchH = "all") |>
+          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
-        rhandsontable(moduleState$sites_data) |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
-          hot_col("SITE_CODE", readOnly = TRUE) |>
+        rhandsontable(
+          moduleState$sites_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
+          hot_table(overflow = "all", stretchH = "all") |>
+          hot_col("SITE_CODE") |>
+          hot_cell(1, 1, comment = 'Site Code: A short, unique code identifying identify the site.') |>
+          hot_col("SITE_NAME") |>
+          hot_cell(1, 2, comment = 'Site Name: A longer site name identifying the site.') |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE",
             type = "dropdown",
             source = geographic_features,
             strict = TRUE
           ) |>
+          hot_cell(1, 3, comment = 'Site Geographical Feature: The geographical category of the site.') |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE_SUB",
             type = "dropdown",
             source = geographic_features_sub,
             strict = TRUE
           ) |>
+          hot_cell(1, 4, comment = 'Site Geographical Sub-Feature: The geographical sub-category of the site.') |>
           hot_col(
             "SITE_COORDINATE_SYSTEM",
             type = "dropdown",
             source = coordinate_systems,
             strict = TRUE
           ) |>
+          hot_cell(1, 5, comment = 'Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude.') |>
+          hot_col(
+            "LATITUDE",
+            type = "numeric",
+            format = "0.000000",
+          ) |>
+          hot_cell(1, 6, comment = "Latitude: The site's latitude (northing, y axis, in decimal degrees)") |>
+          hot_col(
+            "LONGITUDE",
+            type = "numeric",
+            format = "0.000000",
+            allowInvalid = FALSE
+          ) |>
+          hot_cell(1, 7, comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)") |>
+          hot_col(
+            "COUNTRY",
+            type = "dropdown",
+            source = countries,
+            strict = TRUE
+          ) |>
+          hot_cell(1, 8, comment = 'Country: The country where the site was sampled.') |>
+          hot_col(
+            "AREA",
+            type = "dropdown",
+            source = areas,
+            strict = TRUE
+          ) |>
+          hot_cell(1, 9, comment = 'Area: The region where the site was sampled.') |>
+          hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE) |>
+          hot_cell(1, 10, comment = "Altitude: The sampling site's altitude above or below sea level.") |>
           hot_col(
             "ALTITUDE_UNIT",
             type = "dropdown",
             source = altitude_units,
             strict = TRUE
           ) |>
-          hot_col("LATITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("LONGITUDE", type = "numeric", format = "0.000000") |>
-          hot_col("ALTITUDE_VALUE", type = "numeric") |>
-          hot_col("ENTERED_DATE", type = "date", dateFormat = "YYYY-MM-DD")
+          hot_cell(1, 11, comment = "Altitude Unit: The unit associated with the site's reported altitude.") |>
+          hot_col(
+            "ENTERED_DATE",
+            type = "date",
+            dateFormat = "YYYY-MM-DD",
+            allowInvalid = FALSE
+          ) |>
+          hot_cell(1, 12, comment = "Entered Data: The date this site is added to the database.") |>
+          hot_col(
+            "ENTERED_BY",
+            type = "text",
+          ) |>
+          hot_cell(1, 13, comment = "Entered By: Your name or initials (autofilled from Campaign if available).") |>
+          hot_col(
+            "SITE_COMMENT",
+            type = "text",
+          ) |>
+          hot_cell(1, 14, comment = "Site Comment: Any additional comments or relevant details about the site.") |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       }
     })
 
@@ -493,12 +492,9 @@ mod_sites_server <- function(id) {
     # upstream: moduleState$sites_data, input$map_center_country
     # downstream: UI map display
     output$sites_map <- renderLeaflet({
-      center <- get_map_center(input$map_center_country)
-      zoom <- get_map_zoom(input$map_center_country)
 
       map <- leaflet() |>
-        addTiles() |>
-        setView(lng = center[["lng"]], lat = center[["lat"]], zoom = zoom)
+        addTiles()
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
@@ -532,18 +528,6 @@ mod_sites_server <- function(id) {
 
       map
     })
-
-    ## observe: Update map center ----
-    # upstream: input$map_center_country
-    # downstream: sites_map view
-    observe({
-      center <- get_map_center(input$map_center_country)
-      zoom <- get_map_zoom(input$map_center_country)
-
-      leafletProxy("sites_map") |>
-        setView(lng = center[["lng"]], lat = center[["lat"]], zoom = zoom)
-    }) |>
-      bindEvent(input$map_center_country)
 
     ## output: validation_reporter ----
     # upstream: moduleState$is_valid
