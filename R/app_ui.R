@@ -48,7 +48,7 @@ app_ui <- function(request) {
       ),
       nav_panel(
         title = "5. Compartments",
-        value = "04-compartments",
+        value = "05-compartments",
         mod_compartments_ui("compartments"),
         icon = bs_icon("box")
       ),
@@ -87,6 +87,25 @@ app_ui <- function(request) {
       nav_item(input_dark_mode(id = "darkmode")),
       nav_spacer(),
       footer = tags$span(
+        ## Navigation buttons ----
+        div(
+          class = "navigation-buttons-container",
+          style = "display: flex; justify-content: space-between; margin: 20px;",
+
+          input_task_button(
+            id = "previous_section",
+            label = HTML('Previous Section'),
+            type = "primary",
+            width = "200px"
+          ),
+
+          input_task_button(
+            id = "next_section",
+            label = HTML('Next Section'),
+            type = "primary",
+            width = "200px"
+          )
+        ),
         tags$a(
           href = "https://github.com/sawelch-NIVA/STOPeData",
           "stop-e-data"
