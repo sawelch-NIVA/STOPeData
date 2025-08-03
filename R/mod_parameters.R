@@ -43,7 +43,7 @@ mod_parameters_ui <- function(id) {
 
           selectizeInput(
             inputId = ns("parameter_type_select"),
-            label = "Parameter Type",
+            label = "Parameter Type (dummy data)",
             choices = c(
               "Stressor" = "Stressor",
               "Quality parameter" = "Quality parameter",
@@ -164,16 +164,7 @@ mod_parameters_server <- function(id) {
 
     ## Dummy parameter database ----
     # Convert dummy_parameters list to dataframe manually ----
-    dummy_params_df <- data.frame(
-      PARAMETER_TYPE = c("Quality parameter", "Quality parameter"),
-      PARAMETER_NAME = c("pH", "Dissolved oxygen"),
-      PARAMETER_TYPE_SUB = c("pH", "Dissolved oxygen"),
-      MEASURED_TYPE = c("Physical parameter", "Concentration"),
-      CAS_RN = c(NA, "7782-44-7"),
-      PUBCHEM_CID = c(NA, "977"),
-      INCHIKEY_SD = c(NA, "MYMOFIZGZYHOMD-UHFFFAOYSA-N"),
-      stringsAsFactors = FALSE
-    )
+    dummy_quality_params <- read.csv("inst/data/clean/dummy_quality_parameters.csv")
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet") |>
@@ -187,7 +178,7 @@ mod_parameters_server <- function(id) {
       )
 
     # Merge datasets ----
-    dummy_parameters <- bind_rows(dummy_params_df, chemical_parameters)
+    dummy_parameters <- bind_rows(dummy_quality_params, chemical_parameters)
 
     ## Controlled vocabulary options ----
     parameter_types <- c(
