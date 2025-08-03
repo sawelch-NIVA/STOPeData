@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @importFrom tibble tibble
 mod_parameters_ui <- function(id) {
   ns <- NS(id)
 
@@ -155,7 +156,7 @@ mod_parameters_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      parameters_data = data.frame(),
+      parameters_data = tibble(),
       validated_data = NULL,
       is_valid = FALSE,
       next_param_id = 1,
@@ -232,7 +233,7 @@ mod_parameters_server <- function(id) {
 
     ## Initialize empty parameters data frame ----
     init_parameters_df <- function() {
-      data.frame(
+      tibble(
         PARAMETER_TYPE = character(0),
         PARAMETER_TYPE_SUB = character(0),
         MEASURED_TYPE = character(0),
@@ -240,8 +241,7 @@ mod_parameters_server <- function(id) {
         PARAMETER_NAME_SUB = character(0),
         INCHIKEY_SD = character(0),
         PUBCHEM_CID = character(0),
-        CAS_RN = character(0),
-        stringsAsFactors = FALSE
+        CAS_RN = NA
       )
     }
 
