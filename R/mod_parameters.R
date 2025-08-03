@@ -41,7 +41,7 @@ mod_parameters_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
-          selectInput(
+          selectizeInput(
             inputId = ns("parameter_type_select"),
             label = "Parameter Type",
             choices = c(
@@ -51,7 +51,8 @@ mod_parameters_ui <- function(id) {
               "Background" = "Background"
             ),
             selected = "Stressor",
-            width = "100%"
+            width = "100%",
+            multiple = FALSE
           ),
 
           selectInput(
@@ -143,10 +144,13 @@ mod_parameters_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom dplyr mutate bind_rows pull filter
 #' @importFrom arrow read_parquet
+#' @importFrom purrr negate
 
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    `%notin%` <- negate(`%in%`)
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
@@ -161,9 +165,9 @@ mod_parameters_server <- function(id) {
     ## Dummy parameter database ----
     # Convert dummy_parameters list to dataframe manually ----
     dummy_params_df <- data.frame(
-      category = c("Quality parameter", "Quality parameter"),
+      PARAMETER_TYPE = c("Quality parameter", "Quality parameter"),
       PARAMETER_NAME = c("pH", "Dissolved oxygen"),
-      STRESSOR_TYPE_SUB = c("pH", "Dissolved oxygen"),
+      PARAMETER_TYPE_SUB = c("pH", "Dissolved oxygen"),
       MEASURED_TYPE = c("Physical parameter", "Concentration"),
       CAS_RN = c(NA, "7782-44-7"),
       PUBCHEM_CID = c(NA, "977"),
@@ -174,9 +178,9 @@ mod_parameters_server <- function(id) {
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet") |>
       mutate(
-        category = "Chemical",  # Add category column to match dummy_params structure
-        STRESSOR_TYPE_SUB = "dunno",
-        MEASURED_TYPE = "dunno",
+        PARAMETER_TYPE = "Stressor",  # Add PARAMETER_TYPE column to match dummy_params structure
+        PARAMETER_TYPE_SUB = "Not reported",
+        MEASURED_TYPE = "Concentration",
         CAS_RN = NA,
         PUBCHEM_CID = NA,
         INCHIKEY_SD = NA
@@ -186,7 +190,7 @@ mod_parameters_server <- function(id) {
     dummy_parameters <- bind_rows(dummy_params_df, chemical_parameters)
 
     ## Controlled vocabulary options ----
-    stressor_types <- c(
+    parameter_types <- c(
       "Not relevant",
       "Stressor",
       "Quality parameter",
@@ -195,7 +199,7 @@ mod_parameters_server <- function(id) {
       "Other"
     )
 
-    stressor_type_subs <- c(
+    parameter_types_sub <- c(
       "Not reported",
       "Organic chemical",
       "Metal/metalloid",
@@ -238,8 +242,8 @@ mod_parameters_server <- function(id) {
     ## Initialize empty parameters data frame ----
     init_parameters_df <- function() {
       data.frame(
-        STRESSOR_TYPE = character(0),
-        STRESSOR_TYPE_SUB = character(0),
+        PARAMETER_TYPE = character(0),
+        PARAMETER_TYPE_SUB = character(0),
         MEASURED_TYPE = character(0),
         PARAMETER_NAME = character(0),
         PARAMETER_NAME_SUB = character(0),
@@ -260,7 +264,7 @@ mod_parameters_server <- function(id) {
         "At least one parameter must be added"
       } else {
         # Check required fields
-        required_fields <- c("STRESSOR_TYPE", "MEASURED_TYPE", "PARAMETER_NAME")
+        required_fields <- c("PARAMETER_TYPE", "MEASURED_TYPE", "PARAMETER_NAME")
 
         for (i in 1:nrow(moduleState$parameters_data)) {
           for (field in required_fields) {
@@ -270,23 +274,23 @@ mod_parameters_server <- function(id) {
             }
           }
 
-          # Conditional validation for STRESSOR_TYPE_SUB
-          stressor_type <- moduleState$parameters_data[i, "STRESSOR_TYPE"]
-          stressor_type_sub <- moduleState$parameters_data[
+          # Conditional validation for PARAMETER_TYPE_SUB
+          parameter_type <- moduleState$parameters_data[i, "PARAMETER_TYPE"]
+          PARAMETER_TYPE_SUB <- moduleState$parameters_data[
             i,
-            "STRESSOR_TYPE_SUB"
+            "PARAMETER_TYPE_SUB"
           ]
 
           if (
-            stressor_type %in%
+            parameter_type %in%
               c("Stressor", "Quality parameter", "Normalization", "Background")
           ) {
-            if (is.na(stressor_type_sub) || stressor_type_sub == "") {
+            if (is.na(PARAMETER_TYPE_SUB) || PARAMETER_TYPE_SUB == "") {
               return(paste(
                 "Row",
                 i,
-                "requires STRESSOR_TYPE_SUB when STRESSOR_TYPE is",
-                stressor_type
+                "requires PARAMETER_TYPE_SUB when PARAMETER_TYPE is",
+                parameter_type
               ))
             }
           }
@@ -330,67 +334,7 @@ mod_parameters_server <- function(id) {
 
     iv$enable()
 
-    # 2. Helper functions ----
-
-    ## Get available parameter names for selected type ----
-    get_parameter_names <- function(param_type) {
-      # Get base parameters from dummy_parameters dataframe
-      base_params <- dummy_parameters |>
-        filter(category == param_type) |>
-        pull(PARAMETER_NAME)
-
-      # Get session parameters (assuming this remains a list structure)
-      session_params <- names(
-        moduleState$session_parameters[[param_type]] %||% list()
-      )
-
-      all_params <- c("-- New Parameter --", base_params, session_params)
-      return(all_params)
-    }
-
-    ## Create parameter row from existing parameter ----
-    create_existing_parameter <- function(param_type, param_name) {
-      # Check dummy parameters first
-      param_data <- dummy_parameters[[param_type]][[param_name]]
-
-      # If not found, check session parameters
-      if (is.null(param_data)) {
-        param_data <- moduleState$session_parameters[[param_type]][[param_name]]
-      }
-
-      if (is.null(param_data)) {
-        return(NULL)
-      }
-
-      data.frame(
-        STRESSOR_TYPE = param_type,
-        STRESSOR_TYPE_SUB = param_data$STRESSOR_TYPE_SUB %||% "",
-        MEASURED_TYPE = param_data$MEASURED_TYPE %||% "Concentration",
-        PARAMETER_NAME = param_data$PARAMETER_NAME %||% param_name,
-        PARAMETER_NAME_SUB = param_data$PARAMETER_NAME_SUB %||% "",
-        INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
-        PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
-        CAS_RN = param_data$CAS_RN %||% "",
-        stringsAsFactors = FALSE
-      )
-    }
-
-    ## Create new blank parameter row ----
-    create_new_parameter <- function(param_type) {
-      data.frame(
-        STRESSOR_TYPE = param_type,
-        STRESSOR_TYPE_SUB = "",
-        MEASURED_TYPE = "Concentration",
-        PARAMETER_NAME = "",
-        PARAMETER_NAME_SUB = "",
-        INCHIKEY_SD = "",
-        PUBCHEM_CID = "",
-        CAS_RN = "",
-        stringsAsFactors = FALSE
-      )
-    }
-
-    # 3. Observers and Reactives ----
+    # 2. Observers and Reactives ----
 
     ## observe: Update parameter name dropdown when type changes ----
     # upstream: input$parameter_type_select
@@ -399,13 +343,14 @@ mod_parameters_server <- function(id) {
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        available_names <- get_parameter_names(param_type)
+        available_names <- get_parameters_of_types(param_type, dummy_parameters = dummy_parameters)
 
-        updateSelectInput(
+        updateSelectizeInput(
           session,
           "parameter_name_select",
           choices = available_names,
-          selected = if (length(available_names) > 1) available_names[1] else ""
+          selected = if (length(available_names) > 1) available_names[1] else "",
+          server = TRUE # server-side selectize for better performance
         )
       }
     })
@@ -420,9 +365,10 @@ mod_parameters_server <- function(id) {
       if (
         isTruthy(param_type) &&
           isTruthy(param_name) &&
-          param_name != "-- New Parameter --"
+          param_name != "-- New Parameter --" &&
+        param_name %notin% moduleState$parameters_data$PARAMETER_NAME
       ) {
-        new_param <- create_existing_parameter(param_type, param_name)
+        new_param <- create_existing_parameter(param_type, param_name, dummy_parameters = dummy_parameters)
 
         if (!is.null(new_param)) {
           moduleState$parameters_data <- rbind(
@@ -433,7 +379,11 @@ mod_parameters_server <- function(id) {
             paste("Added parameter:", param_name),
             type = "message"
           )
-        } else {
+          # TODO: This currently doesn't trigger
+        } else if(param_name %in% moduleState$parameters_data$PARAMETER_NAME) {
+          showNotification("Parameter already present in table", type = "error")
+        }
+        else {
           showNotification("Parameter not found", type = "error")
         }
       } else {
@@ -504,7 +454,7 @@ mod_parameters_server <- function(id) {
 
         # Store any new parameters that were created in the session
         for (i in 1:nrow(updated_data)) {
-          param_type <- updated_data[i, "STRESSOR_TYPE"]
+          param_type <- updated_data[i, "PARAMETER_TYPE"]
           param_name <- updated_data[i, "PARAMETER_NAME"]
 
           if (isTruthy(param_type) && isTruthy(param_name)) {
@@ -519,7 +469,7 @@ mod_parameters_server <- function(id) {
                 param_name
               ]] <- list(
                 PARAMETER_NAME = param_name,
-                STRESSOR_TYPE_SUB = updated_data[i, "STRESSOR_TYPE_SUB"],
+                PARAMETER_TYPE_SUB = updated_data[i, "PARAMETER_TYPE_SUB"],
                 MEASURED_TYPE = updated_data[i, "MEASURED_TYPE"],
                 PARAMETER_NAME_SUB = updated_data[i, "PARAMETER_NAME_SUB"],
                 INCHIKEY_SD = updated_data[i, "INCHIKEY_SD"],
@@ -553,7 +503,7 @@ mod_parameters_server <- function(id) {
       }
     })
 
-    # 4. Outputs ----
+    # 3. Outputs ----
 
     ## output: parameters_table ----
     # upstream: moduleState$parameters_data
@@ -566,15 +516,15 @@ mod_parameters_server <- function(id) {
         rhandsontable(moduleState$parameters_data, width = "100%") |>
           hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
           hot_col(
-            "STRESSOR_TYPE",
+            "PARAMETER_TYPE",
             type = "dropdown",
-            source = stressor_types,
+            source = parameter_types,
             strict = TRUE
           ) |>
           hot_col(
-            "STRESSOR_TYPE_SUB",
+            "PARAMETER_TYPE_SUB",
             type = "dropdown",
-            source = stressor_type_subs,
+            source = parameter_types_sub,
             strict = TRUE
           ) |>
           hot_col(
@@ -640,15 +590,6 @@ mod_parameters_server <- function(id) {
       }
     })
 
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 
