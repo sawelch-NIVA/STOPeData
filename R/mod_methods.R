@@ -85,18 +85,6 @@ mod_methods_ui <- function(id) {
           )
         ),
 
-        ## Action buttons for table management ----
-        div(
-          style = "margin: 15px 0;",
-          input_task_button(
-            id = ns("remove_selected"),
-            label = "Remove Selected",
-            icon = icon("trash"),
-            class = "btn-danger",
-            width = "200px"
-          )
-        ),
-
         ## Methods table ----
         rHandsontableOutput(ns("methods_table")),
 
@@ -378,40 +366,6 @@ mod_methods_server <- function(id) {
     }) |>
       bindEvent(input$add_method)
 
-    ## observe ~bindEvent(remove_selected): Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$methods_data
-    observe({
-      if (!is.null(input$methods_table)) {
-        current_data <- hot_to_r(input$methods_table)
-
-        # Remove last row (simplified - proper row selection is complex in rhandsontable)
-        if (nrow(current_data) > 0) {
-          removed_row <- current_data[nrow(current_data), ]
-          moduleState$methods_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-
-          showNotification(
-            paste(
-              "Removed method:",
-              removed_row$PROTOCOL_CATEGORY,
-              "→",
-              removed_row$PROTOCOL_NAME
-            ),
-            type = "message"
-          )
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
-      } else {
-        showNotification("No data to remove", type = "warning")
-      }
-    }) |>
-      bindEvent(input$remove_selected)
-
     ## observe: Handle table changes ----
     # upstream: input$methods_table changes
     # downstream: moduleState$methods_data
@@ -445,8 +399,11 @@ mod_methods_server <- function(id) {
     output$methods_table <- renderRHandsontable({
       if (nrow(moduleState$methods_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_methods_df(), width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
+        rhandsontable(init_methods_df(),
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",
@@ -458,10 +415,25 @@ mod_methods_server <- function(id) {
             type = "dropdown",
             source = all_protocol_names,
             strict = TRUE
+          ) |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
           )
       } else {
-        rhandsontable(moduleState$methods_data, width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
+        rhandsontable(moduleState$methods_data,
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",
@@ -473,6 +445,18 @@ mod_methods_server <- function(id) {
             type = "dropdown",
             source = all_protocol_names,
             strict = TRUE
+          ) |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
           )
       }
     })

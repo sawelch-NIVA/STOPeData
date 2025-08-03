@@ -576,10 +576,29 @@ mod_parameters_server <- function(id) {
     output$parameters_table <- renderRHandsontable({
       if (nrow(moduleState$parameters_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_parameters_df(), width = "100%")
+        rhandsontable(init_parameters_df(),
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       } else {
-        rhandsontable(moduleState$parameters_data, width = "100%") |>
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE) |>
+        rhandsontable(moduleState$parameters_data,
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
           hot_col(
             "STRESSOR_TYPE",
             type = "dropdown",
@@ -598,7 +617,19 @@ mod_parameters_server <- function(id) {
             source = measured_types,
             strict = TRUE
           ) |>
-          hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text")
+          hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       }
     })
 
