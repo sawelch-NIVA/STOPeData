@@ -481,7 +481,6 @@ mod_samples_server <- function(id) {
     # upstream: input$sampling_date
     # downstream: remove_all_dates button state
     observe({
-      golem::print_dev(glue("input$sampling_date: {input$sampling_date}"))
       if (isTruthy(input$sampling_date) && length(input$sampling_date) > 0) {
         enable("remove_all_dates")
       } else {
