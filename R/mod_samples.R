@@ -240,27 +240,7 @@ mod_samples_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
-    ),
-
-    ## Navigation buttons ----
-    div(
-      class = "navigation-buttons-container",
-      style = "display: flex; justify-content: space-between; margin-top: 20px;",
-
-      actionButton(
-        inputId = ns("previous_section"),
-        label = "Previous Section",
-        class = "btn-secondary",
-        width = "200px"
-      ),
-
-      actionButton(
-        inputId = ns("next_section"),
-        label = "Next Section",
-        class = "btn-success",
-        width = "200px"
       )
-    )
     )
   )
 }
