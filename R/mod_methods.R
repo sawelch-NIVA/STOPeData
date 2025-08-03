@@ -37,7 +37,7 @@ mod_methods_ui <- function(id) {
 
         ## Method selection form ----
         div(
-          style = "padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin: 15px 0;",
+          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
           h5("Add New Method"),
 
           layout_column_wrap(

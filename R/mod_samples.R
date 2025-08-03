@@ -39,7 +39,7 @@ mod_samples_ui <- function(id) {
 
         ## Sample combination form ----
         div(
-          style = "padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin: 15px 0;",
+          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
           h5("Create Sample Combinations"),
 
           layout_column_wrap(
