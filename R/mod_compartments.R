@@ -103,18 +103,6 @@ mod_compartments_ui <- function(id) {
           )
         ),
 
-        ## Action buttons for table management ----
-        div(
-          style = "margin: 15px 0;",
-          input_task_button(
-            id = ns("remove_selected"),
-            label = "Remove Selected",
-            icon = icon("trash"),
-            class = "btn-danger",
-            width = "200px"
-          )
-        ),
-
         ## Compartments table ----
         rHandsontableOutput(ns("compartments_table")),
 
@@ -446,42 +434,6 @@ mod_compartments_server <- function(id) {
     }) |>
       bindEvent(input$add_combination)
 
-    ## observe: Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$compartments_data
-    observe({
-      if (!is.null(input$compartments_table)) {
-        current_data <- hot_to_r(input$compartments_table)
-
-        # Remove last row (simplified - proper row selection is complex in rhandsontable)
-        if (nrow(current_data) > 0) {
-          removed_row <- current_data[nrow(current_data), ]
-          moduleState$compartments_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-
-          showNotification(
-            paste(
-              "Removed combination:",
-              removed_row$ENVIRON_COMPARTMENT,
-              "→",
-              removed_row$ENVIRON_COMPARTMENT_SUB,
-              "→",
-              removed_row$MEASURED_CATEGORY
-            ),
-            type = "message"
-          )
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
-      } else {
-        showNotification("No data to remove", type = "warning")
-      }
-    }) |>
-      bindEvent(input$remove_selected)
-
     ## observe: Handle table changes ----
     # upstream: input$compartments_table changes
     # downstream: moduleState$compartments_data
@@ -515,10 +467,29 @@ mod_compartments_server <- function(id) {
     output$compartments_table <- renderRHandsontable({
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_compartments_df(), width = "100%") |>
-          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
+        rhandsontable(init_compartments_df(),
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       } else {
-        rhandsontable(moduleState$compartments_data, width = "100%") |>
+        rhandsontable(moduleState$compartments_data,
+                      stretchH = "all",
+                      height = "inherit",
+                      selectCallback = TRUE,
+                      width = NULL) |>
           hot_col(
             "ENVIRON_COMPARTMENT",
             type = "dropdown",
@@ -537,7 +508,18 @@ mod_compartments_server <- function(id) {
             source = measured_categories,
             strict = TRUE
           ) |>
-          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
+          hot_context_menu(
+            allowRowEdit = TRUE, # Enable row operations
+            allowColEdit = FALSE, # Disable column operations
+            customOpts = list(
+              # Only include remove_row in the menu
+              "row_above" = NULL,
+              "row_below" = NULL,
+              "remove_row" = list(
+                name = "Remove selected rows"
+              )
+            )
+          )
       }
     })
 
