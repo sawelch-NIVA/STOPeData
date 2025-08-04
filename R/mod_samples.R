@@ -69,7 +69,8 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
-                ) |> disabled(), # until sites are available,
+                ) |>
+                  disabled(), # until sites are available,
                 actionButton(
                   ns("remove_all_sites"),
                   "Remove All",
@@ -100,7 +101,8 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
-                ) |> disabled(), # until parameters are available,
+                ) |>
+                  disabled(), # until parameters are available,
                 actionButton(
                   ns("remove_all_parameters"),
                   "Remove All",
@@ -131,7 +133,8 @@ mod_samples_ui <- function(id) {
                   "Add All",
                   class = "btn-sm btn-primary",
                   style = "margin-right: 5px;"
-                ) |> disabled(), # until compartments are available,
+                ) |>
+                  disabled(), # until compartments are available,
                 actionButton(
                   ns("remove_all_compartments"),
                   "Remove All",
@@ -142,26 +145,28 @@ mod_samples_ui <- function(id) {
 
             ## Sampling dates ----
             div(
-            airDatepickerInput(
-              inputId = ns("sampling_date"),
-              label = tooltip(
-                list("Sampling Dates", bs_icon("info-circle-fill")),
-                "Dates when samples were collected"
+              airDatepickerInput(
+                inputId = ns("sampling_date"),
+                label = tooltip(
+                  list("Sampling Dates", bs_icon("info-circle-fill")),
+                  "Dates when samples were collected"
+                ),
+                dateFormat = "yyyy-MM-dd",
+                width = "100%",
+                multiple = TRUE,
+                todayButton = TRUE,
+                update_on = "change",
+                addon = "none"
               ),
-              dateFormat = "yyyy-MM-dd",
-              width = "100%",
-              multiple = TRUE,
-              todayButton = TRUE,
-              update_on = "change",
-              addon = "none"),
-            div(
-              style = "margin-top: 5px;",
-              actionButton(
-                ns("remove_all_dates"),
-                "Remove All",
-                class = "btn-sm btn-danger"
-              ) |> disabled()  # start disabled until dates are selected
-            )
+              div(
+                style = "margin-top: 5px;",
+                actionButton(
+                  ns("remove_all_dates"),
+                  "Remove All",
+                  class = "btn-sm btn-danger"
+                ) |>
+                  disabled() # start disabled until dates are selected
+              )
             ),
 
             ## Sample replicates ----
@@ -178,25 +183,26 @@ mod_samples_ui <- function(id) {
               width = "100%"
             )
           )
-          ),
+        ),
 
-          ## Generate combinations button ----
-          div(
-            style = "margin-top: 15px;",
-            input_task_button(
-              id = ns("generate_combinations"),
-              label = "Generate Sample Combinations",
-              icon = icon("magic"),
-              class = "btn-success",
-              width = "250px"
-            )
-          ) |> disabled(),
+        ## Generate combinations button ----
+        div(
+          style = "margin-top: 15px;",
+          input_task_button(
+            id = ns("generate_combinations"),
+            label = "Generate Sample Combinations",
+            icon = icon("magic"),
+            class = "btn-success",
+            width = "250px"
+          )
+        ) |>
+          disabled(),
 
-          ## Preview info ----
-          div(
-            style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
-            uiOutput(ns("combination_preview"))
-          ),
+        ## Preview info ----
+        div(
+          style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
+          uiOutput(ns("combination_preview"))
+        ),
 
         ## Action buttons for table management ----
         div(
@@ -309,7 +315,10 @@ mod_samples_server <- function(id) {
     observe({
       # Update sites if data is available
       if (!is.null(session$userData$reactiveValues$sitesData)) {
-        update_sites_selectize(session, session$userData$reactiveValues$sitesData)
+        update_sites_selectize(
+          session,
+          session$userData$reactiveValues$sitesData
+        )
         moduleState$available_sites <- session$userData$reactiveValues$sitesData
       } else {
         update_sites_selectize(session, dummy_sites)
@@ -318,7 +327,10 @@ mod_samples_server <- function(id) {
 
       # Update parameters if data is available
       if (!is.null(session$userData$reactiveValues$parametersData)) {
-        update_parameters_selectize(session, session$userData$reactiveValues$parametersData)
+        update_parameters_selectize(
+          session,
+          session$userData$reactiveValues$parametersData
+        )
         moduleState$available_parameters <- session$userData$reactiveValues$parametersData
       } else {
         update_parameters_selectize(session, dummy_parameters)
@@ -327,14 +339,15 @@ mod_samples_server <- function(id) {
 
       # Update compartments if data is available
       if (!is.null(session$userData$reactiveValues$compartmentsData)) {
-        update_compartments_selectize(session, session$userData$reactiveValues$compartmentsData)
+        update_compartments_selectize(
+          session,
+          session$userData$reactiveValues$compartmentsData
+        )
         moduleState$available_compartments <- session$userData$reactiveValues$compartmentsData
       } else {
         update_compartments_selectize(session, dummy_compartments)
         moduleState$available_compartments <- dummy_compartments
       }
-
-
     }) |>
       bindEvent(
         session$userData$reactiveValues$sitesData,
@@ -344,13 +357,14 @@ mod_samples_server <- function(id) {
         ignoreInit = FALSE
       )
 
-
-
     ## observe ~bindEvent(add_all_sites): Add all sites ----
     # upstream: user clicks input$add_all_sites
     # downstream: input$sites_select
     observe({
-      if (isTruthy(moduleState$available_sites) && nrow(moduleState$available_sites)>0) {
+      if (
+        isTruthy(moduleState$available_sites) &&
+          nrow(moduleState$available_sites) > 0
+      ) {
         updateSelectizeInput(
           session,
           "sites_select",
@@ -358,9 +372,10 @@ mod_samples_server <- function(id) {
         )
         enable(id = "add_all_sites")
         enable(id = "sites_select")
-      } else {disable(id = "add_all_sites")
+      } else {
+        disable(id = "add_all_sites")
         disable(id = "sites_select")
-        }
+      }
     }) |>
       bindEvent(input$add_all_sites, moduleState$available_sites)
 
@@ -376,18 +391,20 @@ mod_samples_server <- function(id) {
     # upstream: user clicks input$add_all_parameters
     # downstream: input$parameters_select
     observe({
-      if (isTruthy(moduleState$available_parameters) && nrow(moduleState$available_parameters) > 0) {
+      if (
+        isTruthy(moduleState$available_parameters) &&
+          nrow(moduleState$available_parameters) > 0
+      ) {
         updateSelectizeInput(
           session,
           "parameters_select",
-          selected = moduleState$available_parameters$STRESSOR_NAME
+          selected = moduleState$available_parameters$PARAMETER_NAME
         )
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
       } else {
         disable(id = "add_all_parameters")
         disable(id = "parameters_select")
-
       }
     }) |>
       bindEvent(input$add_all_parameters, moduleState$available_parameters)
@@ -408,7 +425,10 @@ mod_samples_server <- function(id) {
     # upstream: user clicks input$add_all_compartments
     # downstream: input$compartments_select
     observe({
-      if (isTruthy(moduleState$available_compartments) && nrow(moduleState$available_compartments) > 0) {
+      if (
+        isTruthy(moduleState$available_compartments) &&
+          nrow(moduleState$available_compartments) > 0
+      ) {
         compartment_values <- paste(
           moduleState$available_compartments$ENVIRON_COMPARTMENT,
           moduleState$available_compartments$ENVIRON_COMPARTMENT_SUB,
@@ -424,7 +444,6 @@ mod_samples_server <- function(id) {
       } else {
         disable(id = "add_all_compartments")
         disable(id = "compartments_select")
-
       }
     }) |>
       bindEvent(input$add_all_compartments, moduleState$available_compartments)
@@ -457,7 +476,9 @@ mod_samples_server <- function(id) {
     # upstream: input$parameters_select
     # downstream: remove_all_parameters button state
     observe({
-      if (isTruthy(input$parameters_select) && length(input$parameters_select) > 0) {
+      if (
+        isTruthy(input$parameters_select) && length(input$parameters_select) > 0
+      ) {
         enable("remove_all_parameters")
       } else {
         disable("remove_all_parameters")
@@ -469,7 +490,10 @@ mod_samples_server <- function(id) {
     # upstream: input$compartments_select
     # downstream: remove_all_compartments button state
     observe({
-      if (isTruthy(input$compartments_select) && length(input$compartments_select) > 0) {
+      if (
+        isTruthy(input$compartments_select) &&
+          length(input$compartments_select) > 0
+      ) {
         enable("remove_all_compartments")
       } else {
         disable("remove_all_compartments")
@@ -503,24 +527,29 @@ mod_samples_server <- function(id) {
 
     ## observe ~bindEvent(generate_combinations): Enable generate button when options valid ----
     observe({
-      if(
+      if (
         all(
-          isTruthy(c(input$sites_select,
-                     input$compartments_select,
-                     input$parameters_select,
-                     input$sampling_date,
-                     input$sample_replicates))
+          isTruthy(c(
+            input$sites_select,
+            input$compartments_select,
+            input$parameters_select,
+            input$sampling_date,
+            input$sample_replicates
+          ))
         )
       ) {
         enable("generate_combinations")
       } else {
         disable("generate_combinations")
       }
-    }) |> bindEvent(input$sites_select,
-                    input$compartments_select,
-                    input$parameters_select,
-                    input$sampling_date,
-                    input$sample_replicates)
+    }) |>
+      bindEvent(
+        input$sites_select,
+        input$compartments_select,
+        input$parameters_select,
+        input$sampling_date,
+        input$sample_replicates
+      )
 
     ## observe ~bindEvent(generate_combinations): Generate sample combinations ----
     # upstream: user clicks input$generate_combinations
@@ -534,9 +563,9 @@ mod_samples_server <- function(id) {
 
       if (
         length(sites) == 0 ||
-        length(parameters) == 0 ||
-        length(compartments) == 0 ||
-        length(dates) == 0
+          length(parameters) == 0 ||
+          length(compartments) == 0 ||
+          length(dates) == 0
       ) {
         showNotification(
           "Please select at least one site, parameter, compartment, and date",
@@ -615,8 +644,6 @@ mod_samples_server <- function(id) {
     }) |>
       bindEvent(input$clear_all)
 
-
-
     ## observe: Handle table changes ----
     # upstream: input$samples_table changes
     # downstream: moduleState$samples_data
@@ -638,9 +665,10 @@ mod_samples_server <- function(id) {
         moduleState$validated_data <- moduleState$samples_data
 
         session$userData$reactiveValues$sampleData <- moduleState$validated_data
-        print_dev(glue("mod_samples is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$sampleData: {session$userData$reactiveValues$sampleData}"))
-
+        print_dev(glue(
+          "mod_samples is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$sampleData: {session$userData$reactiveValues$sampleData}"
+        ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -674,11 +702,13 @@ mod_samples_server <- function(id) {
     output$samples_table <- renderRHandsontable({
       if (nrow(moduleState$samples_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_samples_df(),
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          init_samples_df(),
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
@@ -693,14 +723,21 @@ mod_samples_server <- function(id) {
             )
           )
       } else {
-        rhandsontable(moduleState$samples_data,
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          moduleState$samples_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
           # TODO: Fix date formatting.
-          hot_col("SAMPLING_DATE", readOnly = TRUE, format = "date", dateFormat = "YYYY-mm-dd") |>
+          hot_col(
+            "SAMPLING_DATE",
+            readOnly = TRUE,
+            format = "date",
+            dateFormat = "YYYY-mm-dd"
+          ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
