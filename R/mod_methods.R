@@ -316,6 +316,7 @@ mod_methods_server <- function(id) {
             moduleState$methods_data,
             new_method
           )
+          session$userData$reactiveValues$methodsData <- moduleState$methods_data
         })
 
         # Reset form
@@ -379,11 +380,13 @@ mod_methods_server <- function(id) {
     output$methods_table <- renderRHandsontable({
       if (nrow(moduleState$methods_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_methods_df(),
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          init_methods_df(),
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",
@@ -409,11 +412,13 @@ mod_methods_server <- function(id) {
             )
           )
       } else {
-        rhandsontable(moduleState$methods_data,
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          moduleState$methods_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",

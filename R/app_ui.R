@@ -75,9 +75,9 @@ app_ui <- function(request) {
         )
       ),
       nav_panel(
-        title = "9. Export",
-        value = "09-export",
-        mod_export_ui("export"),
+        title = "9. Data",
+        value = "09-data",
+        mod_data_ui("data"),
         icon = bs_icon("box-arrow-right")
       ),
       nav_panel(
