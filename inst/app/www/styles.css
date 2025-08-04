@@ -90,6 +90,12 @@ code, pre, .code {
     width: 100%;
 }
 
+.validation-status bi {
+    margin-top: 3px;
+    margin-left: 5px;
+    margin-right: -4px;
+}
+
 .validation-complete {
     background-color: var(--color-success) !important;
     color: var(--bs-white) !important;

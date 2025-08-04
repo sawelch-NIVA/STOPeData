@@ -216,13 +216,15 @@ mod_biota_server <- function(id) {
       }
     }
 
-    ## Helper: Initialize biota data frame ----
+    ## Helper: Initialize biota data frame - UPDATED for new column structure ----
     init_biota_df <- function() {
       data.frame(
         SAMPLE_ID = character(0),
         SITE_CODE = character(0),
         PARAMETER_NAME = character(0),
-        COMPARTMENT = character(0),
+        ENVIRON_COMPARTMENT = character(0), # Changed from COMPARTMENT
+        ENVIRON_COMPARTMENT_SUB = character(0), # Added
+        MEASURED_CATEGORY = character(0), # Added
         SAMPLING_DATE = character(0),
         REPLICATE = integer(0),
         SPECIES_GROUP = character(0),
@@ -234,15 +236,16 @@ mod_biota_server <- function(id) {
       )
     }
 
-    ## Helper: Filter biota samples ----
+    ## Helper: Filter biota samples - UPDATED for new column structure ----
     extract_biota_samples <- function(samples_data) {
       if (is.null(samples_data) || nrow(samples_data) == 0) {
         return(init_biota_df())
       }
 
+      # Look for biota samples using the new ENVIRON_COMPARTMENT column
       biota_samples <- samples_data[
-        samples_data$COMPARTMENT == "Biota" &
-          !is.na(samples_data$COMPARTMENT),
+        samples_data$ENVIRON_COMPARTMENT == "Biota" &
+          !is.na(samples_data$ENVIRON_COMPARTMENT),
       ]
 
       if (nrow(biota_samples) == 0) {
@@ -264,15 +267,22 @@ mod_biota_server <- function(id) {
         }
       }
 
-      return(biota_samples[, c(
+      # Select columns in the expected order - UPDATED for new structure
+      expected_columns <- c(
         "SAMPLE_ID",
         "SITE_CODE",
         "PARAMETER_NAME",
-        "COMPARTMENT",
+        "ENVIRON_COMPARTMENT",
+        "ENVIRON_COMPARTMENT_SUB",
+        "MEASURED_CATEGORY",
         "SAMPLING_DATE",
         "REPLICATE",
         biota_columns
-      )])
+      )
+
+      # Only select columns that exist
+      available_columns <- intersect(expected_columns, names(biota_samples))
+      return(biota_samples[, available_columns, drop = FALSE])
     }
 
     # 3. Observers and Reactives ----
@@ -365,7 +375,7 @@ mod_biota_server <- function(id) {
       }
     })
 
-    ## Helper: Merge biota data back into samples ----
+    ## Helper: Merge biota data back into samples - UPDATED for new column structure ----
     merge_biota_into_samples <- function(samples_data, biota_data) {
       # Add biota columns to samples data if they don't exist
       biota_columns <- c(
@@ -403,19 +413,120 @@ mod_biota_server <- function(id) {
     # upstream: moduleState$biota_data
     # downstream: UI table display
     output$biota_table <- renderRHandsontable({
-      # Show message when no biota samples
-      empty_df <- data.frame(
-        Message = "No biota samples found. Add samples with ENVIRON_COMPARTMENT = 'Biota' in the Samples module.",
-        stringsAsFactors = FALSE
-      )
+      if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
+        # Show message when no biota samples
+        empty_df <- data.frame(
+          Message = "No biota samples found. Add samples with ENVIRON_COMPARTMENT = 'Biota' in the Samples module.",
+          stringsAsFactors = FALSE
+        )
 
-      rhandsontable(
-        empty_df,
-        stretchH = "all",
-        height = "200px",
-        readOnly = TRUE,
-        width = NULL
-      )
+        rhandsontable(
+          empty_df,
+          stretchH = "all",
+          height = NULL,
+          readOnly = TRUE,
+          width = NULL
+        )
+      } else {
+        # Create controlled vocabulary for biota fields
+        species_groups <- names(create_species_mapping())
+        tissue_types <- c(
+          "Whole organism",
+          "Muscle",
+          "Liver",
+          "Kidney",
+          "Brain",
+          "Heart",
+          "Lung",
+          "Gill",
+          "Shell",
+          "Carapace",
+          "Blood",
+          "Egg",
+          "Larva",
+          "Leaf",
+          "Root",
+          "Stem",
+          "Fruit",
+          "Seed",
+          "Other"
+        )
+        life_stages <- c(
+          "Adult",
+          "Juvenile",
+          "Larva",
+          "Embryo",
+          "Egg",
+          "Seedling",
+          "Mature",
+          "Young",
+          "Mixed",
+          "Not applicable",
+          "Other"
+        )
+        genders <- c(
+          "Male",
+          "Female",
+          "Mixed",
+          "Hermaphrodite",
+          "Not applicable",
+          "Not determined",
+          "Other"
+        )
+
+        rhandsontable(
+          moduleState$biota_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
+          # Make sample info columns read-only
+          hot_col("SAMPLE_ID", readOnly = TRUE) |>
+          hot_col("SITE_CODE", readOnly = TRUE) |>
+          hot_col("PARAMETER_NAME", readOnly = TRUE) |>
+          hot_col("ENVIRON_COMPARTMENT", readOnly = TRUE) |>
+          hot_col("ENVIRON_COMPARTMENT_SUB", readOnly = TRUE) |>
+          hot_col("MEASURED_CATEGORY", readOnly = TRUE) |>
+          hot_col("SAMPLING_DATE", readOnly = TRUE) |>
+          hot_col("REPLICATE", readOnly = TRUE) |>
+          # Add dropdowns for biota-specific fields
+          hot_col(
+            "SPECIES_GROUP",
+            type = "dropdown",
+            source = species_groups,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "SAMPLE_TISSUE",
+            type = "dropdown",
+            source = tissue_types,
+            strict = FALSE
+          ) |>
+          hot_col(
+            "SAMPLE_SPECIES_LIFESTAGE",
+            type = "dropdown",
+            source = life_stages,
+            strict = FALSE
+          ) |>
+          hot_col(
+            "SAMPLE_SPECIES_GENDER",
+            type = "dropdown",
+            source = genders,
+            strict = FALSE
+          ) |>
+          # Species will be updated dynamically based on species group selection
+          hot_col(
+            "SAMPLE_SPECIES",
+            type = "dropdown",
+            source = c("Select species group first"),
+            strict = FALSE
+          ) |>
+          hot_context_menu(
+            allowRowEdit = FALSE, # Don't allow adding/removing rows
+            allowColEdit = FALSE
+          )
+      }
     })
 
     ## output: validation_reporter ----
@@ -426,7 +537,7 @@ mod_biota_server <- function(id) {
         div(
           bs_icon("info-circle"),
           "No biota samples detected. Biota validation not required.",
-          class = "validation-status validation-complete"
+          class = "validation-status validation-info"
         )
       } else if (moduleState$is_valid) {
         div(
@@ -468,13 +579,17 @@ mod_biota_server <- function(id) {
             "SAMPLE_SPECIES_GENDER"
           )
           sample_lines <- sapply(biota_fields, function(name) {
-            value <- sample[[name]]
-            if (is.na(value) || is.null(value) || value == "") {
-              paste0("  ", name, " = NA")
-            } else if (is.character(value)) {
-              paste0("  ", name, " = '", value, "'")
+            if (name %in% names(sample)) {
+              value <- sample[[name]]
+              if (is.na(value) || is.null(value) || value == "") {
+                paste0("  ", name, " = NA")
+              } else if (is.character(value)) {
+                paste0("  ", name, " = '", value, "'")
+              } else {
+                paste0("  ", name, " = ", as.character(value))
+              }
             } else {
-              paste0("  ", name, " = ", as.character(value))
+              paste0("  ", name, " = [column not found]")
             }
           })
           paste0(
@@ -502,6 +617,16 @@ mod_biota_server <- function(id) {
         "# No biota samples detected"
       }
     })
+
+    # 5. Return ----
+    ## return: validated data for other modules ----
+    # upstream: moduleState$validated_data
+    # downstream: app_server.R
+    return(
+      reactive({
+        moduleState$validated_data %|truthy|% NULL
+      })
+    )
   })
 }
 
