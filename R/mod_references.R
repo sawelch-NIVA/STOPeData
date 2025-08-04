@@ -50,6 +50,7 @@ mod_references_ui <- function(id) {
             ),
             actionButton(
               inputId = ns("lookup_doi"),
+              icon = icon("search"),
               label = "Lookup DOI (Disabled)",
               class = "btn-info",
               width = "100%"
@@ -70,7 +71,8 @@ mod_references_ui <- function(id) {
             ),
             actionButton(
               inputId = ns("import_bibtex"),
-              label = "Import BibTeX",
+              icon = icon("file-code"),
+              label = "Import BibTeX (overwrites existing data)",
               class = "btn-info",
               width = "100%"
             )
@@ -108,7 +110,7 @@ mod_references_ui <- function(id) {
               "Authors in format: Last1, First1; Last2, First2"
             ),
             placeholder = "Last1, First1; Last2, First2",
-            rows = 1,
+            rows = 2,
             width = "100%"
           ),
 
@@ -120,7 +122,7 @@ mod_references_ui <- function(id) {
               "Full title of the publication"
             ),
             placeholder = "Full publication title",
-            rows = 1,
+            rows = 2,
             width = "100%"
           ),
 
