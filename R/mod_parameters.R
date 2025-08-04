@@ -143,14 +143,18 @@ mod_parameters_server <- function(id) {
       session_parameters = list() # Store user-added parameters
     )
 
-    ## Dummy parameter database ----
-    # Convert dummy_parameters list to dataframe manually ----
-    dummy_quality_params <- read.csv("inst/data/clean/dummy_quality_parameters.csv")
+    ## Dummy parameter data ----
+    # Read dummy_parameters ----
+    dummy_quality_params <- read_parquet(
+      file = "inst/data/clean/dummy_quality_parameters.parquet"
+    )
 
     # Read and prepare chemical_parameters ----
-    chemical_parameters <- read_parquet(file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet") |>
+    chemical_parameters <- read_parquet(
+      file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
+    ) |>
       mutate(
-        PARAMETER_TYPE = "Stressor",  # Add PARAMETER_TYPE column to match dummy_params structure
+        PARAMETER_TYPE = "Stressor", # Add PARAMETER_TYPE column to match dummy_params structure
         PARAMETER_TYPE_SUB = "Not reported",
         MEASURED_TYPE = "Concentration",
         CAS_RN = NA,
@@ -235,7 +239,11 @@ mod_parameters_server <- function(id) {
         "At least one parameter must be added"
       } else {
         # Check required fields
-        required_fields <- c("PARAMETER_TYPE", "MEASURED_TYPE", "PARAMETER_NAME")
+        required_fields <- c(
+          "PARAMETER_TYPE",
+          "MEASURED_TYPE",
+          "PARAMETER_NAME"
+        )
 
         for (i in 1:nrow(moduleState$parameters_data)) {
           for (field in required_fields) {
@@ -314,13 +322,17 @@ mod_parameters_server <- function(id) {
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        available_names <- get_parameters_of_types(param_type, dummy_parameters = dummy_parameters)
+        available_names <- get_parameters_of_types(
+          param_type,
+          dummy_parameters = dummy_parameters
+        )
 
         updateSelectizeInput(
           session,
           "parameter_name_select",
           choices = available_names,
-          selected = if (length(available_names) > 1) available_names[1] else "",
+          selected = if (length(available_names) > 1) available_names[1] else
+            "",
           server = TRUE # server-side selectize for better performance
         )
       }
@@ -337,9 +349,13 @@ mod_parameters_server <- function(id) {
         isTruthy(param_type) &&
           isTruthy(param_name) &&
           param_name != "-- New Parameter --" &&
-        param_name %notin% moduleState$parameters_data$PARAMETER_NAME
+          param_name %notin% moduleState$parameters_data$PARAMETER_NAME
       ) {
-        new_param <- create_existing_parameter(param_type, param_name, dummy_parameters = dummy_parameters)
+        new_param <- create_existing_parameter(
+          param_type,
+          param_name,
+          dummy_parameters = dummy_parameters
+        )
 
         if (!is.null(new_param)) {
           moduleState$parameters_data <- rbind(
@@ -351,10 +367,9 @@ mod_parameters_server <- function(id) {
             type = "message"
           )
           # TODO: This currently doesn't trigger
-        } else if(param_name %in% moduleState$parameters_data$PARAMETER_NAME) {
+        } else if (param_name %in% moduleState$parameters_data$PARAMETER_NAME) {
           showNotification("Parameter already present in table", type = "error")
-        }
-        else {
+        } else {
           showNotification("Parameter not found", type = "error")
         }
       } else {
@@ -466,8 +481,10 @@ mod_parameters_server <- function(id) {
         moduleState$validated_data <- moduleState$parameters_data
 
         session$userData$reactiveValues$parametersData <- moduleState$validated_data
-        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"))
+        print_dev(glue(
+          "moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"
+        ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -482,11 +499,13 @@ mod_parameters_server <- function(id) {
     output$parameters_table <- renderRHandsontable({
       if (nrow(moduleState$parameters_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_parameters_df(),
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          init_parameters_df(),
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -500,11 +519,13 @@ mod_parameters_server <- function(id) {
             )
           )
       } else {
-        rhandsontable(moduleState$parameters_data,
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          moduleState$parameters_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col(
             "PARAMETER_TYPE",
             type = "dropdown",
@@ -591,7 +612,6 @@ mod_parameters_server <- function(id) {
         "# Parameters data will appear here when valid parameters are added"
       }
     })
-
   })
 }
 
