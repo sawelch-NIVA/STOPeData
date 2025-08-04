@@ -17,10 +17,10 @@ app_server <- function(input, output, session) {
       compartmentsData = tibble(NULL),
       referenceData = tibble(NULL),
       campaignData = tibble(NULL),
-      samplesData = tibble(NULL),
       methodsData = tibble(NULL),
-      exportData = tibble(NULL),
-      biotaData = tibble(NULL)
+      samplesData = tibble(NULL),
+      biotaData = tibble(NULL),
+      dataData = tibble(NULL)
     )
   }
 
@@ -32,8 +32,8 @@ app_server <- function(input, output, session) {
   moduleMethods <- mod_methods_server("methods")
   moduleSamples <- mod_samples_server("samples")
   moduleBiota <- mod_biota_server("biota")
-  moduleExport <- mod_export_server(
-    "export"
+  moduleData <- mod_data_server(
+    "data"
   )
   moduleReview <- mod_review_server(
     "review"
@@ -51,7 +51,7 @@ app_server <- function(input, output, session) {
     "06-methods",
     "07-samples",
     "08-biota",
-    "09-export",
+    "09-data",
     "10-review"
   )
 

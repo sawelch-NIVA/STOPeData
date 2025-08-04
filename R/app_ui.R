@@ -81,8 +81,14 @@ app_ui <- function(request) {
         icon = bs_icon("box-arrow-right")
       ),
       nav_panel(
-        title = "10. Review",
-        value = "10-review",
+        title = "10. Data",
+        value = "10-data",
+        mod_data_ui("data"),
+        icon = bs_icon("clipboard-data-fill")
+      ),
+      nav_panel(
+        title = "11. Review",
+        value = "11-review",
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),
