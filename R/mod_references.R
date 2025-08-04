@@ -56,18 +56,21 @@ mod_references_ui <- function(id) {
             )
           ),
 
-          ### BibTeX import placeholder ----
+          ### BibTeX import ----
           div(
             textAreaInput(
               inputId = ns("bibtex_import"),
-              label = "BibTeX Import (Disabled)",
+              label = tooltip(
+                list("BibTeX Import", bs_icon("info-circle-fill")),
+                "Paste BibTeX entry here. Import will overwrite existing field values."
+              ),
               placeholder = "Paste BibTeX entry here",
-              rows = 1,
+              rows = 3,  # Increased from 1 to accommodate larger entries
               width = "100%"
             ),
             actionButton(
               inputId = ns("import_bibtex"),
-              label = "Import BibTeX (Disabled)",
+              label = "Import BibTeX",
               class = "btn-info",
               width = "100%"
             )
@@ -586,22 +589,74 @@ mod_references_server <- function(id) {
       # This would query crossref.org or similar service
       # and populate fields automatically
       showNotification(
-        "DOI lookup functionality to be implemented",
+        ui = "DOI lookup functionality to be implemented",
         type = "message"
       )
     }) |>
       bindEvent(input$lookup_doi)
 
-    ## observe: BibTeX import placeholder ----
-    # upstream: input$import_bibtex
-    # downstream: field updates (placeholder)
+
+
+    ## observe: BibTeX import functionality ----
+    # upstream: input$import_bibtex, input$bibtex_import
+    # downstream: all input field updates
     observe({
-      # TODO: Implement BibTeX parsing functionality
-      # This would parse the BibTeX entry and populate fields
+      req(input$bibtex_import)
+
+      # Validate and parse BibTeX using external function
+      parse_result <- validate_and_parse_bibtex(input$bibtex_import)
+
+      if (!parse_result$success) {
+        showNotification(parse_result$message, type = "error")
+        return()
+      }
+
+      # Show warning if multiple entries detected
+      if (!is.null(parse_result$warning)) {
+        showNotification(parse_result$warning, type = "warning")
+      }
+
+      # Map BibTeX fields to our reference fields using external function
+      mapped_fields <- map_bibtex_to_reference_fields(parse_result$data)
+
+      # Update all input fields with mapped values ----
+      updateSelectInput(session, "REFERENCE_TYPE", selected = mapped_fields$REFERENCE_TYPE)
+      updateTextAreaInput(session, "AUTHOR", value = mapped_fields$AUTHOR %||% "")
+      updateTextAreaInput(session, "TITLE", value = mapped_fields$TITLE %||% "")
+      updateNumericInput(session, "YEAR", value = mapped_fields$YEAR)
+      updateDateInput(session, "ACCESS_DATE", value = mapped_fields$ACCESS_DATE)
+      updateTextInput(session, "PERIODICAL_JOURNAL", value = mapped_fields$PERIODICAL_JOURNAL %||% "")
+      updateNumericInput(session, "VOLUME", value = mapped_fields$VOLUME)
+      updateNumericInput(session, "ISSUE", value = mapped_fields$ISSUE)
+      updateTextInput(session, "PUBLISHER", value = mapped_fields$PUBLISHER %||% "")
+      updateTextInput(session, "INSTITUTION", value = mapped_fields$INSTITUTION %||% "")
+      updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
+      updateTextInput(session, "DB_PROVIDER", value = mapped_fields$DB_PROVIDER %||% "")
+      updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
+      updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
+      updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
+      updateTextInput(session, "ISBN_ISSN", value = mapped_fields$ISBN_ISSN %||% "")
+      updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
+      updateTextInput(session, "PUBLISHED_PLACE", value = mapped_fields$PUBLISHED_PLACE %||% "")
+      updateTextInput(session, "DOCUMENT_NUMBER", value = mapped_fields$DOCUMENT_NUMBER %||% "")
+      updateTextInput(session, "ACCESSION_NUMBER", value = mapped_fields$ACCESSION_NUMBER %||% "")
+      updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
+      updateTextInput(session, "SERIES_TITLE", value = mapped_fields$SERIES_TITLE %||% "")
+      updateTextInput(session, "SERIES_EDITOR", value = mapped_fields$SERIES_EDITOR %||% "")
+      updateNumericInput(session, "SERIES_VOLUME", value = mapped_fields$SERIES_VOLUME)
+      updateTextInput(session, "NUMBER_OF_PAGES", value = mapped_fields$NUMBER_OF_PAGES %||% "")
+      updateTextInput(session, "NUMBER_OF_VOLUMES", value = mapped_fields$NUMBER_OF_VOLUMES %||% "")
+      updateTextAreaInput(session, "REF_COMMENT", value = mapped_fields$REF_COMMENT %||% "")
+
+      # Clear the BibTeX input after successful import
+      updateTextAreaInput(session, "bibtex_import", value = "")
+
+      # Show success notification
       showNotification(
-        "BibTeX import functionality to be implemented",
-        type = "message"
+        "BibTeX data imported successfully",
+        type = "default"
       )
+
     }) |>
       bindEvent(input$import_bibtex)
 
@@ -734,16 +789,6 @@ mod_references_server <- function(id) {
           "# Data object will be created when valid data is entered."
         }
       }
-    )
-
-    # 4. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
     )
   })
 }
