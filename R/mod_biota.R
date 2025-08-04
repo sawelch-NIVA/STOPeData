@@ -16,14 +16,6 @@
 #' @importFrom shinyjs useShinyjs
 #' @importFrom golem print_dev
 
-cat_art <- "                   _ |\\_
-                   \\` ..\\
-              __,.-\" =__Y=
-            .\"        )
-      _    /   ,    \\/\\_
-     ((____|    )_-\\ \\_-`
-jgs  `-----'`-----` `--`"
-
 mod_biota_ui <- function(id) {
   ns <- NS(id)
 
@@ -42,7 +34,6 @@ mod_biota_ui <- function(id) {
             title = "Biota Information",
             icon = bs_icon("info-circle"),
             div(
-              pre(cat_art, style = "font-size: 10px; color: #666;"),
               p(
                 "This module captures detailed biological information for samples from living organisms. All biota samples require species identification, tissue type, life stage, and gender information to be considered valid."
               )
