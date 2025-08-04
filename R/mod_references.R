@@ -364,6 +364,8 @@ mod_references_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput updateSelectInput bindEvent
 #' @importFrom shinyjs enable disable
+#' @importFrom tibble tibble
+
 mod_references_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -500,8 +502,13 @@ mod_references_server <- function(id) {
     # upstream: session$userData$reactiveValues$ENTERED_BY
     # downstream: input$ENTERED_BY
     observe({
-        updateTextInput(session, "ENTERED_BY", value = session$userData$reactiveValues$ENTERED_BY)
-    }) |> bindEvent(session$userData$reactiveValues$ENTERED_BY)
+      updateTextInput(
+        session,
+        "ENTERED_BY",
+        value = session$userData$reactiveValues$ENTERED_BY
+      )
+    }) |>
+      bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
     ## observe: conditional field enable/disable based on reference type ----
     # upstream: input$REFERENCE_TYPE
@@ -611,7 +618,7 @@ mod_references_server <- function(id) {
     observe({
       if (iv$is_valid()) {
         # Collect validated data
-        validated_data <- list(
+        validated_data <- tibble(
           REFERENCE_TYPE = input$REFERENCE_TYPE,
           AUTHOR = input$AUTHOR,
           TITLE = input$TITLE,
@@ -645,9 +652,10 @@ mod_references_server <- function(id) {
         moduleState$is_valid <- TRUE
 
         session$userData$reactiveValues$referencesData <- moduleState$validated_data
-        print_dev(glue("mod_references is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"))
-
+        print_dev(glue(
+          "mod_references is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"
+        ))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE

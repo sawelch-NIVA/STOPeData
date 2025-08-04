@@ -75,20 +75,14 @@ app_ui <- function(request) {
         )
       ),
       nav_panel(
-        title = "9. Export",
-        value = "09-export",
-        mod_export_ui("export"),
+        title = "9. Data",
+        value = "09-data",
+        mod_data_ui("data"),
         icon = bs_icon("box-arrow-right")
       ),
       nav_panel(
-        title = "10. Data",
-        value = "10-data",
-        mod_data_ui("data"),
-        icon = bs_icon("clipboard-data-fill")
-      ),
-      nav_panel(
-        title = "11. Review",
-        value = "11-review",
+        title = "10. Review",
+        value = "10-review",
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),

@@ -12,6 +12,7 @@
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
+#' @importFrom tibble tibble
 mod_campaign_ui <- function(id) {
   ns <- NS(id)
 
@@ -246,7 +247,7 @@ mod_campaign_server <- function(id) {
     observe({
       if (iv$is_valid()) {
         # Collect validated data
-        validated_data <- list(
+        validated_data <- tibble(
           CAMPAIGN_NAME = input$CAMPAIGN_NAME,
           CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
           CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|% as.Date(NA),
@@ -264,8 +265,10 @@ mod_campaign_server <- function(id) {
         moduleState$is_valid <- TRUE
 
         session$userData$reactiveValues$campaignData <- moduleState$validated_data
-        print_dev(glue("mod_campaign is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"))
+        print_dev(glue(
+          "mod_campaign is valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"
+        ))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE
@@ -310,7 +313,8 @@ mod_campaign_server <- function(id) {
         glue("Saved your username {input$ENTERED_BY} to session data."),
         type = "message"
       )
-    }) |> bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+    }) |>
+      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
 
     # 3. Outputs ----
 
