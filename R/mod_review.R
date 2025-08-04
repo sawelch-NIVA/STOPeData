@@ -11,19 +11,22 @@ mod_review_ui <- function(id) {
   ns <- NS(id)
   tagList(
     h1("Export"),
-    verbatimTextOutput(ns("exportData")),
+    verbatimTextOutput(ns("dataData")),
   )
 }
 
 #' review Server Functions
 #'
 #' @noRd
-mod_review_server <- function(id){
-  moduleServer(id, function(input, output, session){
+mod_review_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
     ns <- session$ns
     print_dev("mod_review_server initialised")
-    output$exportData <- renderPrint((paste(session$userData$reactiveValues$exportData %|truthy|% "exportData not found")))
-
+    output$dataData <- renderPrint(
+      (paste(
+        session$userData$reactiveValues$dataData %|truthy|% "dataData not found"
+      ))
+    )
   })
 }
 

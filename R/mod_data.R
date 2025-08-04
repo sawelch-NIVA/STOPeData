@@ -383,7 +383,16 @@ mod_data_server <- function(id) {
         print_dev("mod_data: Some modules pending, data entry disabled")
       }
     }) |>
-      bindEvent(session$userData$reactiveValues)
+      bindEvent(
+        session$userData$reactiveValues$campaignData,
+        session$userData$reactiveValues$referencesData,
+        session$userData$reactiveValues$sitesData,
+        session$userData$reactiveValues$parametersData,
+        session$userData$reactiveValues$compartmentsData,
+        session$userData$reactiveValues$methodsData,
+        session$userData$reactiveValues$sampleData,
+        session$userData$reactiveValues$biotaValidated
+      )
 
     ## observe: Handle table changes ----
     # upstream: input$measurement_table changes
