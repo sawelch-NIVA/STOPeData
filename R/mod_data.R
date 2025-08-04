@@ -36,10 +36,15 @@ mod_data_ui <- function(id) {
         ),
 
         ## Validation status overview ----
-        div(
-          style = "margin: 20px 0;",
-          h5("Module Validation Status"),
-          uiOutput(ns("validation_overview"))
+        accordion(
+          id = ns("validation_accordion"),
+          accordion_panel(
+            value = "validation_accordion_panel",
+            style = "margin: 20px 0;",
+            title = "Module Validation Status",
+            icon = bs_icon("exclamation-triangle"),
+            uiOutput(ns("validation_overview")),
+          )
         ),
 
         ## Data entry controls ----
