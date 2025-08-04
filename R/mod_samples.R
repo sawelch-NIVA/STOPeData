@@ -400,7 +400,7 @@ mod_samples_server <- function(id) {
         updateSelectizeInput(
           session,
           "parameters_select",
-          selected = moduleState$available_parameters$STRESSOR_NAME
+          selected = session$userData$reactiveValues$parametersData
         )
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
@@ -409,7 +409,10 @@ mod_samples_server <- function(id) {
         disable(id = "parameters_select")
       }
     }) |>
-      bindEvent(input$add_all_parameters, moduleState$available_parameters)
+      bindEvent(
+        input$add_all_parameters,
+        moduleState$available_parameters
+      )
 
     ## observe ~bindEvent(remove_all_parameters): Remove all parameters ----
     # upstream: user clicks input$remove_all_parameters
