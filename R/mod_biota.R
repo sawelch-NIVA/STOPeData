@@ -43,7 +43,9 @@ mod_biota_ui <- function(id) {
             icon = bs_icon("info-circle"),
             div(
               pre(cat_art, style = "font-size: 10px; color: #666;"),
-              p("This module captures detailed biological information for samples from living organisms. All biota samples require species identification, tissue type, life stage, and gender information to be considered valid.")
+              p(
+                "This module captures detailed biological information for samples from living organisms. All biota samples require species identification, tissue type, life stage, and gender information to be considered valid."
+              )
             )
           )
         ),
@@ -52,8 +54,10 @@ mod_biota_ui <- function(id) {
         div(
           style = "margin: 15px 0;",
           h5("Biota Sample Details"),
-          p("Complete the biological details for each biota sample below. All fields are required.",
-            class = "text-muted")
+          p(
+            "Complete the biological details for each biota sample below. All fields are required.",
+            class = "text-muted"
+          )
         ),
 
         rHandsontableOutput(
@@ -142,21 +146,61 @@ mod_biota_server <- function(id) {
     ## Helper: Create species mapping ----
     create_species_mapping <- function() {
       list(
-        "Worms" = c("Eisenia fetida", "Lumbricus terrestris", "Enchytraeus albidus"),
-        "Insects/Spiders" = c("Chironomus riparius", "Daphnia magna", "Folsomia candida"),
-        "Molluscs" = c("Mytilus edulis", "Dreissena polymorpha", "Potamopyrgus antipodarum"),
-        "Fungi" = c("Saccharomyces cerevisiae", "Penicillium chrysogenum", "Aspergillus niger"),
-        "Crustaceans" = c("Gammarus pulex", "Hyalella azteca", "Artemia salina"),
+        "Worms" = c(
+          "Eisenia fetida",
+          "Lumbricus terrestris",
+          "Enchytraeus albidus"
+        ),
+        "Insects/Spiders" = c(
+          "Chironomus riparius",
+          "Daphnia magna",
+          "Folsomia candida"
+        ),
+        "Molluscs" = c(
+          "Mytilus edulis",
+          "Dreissena polymorpha",
+          "Potamopyrgus antipodarum"
+        ),
+        "Fungi" = c(
+          "Saccharomyces cerevisiae",
+          "Penicillium chrysogenum",
+          "Aspergillus niger"
+        ),
+        "Crustaceans" = c(
+          "Gammarus pulex",
+          "Hyalella azteca",
+          "Artemia salina"
+        ),
         "Mammals" = c("Rattus norvegicus", "Mus musculus", "Bos taurus"),
         "Amphibians" = c("Xenopus laevis", "Rana temporaria", "Bufo bufo"),
-        "Moss, Hornworts" = c("Bryum argenteum", "Rhynchostegium murale", "Marchantia polymorpha"),
+        "Moss, Hornworts" = c(
+          "Bryum argenteum",
+          "Rhynchostegium murale",
+          "Marchantia polymorpha"
+        ),
         "Birds" = c("Gallus gallus", "Passer domesticus", "Turdus merula"),
         "Fish" = c("Danio rerio", "Oncorhynchus mykiss", "Pimephales promelas"),
-        "Flowers, Trees, Shrubs, Ferns" = c("Lemna minor", "Arabidopsis thaliana", "Zea mays"),
-        "Algae" = c("Pseudokirchneriella subcapitata", "Chlorella vulgaris", "Scenedesmus quadricauda"),
-        "Invertebrates" = c("Caenorhabditis elegans", "Hydra vulgaris", "Planaria torva"),
+        "Flowers, Trees, Shrubs, Ferns" = c(
+          "Lemna minor",
+          "Arabidopsis thaliana",
+          "Zea mays"
+        ),
+        "Algae" = c(
+          "Pseudokirchneriella subcapitata",
+          "Chlorella vulgaris",
+          "Scenedesmus quadricauda"
+        ),
+        "Invertebrates" = c(
+          "Caenorhabditis elegans",
+          "Hydra vulgaris",
+          "Planaria torva"
+        ),
         "Reptiles" = c("Trachemys scripta", "Lacerta agilis", "Natrix natrix"),
-        "Bacteria" = c("Escherichia coli", "Bacillus subtilis", "Pseudomonas fluorescens"),
+        "Bacteria" = c(
+          "Escherichia coli",
+          "Bacillus subtilis",
+          "Pseudomonas fluorescens"
+        ),
         "Ecosystem" = c("Mixed community", "Biofilm", "Microbial consortium"),
         "Other" = c("Unknown species", "Mixed species", "Unidentified organism")
       )
@@ -196,16 +240,23 @@ mod_biota_server <- function(id) {
         return(init_biota_df())
       }
 
-      biota_samples <- samples_data[samples_data$COMPARTMENT == "Biota" &
-                                      !is.na(samples_data$COMPARTMENT), ]
+      biota_samples <- samples_data[
+        samples_data$COMPARTMENT == "Biota" &
+          !is.na(samples_data$COMPARTMENT),
+      ]
 
       if (nrow(biota_samples) == 0) {
         return(init_biota_df())
       }
 
       # Add biota-specific columns if they don't exist
-      biota_columns <- c("SPECIES_GROUP", "SAMPLE_SPECIES", "SAMPLE_TISSUE",
-                         "SAMPLE_SPECIES_LIFESTAGE", "SAMPLE_SPECIES_GENDER")
+      biota_columns <- c(
+        "SPECIES_GROUP",
+        "SAMPLE_SPECIES",
+        "SAMPLE_TISSUE",
+        "SAMPLE_SPECIES_LIFESTAGE",
+        "SAMPLE_SPECIES_GENDER"
+      )
 
       for (col in biota_columns) {
         if (!col %in% names(biota_samples)) {
@@ -213,9 +264,15 @@ mod_biota_server <- function(id) {
         }
       }
 
-      return(biota_samples[, c("SAMPLE_ID", "SITE_CODE", "PARAMETER_NAME",
-                               "COMPARTMENT", "SAMPLING_DATE", "REPLICATE",
-                               biota_columns)])
+      return(biota_samples[, c(
+        "SAMPLE_ID",
+        "SITE_CODE",
+        "PARAMETER_NAME",
+        "COMPARTMENT",
+        "SAMPLING_DATE",
+        "REPLICATE",
+        biota_columns
+      )])
     }
 
     # 3. Observers and Reactives ----
@@ -232,10 +289,17 @@ mod_biota_server <- function(id) {
 
         if (moduleState$has_biota_samples) {
           # Only update if we don't already have biota data or if structure changed
-          if (nrow(moduleState$biota_data) == 0 ||
-              !identical(biota_samples$SAMPLE_ID, moduleState$biota_data$SAMPLE_ID)) {
+          if (
+            nrow(moduleState$biota_data) == 0 ||
+              !identical(
+                biota_samples$SAMPLE_ID,
+                moduleState$biota_data$SAMPLE_ID
+              )
+          ) {
             moduleState$biota_data <- biota_samples
-            print_dev(glue("mod_biota loaded {nrow(biota_samples)} biota samples"))
+            print_dev(glue(
+              "mod_biota loaded {nrow(biota_samples)} biota samples"
+            ))
           }
         } else {
           moduleState$biota_data <- init_biota_df()
@@ -257,7 +321,8 @@ mod_biota_server <- function(id) {
         updated_data <- hot_to_r(input$biota_table)
         moduleState$biota_data <- updated_data
       }
-    }) |> bindEvent(input$biota_table)
+    }) |>
+      bindEvent(input$biota_table)
 
     ## observe: Check validation and update session data ----
     # upstream: moduleState$biota_data, iv
@@ -286,7 +351,9 @@ mod_biota_server <- function(id) {
           session$userData$reactiveValues$sampleDataWithBiota <- updated_samples
           session$userData$reactiveValues$biotaValidated <- TRUE
           session$userData$reactiveValues$biotaData <- moduleState$validated_data
-          print_dev(glue("mod_biota validated and merged {nrow(moduleState$validated_data)} biota samples"))
+          print_dev(glue(
+            "mod_biota validated and merged {nrow(moduleState$validated_data)} biota samples"
+          ))
         }
       } else {
         # Biota samples exist but validation failed
@@ -301,8 +368,13 @@ mod_biota_server <- function(id) {
     ## Helper: Merge biota data back into samples ----
     merge_biota_into_samples <- function(samples_data, biota_data) {
       # Add biota columns to samples data if they don't exist
-      biota_columns <- c("SPECIES_GROUP", "SAMPLE_SPECIES", "SAMPLE_TISSUE",
-                         "SAMPLE_SPECIES_LIFESTAGE", "SAMPLE_SPECIES_GENDER")
+      biota_columns <- c(
+        "SPECIES_GROUP",
+        "SAMPLE_SPECIES",
+        "SAMPLE_TISSUE",
+        "SAMPLE_SPECIES_LIFESTAGE",
+        "SAMPLE_SPECIES_GENDER"
+      )
 
       for (col in biota_columns) {
         if (!col %in% names(samples_data)) {
@@ -331,17 +403,19 @@ mod_biota_server <- function(id) {
     # upstream: moduleState$biota_data
     # downstream: UI table display
     output$biota_table <- renderRHandsontable({
-        # Show message when no biota samples
-        empty_df <- data.frame(
-          Message = "No biota samples found. Add samples with ENVIRON_COMPARTMENT = 'Biota' in the Samples module.",
-          stringsAsFactors = FALSE
-        )
+      # Show message when no biota samples
+      empty_df <- data.frame(
+        Message = "No biota samples found. Add samples with ENVIRON_COMPARTMENT = 'Biota' in the Samples module.",
+        stringsAsFactors = FALSE
+      )
 
-          rhandsontable(empty_df,
-                        stretchH = "all",
-                        height = "200px",
-                        readOnly = TRUE,
-                        width = NULL)
+      rhandsontable(
+        empty_df,
+        stretchH = "all",
+        height = "200px",
+        readOnly = TRUE,
+        width = NULL
+      )
     })
 
     ## output: validation_reporter ----
@@ -352,7 +426,7 @@ mod_biota_server <- function(id) {
         div(
           bs_icon("info-circle"),
           "No biota samples detected. Biota validation not required.",
-          class = "validation-status validation-info"
+          class = "validation-status validation-complete"
         )
       } else if (moduleState$is_valid) {
         div(
@@ -385,8 +459,14 @@ mod_biota_server <- function(id) {
         sample_entries <- lapply(1:display_count, function(i) {
           sample <- moduleState$validated_data[i, ]
           # Focus on biota-specific fields
-          biota_fields <- c("SAMPLE_ID", "SPECIES_GROUP", "SAMPLE_SPECIES",
-                            "SAMPLE_TISSUE", "SAMPLE_SPECIES_LIFESTAGE", "SAMPLE_SPECIES_GENDER")
+          biota_fields <- c(
+            "SAMPLE_ID",
+            "SPECIES_GROUP",
+            "SAMPLE_SPECIES",
+            "SAMPLE_TISSUE",
+            "SAMPLE_SPECIES_LIFESTAGE",
+            "SAMPLE_SPECIES_GENDER"
+          )
           sample_lines <- sapply(biota_fields, function(name) {
             value <- sample[[name]]
             if (is.na(value) || is.null(value) || value == "") {
@@ -397,7 +477,12 @@ mod_biota_server <- function(id) {
               paste0("  ", name, " = ", as.character(value))
             }
           })
-          paste0("Biota Sample ", i, ":\n", paste(sample_lines, collapse = "\n"))
+          paste0(
+            "Biota Sample ",
+            i,
+            ":\n",
+            paste(sample_lines, collapse = "\n")
+          )
         })
 
         result <- paste(sample_entries, collapse = "\n\n")

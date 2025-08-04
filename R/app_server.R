@@ -8,20 +8,20 @@
 #' @importFrom shinyjs enable disable
 #' @noRd
 app_server <- function(input, output, session) {
-
   # reactiveValues: initialise reactiveValues in session$userData to store data ----
   if (!is.reactivevalues(session$userData$reactiveValues)) {
-    session$userData$reactiveValues <- reactiveValues(ENTERED_BY = character(0),
-                                                      sitesData = tibble(NULL),
-                                                      parametersData = tibble(NULL),
-                                                      compartmentsData = tibble(NULL),
-                                                      referenceData = tibble(NULL),
-                                                      campaignData = tibble(NULL),
-                                                      samplesData = tibble(NULL),
-                                                      methodsData = tibble(NULL),
-                                                      exportData = tibble(NULL),
-                                                      biotaData = tibble(NULL)
-                                                      )
+    session$userData$reactiveValues <- reactiveValues(
+      ENTERED_BY = character(0),
+      sitesData = tibble(NULL),
+      parametersData = tibble(NULL),
+      compartmentsData = tibble(NULL),
+      referenceData = tibble(NULL),
+      campaignData = tibble(NULL),
+      samplesData = tibble(NULL),
+      methodsData = tibble(NULL),
+      exportData = tibble(NULL),
+      biotaData = tibble(NULL)
+    )
   }
 
   moduleCampaign <- mod_campaign_server("campaign")
@@ -30,12 +30,8 @@ app_server <- function(input, output, session) {
   moduleParameters <- mod_parameters_server("parameters")
   moduleCompartments <- mod_compartments_server("compartments")
   moduleMethods <- mod_methods_server("methods")
-  moduleSamples <- mod_samples_server(
-    "samples"
-  )
-  moduleBiota <- mod_biota_server(
-    "biota"
-  )
+  moduleSamples <- mod_samples_server("samples")
+  moduleBiota <- mod_biota_server("biota")
   moduleExport <- mod_export_server(
     "export"
   )
@@ -83,23 +79,28 @@ app_server <- function(input, output, session) {
     } else {
       enable("next_section")
     }
-  }) |> bindEvent(input$`main-page`, ignoreInit = FALSE)
+  }) |>
+    bindEvent(input$`main-page`, ignoreInit = FALSE)
 
   ## observe: Previous section navigation ----
   observe({
     pos <- current_position()
-    if (pos > 2) { # Don't go before campaign
+    if (pos > 2) {
+      # Don't go before campaign
       new_tab <- module_order[pos - 1]
       updateNavbarPage(session, "main-page", selected = new_tab)
     }
-  }) |> bindEvent(input$previous_section)
+  }) |>
+    bindEvent(input$previous_section)
 
   ## observe: Next section navigation ----
   observe({
     pos <- current_position()
-    if (pos < length(module_order)) { # Don't go past review
+    if (pos < length(module_order)) {
+      # Don't go past review
       new_tab <- module_order[pos + 1]
       updateNavbarPage(session, "main-page", selected = new_tab)
     }
-}) |> bindEvent(input$next_section)
+  }) |>
+    bindEvent(input$next_section)
 }
