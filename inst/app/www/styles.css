@@ -124,13 +124,21 @@ code, pre, .code {
 }
 
 /* ===================
-   rhandsontable Dark Mode Support
+   rhandsontable
    =================== */
 
-/* Main table container */
+/* Dark Mode Support */
 [data-bs-theme="dark"] .rhandsontable {
       filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+/* Expand to fill container - needed to stop dropdowns from being cut off */
+.handsontable {
+  height: inherit;
+  width: inherit;
+}
+
+
 
 /* ===================
    Leaflet Dark Mode Support
