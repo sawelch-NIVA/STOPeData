@@ -80,13 +80,6 @@ mod_parameters_ui <- function(id) {
             icon = icon("plus"),
             class = "btn-info",
             width = "200px"
-          ),
-          input_task_button(
-            id = ns("remove_selected"),
-            label = "Remove Selected",
-            icon = icon("trash"),
-            class = "btn-danger",
-            width = "200px"
           )
         ),
 
@@ -406,30 +399,6 @@ mod_parameters_server <- function(id) {
       }
     }) |>
       bindEvent(input$add_new)
-
-    ## observe: Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$parameters_data
-    observe({
-      if (!is.null(input$parameters_table)) {
-        current_data <- hot_to_r(input$parameters_table)
-
-        # Remove last row (simplified - proper row selection is complex in rhandsontable)
-        if (nrow(current_data) > 0) {
-          moduleState$parameters_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-          showNotification("Removed last row", type = "message")
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
-      } else {
-        showNotification("No data to remove", type = "warning")
-      }
-    }) |>
-      bindEvent(input$remove_selected)
 
     ## observe: Handle table changes ----
     # upstream: input$parameters_table changes

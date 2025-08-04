@@ -204,25 +204,6 @@ mod_samples_ui <- function(id) {
           )
         ),
 
-        ## Action buttons for table management ----
-        div(
-          style = "margin: 15px 0;",
-          input_task_button(
-            id = ns("remove_selected"),
-            label = "Remove Selected",
-            icon = icon("trash"),
-            class = "btn-danger",
-            width = "200px"
-          ),
-          input_task_button(
-            id = ns("clear_all"),
-            label = "Clear All Samples",
-            icon = icon("broom"),
-            class = "btn-warning",
-            width = "200px"
-          )
-        ),
-
         ## Samples table ----
         rHandsontableOutput(
           ns("samples_table"),
@@ -612,43 +593,9 @@ mod_samples_server <- function(id) {
       } else {
         paste("Generated", nrow(new_combinations), "sample combinations")
       }
-
       showNotification(message, type = "message")
     }) |>
       bindEvent(input$generate_combinations)
-
-    ## observe ~bindEvent(remove_selected): Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$samples_data
-    observe({
-      if (!is.null(input$samples_table)) {
-        current_data <- hot_to_r(input$samples_table)
-
-        # Remove last row (simplified - proper row selection is complex in rhandsontable)
-        if (nrow(current_data) > 0) {
-          moduleState$samples_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-          showNotification("Removed last row", type = "message")
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
-      } else {
-        showNotification("No data to remove", type = "warning")
-      }
-    }) |>
-      bindEvent(input$remove_selected)
-
-    ## observe ~bindEvent(clear_all): Clear all samples ----
-    # upstream: user clicks input$clear_all
-    # downstream: moduleState$samples_data
-    observe({
-      moduleState$samples_data <- init_samples_df()
-      showNotification("All samples cleared", type = "message")
-    }) |>
-      bindEvent(input$clear_all)
 
     ## observe: Handle table changes ----
     # upstream: input$samples_table changes
