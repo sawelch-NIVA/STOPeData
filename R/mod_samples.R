@@ -182,26 +182,26 @@ mod_samples_ui <- function(id) {
               step = 1,
               width = "100%"
             )
-          )
-        ),
+          ),
 
-        ## Generate combinations button ----
-        div(
-          style = "margin-top: 15px;",
-          input_task_button(
-            id = ns("generate_combinations"),
-            label = "Generate Sample Combinations",
-            icon = icon("magic"),
-            class = "btn-success",
-            width = "250px"
-          )
-        ) |>
-          disabled(),
+          ## Generate combinations button ----
+          div(
+            style = "margin-top: 15px;",
+            input_task_button(
+              id = ns("generate_combinations"),
+              label = "Generate Sample Combinations",
+              icon = icon("magic"),
+              class = "btn-success",
+              width = "250px"
+            )
+          ) |>
+            disabled(),
 
-        ## Preview info ----
-        div(
-          style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
-          uiOutput(ns("combination_preview"))
+          ## Preview info ----
+          div(
+            style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
+            uiOutput(ns("combination_preview"))
+          )
         ),
 
         ## Action buttons for table management ----
@@ -256,7 +256,7 @@ mod_samples_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectizeInput
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu
+#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu hot_col
 #' @importFrom shinyjs enable disable disabled
 #' @importFrom shinyWidgets updateAirDateInput
 
@@ -284,11 +284,13 @@ mod_samples_server <- function(id) {
       if (nrow(moduleState$samples_data) == 0) {
         "At least one sample combination must be generated"
       } else {
-        # Check required fields
+        # Check required fields - updated for new column structure
         required_fields <- c(
           "SITE_CODE",
           "PARAMETER_NAME",
-          "COMPARTMENT",
+          "ENVIRON_COMPARTMENT", # Changed from COMPARTMENT
+          "ENVIRON_COMPARTMENT_SUB",
+          "MEASURED_CATEGORY", # Added this
           "SAMPLING_DATE",
           "REPLICATE",
           "SAMPLE_ID"
@@ -398,7 +400,7 @@ mod_samples_server <- function(id) {
         updateSelectizeInput(
           session,
           "parameters_select",
-          selected = moduleState$available_parameters$PARAMETER_NAME
+          selected = moduleState$available_parameters$STRESSOR_NAME
         )
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
@@ -574,14 +576,15 @@ mod_samples_server <- function(id) {
         return()
       }
 
-      # Create combinations with duplicate checking
+      # Create combinations with duplicate checking - now passing available_compartments
       result <- create_sample_combinations(
         sites,
         parameters,
-        compartments,
+        compartments, # These are still merged format like "Aquatic | Freshwater"
         dates,
         replicates,
-        moduleState$samples_data
+        moduleState$samples_data,
+        moduleState$available_compartments # Pass this for parsing
       )
       new_combinations <- result$combinations
       skipped_count <- result$skipped
@@ -667,7 +670,7 @@ mod_samples_server <- function(id) {
         session$userData$reactiveValues$sampleData <- moduleState$validated_data
         print_dev(glue(
           "mod_samples is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$sampleData: {session$userData$reactiveValues$sampleData}"
+                       session$userData$reactiveValues$sampleData: {nrow(session$userData$reactiveValues$sampleData)} rows"
         ))
       } else {
         moduleState$is_valid <- FALSE
@@ -710,6 +713,7 @@ mod_samples_server <- function(id) {
           width = NULL
         ) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
+          hot_col("REPLICATE_ID", readOnly = TRUE) |> # Make replicate ID read-only
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -731,12 +735,42 @@ mod_samples_server <- function(id) {
           width = NULL
         ) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          # TODO: Fix date formatting.
+          hot_col("REPLICATE_ID", readOnly = TRUE) |> # Make replicate ID read-only
           hot_col(
             "SAMPLING_DATE",
             readOnly = TRUE,
             format = "date",
-            dateFormat = "YYYY-mm-dd"
+            dateFormat = "YYYY-MM-DD"
+          ) |>
+          # Add dropdown validation for compartment columns
+          hot_col(
+            "ENVIRON_COMPARTMENT",
+            type = "dropdown",
+            source = c("Aquatic", "Atmospheric", "Terrestrial", "Biota"),
+            strict = TRUE
+          ) |>
+          hot_col(
+            "ENVIRON_COMPARTMENT_SUB",
+            type = "dropdown",
+            source = c(
+              "Freshwater",
+              "Marine/Salt Water",
+              "Brackish/Transitional Water",
+              "Groundwater",
+              "Wastewater",
+              "Indoor Air",
+              "Outdoor Air",
+              "Soil A Horizon (Topsoil)",
+              "Biota, Terrestrial",
+              "Biota, Aquatic"
+            ),
+            strict = FALSE
+          ) |>
+          hot_col(
+            "MEASURED_CATEGORY",
+            type = "dropdown",
+            source = c("External", "Internal", "Surface"),
+            strict = TRUE
           ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
@@ -822,4 +856,4 @@ mod_samples_server <- function(id) {
 # mod_samples_ui("samples_1")
 
 ## To be copied in the server ----
-# samples_data <- mod_samples_server("samples_1", sites_data, parameters_data, compartments_data)
+# samples_data <- mod_samples_server("samples_1")
