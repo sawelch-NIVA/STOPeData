@@ -152,19 +152,6 @@ mod_campaign_ui <- function(id) {
           label = "Clear All Fields",
           class = "btn-danger",
           width = "300px"
-        ),
-        br(),
-        div(
-          # TODO: Unified nav buttons from v0.3
-          # TODO: Fix observer.
-          class = "navigation-buttons-container",
-          style = "display: flex; flex-direction: row-reverse;",
-          actionButton(
-            inputId = ns("next_section"),
-            label = "Next Section",
-            class = "btn-success",
-            width = "300px",
-          )
         )
       )
     )

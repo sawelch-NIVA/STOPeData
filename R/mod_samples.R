@@ -39,7 +39,7 @@ mod_samples_ui <- function(id) {
 
         ## Sample combination form ----
         div(
-          style = "padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin: 15px 0;",
+          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
           h5("Create Sample Combinations"),
 
           layout_column_wrap(
@@ -245,26 +245,6 @@ mod_samples_ui <- function(id) {
             icon = bs_icon("code"),
             verbatimTextOutput(ns("validated_data_display"))
           )
-        )
-      ),
-
-      ## Navigation buttons ----
-      div(
-        class = "navigation-buttons-container",
-        style = "display: flex; justify-content: space-between; margin-top: 20px;",
-
-        actionButton(
-          inputId = ns("previous_section"),
-          label = "Previous Section",
-          class = "btn-secondary",
-          width = "200px"
-        ),
-
-        actionButton(
-          inputId = ns("next_section"),
-          label = "Next Section",
-          class = "btn-success",
-          width = "200px"
         )
       )
     )
@@ -525,7 +505,6 @@ mod_samples_server <- function(id) {
     # upstream: input$sampling_date
     # downstream: remove_all_dates button state
     observe({
-      golem::print_dev(glue("input$sampling_date: {input$sampling_date}"))
       if (isTruthy(input$sampling_date) && length(input$sampling_date) > 0) {
         enable("remove_all_dates")
       } else {
