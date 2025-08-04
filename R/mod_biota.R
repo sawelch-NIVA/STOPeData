@@ -207,7 +207,7 @@ mod_biota_server <- function(id) {
       }
     }
 
-    ## Helper: Initialize biota data frame - UPDATED for new column structure ----
+    ## Helper: Initialize biota data frame
     init_biota_df <- function() {
       data.frame(
         SAMPLE_ID = character(0),
@@ -227,7 +227,7 @@ mod_biota_server <- function(id) {
       )
     }
 
-    ## Helper: Filter biota samples - UPDATED for new column structure ----
+    ## Helper: Filter biota samples
     extract_biota_samples <- function(samples_data) {
       if (is.null(samples_data) || nrow(samples_data) == 0) {
         return(init_biota_df())
