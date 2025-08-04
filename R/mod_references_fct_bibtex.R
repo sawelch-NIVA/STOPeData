@@ -110,7 +110,7 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
     "report" = "report",
     "manual" = "report",
     "misc" = "dataset",
-    # Default mappings for unmapped types
+    # Default mappings for unmapped types - TODO: extend definition to cover these types
     "inproceedings" = "journal",  # Conference papers → journal
     "conference" = "journal",
     "incollection" = "book",      # Book chapters → book
@@ -124,10 +124,16 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
   ref_type <- ref_type_mapping[[tolower(entry$CATEGORY %||% "")]] %||% "journal"
 
   # Helper function to safely extract and convert values
-  safe_extract <- function(value, convert_func = identity) {
+  safe_extract <- function(value, convert_func = identity, clean_text = TRUE) {
     if (is.null(value) || is.na(value) || value == "") {
       return(NA)
     }
+
+    # Clean BibTeX formatting if it's text
+    if (clean_text && is.character(value)) {
+      value <- clean_bibtex_text(value)
+    }
+
     tryCatch(convert_func(value), error = function(e) NA)
   }
 
@@ -284,4 +290,116 @@ validate_and_parse_bibtex <- function(bibtex_string, allow_multiple = FALSE) {
       warning = NULL
     ))
   })
+}
+
+#' Clean BibTeX text formatting
+#'
+#' @description
+#' Removes common BibTeX formatting artifacts including double curly braces
+#' used for capitalization preservation and LaTeX accent commands for
+#' non-ASCII characters.
+#'
+#' @param text Character vector to clean
+#'
+#' @return Character vector with cleaned text
+#'
+#' @details
+#' This function performs the following cleaning operations:
+#' - Removes double curly braces {{}} used for capitalization preservation
+#' - Converts common LaTeX accent commands to Unicode characters
+#' - Normalizes whitespace
+#'
+#' Common LaTeX accent conversions include:
+#' - {\"a} → ä, {\'e} → é, {\`a} → à, etc.
+#' - {\ss} → ß, {\ae} → æ, {\o} → ø
+#'
+#' @examples
+#' \dontrun{
+#' # Clean title with double braces
+#' clean_bibtex_text("{{Why Public Health Agencies Cannot Depend}}")
+#' # Result: "Why Public Health Agencies Cannot Depend"
+#'
+#' # Clean LaTeX accents
+#' clean_bibtex_text("J{\"o}rg and Nicol{\'a}s")
+#' # Result: "Jörg and Nicolás"
+#' }
+#'
+#' @importFrom stringi stri_trans_general
+#' @export
+clean_bibtex_text <- function(text) {
+  if (is.null(text) || is.na(text) || text == "") {
+    return(text)
+  }
+
+  # Convert to character if not already
+  text <- as.character(text)
+
+  # Remove double curly braces (preserve inner content)
+  # This handles cases like {{Title}} -> Title
+  text <- gsub("\\{\\{([^}]+)\\}\\}", "\\1", text)
+
+  # Common LaTeX accent command replacements
+  latex_replacements <- list(
+    # Diaeresis/umlaut
+    '\\{\\\\"a\\}' = 'ä', '\\{\\\\"A\\}' = 'Ä',
+    '\\{\\\\"e\\}' = 'ë', '\\{\\\\"E\\}' = 'Ë',
+    '\\{\\\\"i\\}' = 'ï', '\\{\\\\"I\\}' = 'Ï',
+    '\\{\\\\"o\\}' = 'ö', '\\{\\\\"O\\}' = 'Ö',
+    '\\{\\\\"u\\}' = 'ü', '\\{\\\\"U\\}' = 'Ü',
+
+    # Acute accent
+    "\\{\\\\'a\\}" = 'á', "\\{\\\\'A\\}" = 'Á',
+    "\\{\\\\'e\\}" = 'é', "\\{\\\\'E\\}" = 'É',
+    "\\{\\\\'i\\}" = 'í', "\\{\\\\'I\\}" = 'Í',
+    "\\{\\\\'o\\}" = 'ó', "\\{\\\\'O\\}" = 'Ó',
+    "\\{\\\\'u\\}" = 'ú', "\\{\\\\'U\\}" = 'Ú',
+
+    # Grave accent
+    '\\{\\\\`a\\}' = 'à', '\\{\\\\`A\\}' = 'À',
+    '\\{\\\\`e\\}' = 'è', '\\{\\\\`E\\}' = 'È',
+    '\\{\\\\`i\\}' = 'ì', '\\{\\\\`I\\}' = 'Ì',
+    '\\{\\\\`o\\}' = 'ò', '\\{\\\\`O\\}' = 'Ò',
+    '\\{\\\\`u\\}' = 'ù', '\\{\\\\`U\\}' = 'Ù',
+
+    # Circumflex accent
+    '\\{\\\\\\^a\\}' = 'â', '\\{\\\\\\^A\\}' = 'Â',
+    '\\{\\\\\\^e\\}' = 'ê', '\\{\\\\\\^E\\}' = 'Ê',
+    '\\{\\\\\\^i\\}' = 'î', '\\{\\\\\\^I\\}' = 'Î',
+    '\\{\\\\\\^o\\}' = 'ô', '\\{\\\\\\^O\\}' = 'Ô',
+    '\\{\\\\\\^u\\}' = 'û', '\\{\\\\\\^U\\}' = 'Û',
+
+    # Tilde
+    '\\{\\\\~a\\}' = 'ã', '\\{\\\\~A\\}' = 'Ã',
+    '\\{\\\\~n\\}' = 'ñ', '\\{\\\\~N\\}' = 'Ñ',
+    '\\{\\\\~o\\}' = 'õ', '\\{\\\\~O\\}' = 'Õ',
+
+    # Cedilla
+    '\\{\\\\c\\{c\\}\\}' = 'ç', '\\{\\\\c\\{C\\}\\}' = 'Ç',
+
+    # Special characters
+    '\\{\\\\ss\\}' = 'ß',
+    '\\{\\\\ae\\}' = 'æ', '\\{\\\\AE\\}' = 'Æ',
+    '\\{\\\\o\\}' = 'ø', '\\{\\\\O\\}' = 'Ø',
+    '\\{\\\\aa\\}' = 'å', '\\{\\\\AA\\}' = 'Å'
+  )
+
+  # Apply LaTeX replacements
+  for (pattern in names(latex_replacements)) {
+    text <- gsub(pattern, latex_replacements[[pattern]], text, perl = TRUE)
+  }
+
+  # Clean up any remaining single curly braces around single characters
+  # This catches cases like {a} -> a
+  text <- gsub("\\{([^{}])\\}", "\\1", text)
+
+  # Normalize whitespace
+  text <- gsub("\\s+", " ", text)
+  text <- trimws(text)
+
+  # Use stringi for additional Unicode normalization if available
+  if (requireNamespace("stringi", quietly = TRUE)) {
+    text <- stringi::stri_trans_general(text, "Latin-ASCII; Any-NFC")
+  }
+
+  return(text)
 }
