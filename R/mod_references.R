@@ -47,14 +47,14 @@ mod_references_ui <- function(id) {
           div(
             textInput(
               inputId = ns("doi_lookup"),
-              label = "DOI Lookup (Disabled)",
-              placeholder = "Enter DOI to auto-populate fields",
+              label = "DOI Lookup",
+              placeholder = "Look up a paper on Crossref",
               width = "100%"
             ),
             actionButton(
               inputId = ns("lookup_doi"),
               icon = icon("search"),
-              label = "Lookup DOI (Disabled)",
+              label = "Look up DOI on Crossref",
               class = "btn-info",
               width = "100%"
             )
