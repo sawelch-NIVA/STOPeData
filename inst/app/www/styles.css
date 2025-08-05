@@ -132,10 +132,9 @@ code, pre, .code {
       filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
-/* Expand to fill container - needed to stop dropdowns from being cut off */
-.handsontable {
-  height: inherit;
-  width: inherit;
+/* Pulldown can break out of handsontable boundary Credit https://stackoverflow.com/questions/32593414/handsontable-dropdowns-hidden-in-overflowauto-div */
+.htColumnHeaders {
+    overflow: visible !important;
 }
 
 

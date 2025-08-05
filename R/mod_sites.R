@@ -85,9 +85,9 @@ mod_sites_ui <- function(id) {
       ## Right panel: Map ----
       card(
         full_screen = TRUE,
-          ### Leaflet map ----
-          leafletOutput(ns("sites_map"), height = "500px")
-        )
+        ### Leaflet map ----
+        leafletOutput(ns("sites_map"), height = "500px")
+      )
     )
   )
 }
@@ -347,9 +347,10 @@ mod_sites_server <- function(id) {
         moduleState$validated_data <- moduleState$sites_data
 
         session$userData$reactiveValues$sitesData <- moduleState$validated_data
-        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"))
-
+        print_dev(glue(
+          "moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"
+        ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -369,90 +370,144 @@ mod_sites_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$sites_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
           hot_table(overflow = "all", stretchH = "all") |>
           hot_col("SITE_CODE") |>
-          hot_cell(1, 1, comment = 'Site Code: A short, unique code identifying identify the site.') |>
+          hot_cell(
+            1,
+            1,
+            comment = 'Site Code: A short, unique code identifying identify the site.'
+          ) |>
           hot_col("SITE_NAME") |>
-          hot_cell(1, 2, comment = 'Site Name: A longer site name identifying the site.') |>
+          hot_cell(
+            1,
+            2,
+            comment = 'Site Name: A longer site name identifying the site.'
+          ) |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE",
             type = "dropdown",
             source = geographic_features,
             strict = TRUE
           ) |>
-          hot_cell(1, 3, comment = 'Site Geographical Feature: The geographical category of the site.') |>
+          hot_cell(
+            1,
+            3,
+            comment = 'Site Geographical Feature: The geographical category of the site.'
+          ) |>
           hot_col(
             "SITE_GEOGRAPHIC_FEATURE_SUB",
             type = "dropdown",
             source = geographic_features_sub,
             strict = TRUE
           ) |>
-          hot_cell(1, 4, comment = 'Site Geographical Sub-Feature: The geographical sub-category of the site.') |>
+          hot_cell(
+            1,
+            4,
+            comment = 'Site Geographical Sub-Feature: The geographical sub-category of the site.'
+          ) |>
           hot_col(
             "SITE_COORDINATE_SYSTEM",
             type = "dropdown",
             source = coordinate_systems,
             strict = TRUE
           ) |>
-          hot_cell(1, 5, comment = 'Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude.') |>
+          hot_cell(
+            1,
+            5,
+            comment = 'Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude.'
+          ) |>
           hot_col(
             "LATITUDE",
             type = "numeric",
             format = "0.000000",
           ) |>
-          hot_cell(1, 6, comment = "Latitude: The site's latitude (northing, y axis, in decimal degrees)") |>
+          hot_cell(
+            1,
+            6,
+            comment = "Latitude: The site's latitude (northing, y axis, in decimal degrees)"
+          ) |>
           hot_col(
             "LONGITUDE",
             type = "numeric",
             format = "0.000000",
             allowInvalid = FALSE
           ) |>
-          hot_cell(1, 7, comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)") |>
+          hot_cell(
+            1,
+            7,
+            comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)"
+          ) |>
           hot_col(
             "COUNTRY",
             type = "dropdown",
             source = countries,
             strict = TRUE
           ) |>
-          hot_cell(1, 8, comment = 'Country: The country where the site was sampled.') |>
+          hot_cell(
+            1,
+            8,
+            comment = 'Country: The country where the site was sampled.'
+          ) |>
           hot_col(
             "AREA",
             type = "dropdown",
             source = areas,
             strict = TRUE
           ) |>
-          hot_cell(1, 9, comment = 'Area: The region where the site was sampled.') |>
+          hot_cell(
+            1,
+            9,
+            comment = 'Area: The region where the site was sampled.'
+          ) |>
           hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE) |>
-          hot_cell(1, 10, comment = "Altitude: The sampling site's altitude above or below sea level.") |>
+          hot_cell(
+            1,
+            10,
+            comment = "Altitude: The sampling site's altitude above or below sea level."
+          ) |>
           hot_col(
             "ALTITUDE_UNIT",
             type = "dropdown",
             source = altitude_units,
             strict = TRUE
           ) |>
-          hot_cell(1, 11, comment = "Altitude Unit: The unit associated with the site's reported altitude.") |>
+          hot_cell(
+            1,
+            11,
+            comment = "Altitude Unit: The unit associated with the site's reported altitude."
+          ) |>
           hot_col(
             "ENTERED_DATE",
             type = "date",
             dateFormat = "YYYY-MM-DD",
             allowInvalid = FALSE
           ) |>
-          hot_cell(1, 12, comment = "Entered Data: The date this site is added to the database.") |>
+          hot_cell(
+            1,
+            12,
+            comment = "Entered Data: The date this site is added to the database."
+          ) |>
           hot_col(
             "ENTERED_BY",
             type = "text",
           ) |>
-          hot_cell(1, 13, comment = "Entered By: Your name or initials (autofilled from Campaign if available).") |>
+          hot_cell(
+            1,
+            13,
+            comment = "Entered By: Your name or initials (autofilled from Campaign if available)."
+          ) |>
           hot_col(
             "SITE_COMMENT",
             type = "text",
           ) |>
-          hot_cell(1, 14, comment = "Site Comment: Any additional comments or relevant details about the site.") |>
+          hot_cell(
+            1,
+            14,
+            comment = "Site Comment: Any additional comments or relevant details about the site."
+          ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -472,7 +527,6 @@ mod_sites_server <- function(id) {
     # upstream: moduleState$sites_data, input$map_center_country
     # downstream: UI map display
     output$sites_map <- renderLeaflet({
-
       map <- leaflet() |>
         addTiles()
 
