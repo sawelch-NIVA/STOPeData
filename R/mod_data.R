@@ -337,7 +337,7 @@ mod_data_server <- function(id) {
           LOD_UNIT = "mg/L", # Should match MEASURED_UNIT
 
           # Add method info (simplified)
-          SAMPLING_METHOD = "Not reported",
+          SAMPLING_PROTOCOL = "Not reported",
           FRACTIONATION_PROTOCOL = "Not reported",
           EXTRACTION_PROTOCOL = "Not reported",
           ANALYTICAL_PROTOCOL = "Not reported"
@@ -363,7 +363,11 @@ mod_data_server <- function(id) {
         LOQ_VALUE = numeric(0),
         LOQ_UNIT = character(0),
         LOD_VALUE = numeric(0),
-        LOD_UNIT = character(0)
+        LOD_UNIT = character(0),
+        SAMPLING_PROTOCOL = character(0),
+        EXTRACTION_PROTOCOL = character(0),
+        FRACTIONATION_PROTOCOL = character(0),
+        ANALYTICAL_PROTOCOL = character(0)
       )
     }
 
@@ -516,14 +520,8 @@ mod_data_server <- function(id) {
         !moduleState$data_entry_ready ||
           nrow(moduleState$measurement_combinations) == 0
       ) {
-        # Show message when not ready
-        empty_df <- data.frame(
-          Message = "Complete all setup modules to enable measurement data entry.",
-          stringsAsFactors = FALSE
-        )
-
         rhandsontable(
-          empty_df,
+          init_measurement_df(),
           stretchH = "all",
           height = "200px",
           readOnly = TRUE,
@@ -538,17 +536,17 @@ mod_data_server <- function(id) {
           width = NULL
         )
         # Make identification columns read-only
-        # hot_col(
-        #   c(
-        #     "SAMPLE_ID",
-        #     "SITE_CODE",
-        #     "PARAMETER_NAME",
-        #     "SAMPLING_DATE",
-        #     "COMPARTMENT",
-        #     "REPLICATE"
-        #   ),
-        #   readOnly = TRUE
-        # ) |>
+        hot_col(
+          c(
+            "SAMPLE_ID",
+            "SITE_CODE",
+            "PARAMETER_NAME",
+            "SAMPLING_DATE",
+            "COMPARTMENT",
+            "REPLICATE"
+          ),
+          readOnly = TRUE
+        )
         #
         # # Configure measurement fields
         # hot_col(
