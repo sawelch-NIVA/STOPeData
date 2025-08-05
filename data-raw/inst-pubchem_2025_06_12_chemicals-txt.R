@@ -1,9 +1,27 @@
-## code to prepare `inst/pubchem_2025_06_12_chemicals.txt` dataset goes here
+## code to prepare `inst/ecotox_2025_06_12_chemicals.txt` dataset goes here
 
-# downloaded from
+# downloaded from EPA ECOTOX
 
-usethis::use_data(inst/data/raw/pubchem_2025_06_12_chemicals.txt, overwrite = TRUE)
-chemicals <- read.delim(file = "inst/data/raw/ecotox_2025_06_12_chemicals.txt", sep = "|", header = TRUE, encoding = "ASCII") |>
-  dplyr::mutate(PARAMETER_NAME = stringi::stri_enc_toutf8(chemical_name),
-                CAS_RN = stringi::stri_enc_toutf8(cas_number), .keep = "none") |>
-  arrow::write_parquet(sink = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet")
+# usethis::use_data(
+#   "inst/data/raw/ecotox_2025_06_12_chemicals.txt",
+#   overwrite = TRUE
+# )
+
+chemicals <- readr::read_delim(
+  file = "inst/data/raw/ecotox_2025_06_12_chemicals.txt",
+  delim = "|",
+  col_names = TRUE,
+  col_types = "cccc",
+  trim_ws = TRUE,
+) |>
+  dplyr::mutate(
+    # Use iconv with substitution for problematic characters
+    PARAMETER_NAME = iconv(chemical_name, to = "UTF-8", sub = "") |>
+      # ASCII apostrophes cause problems?
+      gsub(pattern = "'", replacement = "'"),
+    CAS_RN = iconv(cas_number, to = "UTF-8", sub = ""),
+    .keep = "none"
+  ) |>
+  arrow::write_parquet(
+    sink = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
+  )

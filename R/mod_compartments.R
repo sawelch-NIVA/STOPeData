@@ -49,16 +49,16 @@ mod_compartments_ui <- function(id) {
               inputId = ns("environ_compartment_select"),
               label = tooltip(
                 list("Environmental Compartment", bs_icon("info-circle-fill")),
-                "Whichsphere does the sample come from?"
+                "Which sphere does the sample come from?"
               ),
               choices = c(
-                "Select compartment..." = "",
                 "Aquatic" = "Aquatic",
                 "Atmospheric" = "Atmospheric",
                 "Terrestrial" = "Terrestrial",
                 "Biota" = "Biota"
               ),
-              width = "100%"
+              width = "100%",
+              selected = "Biota"
             ),
 
             selectInput(
@@ -70,8 +70,8 @@ mod_compartments_ui <- function(id) {
                 ),
                 "Specific subset within the environmental compartment"
               ),
-              choices = c("Select main compartment first..." = ""),
-              width = "100%"
+              choices = NULL,
+              width = "100%",
             ),
 
             selectInput(
@@ -435,9 +435,10 @@ mod_compartments_server <- function(id) {
         moduleState$validated_data <- moduleState$compartments_data
 
         session$userData$reactiveValues$compartmentsData <- moduleState$validated_data
-        print_dev(glue("moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$compartmentsData: {session$userData$reactiveValues$sitesData}"))
-
+        print_dev(glue(
+          "moduleState$is_valid: {moduleState$is_valid},
+                       session$userData$reactiveValues$compartmentsData: {session$userData$reactiveValues$sitesData}"
+        ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -452,11 +453,13 @@ mod_compartments_server <- function(id) {
     output$compartments_table <- renderRHandsontable({
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_compartments_df(),
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          init_compartments_df(),
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -470,11 +473,13 @@ mod_compartments_server <- function(id) {
             )
           )
       } else {
-        rhandsontable(moduleState$compartments_data,
-                      stretchH = "all",
-                      height = "inherit",
-                      selectCallback = TRUE,
-                      width = NULL) |>
+        rhandsontable(
+          moduleState$compartments_data,
+          stretchH = "all",
+          height = "inherit",
+          selectCallback = TRUE,
+          width = NULL
+        ) |>
           hot_col(
             "ENVIRON_COMPARTMENT",
             type = "dropdown",

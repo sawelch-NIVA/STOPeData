@@ -560,7 +560,7 @@ mod_samples_server <- function(id) {
         return()
       }
 
-      # Create combinations with duplicate checking - now passing available_compartments
+      # Create combinations with duplicate checking - now passing available_sites and available_parameters
       result <- create_sample_combinations(
         sites,
         parameters,
@@ -568,7 +568,9 @@ mod_samples_server <- function(id) {
         dates,
         replicates,
         moduleState$samples_data,
-        moduleState$available_compartments # Pass this for parsing
+        moduleState$available_compartments, # Pass this for parsing
+        moduleState$available_sites, # Pass this for SITE_NAME lookup
+        moduleState$available_parameters # Pass this for PARAMETER_TYPE lookup
       )
       new_combinations <- result$combinations
       skipped_count <- result$skipped
@@ -799,6 +801,16 @@ mod_samples_server <- function(id) {
         "# Sample combinations will appear here when generated"
       }
     })
+
+    # 5. Return ----
+    ## return: validated data for other modules ----
+    # upstream: moduleState$validated_data
+    # downstream: app_server.R
+    return(
+      reactive({
+        moduleState$validated_data %|truthy|% NULL
+      })
+    )
   })
 }
 

@@ -34,7 +34,7 @@ update_sites_selectize <- function(session, sites_data) {
 
 #' Update Parameters Selectize Input ----
 #' @param session Shiny session
-#' @param parameters_data Data frame with PARAMETER_NAME and PARAMETER_TYPE columns
+#' @param parameters_data Data frame with STRESSOR_NAME and STRESSOR_TYPE columns
 #' @noRd
 update_parameters_selectize <- function(session, parameters_data) {
   if (is.null(parameters_data) || nrow(parameters_data) == 0) {
@@ -42,20 +42,18 @@ update_parameters_selectize <- function(session, parameters_data) {
     placeholder <- "No parameters available - add parameters first"
   } else {
     # Validate expected columns exist
-    if (
-      !all(c("PARAMETER_NAME", "PARAMETER_TYPE") %in% names(parameters_data))
-    ) {
+    if (!all(c("STRESSOR_NAME", "STRESSOR_TYPE") %in% names(parameters_data))) {
       warning(
-        "Parameters data missing expected columns: PARAMETER_NAME, PARAMETER_TYPE"
+        "Parameters data missing expected columns: STRESSOR_NAME, STRESSOR_TYPE"
       )
       choices <- character(0)
       placeholder <- "Invalid parameters data format"
     } else {
       choices <- setNames(
-        parameters_data$PARAMETER_NAME,
+        parameters_data$STRESSOR_NAME,
         paste(
-          parameters_data$PARAMETER_NAME,
-          paste0("(", parameters_data$PARAMETER_TYPE, ")")
+          parameters_data$STRESSOR_NAME,
+          paste0("(", parameters_data$STRESSOR_TYPE, ")")
         )
       )
       placeholder <- "Select parameters..."
@@ -164,12 +162,12 @@ parse_compartment_selections <- function(
 }
 
 #' Generate Sample ID with Components ----
-#' @param site_code Site code
-#' @param parameter_name Parameter name
-#' @param environ_compartment Environmental compartment
-#' @param environ_compartment_sub Environmental sub-compartment
-#' @param date Sampling date
-#' @param replicate Replicate number
+#' @param site_code Site code (vectorized)
+#' @param parameter_name Parameter name (vectorized)
+#' @param environ_compartment Environmental compartment (vectorized)
+#' @param environ_compartment_sub Environmental sub-compartment (vectorized)
+#' @param date Sampling date (vectorized)
+#' @param replicate Replicate number (vectorized)
 #' @noRd
 generate_sample_id_with_components <- function(
   site_code,
@@ -179,7 +177,7 @@ generate_sample_id_with_components <- function(
   date,
   replicate = 1
 ) {
-  # Create abbreviated versions for ID
+  # Create abbreviated versions for ID (vectorized)
   param_abbrev <- substr(gsub("[^A-Za-z0-9]", "", parameter_name), 1, 8)
   comp_abbrev <- substr(gsub("[^A-Za-z0-9]", "", environ_compartment), 1, 6)
   sub_abbrev <- substr(gsub("[^A-Za-z0-9]", "", environ_compartment_sub), 1, 6)
@@ -194,12 +192,9 @@ generate_sample_id_with_components <- function(
     sep = "_"
   )
 
-  if (replicate > 1) {
-    replicate_suffix <- sprintf("_R%02d", replicate)
-    paste0(base_id, replicate_suffix)
-  } else {
-    base_id
-  }
+  # Vectorized replicate handling
+  replicate_suffix <- ifelse(replicate > 1, sprintf("_R%02d", replicate), "")
+  paste0(base_id, replicate_suffix)
 }
 
 #' Check if Sample Combination with Components Exists ----
@@ -253,6 +248,8 @@ combination_exists_with_components <- function(
 #' @param replicates Number of replicates per combination
 #' @param existing_data Existing samples data frame
 #' @param available_compartments Available compartments data frame for parsing
+#' @param available_sites Available sites data frame for lookup (optional)
+#' @param available_parameters Available parameters data frame for lookup (optional)
 #' @noRd
 create_sample_combinations <- function(
   sites,
@@ -261,7 +258,9 @@ create_sample_combinations <- function(
   dates,
   replicates = 1,
   existing_data,
-  available_compartments
+  available_compartments,
+  available_sites = NULL,
+  available_parameters = NULL
 ) {
   stopifnot(
     isTruthy(sites),
@@ -336,9 +335,38 @@ create_sample_combinations <- function(
   }
 
   if (nrow(all_combinations) > 0) {
-    # Add additional columns
-    all_combinations$SITE_NAME <- ""
-    all_combinations$PARAMETER_TYPE <- ""
+    # Populate SITE_NAME from available_sites if provided
+    if (!is.null(available_sites) && "SITE_NAME" %in% names(available_sites)) {
+      site_lookup <- setNames(
+        available_sites$SITE_NAME,
+        available_sites$SITE_CODE
+      )
+      all_combinations$SITE_NAME <- site_lookup[all_combinations$SITE_CODE]
+      all_combinations$SITE_NAME[is.na(all_combinations$SITE_NAME)] <- ""
+    } else {
+      all_combinations$SITE_NAME <- ""
+    }
+
+    # Populate PARAMETER_TYPE from available_parameters if provided
+    if (
+      !is.null(available_parameters) &&
+        all(
+          c("STRESSOR_NAME", "STRESSOR_TYPE") %in% names(available_parameters)
+        )
+    ) {
+      param_lookup <- setNames(
+        available_parameters$STRESSOR_TYPE,
+        available_parameters$STRESSOR_NAME
+      )
+      all_combinations$PARAMETER_TYPE <- param_lookup[
+        all_combinations$PARAMETER_NAME
+      ]
+      all_combinations$PARAMETER_TYPE[is.na(
+        all_combinations$PARAMETER_TYPE
+      )] <- ""
+    } else {
+      all_combinations$PARAMETER_TYPE <- ""
+    }
 
     # Create replicate ID
     all_combinations$REPLICATE_ID <- paste0(
@@ -366,7 +394,7 @@ create_sample_combinations <- function(
       )
     )
 
-    # Generate sample IDs
+    # Generate sample IDs using vectorized function
     all_combinations$SAMPLE_ID <- generate_sample_id_with_components(
       all_combinations$SITE_CODE,
       all_combinations$PARAMETER_NAME,
@@ -459,8 +487,8 @@ dummy_sites <- data.frame(
 #' dummy_parameters ----
 #' @noRd
 dummy_parameters <- data.frame(
-  PARAMETER_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
-  PARAMETER_TYPE = c(
+  STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
+  STRESSOR_TYPE = c(
     "Stressor",
     "Stressor",
     "Quality parameter",

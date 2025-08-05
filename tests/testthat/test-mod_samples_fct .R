@@ -9,134 +9,249 @@ setup_test_data <- function() {
       stringsAsFactors = FALSE
     ),
     parameters = data.frame(
-      PARAMETER_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
-      STRESSOR_TYPE = c("Stressor", "Stressor", "Quality parameter", "Quality parameter"),
+      STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
+      STRESSOR_TYPE = c(
+        "Stressor",
+        "Stressor",
+        "Quality parameter",
+        "Quality parameter"
+      ),
       stringsAsFactors = FALSE
     ),
     compartments = data.frame(
       ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
-      ENVIRON_COMPARTMENT_SUB = c("Freshwater", "Marine/Salt Water", "Soil A Horizon (Topsoil)"),
+      ENVIRON_COMPARTMENT_SUB = c(
+        "Freshwater",
+        "Marine/Salt Water",
+        "Soil A Horizon (Topsoil)"
+      ),
       MEASURED_CATEGORY = c("External", "External", "External"),
       stringsAsFactors = FALSE
     ),
     existing_samples = data.frame(
       SITE_CODE = c("SITE_001", "SITE_002"),
       PARAMETER_NAME = c("Copper", "Lead"),
-      COMPARTMENT = c("Aquatic | Freshwater", "Aquatic | Marine/Salt Water"),
+      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic"),
+      ENVIRON_COMPARTMENT_SUB = c("Freshwater", "Marine/Salt Water"),
+      MEASURED_CATEGORY = c("External", "External"),
       SAMPLING_DATE = c("2024-01-15", "2024-01-15"),
+      REPLICATE = c(1, 1),
       stringsAsFactors = FALSE
     )
   )
 }
 
-# Test generate_sample_id ----
-test_that("generate_sample_id creates valid sample IDs", {
-  # Test basic functionality
-  result <- generate_sample_id("SITE_001", "Copper", "Aquatic | Freshwater", "2024-01-15")
-  expected <- "SITE_001_Copper_AquaticFre_20240115"
-  expect_equal(result, expected)
+# Test parse_compartment_selections ----
+test_that("parse_compartment_selections correctly parses merged selections", {
+  test_data <- setup_test_data()
+  compartments_data <- test_data$compartments
 
-  # Test special character handling
-  result <- generate_sample_id("SITE-001", "Lead (II)", "Aquatic/Marine", "2024-12-31")
-  expected <- "SITE-001_LeadII_AquaticMar_20241231"
-  expect_equal(result, expected)
+  # Test basic parsing
+  selections <- c(
+    "Aquatic | Freshwater",
+    "Terrestrial | Soil A Horizon (Topsoil)"
+  )
+  result <- parse_compartment_selections(selections, compartments_data)
 
-  # Test long parameter name truncation
-  result <- generate_sample_id("SITE_001", "Very Long Parameter Name That Should Be Truncated", "Short", "2024-01-01")
-  expected <- "SITE_001_VeryLongPa_Short_20240101"
-  expect_equal(result, expected)
+  expect_equal(nrow(result), 2)
+  expect_equal(result$ENVIRON_COMPARTMENT[1], "Aquatic")
+  expect_equal(result$ENVIRON_COMPARTMENT_SUB[1], "Freshwater")
+  expect_equal(result$MEASURED_CATEGORY[1], "External")
 
-  # Test empty inputs
-  result <- generate_sample_id("", "", "", "2024-01-01")
-  expected <- "___20240101"
-  expect_equal(result, expected)
+  # Test empty selections
+  result <- parse_compartment_selections(character(0), compartments_data)
+  expect_equal(nrow(result), 0)
+  expect_true(all(
+    c(
+      "ENVIRON_COMPARTMENT",
+      "ENVIRON_COMPARTMENT_SUB",
+      "MEASURED_CATEGORY"
+    ) %in%
+      names(result)
+  ))
+
+  # Test invalid selection
+  expect_warning(
+    parse_compartment_selections("Invalid | Selection", compartments_data),
+    "Could not find compartment combination"
+  )
 })
 
-# Test combination_exists ----
-test_that("combination_exists correctly identifies existing combinations", {
+# Test generate_sample_id_with_components ----
+test_that("generate_sample_id_with_components creates valid sample IDs", {
+  # Test basic functionality
+  result <- generate_sample_id_with_components(
+    "SITE_001",
+    "Copper",
+    "Aquatic",
+    "Freshwater",
+    "2024-01-15",
+    1
+  )
+  expect_true(grepl("SITE_001", result))
+  expect_true(grepl("Copper", result))
+  expect_true(grepl("Aquati", result))
+  expect_true(grepl("20240115", result))
+
+  # Test with replicate
+  result <- generate_sample_id_with_components(
+    "SITE_001",
+    "Copper",
+    "Aquatic",
+    "Freshwater",
+    "2024-01-15",
+    2
+  )
+  expect_true(grepl("_R02", result))
+
+  # Test special character handling
+  result <- generate_sample_id_with_components(
+    "SITE-001",
+    "Lead (II)",
+    "Aquatic/Marine",
+    "Fresh-water",
+    "2024-12-31",
+    1
+  )
+  expect_false(grepl("[^A-Za-z0-9_//-]", result)) # Should contain only alphanumeric and underscores
+})
+
+# Test combination_exists_with_components ----
+test_that("combination_exists_with_components correctly identifies existing combinations", {
   test_data <- setup_test_data()
   existing <- test_data$existing_samples
 
   # Test existing combination
-  result <- combination_exists(existing, "SITE_001", "Copper", "Aquatic | Freshwater", "2024-01-15")
+  result <- combination_exists_with_components(
+    existing,
+    "SITE_001",
+    "Copper",
+    "Aquatic",
+    "Freshwater",
+    "External",
+    "2024-01-15",
+    1
+  )
   expect_true(result)
 
   # Test non-existing combination
-  result <- combination_exists(existing, "SITE_003", "pH", "Terrestrial", "2024-01-15")
+  result <- combination_exists_with_components(
+    existing,
+    "SITE_003",
+    "pH",
+    "Terrestrial",
+    "Soil A Horizon (Topsoil)",
+    "External",
+    "2024-01-15",
+    1
+  )
   expect_false(result)
 
-  # Test with different date
-  result <- combination_exists(existing, "SITE_001", "Copper", "Aquatic | Freshwater", "2024-01-16")
+  # Test with different replicate
+  result <- combination_exists_with_components(
+    existing,
+    "SITE_001",
+    "Copper",
+    "Aquatic",
+    "Freshwater",
+    "External",
+    "2024-01-15",
+    2
+  )
   expect_false(result)
 
   # Test with empty data frame
-  result <- combination_exists(data.frame(), "SITE_001", "Copper", "Compartment", "2024-01-15")
+  result <- combination_exists_with_components(
+    data.frame(),
+    "SITE_001",
+    "Copper",
+    "Aquatic",
+    "Freshwater",
+    "External",
+    "2024-01-15",
+    1
+  )
   expect_false(result)
 })
 
 # Test create_sample_combinations ----
 test_that("create_sample_combinations generates correct combinations", {
   test_data <- setup_test_data()
-  existing <- test_data$existing_samples
 
   # Test basic combination generation
   result <- create_sample_combinations(
     sites = c("SITE_001", "SITE_002"),
     parameters = c("pH", "Dissolved oxygen"),
-    compartments = c("Aquatic | Freshwater"),
+    compartment_selections = c("Aquatic | Freshwater"),
     dates = c("2024-01-15"),
-    existing_data = data.frame()
+    replicates = 1,
+    existing_data = data.frame(),
+    available_compartments = test_data$compartments,
+    available_sites = test_data$sites,
+    available_parameters = test_data$parameters
   )
 
   expect_equal(nrow(result$combinations), 4) # 2 sites × 2 params × 1 compartment × 1 date
   expect_equal(result$skipped, 0)
-  expect_true(all(c("SITE_CODE", "PARAMETER_NAME", "COMPARTMENT", "SAMPLE_ID") %in% names(result$combinations)))
 
-  # Test duplicate filtering
-  result <- create_sample_combinations(
-    sites = c("SITE_001", "SITE_002"),
-    parameters = c("Copper", "Lead"),
-    compartments = c("Aquatic | Freshwater", "Aquatic | Marine/Salt Water"),
-    dates = c("2024-01-15"),
-    existing_data = existing
+  # Check column structure
+  expected_cols <- c(
+    "SITE_CODE",
+    "SITE_NAME",
+    "PARAMETER_NAME",
+    "PARAMETER_TYPE",
+    "ENVIRON_COMPARTMENT",
+    "ENVIRON_COMPARTMENT_SUB",
+    "MEASURED_CATEGORY",
+    "SAMPLING_DATE",
+    "REPLICATE",
+    "REPLICATE_ID",
+    "SAMPLE_ID"
   )
+  expect_true(all(expected_cols %in% names(result$combinations)))
 
-  expect_equal(nrow(result$combinations), 6) # 6 total = (2 sites * 2 parameters * 2 compartments) - 2 existing
-  expect_equal(result$skipped, 2)
-
-  # Test multiple dates
+  # Test with replicates
   result <- create_sample_combinations(
     sites = c("SITE_001"),
     parameters = c("pH"),
-    compartments = c("Aquatic | Freshwater"),
-    dates = c("2024-01-15", "2024-01-16"),
-    existing_data = data.frame()
-  )
-
-  expect_equal(nrow(result$combinations), 2) # 1 site × 1 param × 1 compartment × 2 dates
-  expect_equal(result$skipped, 0)
-
-  # Test empty inputs
-  empty_combination <- function() create_sample_combinations(
-    sites = character(0),
-    parameters = c("pH"),
-    compartments = c("Aquatic"),
+    compartment_selections = c("Aquatic | Freshwater"),
     dates = c("2024-01-15"),
-    existing_data = data.frame()
+    replicates = 3,
+    existing_data = data.frame(),
+    available_compartments = test_data$compartments,
+    available_sites = test_data$sites,
+    available_parameters = test_data$parameters
   )
 
-  # Should error out
-  expect_error(
-    empty_combination(),
-    regexp = "is not TRUE"
-    )
+  expect_equal(nrow(result$combinations), 3) # 1 combination × 3 replicates
+  expect_equal(result$skipped, 0)
+  expect_equal(unique(result$combinations$REPLICATE), c(1, 2, 3))
 
+  # Test duplicate filtering
+  existing <- test_data$existing_samples
+  result <- create_sample_combinations(
+    sites = c("SITE_001", "SITE_002"),
+    parameters = c("Copper", "Lead"),
+    compartment_selections = c(
+      "Aquatic | Freshwater",
+      "Aquatic | Marine/Salt Water"
+    ),
+    dates = c("2024-01-15"),
+    replicates = 1,
+    existing_data = existing,
+    available_compartments = test_data$compartments,
+    available_sites = test_data$sites,
+    available_parameters = test_data$parameters
+  )
+
+  expect_equal(nrow(result$combinations), 6) # 8 total - 2 existing
+  expect_equal(result$skipped, 2)
 })
 
 # Test update_combination_preview ----
 test_that("update_combination_preview generates correct preview text", {
   # Test basic preview
-  result <- update_combination_preview(2, 3, 1, 2)
+  result <- update_combination_preview(2, 3, 1, 2, 1)
   expect_s3_class(result, "shiny.tag")
 
   # Extract text content for testing
@@ -145,17 +260,18 @@ test_that("update_combination_preview generates correct preview text", {
   expect_true(grepl("3 parameters", result_html))
   expect_true(grepl("1 compartments", result_html))
   expect_true(grepl("2 dates", result_html))
-  expect_true(grepl("12 total combinations", result_html))
+  expect_true(grepl("1 replicates", result_html))
+  expect_true(grepl("12 total samples", result_html))
+
+  # Test with replicates
+  result <- update_combination_preview(1, 1, 1, 1, 3)
+  result_html <- as.character(result)
+  expect_true(grepl("3 total samples", result_html))
 
   # Test zero values
-  result <- update_combination_preview(0, 0, 0, 0)
+  result <- update_combination_preview(0, 0, 0, 0, 1)
   result_html <- as.character(result)
-  expect_true(grepl("0 total combinations", result_html))
-
-  # Test single values
-  result <- update_combination_preview(1, 1, 1, 1)
-  result_html <- as.character(result)
-  expect_true(grepl("1 total combinations", result_html))
+  expect_true(grepl("0 total samples", result_html))
 })
 
 # Test init_samples_df ----
@@ -164,16 +280,38 @@ test_that("init_samples_df creates correct empty data frame", {
 
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 0)
-  expect_equal(ncol(result), 8)
+  expect_equal(ncol(result), 11)
 
   expected_cols <- c(
-    "SITE_CODE", "SITE_NAME", "PARAMETER_NAME", "PARAMETER_TYPE",
-    "COMPARTMENT", "COMPARTMENT_SUB", "SAMPLING_DATE", "SAMPLE_ID"
+    "SITE_CODE",
+    "SITE_NAME",
+    "PARAMETER_NAME",
+    "PARAMETER_TYPE",
+    "ENVIRON_COMPARTMENT",
+    "ENVIRON_COMPARTMENT_SUB",
+    "MEASURED_CATEGORY",
+    "SAMPLING_DATE",
+    "REPLICATE",
+    "REPLICATE_ID",
+    "SAMPLE_ID"
   )
   expect_equal(names(result), expected_cols)
 
-  # Test column types
-  expect_true(all(sapply(result, is.character)))
+  # Test that most columns are character type
+  char_cols <- c(
+    "SITE_CODE",
+    "SITE_NAME",
+    "PARAMETER_NAME",
+    "PARAMETER_TYPE",
+    "ENVIRON_COMPARTMENT",
+    "ENVIRON_COMPARTMENT_SUB",
+    "MEASURED_CATEGORY",
+    "SAMPLING_DATE",
+    "REPLICATE_ID",
+    "SAMPLE_ID"
+  )
+  expect_true(all(sapply(result[char_cols], is.character)))
+  expect_true(is.numeric(result$REPLICATE))
 })
 
 # Integration tests ----
@@ -183,25 +321,40 @@ test_that("functions work together correctly", {
   # Generate combinations
   result <- create_sample_combinations(
     sites = test_data$sites$SITE_CODE[1:2],
-    parameters = test_data$parameters$PARAMETER_NAME[1:2],
-    compartments = c("Aquatic | Freshwater"),
+    parameters = test_data$parameters$STRESSOR_NAME[1:2],
+    compartment_selections = c("Aquatic | Freshwater"),
     dates = c("2024-01-15"),
-    existing_data = data.frame()
+    replicates = 1,
+    existing_data = data.frame(),
+    available_compartments = test_data$compartments,
+    available_sites = test_data$sites,
+    available_parameters = test_data$parameters
   )
 
   combinations <- result$combinations
 
   # Test that sample IDs are unique
-  expect_equal(length(combinations$SAMPLE_ID), length(unique(combinations$SAMPLE_ID)))
+  expect_equal(
+    length(combinations$SAMPLE_ID),
+    length(unique(combinations$SAMPLE_ID))
+  )
+
+  # Test that compartment parsing worked correctly
+  expect_true(all(combinations$ENVIRON_COMPARTMENT == "Aquatic"))
+  expect_true(all(combinations$ENVIRON_COMPARTMENT_SUB == "Freshwater"))
+  expect_true(all(combinations$MEASURED_CATEGORY == "External"))
 
   # Test that combinations can be checked for existence
   first_combo <- combinations[1, ]
-  exists_result <- combination_exists(
+  exists_result <- combination_exists_with_components(
     combinations,
     first_combo$SITE_CODE,
     first_combo$PARAMETER_NAME,
-    first_combo$COMPARTMENT,
-    first_combo$SAMPLING_DATE
+    first_combo$ENVIRON_COMPARTMENT,
+    first_combo$ENVIRON_COMPARTMENT_SUB,
+    first_combo$MEASURED_CATEGORY,
+    first_combo$SAMPLING_DATE,
+    first_combo$REPLICATE
   )
   expect_true(exists_result)
 })

@@ -56,11 +56,13 @@ mod_parameters_ui <- function(id) {
             multiple = FALSE
           ),
 
-          selectInput(
+          selectizeInput(
             inputId = ns("parameter_name_select"),
             label = "Parameter Name",
             choices = c("Select parameter type first..."),
-            width = "100%"
+            width = "100%",
+            selected = "Formaldehyde",
+            multiple = FALSE
           )
         ),
 
@@ -116,7 +118,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom golem print_dev
 #' @importFrom glue glue
-#' @importFrom dplyr mutate bind_rows pull filter
+#' @importFrom dplyr mutate bind_rows pull filter arrange
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
 
@@ -147,13 +149,13 @@ mod_parameters_server <- function(id) {
       file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
     ) |>
       mutate(
-        PARAMETER_TYPE = "Stressor", # Add PARAMETER_TYPE column to match dummy_params structure
+        PARAMETER_TYPE = "Stressor",
         PARAMETER_TYPE_SUB = "Not reported",
         MEASURED_TYPE = "Concentration",
-        CAS_RN = NA,
         PUBCHEM_CID = NA,
         INCHIKEY_SD = NA
-      )
+      ) |>
+      arrange(PARAMETER_NAME)
 
     # Merge datasets ----
     dummy_parameters <- bind_rows(dummy_quality_params, chemical_parameters)
