@@ -24,6 +24,14 @@ app_server <- function(input, output, session) {
     )
   }
 
+  # Reactive for DB status (DISABLED) ---
+  db_status <- reactive({
+    # Add invalidateLater if you want periodic checks
+    # invalidateLater(5000)
+
+    FALSE
+  })
+
   moduleCampaign <- mod_campaign_server("campaign")
   moduleReference <- mod_references_server("references")
   moduleSites <- mod_sites_server("sites")
@@ -103,4 +111,23 @@ app_server <- function(input, output, session) {
     }
   }) |>
     bindEvent(input$next_section)
+
+  ## output: db connection status (disabled) ----
+  output$db_connection <- renderUI({
+    status <- db_status()
+
+    if (status) {
+      # Connected - green circle
+      div(
+        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #28a745;",
+        title = "Database Connected"
+      )
+    } else {
+      # Disconnected - red circle
+      div(
+        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #dc3545;",
+        title = "Database Disconnected"
+      )
+    }
+  })
 }

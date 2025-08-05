@@ -87,6 +87,7 @@ app_ui <- function(request) {
         icon = bs_icon("clipboard-data-fill")
       ),
       nav_item(input_dark_mode(id = "darkmode")),
+      nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
       footer = tags$span(
         ## Navigation buttons ----
