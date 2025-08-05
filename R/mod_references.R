@@ -13,6 +13,9 @@
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs enable disable
+#' @importFrom rcrossref cr_works
+#' @importFrom httr GET content http_error
+#' @importFrom xml2 read_xml xml_find_first xml_text
 mod_references_ui <- function(id) {
   ns <- NS(id)
 
@@ -66,7 +69,7 @@ mod_references_ui <- function(id) {
                 "Paste BibTeX entry here. Import will overwrite existing field values."
               ),
               placeholder = "Paste BibTeX entry here",
-              rows = 3,  # Increased from 1 to accommodate larger entries
+              rows = 3, # Increased from 1 to accommodate larger entries
               width = "100%"
             ),
             actionButton(
@@ -197,7 +200,6 @@ mod_references_ui <- function(id) {
             width = "100%"
           ),
 
-          ### Book-specific fields ----
           textInput(
             inputId = ns("PUBLISHER"),
             label = "Publisher",
@@ -402,6 +404,13 @@ mod_references_server <- function(id) {
       }
     })
 
+    iv$add_rule("ENTERED_BY", sv_required())
+    iv$add_rule("ENTERED_BY", function(value) {
+      if (isTruthy(value) && nchar(value) > 100) {
+        "Username must be 100 characters or less"
+      }
+    })
+
     iv$add_rule("YEAR", sv_required())
     iv$add_rule("YEAR", function(value) {
       if (
@@ -560,12 +569,11 @@ mod_references_server <- function(id) {
         disable("ISSUE")
       }
 
-      # Book fields
-      if (ref_type == "book") {
-        enable("PUBLISHER")
-      } else if (ref_type != "report") {
-        # PUBLISHER shared with report
+      # Disable PUBLISHER only if dataset
+      if (ref_type == "dataset") {
         disable("PUBLISHER")
+      } else {
+        enable("PUBLISHER")
       }
 
       # Report fields
@@ -590,21 +598,124 @@ mod_references_server <- function(id) {
       }
     })
 
-    ## observe: DOI lookup placeholder ----
-    # upstream: input$lookup_doi
-    # downstream: field updates (placeholder)
+    ## observe: DOI/PMID lookup functionality ----
+    # upstream: input$lookup_doi, input$doi_lookup
+    # downstream: all input field updates
     observe({
-      # TODO: Implement DOI lookup functionality
-      # This would query crossref.org or similar service
-      # and populate fields automatically
-      showNotification(
-        ui = "DOI lookup functionality to be implemented",
-        type = "message"
+      req(input$doi_lookup)
+
+      # Validate and lookup identifier using external function
+      lookup_result <- validate_and_lookup_identifier(input$doi_lookup)
+
+      if (!lookup_result$success) {
+        showNotification(lookup_result$message, type = "error")
+        return()
+      }
+
+      # Show success notification with identifier type
+      showNotification(lookup_result$message, type = "default")
+
+      # Map fields to reference fields - reuse the update logic
+      mapped_fields <- lookup_result$data
+
+      # Update all input fields with mapped values ----
+      # (This is the same code as in BibTeX import - consider extracting to helper function)
+      updateSelectInput(
+        session,
+        "REFERENCE_TYPE",
+        selected = mapped_fields$REFERENCE_TYPE
       )
+      updateTextAreaInput(
+        session,
+        "AUTHOR",
+        value = mapped_fields$AUTHOR %||% ""
+      )
+      updateTextAreaInput(session, "TITLE", value = mapped_fields$TITLE %||% "")
+      updateNumericInput(session, "YEAR", value = mapped_fields$YEAR)
+      updateDateInput(session, "ACCESS_DATE", value = mapped_fields$ACCESS_DATE)
+      updateTextInput(
+        session,
+        "PERIODICAL_JOURNAL",
+        value = mapped_fields$PERIODICAL_JOURNAL %||% ""
+      )
+      updateNumericInput(session, "VOLUME", value = mapped_fields$VOLUME)
+      updateNumericInput(session, "ISSUE", value = mapped_fields$ISSUE)
+      updateTextInput(
+        session,
+        "PUBLISHER",
+        value = mapped_fields$PUBLISHER %||% ""
+      )
+      updateTextInput(
+        session,
+        "INSTITUTION",
+        value = mapped_fields$INSTITUTION %||% ""
+      )
+      updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
+      updateTextInput(
+        session,
+        "DB_PROVIDER",
+        value = mapped_fields$DB_PROVIDER %||% ""
+      )
+      updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
+      updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
+      updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
+      updateTextInput(
+        session,
+        "ISBN_ISSN",
+        value = mapped_fields$ISBN_ISSN %||% ""
+      )
+      updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
+      updateTextInput(
+        session,
+        "PUBLISHED_PLACE",
+        value = mapped_fields$PUBLISHED_PLACE %||% ""
+      )
+      updateTextInput(
+        session,
+        "DOCUMENT_NUMBER",
+        value = mapped_fields$DOCUMENT_NUMBER %||% ""
+      )
+      updateTextInput(
+        session,
+        "ACCESSION_NUMBER",
+        value = mapped_fields$ACCESSION_NUMBER %||% ""
+      )
+      updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
+      updateTextInput(
+        session,
+        "SERIES_TITLE",
+        value = mapped_fields$SERIES_TITLE %||% ""
+      )
+      updateTextInput(
+        session,
+        "SERIES_EDITOR",
+        value = mapped_fields$SERIES_EDITOR %||% ""
+      )
+      updateNumericInput(
+        session,
+        "SERIES_VOLUME",
+        value = mapped_fields$SERIES_VOLUME
+      )
+      updateTextInput(
+        session,
+        "NUMBER_OF_PAGES",
+        value = mapped_fields$NUMBER_OF_PAGES %||% ""
+      )
+      updateTextInput(
+        session,
+        "NUMBER_OF_VOLUMES",
+        value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
+      )
+      updateTextAreaInput(
+        session,
+        "REF_COMMENT",
+        value = mapped_fields$REF_COMMENT %||% ""
+      )
+
+      # Clear the lookup input after successful import
+      updateTextInput(session, "doi_lookup", value = "")
     }) |>
       bindEvent(input$lookup_doi)
-
-
 
     ## observe: BibTeX import functionality ----
     # upstream: input$import_bibtex, input$bibtex_import
@@ -629,33 +740,97 @@ mod_references_server <- function(id) {
       mapped_fields <- map_bibtex_to_reference_fields(parse_result$data)
 
       # Update all input fields with mapped values ----
-      updateSelectInput(session, "REFERENCE_TYPE", selected = mapped_fields$REFERENCE_TYPE)
-      updateTextAreaInput(session, "AUTHOR", value = mapped_fields$AUTHOR %||% "")
+      updateSelectInput(
+        session,
+        "REFERENCE_TYPE",
+        selected = mapped_fields$REFERENCE_TYPE
+      )
+      updateTextAreaInput(
+        session,
+        "AUTHOR",
+        value = mapped_fields$AUTHOR %||% ""
+      )
       updateTextAreaInput(session, "TITLE", value = mapped_fields$TITLE %||% "")
       updateNumericInput(session, "YEAR", value = mapped_fields$YEAR)
       updateDateInput(session, "ACCESS_DATE", value = mapped_fields$ACCESS_DATE)
-      updateTextInput(session, "PERIODICAL_JOURNAL", value = mapped_fields$PERIODICAL_JOURNAL %||% "")
+      updateTextInput(
+        session,
+        "PERIODICAL_JOURNAL",
+        value = mapped_fields$PERIODICAL_JOURNAL %||% ""
+      )
       updateNumericInput(session, "VOLUME", value = mapped_fields$VOLUME)
       updateNumericInput(session, "ISSUE", value = mapped_fields$ISSUE)
-      updateTextInput(session, "PUBLISHER", value = mapped_fields$PUBLISHER %||% "")
-      updateTextInput(session, "INSTITUTION", value = mapped_fields$INSTITUTION %||% "")
+      updateTextInput(
+        session,
+        "PUBLISHER",
+        value = mapped_fields$PUBLISHER %||% ""
+      )
+      updateTextInput(
+        session,
+        "INSTITUTION",
+        value = mapped_fields$INSTITUTION %||% ""
+      )
       updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
-      updateTextInput(session, "DB_PROVIDER", value = mapped_fields$DB_PROVIDER %||% "")
+      updateTextInput(
+        session,
+        "DB_PROVIDER",
+        value = mapped_fields$DB_PROVIDER %||% ""
+      )
       updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
       updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
       updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
-      updateTextInput(session, "ISBN_ISSN", value = mapped_fields$ISBN_ISSN %||% "")
+      updateTextInput(
+        session,
+        "ISBN_ISSN",
+        value = mapped_fields$ISBN_ISSN %||% ""
+      )
       updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
-      updateTextInput(session, "PUBLISHED_PLACE", value = mapped_fields$PUBLISHED_PLACE %||% "")
-      updateTextInput(session, "DOCUMENT_NUMBER", value = mapped_fields$DOCUMENT_NUMBER %||% "")
-      updateTextInput(session, "ACCESSION_NUMBER", value = mapped_fields$ACCESSION_NUMBER %||% "")
+      updateTextInput(
+        session,
+        "PUBLISHED_PLACE",
+        value = mapped_fields$PUBLISHED_PLACE %||% ""
+      )
+      updateTextInput(
+        session,
+        "DOCUMENT_NUMBER",
+        value = mapped_fields$DOCUMENT_NUMBER %||% ""
+      )
+      updateTextInput(
+        session,
+        "ACCESSION_NUMBER",
+        value = mapped_fields$ACCESSION_NUMBER %||% ""
+      )
       updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
-      updateTextInput(session, "SERIES_TITLE", value = mapped_fields$SERIES_TITLE %||% "")
-      updateTextInput(session, "SERIES_EDITOR", value = mapped_fields$SERIES_EDITOR %||% "")
-      updateNumericInput(session, "SERIES_VOLUME", value = mapped_fields$SERIES_VOLUME)
-      updateTextInput(session, "NUMBER_OF_PAGES", value = mapped_fields$NUMBER_OF_PAGES %||% "")
-      updateTextInput(session, "NUMBER_OF_VOLUMES", value = mapped_fields$NUMBER_OF_VOLUMES %||% "")
-      updateTextAreaInput(session, "REF_COMMENT", value = mapped_fields$REF_COMMENT %||% "")
+      updateTextInput(
+        session,
+        "SERIES_TITLE",
+        value = mapped_fields$SERIES_TITLE %||% ""
+      )
+      updateTextInput(
+        session,
+        "SERIES_EDITOR",
+        value = mapped_fields$SERIES_EDITOR %||% ""
+      )
+      updateNumericInput(
+        session,
+        "SERIES_VOLUME",
+        value = mapped_fields$SERIES_VOLUME
+      )
+      updateTextInput(
+        session,
+        "NUMBER_OF_PAGES",
+        value = mapped_fields$NUMBER_OF_PAGES %||% ""
+      )
+      updateTextInput(
+        session,
+        "NUMBER_OF_VOLUMES",
+        value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
+      )
+      updateTextAreaInput(
+        session,
+        "REF_COMMENT",
+        value = mapped_fields$REF_COMMENT %||% ""
+      )
 
       # Clear the BibTeX input after successful import
       updateTextAreaInput(session, "bibtex_import", value = "")
@@ -665,7 +840,6 @@ mod_references_server <- function(id) {
         "BibTeX data imported successfully",
         type = "default"
       )
-
     }) |>
       bindEvent(input$import_bibtex)
 

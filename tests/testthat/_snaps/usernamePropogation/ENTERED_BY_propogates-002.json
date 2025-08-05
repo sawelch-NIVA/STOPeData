@@ -8,15 +8,15 @@
             "SITE_NAME": "",
             "SITE_GEOGRAPHIC_FEATURE": "Not reported",
             "SITE_GEOGRAPHIC_FEATURE_SUB": "Not reported",
-            "COUNTRY": "",
-            "AREA": "",
+            "SITE_COORDINATE_SYSTEM": "WGS 84",
             "LATITUDE": null,
             "LONGITUDE": null,
-            "SITE_COORDINATE_SYSTEM": "WGS 84",
+            "COUNTRY": "",
+            "AREA": "",
             "ALTITUDE_VALUE": null,
             "ALTITUDE_UNIT": "m",
             "ENTERED_BY": "Test McTesterson",
-            "ENTERED_DATE": "2025-08-01",
+            "ENTERED_DATE": "2025-08-05",
             "SITE_COMMENT": ""
           }
         ],
@@ -26,11 +26,11 @@
           "SITE_NAME": "character",
           "SITE_GEOGRAPHIC_FEATURE": "character",
           "SITE_GEOGRAPHIC_FEATURE_SUB": "character",
-          "COUNTRY": "character",
-          "AREA": "character",
+          "SITE_COORDINATE_SYSTEM": "character",
           "LATITUDE": "logical",
           "LONGITUDE": "logical",
-          "SITE_COORDINATE_SYSTEM": "character",
+          "COUNTRY": "character",
+          "AREA": "character",
           "ALTITUDE_VALUE": "logical",
           "ALTITUDE_UNIT": "character",
           "ENTERED_BY": "character",
@@ -42,11 +42,11 @@
           "SITE_NAME",
           "SITE_GEOGRAPHIC_FEATURE",
           "SITE_GEOGRAPHIC_FEATURE_SUB",
-          "COUNTRY",
-          "AREA",
+          "SITE_COORDINATE_SYSTEM",
           "LATITUDE",
           "LONGITUDE",
-          "SITE_COORDINATE_SYSTEM",
+          "COUNTRY",
+          "AREA",
           "ALTITUDE_VALUE",
           "ALTITUDE_UNIT",
           "ENTERED_BY",
@@ -58,11 +58,11 @@
           "SITE_NAME",
           "SITE_GEOGRAPHIC_FEATURE",
           "SITE_GEOGRAPHIC_FEATURE_SUB",
-          "COUNTRY",
-          "AREA",
+          "SITE_COORDINATE_SYSTEM",
           "LATITUDE",
           "LONGITUDE",
-          "SITE_COORDINATE_SYSTEM",
+          "COUNTRY",
+          "AREA",
           "ALTITUDE_VALUE",
           "ALTITUDE_UNIT",
           "ENTERED_BY",
@@ -74,17 +74,17 @@
           1,
           14
         ],
-        "selectCallback": false,
+        "selectCallback": true,
         "colHeaders": [
           "SITE_CODE",
           "SITE_NAME",
           "SITE_GEOGRAPHIC_FEATURE",
           "SITE_GEOGRAPHIC_FEATURE_SUB",
-          "COUNTRY",
-          "AREA",
+          "SITE_COORDINATE_SYSTEM",
           "LATITUDE",
           "LONGITUDE",
-          "SITE_COORDINATE_SYSTEM",
+          "COUNTRY",
+          "AREA",
           "ALTITUDE_VALUE",
           "ALTITUDE_UNIT",
           "ENTERED_BY",
@@ -96,8 +96,7 @@
           {
             "type": "text",
             "renderer": "customRenderer",
-            "default": null,
-            "readOnly": true
+            "default": null
           },
           {
             "type": "text",
@@ -146,36 +145,12 @@
             "strict": true
           },
           {
-            "type": "text",
-            "renderer": "customRenderer",
-            "default": null
-          },
-          {
-            "type": "text",
-            "renderer": "customRenderer",
-            "default": null
-          },
-          {
-            "type": "numeric",
-            "renderer": "customRenderer",
-            "default": null,
-            "numericFormat": {
-              "pattern": "0.000000"
-            }
-          },
-          {
-            "type": "numeric",
-            "renderer": "customRenderer",
-            "default": null,
-            "numericFormat": {
-              "pattern": "0.000000"
-            }
-          },
-          {
             "type": "dropdown",
             "renderer": "customRenderer",
             "default": null,
             "source": [
+              "Not relevant",
+              "Not reported",
               "WGS 84",
               "UTM 32",
               "UTM 33",
@@ -189,7 +164,51 @@
           {
             "type": "numeric",
             "renderer": "customRenderer",
-            "default": null
+            "default": null,
+            "numericFormat": {
+              "pattern": "0.000000"
+            }
+          },
+          {
+            "type": "numeric",
+            "renderer": "customRenderer",
+            "default": null,
+            "numericFormat": {
+              "pattern": "0.000000"
+            },
+            "allowInvalid": false
+          },
+          {
+            "type": "dropdown",
+            "renderer": "customRenderer",
+            "default": null,
+            "source": [
+              "Not relevant",
+              "Not reported",
+              "Norway",
+              "Other"
+            ],
+            "strict": true
+          },
+          {
+            "type": "dropdown",
+            "renderer": "customRenderer",
+            "default": null,
+            "source": [
+              "Not relevant",
+              "Not reported",
+              "Area 1",
+              "Area 2",
+              "Area 3",
+              "Other"
+            ],
+            "strict": true
+          },
+          {
+            "type": "numeric",
+            "renderer": "customRenderer",
+            "default": null,
+            "allowInvalid": false
           },
           {
             "type": "dropdown",
@@ -212,7 +231,8 @@
             "type": "date",
             "renderer": "customRenderer",
             "default": null,
-            "dateFormat": "YYYY-MM-DD"
+            "dateFormat": "YYYY-MM-DD",
+            "allowInvalid": false
           },
           {
             "type": "text",
@@ -225,18 +245,12 @@
         "debug": 0,
         "search": false,
         "stretchH": "none",
-        "comments": false,
+        "comments": true,
         "contextMenu": {
           "items": {
-            "row_above": [
-
-            ],
-            "row_below": [
-
-            ],
-            "remove_row": [
-
-            ],
+            "remove_row": {
+              "name": "Remove selected rows"
+            },
             "hsep3": {
               "name": "---------"
             },
@@ -251,9 +265,113 @@
             },
             "alignment": [
 
-            ]
+            ],
+            "hsep1": {
+              "name": "---------"
+            }
           }
-        }
+        },
+        "overflow": "all",
+        "cell": [
+          {
+            "row": 0,
+            "col": 0,
+            "comment": {
+              "value": "Site Code: A short, unique code identifying identify the site."
+            }
+          },
+          {
+            "row": 0,
+            "col": 1,
+            "comment": {
+              "value": "Site Name: A longer site name identifying the site."
+            }
+          },
+          {
+            "row": 0,
+            "col": 2,
+            "comment": {
+              "value": "Site Geographical Feature: The geographical category of the site."
+            }
+          },
+          {
+            "row": 0,
+            "col": 3,
+            "comment": {
+              "value": "Site Geographical Sub-Feature: The geographical sub-category of the site."
+            }
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "comment": {
+              "value": "Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude."
+            }
+          },
+          {
+            "row": 0,
+            "col": 5,
+            "comment": {
+              "value": "Latitude: The site's latitude (northing, y axis, in decimal degrees)"
+            }
+          },
+          {
+            "row": 0,
+            "col": 6,
+            "comment": {
+              "value": "Longitude: The site's longitude (easting, x axis, in decimal degrees)"
+            }
+          },
+          {
+            "row": 0,
+            "col": 7,
+            "comment": {
+              "value": "Country: The country where the site was sampled."
+            }
+          },
+          {
+            "row": 0,
+            "col": 8,
+            "comment": {
+              "value": "Area: The region where the site was sampled."
+            }
+          },
+          {
+            "row": 0,
+            "col": 9,
+            "comment": {
+              "value": "Altitude: The sampling site's altitude above or below sea level."
+            }
+          },
+          {
+            "row": 0,
+            "col": 10,
+            "comment": {
+              "value": "Altitude Unit: The unit associated with the site's reported altitude."
+            }
+          },
+          {
+            "row": 0,
+            "col": 11,
+            "comment": {
+              "value": "Entered Data: The date this site is added to the database."
+            }
+          },
+          {
+            "row": 0,
+            "col": 12,
+            "comment": {
+              "value": "Entered By: Your name or initials (autofilled from Campaign if available)."
+            }
+          },
+          {
+            "row": 0,
+            "col": 13,
+            "comment": {
+              "value": "Site Comment: Any additional comments or relevant details about the site."
+            }
+          }
+        ]
       },
       "evals": [
         "columns.0.renderer",

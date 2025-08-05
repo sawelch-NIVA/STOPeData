@@ -15,20 +15,28 @@ Imports:
     digest,
     dplyr,
     DT,
+    ggplot2,
     glue,
     golem,
     htmltools,
+    httr,
     ISOcodes,
     leaflet,
+    lubridate,
     openxlsx2,
     pkgload,
     plotly,
+    purrr,
+    rcrossref,
     rhandsontable,
     shiny (>= 1.11.1),
     shinyjs,
     shinytest2,
     shinyvalidate,
-    shinyWidgets
+    shinyWidgets,
+    stringi,
+    tibble,
+    xml2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
