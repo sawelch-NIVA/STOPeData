@@ -27,7 +27,7 @@ Imports:
     pkgload,
     plotly,
     purrr,
-    rcrossref,
+    rcrossref (>= 1.2.0),
     rhandsontable,
     shiny (>= 1.11.1),
     shinyjs,
