@@ -1,5 +1,5 @@
 # Methods Import Module ----
-# A Shiny module for analytical and sampling methods with categorized protocol selection
+# A Shiny module for analytical and Sampling Protocols with categorized protocol selection
 
 #' Methods UI Function ----
 #'
@@ -31,7 +31,7 @@ mod_methods_ui <- function(id) {
           accordion_panel(
             title = "Methods Data Information",
             icon = bs_icon("info-circle"),
-            "This module manages analytical and sampling methods that will be used in your study. Select a protocol category (e.g., Analytical Protocol), then choose the specific method (e.g., GCMS) to add it to your methods basket. You can add multiple methods of each type as needed."
+            "Sampling, fractionation, extraction, and analytical protocols can affect ultimate measured concentrations by order of magnitude. Please report the relevant protocol types/classes her. In the Samples module, you will be able to match specific protocols to samples."
           )
         ),
 
@@ -52,11 +52,12 @@ mod_methods_ui <- function(id) {
                 "Type of protocol or method being used"
               ),
               choices = c(
-                "Sampling Method" = "Sampling Method",
+                "Sampling Protocol" = "Sampling Protocol",
                 "Fractionation Protocol" = "Fractionation Protocol",
                 "Extraction Protocol" = "Extraction Protocol",
                 "Analytical Protocol" = "Analytical Protocol"
               ),
+              selected = "Sampling Protocol",
               width = "100%"
             ),
 
@@ -116,6 +117,9 @@ mod_methods_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
+#' @importFrom arrow read_parquet
+#' @importFrom tibble tibble deframe
+#' @importFrom dplyr filter select
 mod_methods_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -129,77 +133,26 @@ mod_methods_server <- function(id) {
     )
 
     ## Protocol options by category ----
-    protocol_options <- list(
-      "Sampling Method" = c(
-        "Not relevant" = "Not relevant",
-        "Not reported" = "Not reported",
-        "Point" = "Point",
-        "Composite" = "Composite",
-        "Trawl" = "Trawl",
-        "Grab" = "Grab",
-        "SPMD" = "SPMD",
-        "SPE" = "SPE",
-        "LVSPE" = "LVSPE",
-        "DGT" = "DGT",
-        "Blood sample" = "Blood sample",
-        "Biopsy" = "Biopsy",
-        "Other" = "Other"
-      ),
-      "Fractionation Protocol" = c(
-        "Not relevant" = "Not relevant",
-        "Not reported" = "Not reported",
-        "Total" = "Total",
-        "Particles" = "Particles",
-        "Colloidal" = "Colloidal",
-        "LMM" = "LMM",
-        "Aqueous" = "Aqueous",
-        "Filtered_045" = "Filtered_045",
-        "Dissolved" = "Dissolved",
-        "Filtered" = "Filtered",
-        "Other" = "Other"
-      ),
-      "Extraction Protocol" = c(
-        "Not relevant" = "Not relevant",
-        "Not reported" = "Not reported",
-        "None" = "None",
-        "Methanol extraction" = "Methanol extraction",
-        "Dichloromethane extraction" = "Dichloromethane extraction",
-        "SPE Isolute Env+" = "SPE Isolute Env+",
-        "Membrane filtration_0.45um" = "Membrane filtration_0.45um",
-        "Membrane filtration_0.2um" = "Membrane filtration_0.2um",
-        "Membrane filtration" = "Membrane filtration",
-        "Filtration" = "Filtration",
-        "Other" = "Other"
-      ),
-      "Analytical Protocol" = c(
-        "Not relevant" = "Not relevant",
-        "Not reported" = "Not reported",
-        "GCMS" = "GCMS",
-        "LCMS" = "LCMS",
-        "UPLC" = "UPLC",
-        "ICPMS" = "ICPMS",
-        "GCMS/MS" = "GCMS/MS",
-        "LCMS/MS" = "LCMS/MS",
-        "Other" = "Other"
-      )
+    protocol_options <- read_parquet(
+      "inst/data/clean/inst-claude-2025-08-05-methods.parquet"
     )
 
     ## Controlled vocabulary for validation ----
     protocol_categories <- c(
-      "Sampling Method",
+      "Sampling Protocol",
       "Fractionation Protocol",
       "Extraction Protocol",
       "Analytical Protocol"
     )
 
-    all_protocol_names <- unique(unlist(protocol_options, use.names = FALSE))
+    all_protocol_names <- unique(protocol_options$Short_Name)
 
     ## Initialize empty methods data frame ----
     init_methods_df <- function() {
-      data.frame(
+      tibble(
         PROTOCOL_CATEGORY = character(0),
         PROTOCOL_NAME = character(0),
-        stringsAsFactors = FALSE
+        PROTOCOL_COMMENT = character(0)
       )
     }
 
@@ -252,10 +205,10 @@ mod_methods_server <- function(id) {
 
     ## Create new method entry ----
     create_method_entry <- function(category, protocol) {
-      data.frame(
+      tibble(
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = protocol,
-        stringsAsFactors = FALSE
+        PROTOCOL_COMMENT = NA_character_
       )
     }
 
@@ -268,7 +221,10 @@ mod_methods_server <- function(id) {
       category <- input$protocol_category_select
 
       if (isTruthy(category)) {
-        available_protocols <- protocol_options[[category]]
+        available_protocols <- protocol_options |>
+          filter(Protocol_Type == category) |>
+          select(Long_Name, Short_Name) |>
+          deframe()
 
         if (!is.null(available_protocols)) {
           choices <- c("Select protocol..." = "", available_protocols)
@@ -291,7 +247,12 @@ mod_methods_server <- function(id) {
           choices = c("Select category first..." = "")
         )
       }
-    })
+    }) |>
+      bindEvent(
+        input$protocol_category_select,
+        ignoreInit = FALSE,
+        ignoreNULL = FALSE
+      )
 
     ## observe ~bindEvent(add_method): Add method to basket ----
     # upstream: user clicks input$add_method
@@ -308,7 +269,6 @@ mod_methods_server <- function(id) {
       ) {
         # Use lapply instead of sapply to avoid issues with the assignment
         lapply(protocols, function(protocol) {
-          # Changed parameter name for clarity
           # Add new method (allow duplicates as user might need multiple instances)
           new_method <- create_method_entry(category, protocol)
           moduleState$methods_data <<- rbind(
@@ -320,11 +280,10 @@ mod_methods_server <- function(id) {
         })
 
         # Reset form
-        updateSelectInput(session, "protocol_category_select", selected = "")
         updateSelectInput(
           session,
           "protocol_name_select",
-          choices = c("Select category first..." = "")
+          selected = ""
         )
 
         showNotification(
@@ -387,18 +346,6 @@ mod_methods_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
-          hot_col(
-            "PROTOCOL_CATEGORY",
-            type = "dropdown",
-            source = protocol_categories,
-            strict = TRUE
-          ) |>
-          hot_col(
-            "PROTOCOL_NAME",
-            type = "dropdown",
-            source = all_protocol_names,
-            strict = TRUE
-          ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -430,6 +377,10 @@ mod_methods_server <- function(id) {
             type = "dropdown",
             source = all_protocol_names,
             strict = TRUE
+          ) |>
+          hot_col(
+            "PROTOCOL_COMMENT",
+            type = "text"
           ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
@@ -498,16 +449,6 @@ mod_methods_server <- function(id) {
         "# Methods data will appear here when valid methods are added"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 
