@@ -373,14 +373,14 @@ mod_sites_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
-          hot_table(overflow = "all", stretchH = "all") |>
-          hot_col("SITE_CODE") |>
+          hot_table(overflow = "visible") |>
+          hot_col("SITE_CODE", renderer = mandatory_highlight_full()) |>
           hot_cell(
             1,
             1,
             comment = 'Site Code: A short, unique code identifying identify the site.'
           ) |>
-          hot_col("SITE_NAME") |>
+          hot_col("SITE_NAME", renderer = mandatory_highlight_full()) |>
           hot_cell(
             1,
             2,
@@ -423,6 +423,7 @@ mod_sites_server <- function(id) {
             "LATITUDE",
             type = "numeric",
             format = "0.000000",
+            renderer = mandatory_highlight_full()
           ) |>
           hot_cell(
             1,
@@ -433,7 +434,8 @@ mod_sites_server <- function(id) {
             "LONGITUDE",
             type = "numeric",
             format = "0.000000",
-            allowInvalid = FALSE
+            allowInvalid = FALSE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_cell(
             1,
@@ -462,7 +464,7 @@ mod_sites_server <- function(id) {
             9,
             comment = 'Area: The region where the site was sampled.'
           ) |>
-          hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE) |>
+          hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE, renderer = mandatory_highlight_full()) |>
           hot_cell(
             1,
             10,
@@ -483,7 +485,8 @@ mod_sites_server <- function(id) {
             "ENTERED_DATE",
             type = "date",
             dateFormat = "YYYY-MM-DD",
-            allowInvalid = FALSE
+            allowInvalid = FALSE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_cell(
             1,
@@ -493,6 +496,7 @@ mod_sites_server <- function(id) {
           hot_col(
             "ENTERED_BY",
             type = "text",
+            renderer = mandatory_highlight_full()
           ) |>
           hot_cell(
             1,
