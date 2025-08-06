@@ -686,43 +686,26 @@ mod_samples_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_col("SITE_CODE", readOnly = TRUE) |>
+          hot_col("SITE_NAME", readOnly = TRUE) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
           hot_col("REPLICATE_ID", readOnly = TRUE) |> # Make replicate ID read-only
           hot_col(
             "SAMPLING_DATE",
             readOnly = TRUE,
-            format = "date",
-            dateFormat = "YYYY-MM-DD"
+            format = "date"
           ) |>
-          # Add dropdown validation for compartment columns
           hot_col(
             "ENVIRON_COMPARTMENT",
-            type = "dropdown",
-            source = c("Aquatic", "Atmospheric", "Terrestrial", "Biota"),
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_col(
             "ENVIRON_COMPARTMENT_SUB",
-            type = "dropdown",
-            source = c(
-              "Freshwater",
-              "Marine/Salt Water",
-              "Brackish/Transitional Water",
-              "Groundwater",
-              "Wastewater",
-              "Indoor Air",
-              "Outdoor Air",
-              "Soil A Horizon (Topsoil)",
-              "Biota, Terrestrial",
-              "Biota, Aquatic"
-            ),
-            strict = FALSE
+            readOnly = TRUE
           ) |>
           hot_col(
             "MEASURED_CATEGORY",
-            type = "dropdown",
-            source = c("External", "Internal", "Surface"),
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations

@@ -343,11 +343,10 @@ mod_methods_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_methods_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -363,11 +362,11 @@ mod_methods_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$methods_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
+          stretchH = "all",
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",

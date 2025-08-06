@@ -524,31 +524,28 @@ mod_data_server <- function(id) {
       ) {
         rhandsontable(
           init_measurement_df(),
-          stretchH = "all",
-          height = "200px",
-          readOnly = TRUE,
+          selectCallback = TRUE,
           width = NULL
-        )
+        ) |>
+          hot_table(overflow = "visible", stretchH = "all")
       } else {
         rhandsontable(
           moduleState$measurement_combinations,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
-        )
-        # Make identification columns read-only
-        hot_col(
-          c(
-            "SAMPLE_ID",
-            "SITE_CODE",
-            "PARAMETER_NAME",
-            "SAMPLING_DATE",
-            "COMPARTMENT",
-            "REPLICATE"
-          ),
-          readOnly = TRUE
-        )
+        ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
+          hot_col(
+            c(
+              "SAMPLE_ID",
+              "SITE_CODE",
+              "PARAMETER_NAME",
+              "SAMPLING_DATE",
+              "COMPARTMENT",
+              "REPLICATE"
+            ),
+            readOnly = TRUE
+          )
         #
         # # Configure measurement fields
         # hot_col(

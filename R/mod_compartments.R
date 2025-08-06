@@ -458,11 +458,10 @@ mod_compartments_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_compartments_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -478,28 +477,21 @@ mod_compartments_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$compartments_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "ENVIRON_COMPARTMENT",
-            type = "dropdown",
-            source = environ_compartments,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_col(
             "ENVIRON_COMPARTMENT_SUB",
-            type = "dropdown",
-            source = environ_compartment_subs,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_col(
             "MEASURED_CATEGORY",
-            type = "dropdown",
-            source = measured_categories,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations

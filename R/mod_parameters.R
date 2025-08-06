@@ -474,11 +474,10 @@ mod_parameters_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_parameters_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -494,11 +493,10 @@ mod_parameters_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$parameters_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",

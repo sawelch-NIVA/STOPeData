@@ -417,7 +417,8 @@ mod_biota_server <- function(id) {
           height = NULL,
           readOnly = TRUE,
           width = NULL
-        )
+        ) |>
+          hot_table(overflow = "visible", stretchH = "all")
       } else {
         # Create controlled vocabulary for biota fields
         species_groups <- names(create_species_mapping())
@@ -467,11 +468,10 @@ mod_biota_server <- function(id) {
 
         rhandsontable(
           moduleState$biota_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           # Make sample info columns read-only
           hot_col("SAMPLE_ID", readOnly = TRUE) |>
           hot_col("SITE_CODE", readOnly = TRUE) |>
