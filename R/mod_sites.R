@@ -376,13 +376,13 @@ mod_sites_server <- function(id) {
           width = NULL
         ) |>
           hot_table(overflow = "visible") |>
-          hot_col("SITE_CODE", renderer = mandatory_highlight_full()) |>
+          hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
           hot_cell(
             1,
             1,
             comment = 'Site Code: A short, unique code identifying identify the site.'
           ) |>
-          hot_col("SITE_NAME", renderer = mandatory_highlight_full()) |>
+          hot_col("SITE_NAME", renderer = mandatory_highlight_text()) |>
           hot_cell(
             1,
             2,
@@ -392,7 +392,8 @@ mod_sites_server <- function(id) {
             "SITE_GEOGRAPHIC_FEATURE",
             type = "dropdown",
             source = geographic_features,
-            strict = TRUE
+            strict = TRUE,
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_cell(
             1,
@@ -403,7 +404,8 @@ mod_sites_server <- function(id) {
             "SITE_GEOGRAPHIC_FEATURE_SUB",
             type = "dropdown",
             source = geographic_features_sub,
-            strict = TRUE
+            strict = TRUE,
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_cell(
             1,
@@ -414,7 +416,8 @@ mod_sites_server <- function(id) {
             "SITE_COORDINATE_SYSTEM",
             type = "dropdown",
             source = coordinate_systems,
-            strict = TRUE
+            strict = TRUE,
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_cell(
             1,
@@ -425,7 +428,7 @@ mod_sites_server <- function(id) {
             "LATITUDE",
             type = "numeric",
             format = "0.000000",
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_cell(
             1,
@@ -437,7 +440,7 @@ mod_sites_server <- function(id) {
             type = "numeric",
             format = "0.000000",
             allowInvalid = FALSE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_cell(
             1,
@@ -470,7 +473,7 @@ mod_sites_server <- function(id) {
             "ALTITUDE_VALUE",
             type = "numeric",
             allowInvalid = FALSE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_cell(
             1,
@@ -493,7 +496,7 @@ mod_sites_server <- function(id) {
             type = "date",
             dateFormat = "YYYY-MM-DD",
             allowInvalid = FALSE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_cell(
             1,
@@ -503,7 +506,7 @@ mod_sites_server <- function(id) {
           hot_col(
             "ENTERED_BY",
             type = "text",
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_cell(
             1,

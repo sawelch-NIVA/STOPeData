@@ -507,7 +507,7 @@ mod_parameters_server <- function(id) {
             type = "dropdown",
             source = parameter_types,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "PARAMETER_TYPE_SUB",
@@ -520,7 +520,7 @@ mod_parameters_server <- function(id) {
             type = "dropdown",
             source = measured_types,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
           hot_context_menu(

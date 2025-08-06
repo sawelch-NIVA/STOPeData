@@ -136,68 +136,95 @@ mod_biota_server <- function(id) {
 
     ## Helper: Create species mapping ----
     create_species_mapping <- function() {
-      list(
-        "Worms" = c(
-          "Eisenia fetida",
-          "Lumbricus terrestris",
-          "Enchytraeus albidus"
-        ),
-        "Insects/Spiders" = c(
-          "Chironomus riparius",
-          "Daphnia magna",
-          "Folsomia candida"
-        ),
-        "Molluscs" = c(
-          "Mytilus edulis",
-          "Dreissena polymorpha",
-          "Potamopyrgus antipodarum"
-        ),
-        "Fungi" = c(
-          "Saccharomyces cerevisiae",
-          "Penicillium chrysogenum",
-          "Aspergillus niger"
-        ),
-        "Crustaceans" = c(
-          "Gammarus pulex",
-          "Hyalella azteca",
-          "Artemia salina"
-        ),
-        "Mammals" = c("Rattus norvegicus", "Mus musculus", "Bos taurus"),
-        "Amphibians" = c("Xenopus laevis", "Rana temporaria", "Bufo bufo"),
-        "Moss, Hornworts" = c(
-          "Bryum argenteum",
-          "Rhynchostegium murale",
-          "Marchantia polymorpha"
-        ),
-        "Birds" = c("Gallus gallus", "Passer domesticus", "Turdus merula"),
-        "Fish" = c("Danio rerio", "Oncorhynchus mykiss", "Pimephales promelas"),
-        "Flowers, Trees, Shrubs, Ferns" = c(
-          "Lemna minor",
-          "Arabidopsis thaliana",
-          "Zea mays"
-        ),
-        "Algae" = c(
-          "Pseudokirchneriella subcapitata",
-          "Chlorella vulgaris",
-          "Scenedesmus quadricauda"
-        ),
-        "Invertebrates" = c(
-          "Caenorhabditis elegans",
-          "Hydra vulgaris",
-          "Planaria torva"
-        ),
-        "Reptiles" = c("Trachemys scripta", "Lacerta agilis", "Natrix natrix"),
-        "Bacteria" = c(
-          "Escherichia coli",
-          "Bacillus subtilis",
-          "Pseudomonas fluorescens"
-        ),
-        "Ecosystem" = c("Mixed community", "Biofilm", "Microbial consortium"),
-        "Other" = c("Unknown species", "Mixed species", "Unidentified organism")
+      c(
+        # Worms
+        "Eisenia fetida",
+        "Lumbricus terrestris",
+        "Enchytraeus albidus",
+
+        # Insects/Spiders
+        "Chironomus riparius",
+        "Daphnia magna",
+        "Folsomia candida",
+
+        # Molluscs
+        "Mytilus edulis",
+        "Dreissena polymorpha",
+        "Potamopyrgus antipodarum",
+
+        # Fungi
+        "Saccharomyces cerevisiae",
+        "Penicillium chrysogenum",
+        "Aspergillus niger",
+
+        # Crustaceans
+        "Gammarus pulex",
+        "Hyalella azteca",
+        "Artemia salina",
+
+        # Mammals
+        "Rattus norvegicus",
+        "Mus musculus",
+        "Bos taurus",
+
+        # Amphibians
+        "Xenopus laevis",
+        "Rana temporaria",
+        "Bufo bufo",
+
+        # Moss, Hornworts
+        "Bryum argenteum",
+        "Rhynchostegium murale",
+        "Marchantia polymorpha",
+
+        # Birds
+        "Gallus gallus",
+        "Passer domesticus",
+        "Turdus merula",
+
+        # Fish
+        "Danio rerio",
+        "Oncorhynchus mykiss",
+        "Pimephales promelas",
+
+        # Flowers, Trees, Shrubs, Ferns
+        "Lemna minor",
+        "Arabidopsis thaliana",
+        "Zea mays",
+
+        # Algae
+        "Pseudokirchneriella subcapitata",
+        "Chlorella vulgaris",
+        "Scenedesmus quadricauda",
+
+        # Invertebrates
+        "Caenorhabditis elegans",
+        "Hydra vulgaris",
+        "Planaria torva",
+
+        # Reptiles
+        "Trachemys scripta",
+        "Lacerta agilis",
+        "Natrix natrix",
+
+        # Bacteria
+        "Escherichia coli",
+        "Bacillus subtilis",
+        "Pseudomonas fluorescens",
+
+        # Ecosystem
+        "Mixed community",
+        "Biofilm",
+        "Microbial consortium",
+
+        # Other
+        "Unknown species",
+        "Mixed species",
+        "Unidentified organism"
       )
     }
-
     ## Helper: Get species choices based on group ----
+    # TODO: Can this even work for rhandsontable? maybe?
     get_species_choices <- function(species_group) {
       species_mapping <- create_species_mapping()
       if (species_group %in% names(species_mapping)) {
@@ -205,6 +232,29 @@ mod_biota_server <- function(id) {
       } else {
         return(c("Unknown species"))
       }
+    }
+
+    #stupid
+    create_taxonomic_groups <- function() {
+      c(
+        "Worms",
+        "Insects/Spiders",
+        "Molluscs",
+        "Fungi",
+        "Crustaceans",
+        "Mammals",
+        "Amphibians",
+        "Moss, Hornworts",
+        "Birds",
+        "Fish",
+        "Flowers, Trees, Shrubs, Ferns",
+        "Algae",
+        "Invertebrates",
+        "Reptiles",
+        "Bacteria",
+        "Ecosystem",
+        "Other"
+      )
     }
 
     ## Helper: Initialize biota data frame
@@ -485,38 +535,38 @@ mod_biota_server <- function(id) {
           hot_col(
             "SPECIES_GROUP",
             type = "dropdown",
-            source = species_groups,
+            source = create_taxonomic_groups(),
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "SAMPLE_TISSUE",
             type = "dropdown",
             source = tissue_types,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_LIFESTAGE",
             type = "dropdown",
             source = life_stages,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_GENDER",
             type = "dropdown",
             source = genders,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
-          # Species will be updated dynamically based on species group selection
+          # TODO: Species should be updated dynamically based on species group selection
           hot_col(
             "SAMPLE_SPECIES",
             type = "dropdown",
-            source = c("Select species group first"),
+            source = create_species_mapping(),
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_context_menu(
             allowRowEdit = FALSE, # Don't allow adding/removing rows
