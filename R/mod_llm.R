@@ -10,9 +10,9 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList fileInput textInput actionButton
-#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip
+#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
 #' @importFrom bsicons bs_icon
-#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyjs useShinyjs disabled
 mod_llm_ui <- function(id) {
   ns <- NS(id)
 
@@ -65,20 +65,58 @@ mod_llm_ui <- function(id) {
               placeholder = "sk-ant-...",
               width = "100%"
             )
-          ),
-
-          ## Extract button ----
-          div(
-            style = "margin-top: 15px;",
-            input_task_button(
-              id = ns("extract_data"),
-              label = "Extract Data from PDF",
-              icon = icon("magic"),
-              class = "btn-success",
-              width = "200px"
-            ) |>
-              disabled()
           )
+        ),
+
+        ## Prompt and Schema Configuration ----
+        accordion(
+          id = ns("config_accordion"),
+          open = FALSE,
+          accordion_panel(
+            title = "Advanced Configuration",
+            icon = bs_icon("gear"),
+            div(
+              h6("System Prompt"),
+              textAreaInput(
+                inputId = ns("system_prompt"),
+                label = "Extraction Instructions",
+                value = create_extraction_prompt(),
+                rows = 8,
+                width = "100%"
+              ),
+
+              h6("Extraction Schema"),
+              textAreaInput(
+                inputId = ns("extraction_schema_display"),
+                label = "Schema Definition",
+                value = get_schema_display(),
+                rows = 12,
+                width = "100%"
+              ),
+
+              div(
+                style = "margin-top: 10px;",
+                actionButton(
+                  ns("reset_defaults"),
+                  "Reset to Defaults",
+                  class = "btn-secondary btn-sm"
+                )
+              )
+            )
+          )
+        ),
+
+        ## Extract button ----
+        div(
+          style = "margin-top: 15px;",
+          input_task_button(
+            id = ns("extract_data"),
+            label = "Extract Data from PDF",
+            icon = icon("magic"),
+            class = "btn-success",
+            width = "200px"
+          ) |>
+            disabled()
         ),
 
         ## Status and results ----
@@ -130,18 +168,15 @@ mod_llm_ui <- function(id) {
           id = ns("todo_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Future Enhancements",
+            title = "Future Directions",
             icon = bs_icon("list-check"),
             div(
               tags$ul(
                 tags$li("Add confidence scoring for extracted fields"),
-                tags$li("Handle multiple papers in single PDF"),
                 tags$li("Progressive field-by-field acceptance/rejection"),
                 tags$li(
                   "Support for different document types (reports, theses, etc.)"
                 ),
-                tags$li("Validation rule relaxation for AI-extracted data"),
-                tags$li("User feedback loop for extraction quality improvement")
               )
             )
           )
@@ -154,7 +189,7 @@ mod_llm_ui <- function(id) {
 #' LLM Extraction Server Functions ----
 #'
 #' @noRd
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateTextAreaInput
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom golem print_dev
@@ -174,6 +209,22 @@ mod_llm_server <- function(id) {
     )
 
     # 2. Observers and Reactives ----
+
+    ## observe: Reset configuration to defaults ----
+    observe({
+      updateTextAreaInput(
+        session,
+        "system_prompt",
+        value = create_extraction_prompt()
+      )
+      updateTextAreaInput(
+        session,
+        "extraction_schema_display",
+        value = get_schema_display()
+      )
+      showNotification("Configuration reset to defaults", type = "message")
+    }) |>
+      bindEvent(input$reset_defaults)
 
     ## observe: Enable extract button when PDF and API key available ----
     # upstream: input$pdf_file, input$api_key
@@ -195,6 +246,7 @@ mod_llm_server <- function(id) {
     # downstream: moduleState$*, session$userData$reactiveValues$*DataLLM
     observe({
       req(input$pdf_file, input$api_key)
+
       # Show processing status
       showNotification("Starting PDF extraction...", type = "message")
 
@@ -248,8 +300,12 @@ mod_llm_server <- function(id) {
           # Create PDF content object
           pdf_content <- content_pdf_file(input$pdf_file$datapath)
 
-          # Create extraction prompt
-          system_prompt <- create_extraction_prompt()
+          # Use custom prompt if provided, otherwise default
+          system_prompt <- if (isTruthy(input$system_prompt)) {
+            input$system_prompt
+          } else {
+            create_extraction_prompt()
+          }
 
           showNotification("Extracting data from PDF...", type = "message")
 
@@ -257,7 +313,7 @@ mod_llm_server <- function(id) {
           result <- chat$chat_structured(
             system_prompt,
             pdf_content,
-            type = extraction_schema,
+            type = extraction_schema
           )
 
           # Store results
@@ -438,6 +494,8 @@ mod_llm_server <- function(id) {
 
 # 4. Helper Functions ----
 
+#' Create extraction schema with correct ellmer syntax
+#' @noRd
 create_extraction_schema <- function() {
   type_object(
     .description = "Extract environmental exposure study data from this document",
@@ -504,40 +562,41 @@ create_extraction_schema <- function() {
       )
     ),
 
-    # Sites data
-    sites = type_object(
-      .description = "Information about the geographical location of the sites sampled",
-      site_code = type_string(
-        description = "Short site identifier/code",
-        required = FALSE
-      ),
-      site_name = type_string(
-        description = "Descriptive site name",
-        required = FALSE
-      ),
-      latitude = type_number(
-        description = "Latitude in decimal degrees (-90 to 90)",
-        required = FALSE
-      ),
-      longitude = type_number(
-        description = "Longitude in decimal degrees (-180 to 180)",
-        required = FALSE
-      ),
-      country = type_string(
-        description = "Country where site is located",
-        required = FALSE
-      ),
-      site_geographic_feature = type_string(
-        description = "Geographic feature type (river, lake, ocean, etc.)",
-        required = FALSE
+    # Sites data - ARRAY OF OBJECTS
+    sites = type_array(
+      type_object(
+        .description = "Information about a sampling site",
+        site_code = type_string(
+          description = "Short site identifier/code",
+          required = FALSE
+        ),
+        site_name = type_string(
+          description = "Descriptive site name",
+          required = FALSE
+        ),
+        latitude = type_number(
+          description = "Latitude in decimal degrees (-90 to 90)",
+          required = FALSE
+        ),
+        longitude = type_number(
+          description = "Longitude in decimal degrees (-180 to 180)",
+          required = FALSE
+        ),
+        country = type_string(
+          description = "Country where site is located",
+          required = FALSE
+        ),
+        site_geographic_feature = type_string(
+          description = "Geographic feature type (river, lake, ocean, etc.)",
+          required = FALSE
+        )
       )
     ),
 
-    # Parameters data
-    parameters = type_object(
-      .description = "Information about the stressors/polluants, water quality parameters, or other values measured.",
-      parameter = type_object(
-        .description = "Measured parameters/stressors",
+    # Parameters data - ARRAY OF OBJECTS
+    parameters = type_array(
+      type_object(
+        .description = "A measured parameter/stressor",
         parameter_name = type_string(
           description = "Name of the parameter/chemical/stressor measured",
           required = FALSE
@@ -553,11 +612,10 @@ create_extraction_schema <- function() {
       )
     ),
 
-    # Compartments data
-    compartments = type_object(
-      .description = "Information about the kinetic properties, physical structure, and rough chemical composition of the environmental compartments sampled..",
-      compartment = type_object(
-        .description = "Environmental compartments sampled",
+    # Compartments data - ARRAY OF OBJECTS
+    compartments = type_array(
+      type_object(
+        .description = "An environmental compartment sampled",
         environ_compartment = type_string(
           description = "Main compartment: Aquatic, Atmospheric, Terrestrial, or Biota",
           required = FALSE
@@ -572,6 +630,28 @@ create_extraction_schema <- function() {
         )
       )
     )
+  )
+}
+
+#' Get schema as formatted display for textarea
+#' @noRd
+get_schema_display <- function() {
+  tryCatch(
+    {
+      # Create the actual schema and capture its structure
+      schema <- create_extraction_schema()
+
+      # Convert to a readable format showing the actual ellmer object structure
+      schema_str <- capture.output({
+        print(schema, width = 80)
+      })
+
+      # Join the output lines
+      paste(schema_str, collapse = "\n")
+    },
+    error = function(e) {
+      paste("Error displaying schema:", e$message)
+    }
   )
 }
 

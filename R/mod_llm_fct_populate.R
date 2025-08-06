@@ -10,12 +10,11 @@
 #' @importFrom shiny updateTextInput updateDateInput updateSelectInput updateTextAreaInput
 populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (is.null(llm_campaign_data)) return()
-
   # Update campaign fields with extracted data
   if (!is.null(llm_campaign_data$campaign_name)) {
     updateTextInput(
       session,
-      "campaign-CAMPAIGN_NAME",
+      "CAMPAIGN_NAME",
       value = llm_campaign_data$campaign_name
     )
   }
@@ -28,7 +27,7 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
         if (!is.na(start_date)) {
           updateDateInput(
             session,
-            "campaign-CAMPAIGN_START_DATE",
+            "CAMPAIGN_START_DATE",
             value = start_date
           )
         }
@@ -49,7 +48,7 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
         if (!is.na(end_date)) {
           updateDateInput(
             session,
-            "campaign-CAMPAIGN_END_DATE",
+            "CAMPAIGN_END_DATE",
             value = end_date
           )
         }
@@ -66,7 +65,7 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (!is.null(llm_campaign_data$organisation)) {
     updateTextInput(
       session,
-      "campaign-ORGANISATION",
+      "ORGANISATION",
       value = llm_campaign_data$organisation
     )
   }
@@ -74,13 +73,13 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (!is.null(llm_campaign_data$campaign_comment)) {
     updateTextAreaInput(
       session,
-      "campaign-CAMPAIGN_COMMENT",
+      "CAMPAIGN_COMMENT",
       value = llm_campaign_data$campaign_comment
     )
   }
 
   # Set today's date for ENTERED_DATE and current user for ENTERED_BY
-  updateDateInput(session, "campaign-ENTERED_DATE", value = Sys.Date())
+  updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
 
   print_dev("Campaign form populated from LLM data")
 }
@@ -93,7 +92,7 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
 #' @noRd
 populate_references_from_llm <- function(session, llm_references_data) {
   if (is.null(llm_references_data)) return()
-
+  browser()
   # Determine reference type based on available fields
   ref_type <- "journal" # Default
   if (!is.null(llm_references_data$periodical_journal)) {
@@ -104,14 +103,14 @@ populate_references_from_llm <- function(session, llm_references_data) {
 
   updateSelectInput(
     session,
-    "references-REFERENCE_TYPE",
+    "REFERENCE_TYPE",
     selected = ref_type
   )
 
   if (!is.null(llm_references_data$author)) {
     updateTextAreaInput(
       session,
-      "references-AUTHOR",
+      "AUTHOR",
       value = llm_references_data$author
     )
   }
@@ -119,7 +118,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$title)) {
     updateTextAreaInput(
       session,
-      "references-TITLE",
+      "TITLE",
       value = llm_references_data$title
     )
   }
@@ -130,7 +129,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
     if (!is.na(year) && year >= 1800 && year <= 2026) {
       updateNumericInput(
         session,
-        "references-YEAR",
+        "YEAR",
         value = year
       )
     }
@@ -139,7 +138,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$periodical_journal)) {
     updateTextInput(
       session,
-      "references-PERIODICAL_JOURNAL",
+      "PERIODICAL_JOURNAL",
       value = llm_references_data$periodical_journal
     )
   }
@@ -147,7 +146,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$volume)) {
     updateNumericInput(
       session,
-      "references-VOLUME",
+      "VOLUME",
       value = as.numeric(llm_references_data$volume)
     )
   }
@@ -155,7 +154,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$issue)) {
     updateNumericInput(
       session,
-      "references-ISSUE",
+      "ISSUE",
       value = as.numeric(llm_references_data$issue)
     )
   }
@@ -163,7 +162,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$publisher)) {
     updateTextInput(
       session,
-      "references-PUBLISHER",
+      "PUBLISHER",
       value = llm_references_data$publisher
     )
   }
@@ -171,20 +170,20 @@ populate_references_from_llm <- function(session, llm_references_data) {
   if (!is.null(llm_references_data$doi)) {
     updateTextInput(
       session,
-      "references-DOI",
+      "DOI",
       value = llm_references_data$doi
     )
   }
 
   # Set today's date for ACCESS_DATE
-  updateDateInput(session, "references-ACCESS_DATE", value = Sys.Date())
+  updateDateInput(session, "ACCESS_DATE", value = Sys.Date())
 
   print_dev("References form populated from LLM data")
 }
 
 #' Populate Sites Data from LLM Data
 #'
-#' @description Creates sites data frame from LLM extracted sites
+#' @description Creates sites data frame from LLM extracted sites array
 #' @param llm_sites_data Sites array extracted by LLM
 #' @return Data frame in sites module format
 #' @noRd
@@ -195,21 +194,44 @@ create_sites_from_llm <- function(llm_sites_data) {
 
   sites_df <- data.frame()
 
+  # Handle array of site objects
   for (i in seq_along(llm_sites_data)) {
     site <- llm_sites_data[[i]]
 
+    # Handle the case where site might be a list or atomic vector
+    if (is.list(site)) {
+      site_data <- site
+    } else {
+      # Skip if not a proper site object
+      next
+    }
+
     # Create site row with LLM data, filling in defaults where needed
     site_row <- data.frame(
-      SITE_CODE = site$site_code %||% paste0("SITE_", sprintf("%03d", i)),
-      SITE_NAME = site$site_name %||% "",
-      SITE_GEOGRAPHIC_FEATURE = map_geographic_feature(
-        site$site_geographic_feature
+      SITE_CODE = safe_extract_field(
+        site_data,
+        "site_code",
+        paste0("SITE_", sprintf("%03d", i))
       ),
+      SITE_NAME = safe_extract_field(site_data, "site_name", ""),
+      SITE_GEOGRAPHIC_FEATURE = map_geographic_feature(safe_extract_field(
+        site_data,
+        "site_geographic_feature",
+        ""
+      )),
       SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported", # LLM doesn't extract this level of detail
       SITE_COORDINATE_SYSTEM = "WGS 84", # Assume WGS84 for LLM coordinates
-      LATITUDE = validate_latitude(site$latitude),
-      LONGITUDE = validate_longitude(site$longitude),
-      COUNTRY = site$country %||% "Not reported",
+      LATITUDE = validate_latitude(safe_extract_field(
+        site_data,
+        "latitude",
+        NA
+      )),
+      LONGITUDE = validate_longitude(safe_extract_field(
+        site_data,
+        "longitude",
+        NA
+      )),
+      COUNTRY = safe_extract_field(site_data, "country", "Not reported"),
       AREA = "Not reported", # LLM doesn't typically extract area info
       ALTITUDE_VALUE = 0, # Default altitude, LLM rarely has this
       ALTITUDE_UNIT = "m",
@@ -228,7 +250,7 @@ create_sites_from_llm <- function(llm_sites_data) {
 
 #' Populate Parameters Data from LLM Data
 #'
-#' @description Creates parameters data frame from LLM extracted parameters
+#' @description Creates parameters data frame from LLM extracted parameters array
 #' @param llm_parameters_data Parameters array extracted by LLM
 #' @return Data frame in parameters module format
 #' @noRd
@@ -239,24 +261,37 @@ create_parameters_from_llm <- function(llm_parameters_data) {
 
   params_df <- data.frame()
 
+  # Handle array of parameter objects
   for (i in seq_along(llm_parameters_data)) {
     param <- llm_parameters_data[[i]]
 
+    # Handle the case where param might be a list or atomic vector
+    if (is.list(param)) {
+      param_data <- param
+    } else {
+      # Skip if not a proper parameter object
+      next
+    }
+
     # Map parameter type to controlled vocabulary
-    param_type <- map_parameter_type(param$parameter_type)
+    param_type <- map_parameter_type(safe_extract_field(
+      param_data,
+      "parameter_type",
+      ""
+    ))
 
     param_row <- data.frame(
       PARAMETER_TYPE = param_type,
       PARAMETER_TYPE_SUB = infer_parameter_subtype(
         param_type,
-        param$parameter_name
+        safe_extract_field(param_data, "parameter_name", "")
       ),
       MEASURED_TYPE = "Concentration", # Default assumption
-      PARAMETER_NAME = param$parameter_name %||% "",
+      PARAMETER_NAME = safe_extract_field(param_data, "parameter_name", ""),
       PARAMETER_NAME_SUB = "",
       INCHIKEY_SD = "",
       PUBCHEM_CID = "",
-      CAS_RN = param$cas_rn %||% "",
+      CAS_RN = safe_extract_field(param_data, "cas_rn", ""),
       stringsAsFactors = FALSE
     )
 
@@ -269,7 +304,7 @@ create_parameters_from_llm <- function(llm_parameters_data) {
 
 #' Populate Compartments Data from LLM Data
 #'
-#' @description Creates compartments data frame from LLM extracted compartments
+#' @description Creates compartments data frame from LLM extracted compartments array
 #' @param llm_compartments_data Compartments array extracted by LLM
 #' @return Data frame in compartments module format
 #' @noRd
@@ -280,15 +315,34 @@ create_compartments_from_llm <- function(llm_compartments_data) {
 
   comps_df <- data.frame()
 
+  # Handle array of compartment objects
   for (i in seq_along(llm_compartments_data)) {
     comp <- llm_compartments_data[[i]]
 
+    # Handle the case where comp might be a list or atomic vector
+    if (is.list(comp)) {
+      comp_data <- comp
+    } else {
+      # Skip if not a proper compartment object
+      next
+    }
+
     comp_row <- data.frame(
-      ENVIRON_COMPARTMENT = map_compartment(comp$environ_compartment),
-      ENVIRON_COMPARTMENT_SUB = map_compartment_sub(
-        comp$environ_compartment_sub
-      ),
-      MEASURED_CATEGORY = map_measured_category(comp$measured_category),
+      ENVIRON_COMPARTMENT = map_compartment(safe_extract_field(
+        comp_data,
+        "environ_compartment",
+        ""
+      )),
+      ENVIRON_COMPARTMENT_SUB = map_compartment_sub(safe_extract_field(
+        comp_data,
+        "environ_compartment_sub",
+        ""
+      )),
+      MEASURED_CATEGORY = map_measured_category(safe_extract_field(
+        comp_data,
+        "measured_category",
+        ""
+      )),
       stringsAsFactors = FALSE
     )
 
@@ -297,6 +351,34 @@ create_compartments_from_llm <- function(llm_compartments_data) {
 
   print_dev(glue("Created {nrow(comps_df)} compartments from LLM data"))
   return(comps_df)
+}
+
+# Helper functions ----
+
+#' Safely extract field from LLM data object
+#' @param data_obj The data object (list or atomic)
+#' @param field_name Name of field to extract
+#' @param default Default value if field missing or null
+#' @noRd
+safe_extract_field <- function(data_obj, field_name, default = NA) {
+  tryCatch(
+    {
+      if (is.list(data_obj) && field_name %in% names(data_obj)) {
+        value <- data_obj[[field_name]]
+        if (
+          is.null(value) || is.na(value) || (is.character(value) && value == "")
+        ) {
+          return(default)
+        }
+        return(value)
+      } else {
+        return(default)
+      }
+    },
+    error = function(e) {
+      return(default)
+    }
+  )
 }
 
 # Helper mapping functions ----
@@ -346,7 +428,7 @@ infer_parameter_subtype <- function(param_type, param_name) {
 
   name_lower <- tolower(param_name)
 
-  # Simple chemical classification
+  # Simple chemical classification TODO: This needs to be much better!
   metals <- c(
     "mercury",
     "lead",
@@ -366,7 +448,7 @@ infer_parameter_subtype <- function(param_type, param_name) {
   return("Organic chemical") # Default for stressors
 }
 
-#' Map compartment to controlled vocabulary
+#' Map compartment to controlled vocabulary TODO: This needs to be much better!
 #' @noRd
 map_compartment <- function(compartment) {
   if (is.null(compartment) || compartment == "") return("Not reported")
@@ -381,7 +463,7 @@ map_compartment <- function(compartment) {
   return("Other")
 }
 
-#' Map compartment sub to controlled vocabulary
+#' Map compartment sub to controlled vocabulary TODO: This needs to be much better!
 #' @noRd
 map_compartment_sub <- function(compartment_sub) {
   if (is.null(compartment_sub) || compartment_sub == "") return("Not reported")
