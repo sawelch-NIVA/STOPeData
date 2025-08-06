@@ -50,7 +50,7 @@ mandatory_highlight_text <- function() {
 #' @examples
 #' \dontrun{
 #' rhandsontable(data) %>%
-#'   hot_col("mandatory_column", type = "dropdown", renderer = mandatory_highlight_full())
+#'   hot_col("mandatory_column", type = "dropdown", renderer = mandatory_highlight_dropdown())
 #' }
 #'
 #' @noRd
