@@ -34,7 +34,7 @@ update_sites_selectize <- function(session, sites_data) {
 
 #' Update Parameters Selectize Input ----
 #' @param session Shiny session
-#' @param parameters_data Data frame with STRESSOR_NAME and STRESSOR_TYPE columns
+#' @param parameters_data Data frame with PARAMETER_NAME and PARAMETER_TYPE columns
 #' @noRd
 update_parameters_selectize <- function(session, parameters_data) {
   if (is.null(parameters_data) || nrow(parameters_data) == 0) {
@@ -42,18 +42,20 @@ update_parameters_selectize <- function(session, parameters_data) {
     placeholder <- "No parameters available - add parameters first"
   } else {
     # Validate expected columns exist
-    if (!all(c("STRESSOR_NAME", "STRESSOR_TYPE") %in% names(parameters_data))) {
+    if (
+      !all(c("PARAMETER_NAME", "PARAMETER_TYPE") %in% names(parameters_data))
+    ) {
       warning(
-        "Parameters data missing expected columns: STRESSOR_NAME, STRESSOR_TYPE"
+        "Parameters data missing expected columns: PARAMETER_NAME, PARAMETER_TYPE"
       )
       choices <- character(0)
       placeholder <- "Invalid parameters data format"
     } else {
       choices <- setNames(
-        parameters_data$STRESSOR_NAME,
+        parameters_data$PARAMETER_NAME,
         paste(
-          parameters_data$STRESSOR_NAME,
-          paste0("(", parameters_data$STRESSOR_TYPE, ")")
+          parameters_data$PARAMETER_NAME,
+          paste0("(", parameters_data$PARAMETER_TYPE, ")")
         )
       )
       placeholder <- "Select parameters..."
@@ -351,12 +353,12 @@ create_sample_combinations <- function(
     if (
       !is.null(available_parameters) &&
         all(
-          c("STRESSOR_NAME", "STRESSOR_TYPE") %in% names(available_parameters)
+          c("PARAMETER_NAME", "PARAMETER_TYPE") %in% names(available_parameters)
         )
     ) {
       param_lookup <- setNames(
-        available_parameters$STRESSOR_TYPE,
-        available_parameters$STRESSOR_NAME
+        available_parameters$PARAMETER_TYPE,
+        available_parameters$PARAMETER_NAME
       )
       all_combinations$PARAMETER_TYPE <- param_lookup[
         all_combinations$PARAMETER_NAME
@@ -487,8 +489,8 @@ dummy_sites <- data.frame(
 #' dummy_parameters ----
 #' @noRd
 dummy_parameters <- data.frame(
-  STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
-  STRESSOR_TYPE = c(
+  PARAMETER_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
+  PARAMETER_TYPE = c(
     "Stressor",
     "Stressor",
     "Quality parameter",
