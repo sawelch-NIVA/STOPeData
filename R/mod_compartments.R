@@ -206,6 +206,7 @@ mod_compartments_server <- function(id) {
       "Rainwater",
       "Stormwater",
       "Leachate",
+      "Aquatic Sediment",
       "Indoor Air",
       "Outdoor Air",
       "Terrestrial Biological Residue",
