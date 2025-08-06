@@ -528,7 +528,7 @@ mod_biota_server <- function(id) {
         div(
           bs_icon("info-circle"),
           "No biota samples detected. Biota validation not required.",
-          class = "validation-status validation-info"
+          class = "validation-status validation-complete"
         )
       } else if (moduleState$is_valid) {
         div(

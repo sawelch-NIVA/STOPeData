@@ -85,15 +85,16 @@ code, pre, .code {
     padding: var(--spacing-sm);
     margin: var(--spacing-sm) 0;
     display: flex;
-    gap: 1em;
+    align-items: center;
+    gap: 0.5em;
     opacity: 1 !important;
     width: 100%;
 }
 
-.validation-status bi {
-    margin-top: 3px;
-    margin-left: 5px;
-    margin-right: -4px;
+/* Nudge icons in line with validation text */
+.validation-status fas, .validation-status bi {
+  margin-left: 1em !important;
+  font-size: 1.2em !important;
 }
 
 .validation-complete {
@@ -150,4 +151,12 @@ code, pre, .code {
 /* Main leaflet container - Credit to https://dev.to/deepakdevanand/leaflet-map-dark-theme-5ej0 */
 [data-bs-theme="dark"] .leaflet-container {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* ===================
+   Plotly Dark Mode Support
+   =================== */
+
+.plot-container {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
