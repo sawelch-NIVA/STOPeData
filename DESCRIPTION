@@ -35,6 +35,7 @@ Imports:
     shinyvalidate,
     shinyWidgets,
     stringi,
+    stringr,
     tibble,
     xml2
 Encoding: UTF-8
