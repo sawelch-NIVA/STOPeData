@@ -216,9 +216,9 @@ mod_llm_server <- function(id) {
           test_chat <- NULL
           tryCatch(
             {
-              test_chat <- ellmer::chat_anthropic(
+              test_chat <- chat_anthropic(
                 model = "claude-sonnet-4-20250514",
-                params = ellmer::params(max_tokens = 50)
+                params = params(max_tokens = 50)
               )
               test_response <- test_chat$chat(
                 "Hello, please respond with 'API connection successful'"
@@ -237,16 +237,16 @@ mod_llm_server <- function(id) {
           if (is.null(test_chat)) return()
 
           # Create chat instance for extraction
-          chat <- ellmer::chat_anthropic(
+          chat <- chat_anthropic(
             model = "claude-sonnet-4-20250514",
-            params = ellmer::params(max_tokens = 4000)
+            params = params(max_tokens = 4000)
           )
 
           # Define structured data types for extraction
           extraction_schema <- create_extraction_schema()
 
           # Create PDF content object
-          pdf_content <- ellmer::content_pdf_file(input$pdf_file$datapath)
+          pdf_content <- content_pdf_file(input$pdf_file$datapath)
 
           # Create extraction prompt
           system_prompt <- create_extraction_prompt()
@@ -439,114 +439,114 @@ mod_llm_server <- function(id) {
 # 4. Helper Functions ----
 
 create_extraction_schema <- function() {
-  ellmer::type_object(
+  type_object(
     .description = "Extract environmental exposure study data from this document",
 
     # Campaign data
-    campaign = ellmer::type_object(
+    campaign = type_object(
       .description = "Basic study/campaign information",
-      campaign_name = ellmer::type_string(
+      campaign_name = type_string(
         description = "Short identifier for the study/campaign (max 100 chars)",
         required = FALSE
       ),
-      campaign_start_date = ellmer::type_string(
+      campaign_start_date = type_string(
         description = "Study start date in YYYY-MM-DD format",
         required = FALSE
       ),
-      campaign_end_date = ellmer::type_string(
+      campaign_end_date = type_string(
         description = "Study end date in YYYY-MM-DD format",
         required = FALSE
       ),
-      organisation = ellmer::type_string(
+      organisation = type_string(
         description = "Organization that conducted the study (max 50 chars)",
         required = FALSE
       ),
-      campaign_comment = ellmer::type_string(
+      campaign_comment = type_string(
         description = "Additional study details or notes (max 1000 chars)",
         required = FALSE
       )
     ),
 
     # Reference data
-    references = ellmer::type_object(
+    references = type_object(
       .description = "Bibliographic information about this document",
-      author = ellmer::type_string(
+      author = type_string(
         description = "Authors in format: Last1, First1; Last2, First2 (max 1000 chars)",
         required = FALSE
       ),
-      title = ellmer::type_string(
+      title = type_string(
         description = "Document title (max 1000 chars)",
         required = FALSE
       ),
-      year = ellmer::type_integer(
+      year = type_integer(
         description = "Publication year (1800-2026)",
         required = FALSE
       ),
-      periodical_journal = ellmer::type_string(
+      periodical_journal = type_string(
         description = "Journal name for articles",
         required = FALSE
       ),
-      volume = ellmer::type_integer(
+      volume = type_integer(
         description = "Journal volume number",
         required = FALSE
       ),
-      issue = ellmer::type_integer(
+      issue = type_integer(
         description = "Journal issue number",
         required = FALSE
       ),
-      publisher = ellmer::type_string(
+      publisher = type_string(
         description = "Publisher name",
         required = FALSE
       ),
-      doi = ellmer::type_string(
+      doi = type_string(
         description = "Digital Object Identifier",
         required = FALSE
       )
     ),
 
     # Sites data
-    sites = ellmer::type_object(
+    sites = type_object(
       .description = "Information about the geographical location of the sites sampled",
-      site_code = ellmer::type_string(
+      site_code = type_string(
         description = "Short site identifier/code",
         required = FALSE
       ),
-      site_name = ellmer::type_string(
+      site_name = type_string(
         description = "Descriptive site name",
         required = FALSE
       ),
-      latitude = ellmer::type_number(
+      latitude = type_number(
         description = "Latitude in decimal degrees (-90 to 90)",
         required = FALSE
       ),
-      longitude = ellmer::type_number(
+      longitude = type_number(
         description = "Longitude in decimal degrees (-180 to 180)",
         required = FALSE
       ),
-      country = ellmer::type_string(
+      country = type_string(
         description = "Country where site is located",
         required = FALSE
       ),
-      site_geographic_feature = ellmer::type_string(
+      site_geographic_feature = type_string(
         description = "Geographic feature type (river, lake, ocean, etc.)",
         required = FALSE
       )
     ),
 
     # Parameters data
-    parameters = ellmer::type_object(
+    parameters = type_object(
       .description = "Information about the stressors/polluants, water quality parameters, or other values measured.",
-      parameter = ellmer::type_object(
+      parameter = type_object(
         .description = "Measured parameters/stressors",
-        parameter_name = ellmer::type_string(
+        parameter_name = type_string(
           description = "Name of the parameter/chemical/stressor measured",
           required = FALSE
         ),
-        parameter_type = ellmer::type_string(
+        parameter_type = type_string(
           description = "Type: Stressor, Quality parameter, Normalization, or Background",
           required = FALSE
         ),
-        cas_rn = ellmer::type_string(
+        cas_rn = type_string(
           description = "CAS Registry Number if chemical",
           required = FALSE
         )
@@ -554,19 +554,19 @@ create_extraction_schema <- function() {
     ),
 
     # Compartments data
-    compartments = ellmer::type_object(
+    compartments = type_object(
       .description = "Information about the kinetic properties, physical structure, and rough chemical composition of the environmental compartments sampled..",
-      compartment = ellmer::type_object(
+      compartment = type_object(
         .description = "Environmental compartments sampled",
-        environ_compartment = ellmer::type_string(
+        environ_compartment = type_string(
           description = "Main compartment: Aquatic, Atmospheric, Terrestrial, or Biota",
           required = FALSE
         ),
-        environ_compartment_sub = ellmer::type_string(
+        environ_compartment_sub = type_string(
           description = "Sub-compartment (e.g., Freshwater, Soil A Horizon, etc.)",
           required = FALSE
         ),
-        measured_category = ellmer::type_string(
+        measured_category = type_string(
           description = "Measurement category: External, Internal, or Surface",
           required = FALSE
         )
