@@ -157,6 +157,6 @@ code, pre, .code {
    Plotly Dark Mode Support
    =================== */
 
-.plot-container {
+[data-bs-theme="dark"]  .plot-container {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
