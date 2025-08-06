@@ -422,7 +422,8 @@ mod_llm_server <- function(id) {
         # Format the extraction results for display
         if (is.list(moduleState$raw_extraction)) {
           # Pretty print the structured data
-          capture.output(str(moduleState$raw_extraction, max.level = 2))
+          capture.output(str(moduleState$raw_extraction, max.level = 6)) |>
+            paste(collapse = "\n")
         } else {
           as.character(moduleState$raw_extraction)
         }
