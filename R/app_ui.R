@@ -109,15 +109,18 @@ app_ui <- function(request) {
             width = "200px"
           )
         ),
-        tags$a(
-          href = "https://github.com/sawelch-NIVA/STOPeData",
-          "stop-e-data"
-        ),
-        " developed by ",
-        tags$a(href = "https://www.niva.no/en/projects/expect", "EXPECT"),
-        ", and ",
-        tags$a(href = "https://www.niva.no/en/featured-pages/nctp", "NCTP"),
-        "."
+        div(
+          style = "margin: 0px 5px 10px 15px;",
+          tags$a(
+            href = "https://github.com/sawelch-NIVA/STOPeData",
+            "stop-e-data"
+          ),
+          " developed by ",
+          tags$a(href = "https://www.niva.no/en/projects/expect", "EXPECT"),
+          ", and ",
+          tags$a(href = "https://www.niva.no/en/featured-pages/nctp", "NCTP"),
+          "."
+        )
       )
     )
   )

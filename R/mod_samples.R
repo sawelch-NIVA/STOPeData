@@ -386,7 +386,7 @@ mod_samples_server <- function(id) {
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
       } else {
-        disable(id = "add_all_parameters")
+        disable(id = "add_all_parameters") # TODO: Button not properly disabled
         disable(id = "parameters_select")
       }
     }) |>

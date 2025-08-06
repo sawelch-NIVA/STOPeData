@@ -366,7 +366,7 @@ mod_biota_server <- function(id) {
       }
     })
 
-    ## Helper: Merge biota data back into samples - UPDATED for new column structure ----
+    ## Helper: Merge biota data back into samples
     merge_biota_into_samples <- function(samples_data, biota_data) {
       # Add biota columns to samples data if they don't exist
       biota_columns <- c(
@@ -486,32 +486,37 @@ mod_biota_server <- function(id) {
             "SPECIES_GROUP",
             type = "dropdown",
             source = species_groups,
-            strict = TRUE
+            strict = TRUE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_col(
             "SAMPLE_TISSUE",
             type = "dropdown",
             source = tissue_types,
-            strict = FALSE
+            strict = TRUE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_LIFESTAGE",
             type = "dropdown",
             source = life_stages,
-            strict = FALSE
+            strict = TRUE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_GENDER",
             type = "dropdown",
             source = genders,
-            strict = FALSE
+            strict = TRUE,
+            renderer = mandatory_highlight_full()
           ) |>
           # Species will be updated dynamically based on species group selection
           hot_col(
             "SAMPLE_SPECIES",
             type = "dropdown",
             source = c("Select species group first"),
-            strict = FALSE
+            strict = TRUE,
+            renderer = mandatory_highlight_full()
           ) |>
           hot_context_menu(
             allowRowEdit = FALSE, # Don't allow adding/removing rows
@@ -528,7 +533,7 @@ mod_biota_server <- function(id) {
         div(
           bs_icon("info-circle"),
           "No biota samples detected. Biota validation not required.",
-          class = "validation-status validation-info"
+          class = "validation-status validation-complete"
         )
       } else if (moduleState$is_valid) {
         div(
