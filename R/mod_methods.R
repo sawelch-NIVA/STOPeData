@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_methods_ui <- function(id) {
   ns <- NS(id)
 
@@ -120,6 +121,7 @@ mod_methods_ui <- function(id) {
 #' @importFrom arrow read_parquet
 #' @importFrom tibble tibble deframe
 #' @importFrom dplyr filter select
+#' @export
 mod_methods_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

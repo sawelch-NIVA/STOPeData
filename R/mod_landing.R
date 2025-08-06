@@ -4,28 +4,27 @@
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
-#' @noRd 
+#' @noRd
 #'
-#' @importFrom shiny NS tagList 
+#' @importFrom shiny NS tagList
+#' @export
 mod_landing_ui <- function(id) {
   ns <- NS(id)
-  tagList(
- 
-  )
+  tagList()
 }
-    
+
 #' landing Server Functions
 #'
-#' @noRd 
-mod_landing_server <- function(id){
-  moduleServer(id, function(input, output, session){
+#' @noRd
+#' @export
+mod_landing_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
     ns <- session$ns
- 
   })
 }
-    
+
 ## To be copied in the UI
 # mod_landing_ui("landing_1")
-    
+
 ## To be copied in the server
 # mod_landing_server("landing_1")

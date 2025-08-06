@@ -15,6 +15,7 @@
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom leaflet leafletOutput
+#' @export
 mod_sites_ui <- function(id) {
   ns <- NS(id)
 
@@ -100,6 +101,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
+#' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -464,7 +466,12 @@ mod_sites_server <- function(id) {
             9,
             comment = 'Area: The region where the site was sampled.'
           ) |>
-          hot_col("ALTITUDE_VALUE", type = "numeric", allowInvalid = FALSE, renderer = mandatory_highlight_full()) |>
+          hot_col(
+            "ALTITUDE_VALUE",
+            type = "numeric",
+            allowInvalid = FALSE,
+            renderer = mandatory_highlight_full()
+          ) |>
           hot_cell(
             1,
             10,

@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_compartments_ui <- function(id) {
   ns <- NS(id)
 
@@ -134,6 +135,7 @@ mod_compartments_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
+#' @export
 mod_compartments_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

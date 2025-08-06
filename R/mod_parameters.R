@@ -15,6 +15,7 @@
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom tibble tibble
+#' @export
 mod_parameters_ui <- function(id) {
   ns <- NS(id)
 
@@ -121,7 +122,8 @@ mod_parameters_ui <- function(id) {
 #' @importFrom dplyr mutate bind_rows pull filter arrange
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
-
+#' @importFrom tibble tibble
+#' @export
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

@@ -7,7 +7,11 @@
 #' @return Character vector of parameter names
 #' @importFrom dplyr filter pull
 #' @export
-get_parameters_of_types <- function(param_type, dummy_parameters, session_parameters = NULL) {
+get_parameters_of_types <- function(
+  param_type,
+  dummy_parameters,
+  session_parameters = NULL
+) {
   # Get base parameters from dummy_parameters dataframe
   base_params <- dummy_parameters |>
     filter(PARAMETER_TYPE == param_type) |>
@@ -34,7 +38,12 @@ get_parameters_of_types <- function(param_type, dummy_parameters, session_parame
 #' @return Data.frame with parameter information or NULL if not found
 #' @importFrom dplyr filter slice
 #' @export
-create_existing_parameter <- function(param_type, param_name, dummy_parameters, session_parameters = NULL) {
+create_existing_parameter <- function(
+  param_type,
+  param_name,
+  dummy_parameters,
+  session_parameters = NULL
+) {
   # Check dummy parameters first
   param_row <- dummy_parameters |>
     filter(PARAMETER_NAME == param_name)

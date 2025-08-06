@@ -13,6 +13,7 @@
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom tibble tibble
+#' @export
 mod_campaign_ui <- function(id) {
   ns <- NS(id)
 
@@ -165,6 +166,7 @@ mod_campaign_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput bindEvent
 #' @importFrom glue glue
+#' @export
 mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

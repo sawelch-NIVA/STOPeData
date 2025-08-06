@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_data_ui <- function(id) {
   ns <- NS(id)
 
@@ -96,6 +97,7 @@ mod_data_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
+#' @export
 mod_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
