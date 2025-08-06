@@ -23,6 +23,12 @@ app_ui <- function(request) {
       ),
       # nav_panel(title = "Landing", value = "00-landing", mod_landing_ui("landing")),
       nav_panel(
+        title = "0. LLM Extract",
+        value = "00-llm-extract",
+        mod_llm_ui("llm_extract"),
+        icon = bs_icon("cpu")
+      ),
+      nav_panel(
         title = "1. Campaign",
         value = "01-campaign",
         mod_campaign_ui("campaign"),

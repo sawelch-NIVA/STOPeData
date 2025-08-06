@@ -445,6 +445,36 @@ mod_compartments_server <- function(id) {
       }
     })
 
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$compartmentsDataLLM
+    # downstream: moduleState$compartments_data
+    observe({
+      llm_compartments <- session$userData$reactiveValues$compartmentsDataLLM
+      if (
+        !is.null(llm_compartments) &&
+          nrow(llm_compartments) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Replace current compartments data with LLM data
+        moduleState$compartments_data <- llm_compartments
+
+        showNotification(
+          paste(
+            "Loaded",
+            nrow(llm_compartments),
+            "compartments from LLM extraction. Verify compartment combinations."
+          ),
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$compartmentsDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 4. Outputs ----
 
     ## output: compartments_table ----

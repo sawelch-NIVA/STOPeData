@@ -462,6 +462,36 @@ mod_parameters_server <- function(id) {
       }
     })
 
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$parametersDataLLM
+    # downstream: moduleState$parameters_data
+    observe({
+      llm_parameters <- session$userData$reactiveValues$parametersDataLLM
+      if (
+        !is.null(llm_parameters) &&
+          nrow(llm_parameters) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Replace current parameters data with LLM data
+        moduleState$parameters_data <- llm_parameters
+
+        showNotification(
+          paste(
+            "Loaded",
+            nrow(llm_parameters),
+            "parameters from LLM extraction. Review and add missing chemical identifiers."
+          ),
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$parametersDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 3. Outputs ----
 
     ## output: parameters_table ----
