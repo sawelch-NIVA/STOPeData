@@ -24,17 +24,19 @@ mandatory_highlight_text <- function() {
       value === undefined ||
         value === '' ||
           (typeof value === 'string' && value.trim() === '');
-        if (isEmpty) {
-          td.className = 'htAutocomplete';
-          td.style.borderBottom = '2px solid #f9b928';
-        } else {
-          td.style.borderBottom = '2px solid #007416';
-          td.className = 'htAutocomplete';
-        }
-        return td;
+
+    td.style.boxSizing = 'border-box';
+
+    if (isEmpty) {
+      td.className = 'htAutocomplete';
+      td.style.borderBottom = '2px solid #f9b928';
+    } else {
+      td.style.borderBottom = '2px solid #007416';
+      td.className = 'htAutocomplete';
+    }
+    return td;
   }"
 }
-
 #' Mandatory Column Renderer - Full Highlighting - Dropdowns
 #'
 #' @description Returns a JavaScript renderer function that highlights mandatory
@@ -61,6 +63,9 @@ mandatory_highlight_dropdown <- function() {
       value === undefined ||
         value === '' ||
           (typeof value === 'string' && value.trim() === '');
+
+              td.style.boxSizing = 'border-box';
+
         if (isEmpty) {
           td.className = 'htAutocomplete';
           td.style.borderBottom = '2px solid #f9b928';
