@@ -381,12 +381,13 @@ mod_samples_server <- function(id) {
         updateSelectizeInput(
           session,
           "parameters_select",
-          selected = session$userData$reactiveValues$parametersData
+          selected = session$userData$reactiveValues$parametersData$PARAMETER_NAME
         )
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
       } else {
-        disable(id = "add_all_parameters") # TODO: Button not properly disabled
+        showNotification("No parameters found to add.")
+        disable(id = "add_all_parameters")
         disable(id = "parameters_select")
       }
     }) |>
