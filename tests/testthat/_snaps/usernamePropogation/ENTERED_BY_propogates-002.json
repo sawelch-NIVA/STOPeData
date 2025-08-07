@@ -16,7 +16,7 @@
             "ALTITUDE_VALUE": null,
             "ALTITUDE_UNIT": "m",
             "ENTERED_BY": "Test McTesterson",
-            "ENTERED_DATE": "2025-08-06",
+            "ENTERED_DATE": "2025-08-07",
             "SITE_COMMENT": ""
           }
         ],
@@ -95,17 +95,17 @@
         "columns": [
           {
             "type": "text",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null
           },
           {
             "type": "text",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null
           },
           {
             "type": "dropdown",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n              td.style.boxSizing = 'border-box';\n\n        if (isEmpty) {\n          td.className = 'htAutocomplete';\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n          td.className = 'htAutocomplete';\n        }\n        return td;\n  }",
             "default": null,
             "source": [
               "Not relevant",
@@ -132,7 +132,7 @@
           },
           {
             "type": "dropdown",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n              td.style.boxSizing = 'border-box';\n\n        if (isEmpty) {\n          td.className = 'htAutocomplete';\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n          td.className = 'htAutocomplete';\n        }\n        return td;\n  }",
             "default": null,
             "source": [
               "Not relevant",
@@ -146,7 +146,7 @@
           },
           {
             "type": "dropdown",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n              td.style.boxSizing = 'border-box';\n\n        if (isEmpty) {\n          td.className = 'htAutocomplete';\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n          td.className = 'htAutocomplete';\n        }\n        return td;\n  }",
             "default": null,
             "source": [
               "Not relevant",
@@ -163,7 +163,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null,
             "numericFormat": {
               "pattern": "0.000000"
@@ -171,7 +171,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null,
             "numericFormat": {
               "pattern": "0.000000"
@@ -206,7 +206,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null,
             "allowInvalid": false
           },
@@ -224,12 +224,12 @@
           },
           {
             "type": "text",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null
           },
           {
             "type": "date",
-            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n\n    td.style.boxSizing = 'border-box';\n\n    if (isEmpty) {\n      td.className = 'htAutocomplete';\n      td.style.borderBottom = '2px solid #f9b928';\n    } else {\n      td.style.borderBottom = '2px solid #007416';\n      td.className = 'htAutocomplete';\n    }\n    return td;\n  }",
             "default": null,
             "dateFormat": "YYYY-MM-DD",
             "allowInvalid": false
