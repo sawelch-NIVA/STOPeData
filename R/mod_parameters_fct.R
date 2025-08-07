@@ -37,6 +37,7 @@ get_parameters_of_types <- function(
 #'
 #' @return Data.frame with parameter information or NULL if not found
 #' @importFrom dplyr filter slice
+#' @importFrom tibble tibble
 #' @export
 create_existing_parameter <- function(
   param_type,
@@ -62,7 +63,7 @@ create_existing_parameter <- function(
   # Extract first matching row and ensure all required columns exist
   param_data <- param_row |> slice(1)
 
-  data.frame(
+  tibble(
     PARAMETER_TYPE = param_type,
     PARAMETER_TYPE_SUB = param_data$PARAMETER_TYPE_SUB %||% "",
     MEASURED_TYPE = param_data$MEASURED_TYPE %||% "Concentration",
@@ -70,8 +71,7 @@ create_existing_parameter <- function(
     PARAMETER_NAME_SUB = param_data$PARAMETER_NAME_SUB %||% "",
     INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
     PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
-    CAS_RN = param_data$CAS_RN %||% "",
-    stringsAsFactors = FALSE
+    CAS_RN = param_data$CAS_RN %||% ""
   )
 }
 
@@ -80,9 +80,10 @@ create_existing_parameter <- function(
 #' @param param_type Character string specifying the parameter type
 #'
 #' @return Data.frame with blank parameter template
+#' @importFrom tibble tibble
 #' @export
 create_new_parameter <- function(param_type) {
-  data.frame(
+  tibble(
     PARAMETER_TYPE = param_type,
     PARAMETER_TYPE_SUB = "",
     MEASURED_TYPE = "Concentration",
@@ -90,7 +91,7 @@ create_new_parameter <- function(param_type) {
     PARAMETER_NAME_SUB = "",
     INCHIKEY_SD = "",
     PUBCHEM_CID = "",
-    CAS_RN = "",
-    stringsAsFactors = FALSE
+    CAS_RN = ""
   )
 }
+

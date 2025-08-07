@@ -72,3 +72,27 @@ printreactiveValues <- function(data) {
   )
   paste(data_lines, collapse = "\n")
 }
+
+
+#' Extract Clean Data Frame from rhandsontable Input
+#'
+#' Converts rhandsontable input structure back to a clean R data frame,
+#' handling common data type conversions and cleaning operations. Is this redundant 'cos of hot_to_r()?
+#'
+#' @param hot_json string of class "json" from rhandsontable input (typically from Shiny input)
+#'
+#' @return A cleaned data.frame
+#'
+#' @importFrom rjson fromJSON
+#' @importFrom dplyr bind_rows
+#'
+#'
+#' @export
+# Helper functions ----
+## Extract data from rhandsontable JSON output ----
+hot_table_data_extract <- function(hot_json) {
+  stopifnot(is.character(hot_json), attributes(hot_json)$class == "json")
+  hot_list <- fromJSON(hot_json)
+  hot_list_data <- hot_list$x$data |> bind_rows()
+  return(hot_list_data)
+}

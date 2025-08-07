@@ -144,7 +144,7 @@ mod_parameters_server <- function(id) {
     # Read dummy_parameters ----
     dummy_quality_params <- read_parquet(
       file = "inst/data/clean/dummy_quality_parameters.parquet"
-    )
+    ) |> mutate(PUBCHEM_CID = as.character(PUBCHEM_CID), PARAMETER_NAME_SUB = "")
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(
@@ -154,8 +154,8 @@ mod_parameters_server <- function(id) {
         PARAMETER_TYPE = "Stressor",
         PARAMETER_TYPE_SUB = "Not reported",
         MEASURED_TYPE = "Concentration",
-        PUBCHEM_CID = NA,
-        INCHIKEY_SD = NA
+        PUBCHEM_CID = "",
+        INCHIKEY_SD = ""
       ) |>
       arrange(PARAMETER_NAME)
 
@@ -383,7 +383,6 @@ mod_parameters_server <- function(id) {
     # downstream: moduleState$parameters_data
     observe({
       param_type <- input$parameter_type_select
-
       if (isTruthy(param_type)) {
         new_param <- create_new_parameter(param_type)
         moduleState$parameters_data <- rbind(
@@ -408,6 +407,7 @@ mod_parameters_server <- function(id) {
     # upstream: input$parameters_table changes
     # downstream: moduleState$parameters_data
     observe({
+
       if (!is.null(input$parameters_table)) {
         updated_data <- hot_to_r(input$parameters_table)
 
@@ -430,7 +430,7 @@ mod_parameters_server <- function(id) {
                 PARAMETER_NAME = param_name,
                 PARAMETER_TYPE_SUB = updated_data[i, "PARAMETER_TYPE_SUB"],
                 MEASURED_TYPE = updated_data[i, "MEASURED_TYPE"],
-                PARAMETER_NAME_SUB = updated_data[i, "PARAMETER_NAME_SUB"],
+                PARAMETER_NAME_SUB = updated_data[i, "PARAMETER_NAME_SUB"] %|truthy|% "", # TODO: warning here?
                 INCHIKEY_SD = updated_data[i, "INCHIKEY_SD"],
                 PUBCHEM_CID = updated_data[i, "PUBCHEM_CID"],
                 CAS_RN = updated_data[i, "CAS_RN"]
@@ -500,7 +500,11 @@ mod_parameters_server <- function(id) {
           hot_col(
             "PARAMETER_NAME",
             type = "text",
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
+          ) |>
+          hot_col(
+            "PARAMETER_NAME_SUB",
+            type = "text",
           ) |>
           hot_col(
             "PARAMETER_TYPE",
