@@ -128,7 +128,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom golem print_dev
 #' @importFrom glue glue
-#' @importFrom dplyr mutate bind_rows pull filter arrange
+#' @importFrom dplyr mutate bind_rows pull filter arrange select distinct
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
 #' @importFrom tibble tibble
@@ -153,7 +153,8 @@ mod_parameters_server <- function(id) {
     # Read dummy_parameters ----
     dummy_quality_params <- read_parquet(
       file = "inst/data/clean/dummy_quality_parameters.parquet"
-    )
+    ) |>
+      mutate(ENTERED_BY = "saw@niva.no")
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(
@@ -161,8 +162,16 @@ mod_parameters_server <- function(id) {
     ) |>
       mutate(
         MEASURED_TYPE = "Concentration",
+        ENTERED_BY = "saw@niva.no"
       ) |>
-      arrange(PARAMETER_NAME)
+      arrange(PARAMETER_NAME) |>
+      mutate(
+        PARAMETER_TYPE_SUB = case_when(
+          PARAMETER_NAME == "Carbon" ~ "Carbon",
+          TRUE ~ PARAMETER_TYPE_SUB
+        ),
+        PARAMETER_NAME_SUB = ""
+      )
 
     # Merge datasets ----
     dummy_parameters <- bind_rows(dummy_quality_params, chemical_parameters)
@@ -177,29 +186,11 @@ mod_parameters_server <- function(id) {
       "Other"
     )
 
-    parameter_types_sub <- c(
-      c(
-        "Not reported",
-        "Nanomaterial",
-        "Microplastic",
-        "Chemical mixture",
-        "Temperature",
-        "Radiation",
-        "Pressure",
-        "Sound",
-        "Pathogen",
-        "Toxin",
-        "pH",
-        "Dissolved oxygen",
-        "Conductivity",
-        "Salinity",
-        "Turbidity",
-        "Total organic carbon",
-        "Nutrient",
-        "Other"
-      ),
-      chemical_parameters$PARAMETER_TYPE_SUB |> unique()
-    )
+    parameter_types_sub <- dummy_parameters |>
+      select(PARAMETER_TYPE_SUB) |>
+      distinct() |>
+      arrange(PARAMETER_TYPE_SUB) |>
+      pull(PARAMETER_TYPE_SUB)
 
     measured_types <- c(
       "Not relevant",
@@ -226,7 +217,8 @@ mod_parameters_server <- function(id) {
         PARAMETER_NAME_SUB = character(0),
         INCHIKEY_SD = character(0),
         PUBCHEM_CID = character(0),
-        CAS_RN = NA
+        CAS_RN = NA,
+        ENTERED_BY = character(0)
       )
     }
 
@@ -243,7 +235,8 @@ mod_parameters_server <- function(id) {
         required_fields <- c(
           "PARAMETER_TYPE",
           "MEASURED_TYPE",
-          "PARAMETER_NAME"
+          "PARAMETER_NAME",
+          "ENTERED_BY"
         )
 
         for (i in 1:nrow(moduleState$parameters_data)) {
@@ -394,7 +387,6 @@ mod_parameters_server <- function(id) {
       if (
         isTruthy(param_type) &&
           isTruthy(param_name) &&
-          param_name != "-- New Parameter --" &&
           param_name %notin% moduleState$parameters_data$PARAMETER_NAME
       ) {
         new_param <- create_existing_parameter(
@@ -434,7 +426,10 @@ mod_parameters_server <- function(id) {
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        new_param <- create_new_parameter(param_type)
+        new_param <- create_new_parameter(
+          param_type,
+          session$userData$reactiveValues$ENTERED_BY %|truthy|% ""
+        )
         moduleState$parameters_data <- rbind(
           moduleState$parameters_data,
           new_param
@@ -482,7 +477,8 @@ mod_parameters_server <- function(id) {
                 PARAMETER_NAME_SUB = updated_data[i, "PARAMETER_NAME_SUB"],
                 INCHIKEY_SD = updated_data[i, "INCHIKEY_SD"],
                 PUBCHEM_CID = updated_data[i, "PUBCHEM_CID"],
-                CAS_RN = updated_data[i, "CAS_RN"]
+                CAS_RN = updated_data[i, "CAS_RN"],
+                ENTERED_BY = updated_data[i, "ENTERED_BY"]
               )
             }
           }
@@ -545,11 +541,15 @@ mod_parameters_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
+          hot_table(overflow = "visible", stretchH = "right") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",
             renderer = mandatory_highlight_text()
+          ) |>
+          hot_col(
+            "PARAMETER_NAME_SUB",
+            type = "text"
           ) |>
           hot_col(
             "PARAMETER_TYPE",
@@ -572,6 +572,7 @@ mod_parameters_server <- function(id) {
             renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
+          hot_col("ENTERED_BY", renderer = mandatory_highlight_text()) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
