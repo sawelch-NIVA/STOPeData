@@ -545,34 +545,52 @@ mod_sites_server <- function(id) {
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
-        valid_coords <- !is.na(moduleState$sites_data$LATITUDE) &
-          !is.na(moduleState$sites_data$LONGITUDE) &
-          moduleState$sites_data$LATITUDE != "" &
-          moduleState$sites_data$LONGITUDE != ""
+        # Convert to numeric, handling potential character values
+        lat_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LATITUDE
+        ))
+        lng_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LONGITUDE
+        ))
+
+        # Check for valid coordinates
+        valid_coords <- !is.na(lat_numeric) &
+          !is.na(lng_numeric) &
+          is.finite(lat_numeric) &
+          is.finite(lng_numeric) &
+          lat_numeric >= -90 &
+          lat_numeric <= 90 & # Valid latitude range
+          lng_numeric >= -180 &
+          lng_numeric <= 180 # Valid longitude range
 
         if (any(valid_coords)) {
           valid_sites <- moduleState$sites_data[valid_coords, ]
+          valid_lat <- lat_numeric[valid_coords]
+          valid_lng <- lng_numeric[valid_coords]
 
           map <- map |>
             addMarkers(
-              lng = valid_sites$LONGITUDE,
-              lat = valid_sites$LATITUDE,
+              lng = valid_lng,
+              lat = valid_lat,
               popup = paste0(
                 "<strong>",
                 valid_sites$SITE_CODE,
                 "</strong><br/>",
                 valid_sites$SITE_NAME,
                 "<br/>",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE,
+                ":",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE_SUB,
+                "<br/>",
                 "Lat: ",
-                round(valid_sites$LATITUDE, 6),
+                round(valid_lat, 6),
                 "<br/>",
                 "Lng: ",
-                round(valid_sites$LONGITUDE, 6)
+                round(valid_lng, 6)
               )
             )
         }
       }
-
       map
     })
 
