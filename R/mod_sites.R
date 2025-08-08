@@ -45,7 +45,8 @@ mod_sites_ui <- function(id) {
               Add sites by clicking 'Add New Site' which creates an editable row in the table.
               Edit fields directly in the table. Use the map to verify coordinates are correct.
               At least one complete site is required to proceed.
-              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards."
+              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards.
+              AREA has been used to store information on marine geography, as a temporary step. These definitions are taken from the IHO Limits of Oceans and Seas via https://doi.pangaea.de/10.1594/PANGAEA.777975"
             )
           ),
 
@@ -102,6 +103,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
 #' @importFrom ISOcodes ISO_3166_1
+#' @importFrom dplyr pull
 #' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -137,6 +139,7 @@ mod_sites_server <- function(id) {
       "Shrubland",
       "Grassland",
       "Bare land and lichen/moss",
+      "Glacier",
       "Other"
     )
 
@@ -168,13 +171,13 @@ mod_sites_server <- function(id) {
       ISOcodes::ISO_3166_1$Name
     )
 
+    IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
+
     areas <- c(
       "Not relevant",
       "Not reported",
-      "Area 1",
-      "Area 2",
-      "Area 3",
-      "Other"
+      "Other",
+      IHO_oceans
     )
 
     altitude_units <- c("km", "m", "cm", "mm")
