@@ -554,7 +554,7 @@ mod_parameters_server <- function(id) {
           hot_col(
             "PARAMETER_NAME",
             type = "text",
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_col(
             "PARAMETER_TYPE",
