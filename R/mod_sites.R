@@ -266,7 +266,7 @@ mod_sites_server <- function(id) {
     ## Create new site row with defaults ----
     create_new_site <- function() {
       data.frame(
-        SITE_CODE = paste0("SITE_", sprintf("%03d", moduleState$next_site_id)),
+        SITE_CODE = "",
         SITE_NAME = "",
         SITE_GEOGRAPHIC_FEATURE = "Not reported",
         SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
@@ -293,13 +293,12 @@ mod_sites_server <- function(id) {
       new_site <- create_new_site()
       moduleState$sites_data <- rbind(moduleState$sites_data, new_site)
       moduleState$next_site_id <- moduleState$next_site_id + 1
-
       showNotification(
         "New site added. Edit fields directly in the table.",
         type = "message"
       )
     }) |>
-      bindEvent(input$add_site)
+      bindEvent(input$add_site, ignoreInit = FALSE)
 
     ## observe: Remove selected rows ----
     # upstream: user clicks input$remove_selected
@@ -367,7 +366,7 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df(), stretchH = "all") |>
+        rhandsontable(create_new_site(), stretchH = "all") |>
           hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(
