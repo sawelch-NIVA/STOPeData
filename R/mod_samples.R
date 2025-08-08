@@ -386,7 +386,6 @@ mod_samples_server <- function(id) {
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
       } else {
-        showNotification("No parameters found to add.")
         disable(id = "add_all_parameters")
         disable(id = "parameters_select")
       }
