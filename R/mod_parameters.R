@@ -34,7 +34,7 @@ mod_parameters_ui <- function(id) {
           accordion_panel(
             title = "Parameters Data Information",
             icon = bs_icon("info-circle"),
-            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table."
+            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type, subtype and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table. Stressor subtypes are derived from the ClassyFire taxonomy (https://ice.ntp.niehs.nih.gov/DATASETDESCRIPTION?section=Chemical%20Taxonomies)."
           )
         ),
 
@@ -157,14 +157,10 @@ mod_parameters_server <- function(id) {
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(
-      file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
+      file = "inst/data/clean/ClassyFire_Taxonomy_2025_02.parquet"
     ) |>
       mutate(
-        PARAMETER_TYPE = "Stressor",
-        PARAMETER_TYPE_SUB = "Not reported",
         MEASURED_TYPE = "Concentration",
-        PUBCHEM_CID = NA,
-        INCHIKEY_SD = NA
       ) |>
       arrange(PARAMETER_NAME)
 
@@ -182,28 +178,27 @@ mod_parameters_server <- function(id) {
     )
 
     parameter_types_sub <- c(
-      "Not reported",
-      "Organic chemical",
-      "Metal/metalloid",
-      "Organometal",
-      "Inorganic chemical",
-      "Nanomaterial",
-      "Microplastic",
-      "Chemical mixture",
-      "Temperature",
-      "Radiation",
-      "Pressure",
-      "Sound",
-      "Pathogen",
-      "Toxin",
-      "pH",
-      "Dissolved oxygen",
-      "Conductivity",
-      "Salinity",
-      "Turbidity",
-      "Total organic carbon",
-      "Nutrient",
-      "Other"
+      c(
+        "Not reported",
+        "Nanomaterial",
+        "Microplastic",
+        "Chemical mixture",
+        "Temperature",
+        "Radiation",
+        "Pressure",
+        "Sound",
+        "Pathogen",
+        "Toxin",
+        "pH",
+        "Dissolved oxygen",
+        "Conductivity",
+        "Salinity",
+        "Turbidity",
+        "Total organic carbon",
+        "Nutrient",
+        "Other"
+      ),
+      chemical_parameters$PARAMETER_TYPE_SUB |> unique()
     )
 
     measured_types <- c(
