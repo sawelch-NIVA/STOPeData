@@ -393,7 +393,8 @@ mod_samples_server <- function(id) {
     }) |>
       bindEvent(
         input$add_all_parameters,
-        moduleState$available_parameters
+        moduleState$available_parameters,
+        ignoreInit = TRUE
       )
 
     ## observe ~bindEvent(remove_all_parameters): Remove all parameters ----
