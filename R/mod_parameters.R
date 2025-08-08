@@ -9,9 +9,10 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList selectInput actionButton
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput updateSelectizeInput
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
+#' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom tibble tibble
@@ -58,6 +59,15 @@ mod_parameters_ui <- function(id) {
           ),
 
           selectizeInput(
+            inputId = ns("parameter_subtype_select"),
+            label = "Parameter Subtype",
+            choices = c("Show all" = "Show all"),
+            selected = "Show all",
+            width = "100%",
+            multiple = FALSE
+          ),
+
+          selectizeInput(
             inputId = ns("parameter_name_select"),
             label = "Parameter Name",
             choices = c("Select parameter type first..."),
@@ -66,7 +76,6 @@ mod_parameters_ui <- function(id) {
             multiple = FALSE
           )
         ),
-
         ## Action buttons ----
         div(
           style = "margin: 15px 0;",
@@ -312,16 +321,56 @@ mod_parameters_server <- function(id) {
 
     # 2. Observers and Reactives ----
 
-    ## observe: Update parameter name dropdown when type changes ----
+    ## observe: Update subtype dropdown when parameter type changes ----
     # upstream: input$parameter_type_select
-    # downstream: input$parameter_name_select choices
+    # downstream: input$parameter_subtype_select choices
     observe({
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        available_names <- get_parameters_of_types(
-          param_type,
-          dummy_parameters = dummy_parameters
+        # Get available subtypes for this parameter type
+        type_filtered_data <- dummy_parameters |>
+          filter(PARAMETER_TYPE == param_type)
+
+        available_subtypes <- if (nrow(type_filtered_data) > 0) {
+          type_filtered_data |>
+            pull(PARAMETER_TYPE_SUB) |>
+            unique() |>
+            sort()
+        } else {
+          character(0)
+        }
+
+        # Add "Show all" option at the beginning
+        subtype_choices <- c(
+          "Show all" = "Show all",
+          setNames(available_subtypes, available_subtypes)
+        )
+
+        updateSelectizeInput(
+          session,
+          "parameter_subtype_select",
+          choices = subtype_choices,
+          selected = "Show all",
+          server = TRUE
+        )
+      }
+    }) |>
+      bindEvent(input$parameter_type_select, ignoreInit = FALSE)
+
+    ## observe: Update parameter name dropdown when type or subtype changes ----
+    # upstream: input$parameter_type_select, input$parameter_subtype_select
+    # downstream: input$parameter_name_select choices
+    observe({
+      param_type <- input$parameter_type_select
+      param_subtype <- input$parameter_subtype_select
+
+      if (isTruthy(param_type) && isTruthy(param_subtype)) {
+        available_names <- get_parameters_filtered(
+          param_type = param_type,
+          param_subtype = param_subtype,
+          dummy_parameters = dummy_parameters,
+          session_parameters = moduleState$session_parameters
         )
 
         updateSelectizeInput(
@@ -330,10 +379,15 @@ mod_parameters_server <- function(id) {
           choices = available_names,
           selected = if (length(available_names) > 1) available_names[1] else
             "",
-          server = TRUE # server-side selectize for better performance
+          server = TRUE
         )
       }
-    })
+    }) |>
+      bindEvent(
+        input$parameter_type_select,
+        input$parameter_subtype_select,
+        ignoreInit = FALSE
+      )
 
     ## observe: Add existing parameter ----
     # upstream: user clicks input$add_existing
