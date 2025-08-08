@@ -46,6 +46,9 @@ app_server <- function(input, output, session) {
   moduleReview <- mod_review_server(
     "review"
   )
+  moduleExport <- mod_export_server(
+    "export"
+  )
 
   # Module navigation ----
   ## Navigation setup ----
@@ -60,7 +63,8 @@ app_server <- function(input, output, session) {
     "07-samples",
     "08-biota",
     "09-data",
-    "10-review"
+    "10-review",
+    "11-export"
   )
 
   ## Track current module position ----

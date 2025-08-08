@@ -221,10 +221,10 @@ combination_exists_with_components <- function(
 ) {
   if (nrow(existing_data) == 0) return(FALSE)
 
-  # Check if REPLICATE column exists in existing data
-  if (!"REPLICATE" %in% names(existing_data)) {
+  # Check if REP column exists in existing data
+  if (!"REP" %in% names(existing_data)) {
     # For backward compatibility, assume existing data has no replicates (replicate = 1)
-    existing_data$REPLICATE <- 1
+    existing_data$REP <- 1
   }
 
   any(
@@ -234,7 +234,7 @@ combination_exists_with_components <- function(
       existing_data$ENVIRON_COMPARTMENT_SUB == environ_compartment_sub &
       existing_data$MEASURED_CATEGORY == measured_category &
       existing_data$SAMPLING_DATE == as.character(date) &
-      existing_data$REPLICATE == replicate
+      existing_data$REP == replicate
   )
 }
 
@@ -310,7 +310,7 @@ create_sample_combinations <- function(
             ENVIRON_COMPARTMENT_SUB = compartment_combo$ENVIRON_COMPARTMENT_SUB,
             MEASURED_CATEGORY = compartment_combo$MEASURED_CATEGORY,
             SAMPLING_DATE = base_combo$SAMPLING_DATE,
-            REPLICATE = rep,
+            REP = rep,
             stringsAsFactors = FALSE
           )
 
@@ -390,8 +390,8 @@ create_sample_combinations <- function(
       "_",
       gsub("-", "", all_combinations$SAMPLING_DATE),
       ifelse(
-        all_combinations$REPLICATE > 1,
-        sprintf("_R%02d", all_combinations$REPLICATE),
+        all_combinations$REP > 1,
+        sprintf("_R%02d", all_combinations$REP),
         ""
       )
     )
@@ -403,7 +403,7 @@ create_sample_combinations <- function(
       all_combinations$ENVIRON_COMPARTMENT,
       all_combinations$ENVIRON_COMPARTMENT_SUB,
       all_combinations$SAMPLING_DATE,
-      all_combinations$REPLICATE
+      all_combinations$REP
     )
 
     # Reorder columns to match expected structure
@@ -416,7 +416,7 @@ create_sample_combinations <- function(
       "ENVIRON_COMPARTMENT_SUB",
       "MEASURED_CATEGORY",
       "SAMPLING_DATE",
-      "REPLICATE",
+      "REP",
       "REPLICATE_ID",
       "SAMPLE_ID"
     )]
@@ -469,7 +469,7 @@ init_samples_df <- function() {
     ENVIRON_COMPARTMENT_SUB = character(0), # Now properly used
     MEASURED_CATEGORY = character(0), # Added this column
     SAMPLING_DATE = character(0),
-    REPLICATE = numeric(0),
+    REP = numeric(0),
     REPLICATE_ID = character(0),
     SAMPLE_ID = character(0),
     stringsAsFactors = FALSE
