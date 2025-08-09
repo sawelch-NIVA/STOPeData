@@ -24,6 +24,7 @@ mod_methods_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Methods Data Management"),
       card_body(
         ## Info accordion ----

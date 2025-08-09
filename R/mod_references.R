@@ -26,6 +26,7 @@ mod_references_ui <- function(id) {
 
     # Main input card ----
     card(
+      fill = TRUE,
       card_header("Reference Data Entry"),
       card_body(
         ## Info accordion ----

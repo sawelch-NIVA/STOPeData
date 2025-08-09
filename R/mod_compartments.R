@@ -24,6 +24,7 @@ mod_compartments_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Environmental Compartments Data Management"),
       card_body(
         ## Info accordion ----
@@ -293,7 +294,9 @@ mod_compartments_server <- function(id) {
 
     ## Check if combination already exists ----
     combination_exists <- function(compartment, sub_compartment, category) {
-      if (nrow(moduleState$compartments_data) == 0) return(FALSE)
+      if (nrow(moduleState$compartments_data) == 0) {
+        return(FALSE)
+      }
 
       existing <- moduleState$compartments_data
       any(

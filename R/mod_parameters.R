@@ -26,6 +26,7 @@ mod_parameters_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Parameters Data Management"),
       card_body(
         ## Info accordion ----
@@ -372,9 +373,12 @@ mod_parameters_server <- function(id) {
           session,
           "parameter_name_select",
           choices = available_names,
-          selected = if (length(available_names) > 1) available_names[1] else
-            "",
-          server = TRUE
+          selected = if (length(available_names) > 1) {
+            available_names[1]
+          } else {
+            ""
+          },
+          server = TRUE # server-side selectize for better performance
         )
       }
     }) |>
