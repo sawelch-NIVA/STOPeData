@@ -60,7 +60,7 @@ mod_compartments_ui <- function(id) {
                 "Biota" = "Biota"
               ),
               width = "100%",
-              selected = "Biota"
+              selected = "Aquatic"
             ),
 
             selectInput(
@@ -74,6 +74,7 @@ mod_compartments_ui <- function(id) {
               ),
               choices = NULL,
               width = "100%",
+              selected = "Marine/Salt Water"
             ),
 
             selectInput(
