@@ -1,10 +1,12 @@
 Package: STOPeData
 Title: PKG_TITLE
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("aut", "cre"))
 Description: PKG_DESC.
 License: What license is it under?
+Depends: 
+  R (>= 4.1.0)
 Imports: 
     arrow,
     attempt,
@@ -36,6 +38,7 @@ Imports:
     shinyvalidate,
     shinyWidgets,
     stringi,
+    stringr,
     tibble,
     xml2
 Encoding: UTF-8

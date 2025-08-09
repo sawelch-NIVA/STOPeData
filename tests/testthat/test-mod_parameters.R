@@ -4,21 +4,27 @@ test_that("module server loads correctly", {
     read_parquet = function(file) {
       if (file == "inst/data/clean/dummy_quality_parameters.parquet") {
         tibble(
-          PARAMETER_TYPE = "Stressor",
-          PARAMETER_TYPE_SUB = "Metal",
-          MEASURED_TYPE = "Concentration",
-          PARAMETER_NAME = "Copper",
+          PARAMETER_TYPE = "Quality Parameter",
+          PARAMETER_TYPE_SUB = "Not Reported",
+          MEASURED_TYPE = "pH",
+          PARAMETER_NAME = "pH",
           PARAMETER_NAME_SUB = NA,
           INCHIKEY_SD = NA,
           PUBCHEM_CID = NA,
           CAS_RN = NA
         )
       } else if (
-        file == "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
+        file == "inst/data/clean/ClassyFire_Taxonomy_2025_02.parquet"
       ) {
         tibble(
-          PARAMETER_NAME = "Poisonium",
-          CAS_RN = 12345
+          PARAMETER_TYPE = "Stressor",
+          PARAMETER_TYPE_SUB = "Homogeneous metal compounds",
+          MEASURED_TYPE = "Concentration",
+          PARAMETER_NAME = "Copper",
+          PARAMETER_NAME_SUB = NA,
+          INCHIKEY_SD = NA,
+          PUBCHEM_CID = NA,
+          CAS_RN = NA
         )
       } else {
         errorCondition(message = "read_parquet didn't recognise mocked file")

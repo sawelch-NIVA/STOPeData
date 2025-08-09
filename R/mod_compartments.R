@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_compartments_ui <- function(id) {
   ns <- NS(id)
 
@@ -23,6 +24,7 @@ mod_compartments_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Environmental Compartments Data Management"),
       card_body(
         ## Info accordion ----
@@ -58,7 +60,7 @@ mod_compartments_ui <- function(id) {
                 "Biota" = "Biota"
               ),
               width = "100%",
-              selected = "Biota"
+              selected = "Aquatic"
             ),
 
             selectInput(
@@ -72,6 +74,7 @@ mod_compartments_ui <- function(id) {
               ),
               choices = NULL,
               width = "100%",
+              selected = "Marine/Salt Water"
             ),
 
             selectInput(
@@ -134,6 +137,7 @@ mod_compartments_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
+#' @export
 mod_compartments_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -204,6 +208,7 @@ mod_compartments_server <- function(id) {
       "Rainwater",
       "Stormwater",
       "Leachate",
+      "Aquatic Sediment",
       "Indoor Air",
       "Outdoor Air",
       "Terrestrial Biological Residue",
@@ -289,7 +294,9 @@ mod_compartments_server <- function(id) {
 
     ## Check if combination already exists ----
     combination_exists <- function(compartment, sub_compartment, category) {
-      if (nrow(moduleState$compartments_data) == 0) return(FALSE)
+      if (nrow(moduleState$compartments_data) == 0) {
+        return(FALSE)
+      }
 
       existing <- moduleState$compartments_data
       any(
@@ -485,11 +492,10 @@ mod_compartments_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_compartments_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -505,28 +511,21 @@ mod_compartments_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$compartments_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "ENVIRON_COMPARTMENT",
-            type = "dropdown",
-            source = environ_compartments,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_col(
             "ENVIRON_COMPARTMENT_SUB",
-            type = "dropdown",
-            source = environ_compartment_subs,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_col(
             "MEASURED_CATEGORY",
-            type = "dropdown",
-            source = measured_categories,
-            strict = TRUE
+            readOnly = TRUE
           ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations

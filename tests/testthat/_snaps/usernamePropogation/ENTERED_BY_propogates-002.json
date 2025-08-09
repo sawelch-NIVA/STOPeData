@@ -16,7 +16,7 @@
             "ALTITUDE_VALUE": null,
             "ALTITUDE_UNIT": "m",
             "ENTERED_BY": "Test McTesterson",
-            "ENTERED_DATE": "2025-08-05",
+            "ENTERED_DATE": "2025-08-06",
             "SITE_COMMENT": ""
           }
         ],
@@ -95,12 +95,12 @@
         "columns": [
           {
             "type": "text",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null
           },
           {
             "type": "text",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null
           },
           {
@@ -163,7 +163,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null,
             "numericFormat": {
               "pattern": "0.000000"
@@ -171,7 +171,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null,
             "numericFormat": {
               "pattern": "0.000000"
@@ -206,7 +206,7 @@
           },
           {
             "type": "numeric",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null,
             "allowInvalid": false
           },
@@ -224,12 +224,12 @@
           },
           {
             "type": "text",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null
           },
           {
             "type": "date",
-            "renderer": "customRenderer",
+            "renderer": "function(instance, td, row, col, prop, value, cellProperties) {\n    Handsontable.renderers.TextRenderer.apply(this, arguments);\n    const isEmpty = value === null ||\n      value === undefined ||\n        value === '' ||\n          (typeof value === 'string' && value.trim() === '');\n        if (isEmpty) {\n          td.style.borderBottom = '2px solid #f9b928';\n        } else {\n          td.style.borderBottom = '2px solid #007416';\n        }\n        return td;\n  }",
             "default": null,
             "dateFormat": "YYYY-MM-DD",
             "allowInvalid": false
@@ -271,7 +271,7 @@
             }
           }
         },
-        "overflow": "all",
+        "overflow": "visible",
         "cell": [
           {
             "row": 0,

@@ -9,12 +9,14 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList selectInput actionButton
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput updateSelectizeInput
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
+#' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom tibble tibble
+#' @export
 mod_parameters_ui <- function(id) {
   ns <- NS(id)
 
@@ -24,6 +26,7 @@ mod_parameters_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Parameters Data Management"),
       card_body(
         ## Info accordion ----
@@ -32,7 +35,7 @@ mod_parameters_ui <- function(id) {
           accordion_panel(
             title = "Parameters Data Information",
             icon = bs_icon("info-circle"),
-            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table."
+            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type, subtype and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table. Stressor subtypes are derived from the ClassyFire taxonomy (https://ice.ntp.niehs.nih.gov/DATASETDESCRIPTION?section=Chemical%20Taxonomies)."
           )
         ),
 
@@ -57,6 +60,15 @@ mod_parameters_ui <- function(id) {
           ),
 
           selectizeInput(
+            inputId = ns("parameter_subtype_select"),
+            label = "Parameter Subtype",
+            choices = c("Show all" = "Show all"),
+            selected = "Show all",
+            width = "100%",
+            multiple = FALSE
+          ),
+
+          selectizeInput(
             inputId = ns("parameter_name_select"),
             label = "Parameter Name",
             choices = c("Select parameter type first..."),
@@ -65,7 +77,6 @@ mod_parameters_ui <- function(id) {
             multiple = FALSE
           )
         ),
-
         ## Action buttons ----
         div(
           style = "margin: 15px 0;",
@@ -135,7 +146,8 @@ mod_parameters_ui <- function(id) {
 #' @importFrom dplyr mutate bind_rows pull filter arrange
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
-
+#' @importFrom tibble tibble
+#' @export
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -162,14 +174,10 @@ mod_parameters_server <- function(id) {
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(
-      file = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
+      file = "inst/data/clean/ClassyFire_Taxonomy_2025_02.parquet"
     ) |>
       mutate(
-        PARAMETER_TYPE = "Stressor",
-        PARAMETER_TYPE_SUB = "Not reported",
         MEASURED_TYPE = "Concentration",
-        PUBCHEM_CID = NA,
-        INCHIKEY_SD = NA
       ) |>
       arrange(PARAMETER_NAME)
 
@@ -187,28 +195,27 @@ mod_parameters_server <- function(id) {
     )
 
     parameter_types_sub <- c(
-      "Not reported",
-      "Organic chemical",
-      "Metal/metalloid",
-      "Organometal",
-      "Inorganic chemical",
-      "Nanomaterial",
-      "Microplastic",
-      "Chemical mixture",
-      "Temperature",
-      "Radiation",
-      "Pressure",
-      "Sound",
-      "Pathogen",
-      "Toxin",
-      "pH",
-      "Dissolved oxygen",
-      "Conductivity",
-      "Salinity",
-      "Turbidity",
-      "Total organic carbon",
-      "Nutrient",
-      "Other"
+      c(
+        "Not reported",
+        "Nanomaterial",
+        "Microplastic",
+        "Chemical mixture",
+        "Temperature",
+        "Radiation",
+        "Pressure",
+        "Sound",
+        "Pathogen",
+        "Toxin",
+        "pH",
+        "Dissolved oxygen",
+        "Conductivity",
+        "Salinity",
+        "Turbidity",
+        "Total organic carbon",
+        "Nutrient",
+        "Other"
+      ),
+      chemical_parameters$PARAMETER_TYPE_SUB |> unique()
     )
 
     measured_types <- c(
@@ -326,16 +333,56 @@ mod_parameters_server <- function(id) {
 
     # 2. Observers and Reactives ----
 
-    ## observe: Update parameter name dropdown when type changes ----
+    ## observe: Update subtype dropdown when parameter type changes ----
     # upstream: input$parameter_type_select
-    # downstream: input$parameter_name_select choices
+    # downstream: input$parameter_subtype_select choices
     observe({
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        available_names <- get_parameters_of_types(
-          param_type,
-          dummy_parameters = dummy_parameters
+        # Get available subtypes for this parameter type
+        type_filtered_data <- dummy_parameters |>
+          filter(PARAMETER_TYPE == param_type)
+
+        available_subtypes <- if (nrow(type_filtered_data) > 0) {
+          type_filtered_data |>
+            pull(PARAMETER_TYPE_SUB) |>
+            unique() |>
+            sort()
+        } else {
+          character(0)
+        }
+
+        # Add "Show all" option at the beginning
+        subtype_choices <- c(
+          "Show all" = "Show all",
+          setNames(available_subtypes, available_subtypes)
+        )
+
+        updateSelectizeInput(
+          session,
+          "parameter_subtype_select",
+          choices = subtype_choices,
+          selected = "Show all",
+          server = TRUE
+        )
+      }
+    }) |>
+      bindEvent(input$parameter_type_select, ignoreInit = FALSE)
+
+    ## observe: Update parameter name dropdown when type or subtype changes ----
+    # upstream: input$parameter_type_select, input$parameter_subtype_select
+    # downstream: input$parameter_name_select choices
+    observe({
+      param_type <- input$parameter_type_select
+      param_subtype <- input$parameter_subtype_select
+
+      if (isTruthy(param_type) && isTruthy(param_subtype)) {
+        available_names <- get_parameters_filtered(
+          param_type = param_type,
+          param_subtype = param_subtype,
+          dummy_parameters = dummy_parameters,
+          session_parameters = moduleState$session_parameters
         )
 
         updateSelectizeInput(
@@ -350,7 +397,12 @@ mod_parameters_server <- function(id) {
           server = TRUE # server-side selectize for better performance
         )
       }
-    })
+    }) |>
+      bindEvent(
+        input$parameter_type_select,
+        input$parameter_subtype_select,
+        ignoreInit = FALSE
+      )
 
     ## observe ~bindEvent(LLM data validates or updates): Load and validate parameters ----
     # upstream: session$userData$reactiveValues$llmExtractionComplete
@@ -586,11 +638,10 @@ mod_parameters_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_parameters_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -606,22 +657,21 @@ mod_parameters_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$parameters_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_text()
           ) |>
           hot_col(
             "PARAMETER_TYPE",
             type = "dropdown",
             source = parameter_types,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "PARAMETER_TYPE_SUB",
@@ -634,7 +684,7 @@ mod_parameters_server <- function(id) {
             type = "dropdown",
             source = measured_types,
             strict = TRUE,
-            renderer = mandatory_highlight_full()
+            renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
           hot_context_menu(

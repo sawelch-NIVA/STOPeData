@@ -92,8 +92,10 @@ bib_string2df_alt <- function(string, ...) {
 #' @seealso \code{\link{bib_string2df_alt}}
 #'
 #' @export
-map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) {
-
+map_bibtex_to_reference_fields <- function(
+  bibtex_df,
+  access_date = Sys.Date()
+) {
   # Input validation
   if (!is.data.frame(bibtex_df) || nrow(bibtex_df) == 0) {
     stop("bibtex_df must be a non-empty data frame")
@@ -111,11 +113,11 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
     "manual" = "report",
     "misc" = "dataset",
     # Default mappings for unmapped types - TODO: extend definition to cover these types
-    "inproceedings" = "journal",  # Conference papers → journal
+    "inproceedings" = "journal", # Conference papers → journal
     "conference" = "journal",
-    "incollection" = "book",      # Book chapters → book
+    "incollection" = "book", # Book chapters → book
     "inbook" = "book",
-    "phdthesis" = "report",       # Theses → report
+    "phdthesis" = "report", # Theses → report
     "mastersthesis" = "report",
     "unpublished" = "report"
   )
@@ -149,13 +151,13 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
     # Journal-specific fields
     PERIODICAL_JOURNAL = safe_extract(entry$JOURNAL %||% entry$BOOKTITLE),
     VOLUME = safe_extract(entry$VOLUME, as.numeric),
-    ISSUE = safe_extract(entry$NUMBER, as.numeric),  # BibTeX uses NUMBER for issue
+    ISSUE = safe_extract(entry$NUMBER, as.numeric), # BibTeX uses NUMBER for issue
 
     # Book-specific fields
     PUBLISHER = safe_extract(entry$PUBLISHER),
 
     # Report-specific fields
-    INSTITUTION = safe_extract(entry$INSTITUTION %||% entry$SCHOOL),  # SCHOOL for theses
+    INSTITUTION = safe_extract(entry$INSTITUTION %||% entry$SCHOOL), # SCHOOL for theses
 
     # Dataset-specific fields (not typically in BibTeX)
     DB_NAME = NA,
@@ -167,17 +169,17 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
     PAGES = safe_extract(entry$PAGES),
     ISBN_ISSN = safe_extract(entry$ISBN %||% entry$ISSN),
     EDITION = safe_extract(entry$EDITION),
-    PUBLISHED_PLACE = safe_extract(entry$ADDRESS),  # BibTeX uses ADDRESS
-    DOCUMENT_NUMBER = safe_extract(entry$NUMBER),   # For reports
-    ACCESSION_NUMBER = NA,  # Not typically in BibTeX
-    PMCID = NA,             # Not typically in BibTeX
+    PUBLISHED_PLACE = safe_extract(entry$ADDRESS), # BibTeX uses ADDRESS
+    DOCUMENT_NUMBER = safe_extract(entry$NUMBER), # For reports
+    ACCESSION_NUMBER = NA, # Not typically in BibTeX
+    PMCID = NA, # Not typically in BibTeX
     SERIES_TITLE = safe_extract(entry$SERIES),
     SERIES_EDITOR = safe_extract(entry$EDITOR),
     SERIES_VOLUME = safe_extract(entry$VOLUME, as.numeric),
-    NUMBER_OF_PAGES = NA,   # Not typically in BibTeX
+    NUMBER_OF_PAGES = NA, # Not typically in BibTeX
     NUMBER_OF_VOLUMES = NA, # Not typically in BibTeX
-    REF_COMMENT = NA,       # Not typically in BibTeX
-    ENTERED_BY = NA         # Will be filled from session data
+    REF_COMMENT = NA, # Not typically in BibTeX
+    ENTERED_BY = NA # Will be filled from session data
   )
 
   return(mapped_fields)
@@ -218,7 +220,6 @@ map_bibtex_to_reference_fields <- function(bibtex_df, access_date = Sys.Date()) 
 #'
 #' @export
 validate_and_parse_bibtex <- function(bibtex_string, allow_multiple = FALSE) {
-
   # Input validation
   if (!is.character(bibtex_string) || length(bibtex_string) != 1) {
     return(list(
@@ -241,55 +242,62 @@ validate_and_parse_bibtex <- function(bibtex_string, allow_multiple = FALSE) {
   }
 
   # Attempt to parse BibTeX
-  tryCatch({
-    bibtex_df <- bib_string2df_alt(bibtex_string)
+  tryCatch(
+    {
+      bibtex_df <- bib_string2df_alt(bibtex_string)
 
-    # Check if we have data
-    if (nrow(bibtex_df) == 0) {
+      # Check if we have data
+      if (nrow(bibtex_df) == 0) {
+        return(list(
+          success = FALSE,
+          data = NULL,
+          message = "No valid BibTeX entries found in the provided text",
+          warning = NULL
+        ))
+      }
+
+      # Check for multiple entries
+      warning_msg <- NULL
+      if (nrow(bibtex_df) > 1) {
+        if (!allow_multiple) {
+          warning_msg <- paste(
+            "Multiple BibTeX entries detected.",
+            "Only the first entry will be imported."
+          )
+        }
+      }
+
+      return(list(
+        success = TRUE,
+        data = bibtex_df,
+        message = "BibTeX data parsed successfully",
+        warning = warning_msg
+      ))
+    },
+    error = function(e) {
+      # Provide user-friendly error message
+      error_msg <- "BibTeX parsing failed"
+
+      # Try to provide more specific error information
+      if (grepl("unexpected", e$message, ignore.case = TRUE)) {
+        error_msg <- paste(
+          error_msg,
+          "- check for syntax errors in BibTeX format"
+        )
+      } else if (grepl("file", e$message, ignore.case = TRUE)) {
+        error_msg <- paste(error_msg, "- internal file handling error")
+      } else {
+        error_msg <- paste(error_msg, "-", e$message)
+      }
+
       return(list(
         success = FALSE,
         data = NULL,
-        message = "No valid BibTeX entries found in the provided text",
+        message = error_msg,
         warning = NULL
       ))
     }
-
-    # Check for multiple entries
-    warning_msg <- NULL
-    if (nrow(bibtex_df) > 1) {
-      if (!allow_multiple) {
-        warning_msg <- paste("Multiple BibTeX entries detected.",
-                             "Only the first entry will be imported.")
-      }
-    }
-
-    return(list(
-      success = TRUE,
-      data = bibtex_df,
-      message = "BibTeX data parsed successfully",
-      warning = warning_msg
-    ))
-
-  }, error = function(e) {
-    # Provide user-friendly error message
-    error_msg <- "BibTeX parsing failed"
-
-    # Try to provide more specific error information
-    if (grepl("unexpected", e$message, ignore.case = TRUE)) {
-      error_msg <- paste(error_msg, "- check for syntax errors in BibTeX format")
-    } else if (grepl("file", e$message, ignore.case = TRUE)) {
-      error_msg <- paste(error_msg, "- internal file handling error")
-    } else {
-      error_msg <- paste(error_msg, "-", e$message)
-    }
-
-    return(list(
-      success = FALSE,
-      data = NULL,
-      message = error_msg,
-      warning = NULL
-    ))
-  })
+  )
 }
 
 #' Clean BibTeX text formatting
@@ -307,22 +315,8 @@ validate_and_parse_bibtex <- function(bibtex_string, allow_multiple = FALSE) {
 #' This function performs the following cleaning operations:
 #' - Removes double curly braces {{}} used for capitalization preservation
 #' - Converts common LaTeX accent commands to Unicode characters
-#' - Normalizes whitespace
+#' - Normalises whitespace
 #'
-#' Common LaTeX accent conversions include:
-#' - {\"a} → ä, {\'e} → é, {\`a} → à, etc.
-#' - {\ss} → ß, {\ae} → æ, {\o} → ø
-#'
-#' @examples
-#' \dontrun{
-#' # Clean title with double braces
-#' clean_bibtex_text("{{Why Public Health Agencies Cannot Depend}}")
-#' # Result: "Why Public Health Agencies Cannot Depend"
-#'
-#' # Clean LaTeX accents
-#' clean_bibtex_text("J{\"o}rg and Nicol{\'a}s")
-#' # Result: "Jörg and Nicolás"
-#' }
 #'
 #' @importFrom stringi stri_trans_general
 #' @export
@@ -341,46 +335,73 @@ clean_bibtex_text <- function(text) {
   # Common LaTeX accent command replacements
   latex_replacements <- list(
     # Diaeresis/umlaut
-    '\\{\\\\"a\\}' = 'ä', '\\{\\\\"A\\}' = 'Ä',
-    '\\{\\\\"e\\}' = 'ë', '\\{\\\\"E\\}' = 'Ë',
-    '\\{\\\\"i\\}' = 'ï', '\\{\\\\"I\\}' = 'Ï',
-    '\\{\\\\"o\\}' = 'ö', '\\{\\\\"O\\}' = 'Ö',
-    '\\{\\\\"u\\}' = 'ü', '\\{\\\\"U\\}' = 'Ü',
+    '\\{\\\\"a\\}' = 'ä',
+    '\\{\\\\"A\\}' = 'Ä',
+    '\\{\\\\"e\\}' = 'ë',
+    '\\{\\\\"E\\}' = 'Ë',
+    '\\{\\\\"i\\}' = 'ï',
+    '\\{\\\\"I\\}' = 'Ï',
+    '\\{\\\\"o\\}' = 'ö',
+    '\\{\\\\"O\\}' = 'Ö',
+    '\\{\\\\"u\\}' = 'ü',
+    '\\{\\\\"U\\}' = 'Ü',
 
     # Acute accent
-    "\\{\\\\'a\\}" = 'á', "\\{\\\\'A\\}" = 'Á',
-    "\\{\\\\'e\\}" = 'é', "\\{\\\\'E\\}" = 'É',
-    "\\{\\\\'i\\}" = 'í', "\\{\\\\'I\\}" = 'Í',
-    "\\{\\\\'o\\}" = 'ó', "\\{\\\\'O\\}" = 'Ó',
-    "\\{\\\\'u\\}" = 'ú', "\\{\\\\'U\\}" = 'Ú',
+    "\\{\\\\'a\\}" = 'á',
+    "\\{\\\\'A\\}" = 'Á',
+    "\\{\\\\'e\\}" = 'é',
+    "\\{\\\\'E\\}" = 'É',
+    "\\{\\\\'i\\}" = 'í',
+    "\\{\\\\'I\\}" = 'Í',
+    "\\{\\\\'o\\}" = 'ó',
+    "\\{\\\\'O\\}" = 'Ó',
+    "\\{\\\\'u\\}" = 'ú',
+    "\\{\\\\'U\\}" = 'Ú',
 
     # Grave accent
-    '\\{\\\\`a\\}' = 'à', '\\{\\\\`A\\}' = 'À',
-    '\\{\\\\`e\\}' = 'è', '\\{\\\\`E\\}' = 'È',
-    '\\{\\\\`i\\}' = 'ì', '\\{\\\\`I\\}' = 'Ì',
-    '\\{\\\\`o\\}' = 'ò', '\\{\\\\`O\\}' = 'Ò',
-    '\\{\\\\`u\\}' = 'ù', '\\{\\\\`U\\}' = 'Ù',
+    '\\{\\\\`a\\}' = 'à',
+    '\\{\\\\`A\\}' = 'À',
+    '\\{\\\\`e\\}' = 'è',
+    '\\{\\\\`E\\}' = 'È',
+    '\\{\\\\`i\\}' = 'ì',
+    '\\{\\\\`I\\}' = 'Ì',
+    '\\{\\\\`o\\}' = 'ò',
+    '\\{\\\\`O\\}' = 'Ò',
+    '\\{\\\\`u\\}' = 'ù',
+    '\\{\\\\`U\\}' = 'Ù',
 
     # Circumflex accent
-    '\\{\\\\\\^a\\}' = 'â', '\\{\\\\\\^A\\}' = 'Â',
-    '\\{\\\\\\^e\\}' = 'ê', '\\{\\\\\\^E\\}' = 'Ê',
-    '\\{\\\\\\^i\\}' = 'î', '\\{\\\\\\^I\\}' = 'Î',
-    '\\{\\\\\\^o\\}' = 'ô', '\\{\\\\\\^O\\}' = 'Ô',
-    '\\{\\\\\\^u\\}' = 'û', '\\{\\\\\\^U\\}' = 'Û',
+    '\\{\\\\\\^a\\}' = 'â',
+    '\\{\\\\\\^A\\}' = 'Â',
+    '\\{\\\\\\^e\\}' = 'ê',
+    '\\{\\\\\\^E\\}' = 'Ê',
+    '\\{\\\\\\^i\\}' = 'î',
+    '\\{\\\\\\^I\\}' = 'Î',
+    '\\{\\\\\\^o\\}' = 'ô',
+    '\\{\\\\\\^O\\}' = 'Ô',
+    '\\{\\\\\\^u\\}' = 'û',
+    '\\{\\\\\\^U\\}' = 'Û',
 
     # Tilde
-    '\\{\\\\~a\\}' = 'ã', '\\{\\\\~A\\}' = 'Ã',
-    '\\{\\\\~n\\}' = 'ñ', '\\{\\\\~N\\}' = 'Ñ',
-    '\\{\\\\~o\\}' = 'õ', '\\{\\\\~O\\}' = 'Õ',
+    '\\{\\\\~a\\}' = 'ã',
+    '\\{\\\\~A\\}' = 'Ã',
+    '\\{\\\\~n\\}' = 'ñ',
+    '\\{\\\\~N\\}' = 'Ñ',
+    '\\{\\\\~o\\}' = 'õ',
+    '\\{\\\\~O\\}' = 'Õ',
 
     # Cedilla
-    '\\{\\\\c\\{c\\}\\}' = 'ç', '\\{\\\\c\\{C\\}\\}' = 'Ç',
+    '\\{\\\\c\\{c\\}\\}' = 'ç',
+    '\\{\\\\c\\{C\\}\\}' = 'Ç',
 
     # Special characters
     '\\{\\\\ss\\}' = 'ß',
-    '\\{\\\\ae\\}' = 'æ', '\\{\\\\AE\\}' = 'Æ',
-    '\\{\\\\o\\}' = 'ø', '\\{\\\\O\\}' = 'Ø',
-    '\\{\\\\aa\\}' = 'å', '\\{\\\\AA\\}' = 'Å'
+    '\\{\\\\ae\\}' = 'æ',
+    '\\{\\\\AE\\}' = 'Æ',
+    '\\{\\\\o\\}' = 'ø',
+    '\\{\\\\O\\}' = 'Ø',
+    '\\{\\\\aa\\}' = 'å',
+    '\\{\\\\AA\\}' = 'Å'
   )
 
   # Apply LaTeX replacements

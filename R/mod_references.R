@@ -16,6 +16,7 @@
 #' @importFrom rcrossref cr_works
 #' @importFrom httr GET content http_error
 #' @importFrom xml2 read_xml xml_find_first xml_text
+#' @export
 mod_references_ui <- function(id) {
   ns <- NS(id)
 
@@ -25,6 +26,7 @@ mod_references_ui <- function(id) {
 
     # Main input card ----
     card(
+      fill = TRUE,
       card_header("Reference Data Entry"),
       card_body(
         ## Info accordion ----
@@ -372,7 +374,7 @@ mod_references_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput updateSelectInput bindEvent
 #' @importFrom shinyjs enable disable
 #' @importFrom tibble tibble
-
+#' @export
 mod_references_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

@@ -54,9 +54,6 @@ isRelevant <- function(input) {
 #'
 #' @returns a string of variable names and values
 #' @export
-#'
-#' @examples
-#' reactiveValues(x = 1, y = 2) |> printreactiveValues()
 printreactiveValues <- function(data) {
   data_lines <- sapply(
     names(data),
