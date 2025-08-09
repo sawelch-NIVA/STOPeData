@@ -48,14 +48,13 @@ mod_sites_ui <- function(id) {
               "This module manages sampling site information.
               Add sites by clicking 'Add Site(s)' which creates editable rows in the table.
               Edit fields directly in the table. Use the map to verify coordinates are correct.
-              At least one complete site is required to proceed.
-              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards."
+              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom right of each card."
             )
           ),
 
           ### Table controls ----
           div(
-            style = "margin: 15px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
+            style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
 
             # Number of sites input
             numericInput(
@@ -123,7 +122,6 @@ mod_sites_ui <- function(id) {
     ### Bottom card: Sites table ----
     card(
       full_screen = TRUE,
-      height = "40vh",
       card_body(
         div(
           rHandsontableOutput(ns("sites_table"))
