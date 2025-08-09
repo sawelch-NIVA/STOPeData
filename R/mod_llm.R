@@ -13,6 +13,7 @@
 #' @importFrom bslib card card_header card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
+#' @export
 mod_llm_ui <- function(id) {
   ns <- NS(id)
 
@@ -184,6 +185,7 @@ mod_llm_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
+#' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

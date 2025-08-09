@@ -92,6 +92,12 @@ app_ui <- function(request) {
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),
+      nav_panel(
+        title = "12. Data Quality",
+        value = "12-CREED",
+        mod_CREED_ui("creed"),
+        icon = bs_icon("clipboard-data-fill")
+      ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),

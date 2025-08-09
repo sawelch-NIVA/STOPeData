@@ -408,7 +408,6 @@ mod_parameters_server <- function(id) {
     # upstream: session$userData$reactiveValues$llmExtractionComplete
     # downstream: moduleState$parameters_data, moduleState$show_validation, moduleState$validation_results
     observe({
-      browser()
       llm_parameters <- session$userData$reactiveValues$parametersDataLLM
       if (
         !is.null(llm_parameters) &&
