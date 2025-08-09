@@ -1,1 +1,1 @@
-This form collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign.
+This module collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign.
