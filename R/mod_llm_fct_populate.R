@@ -363,57 +363,6 @@ create_parameters_from_llm <- function(llm_parameters_data) {
   return(params_df)
 }
 
-#' Populate Compartments Data from LLM Data
-#'
-#' @description Creates compartments data frame from LLM extracted compartments array
-#' @param llm_compartments_data Compartments array extracted by LLM
-#' @return Data frame in compartments module format
-#' @noRd
-create_compartments_from_llm <- function(llm_compartments_data) {
-  if (is.null(llm_compartments_data) || length(llm_compartments_data) == 0) {
-    return(data.frame())
-  }
-
-  comps_df <- data.frame()
-
-  # Handle array of compartment objects
-  for (i in seq_along(llm_compartments_data)) {
-    comp <- llm_compartments_data[[i]]
-
-    # Handle the case where comp might be a list or atomic vector
-    if (is.list(comp)) {
-      comp_data <- comp
-    } else {
-      # Skip if not a proper compartment object
-      next
-    }
-
-    comp_row <- data.frame(
-      ENVIRON_COMPARTMENT = map_compartment(safe_extract_field(
-        comp_data,
-        "environ_compartment",
-        ""
-      )),
-      ENVIRON_COMPARTMENT_SUB = map_compartment_sub(safe_extract_field(
-        comp_data,
-        "environ_compartment_sub",
-        ""
-      )),
-      MEASURED_CATEGORY = map_measured_category(safe_extract_field(
-        comp_data,
-        "measured_category",
-        ""
-      )),
-      stringsAsFactors = FALSE
-    )
-
-    comps_df <- rbind(comps_df, comp_row)
-  }
-
-  print_dev(glue("Created {nrow(comps_df)} compartments from LLM data"))
-  return(comps_df)
-}
-
 # Helper functions ----
 
 #' Safely extract field from LLM data object
@@ -548,9 +497,55 @@ infer_parameter_subtype <- function(param_type, param_name) {
   return("Organic chemical") # Default for stressors
 }
 
-#' Map compartment to controlled vocabulary TODO: This needs to be much better!
+#' Populate Compartments Data from LLM Data
+#'
+#' @description Creates compartments data frame from LLM extracted compartments data frame
+#' @param llm_compartments_data Compartments data frame extracted by LLM
+#' @return Data frame in compartments module format
 #' @noRd
-map_compartment <- function(compartment) {
+create_compartments_from_llm <- function(llm_compartments_data) {
+  if (is.null(llm_compartments_data) || nrow(llm_compartments_data) == 0) {
+    return(data.frame())
+  }
+
+  comps_df <- data.frame()
+
+  # Process each row of the compartments data frame
+  for (i in seq_len(nrow(llm_compartments_data))) {
+    comp <- llm_compartments_data[i, ]
+
+    comp_row <- data.frame(
+      ENVIRON_COMPARTMENT = map_compartment_strict(safe_extract_field(
+        comp,
+        "environ_compartment",
+        ""
+      )),
+      ENVIRON_COMPARTMENT_SUB = map_compartment_sub_strict(safe_extract_field(
+        comp,
+        "environ_compartment_sub",
+        ""
+      )),
+      MEASURED_CATEGORY = map_measured_category_strict(safe_extract_field(
+        comp,
+        "measured_category",
+        ""
+      )),
+      stringsAsFactors = FALSE
+    )
+
+    comps_df <- rbind(comps_df, comp_row)
+  }
+
+  print_dev(glue("Created {nrow(comps_df)} compartments from LLM data"))
+  return(comps_df)
+}
+
+# Helper mapping functions for compartments ----
+
+#' Map compartment to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
+#' @noRd
+map_compartment_strict <- function(compartment) {
   if (is.null(compartment) || compartment == "") {
     return("Not reported")
   }
@@ -573,15 +568,17 @@ map_compartment <- function(compartment) {
   return("Other")
 }
 
-#' Map compartment sub to controlled vocabulary TODO: This needs to be much better!
+#' Map compartment sub to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
 #' @noRd
-map_compartment_sub <- function(compartment_sub) {
+map_compartment_sub_strict <- function(compartment_sub) {
   if (is.null(compartment_sub) || compartment_sub == "") {
     return("Not reported")
   }
 
   sub_lower <- tolower(compartment_sub)
 
+  # Aquatic sub-compartments
   if (grepl("fresh", sub_lower)) {
     return("Freshwater")
   }
@@ -597,31 +594,74 @@ map_compartment_sub <- function(compartment_sub) {
   if (grepl("waste", sub_lower)) {
     return("Wastewater")
   }
+  if (grepl("growth.*medium", sub_lower)) {
+    return("Liquid Growth Medium")
+  }
+  if (grepl("rain", sub_lower)) {
+    return("Rainwater")
+  }
+  if (grepl("storm", sub_lower)) {
+    return("Stormwater")
+  }
+  if (grepl("leachate", sub_lower)) {
+    return("Leachate")
+  }
+
+  # Atmospheric sub-compartments
   if (grepl("indoor", sub_lower)) {
     return("Indoor Air")
   }
   if (grepl("outdoor", sub_lower)) {
     return("Outdoor Air")
   }
-  if (grepl("topsoil|a horizon", sub_lower)) {
-    return("Soil A Horizon (Topsoil)")
+
+  # Terrestrial sub-compartments
+  if (grepl("biological.*residue", sub_lower)) {
+    return("Terrestrial Biological Residue")
   }
-  if (grepl("organic|o horizon", sub_lower)) {
+  if (grepl("h.*horizon|peat", sub_lower)) {
+    return("Soil H Horizon (Peat)")
+  }
+  if (grepl("o.*horizon|organic", sub_lower)) {
     return("Soil O Horizon (Organic)")
   }
-  if (grepl("terrestrial", sub_lower)) {
+  if (grepl("a.*horizon|topsoil", sub_lower)) {
+    return("Soil A Horizon (Topsoil)")
+  }
+  if (grepl("e.*horizon.*mineral", sub_lower)) {
+    return("Soil E Horizon (Mineral)")
+  }
+  if (grepl("s.*horizon.*mineral", sub_lower)) {
+    return("Soil S Horizon (Mineral)")
+  }
+  if (grepl("c.*horizon|parent.*material", sub_lower)) {
+    return("Soil C Horizon (Parent Material)")
+  }
+  if (grepl("r.*horizon|bedrock", sub_lower)) {
+    return("Soil R Horizon (Bedrock)")
+  }
+
+  # Biota sub-compartments
+  if (grepl("biota.*terrestrial", sub_lower)) {
     return("Biota, Terrestrial")
   }
-  if (grepl("aquatic", sub_lower)) {
+  if (grepl("biota.*aquatic", sub_lower)) {
     return("Biota, Aquatic")
+  }
+  if (grepl("biota.*atmospheric", sub_lower)) {
+    return("Biota, Atmospheric")
+  }
+  if (grepl("biota.*other", sub_lower)) {
+    return("Biota, Other")
   }
 
   return("Other")
 }
 
-#' Map measured category to controlled vocabulary
+#' Map measured category to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
 #' @noRd
-map_measured_category <- function(category) {
+map_measured_category_strict <- function(category) {
   if (is.null(category) || category == "") {
     return("External")
   }
