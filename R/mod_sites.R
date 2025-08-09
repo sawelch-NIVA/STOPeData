@@ -361,6 +361,7 @@ mod_sites_server <- function(id) {
     # upstream: session$userData$reactiveValues$sitesDataLLM
     # downstream: moduleState$sites_data
     observe({
+      print_dev("observe~bindEvent: load data from LLM module")
       llm_sites <- session$userData$reactiveValues$sitesDataLLM
       if (
         !is.null(llm_sites) &&
@@ -385,6 +386,7 @@ mod_sites_server <- function(id) {
       }
     }) |>
       bindEvent(
+        label = "observe~bindEvent: load data from LLM module",
         session$userData$reactiveValues$sitesDataLLM,
         session$userData$reactiveValues$llmExtractionComplete,
         ignoreInit = TRUE,

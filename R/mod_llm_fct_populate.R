@@ -9,7 +9,9 @@
 #' @noRd
 #' @importFrom shiny updateTextInput updateDateInput updateSelectInput updateTextAreaInput
 populate_campaign_from_llm <- function(session, llm_campaign_data) {
-  if (is.null(llm_campaign_data)) return()
+  if (is.null(llm_campaign_data)) {
+    return()
+  }
   # Update campaign fields with extracted data
   if (!is.null(llm_campaign_data$campaign_name)) {
     updateTextInput(
@@ -91,8 +93,9 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
 #' @param llm_references_data References data extracted by LLM
 #' @noRd
 populate_references_from_llm <- function(session, llm_references_data) {
-  if (is.null(llm_references_data)) return()
-  browser()
+  if (is.null(llm_references_data)) {
+    return()
+  }
   # Determine reference type based on available fields
   ref_type <- "journal" # Default
   if (!is.null(llm_references_data$periodical_journal)) {
@@ -183,55 +186,47 @@ populate_references_from_llm <- function(session, llm_references_data) {
 
 #' Populate Sites Data from LLM Data
 #'
-#' @description Creates sites data frame from LLM extracted sites array
-#' @param llm_sites_data Sites array extracted by LLM
+#' @description Creates sites data frame from LLM extracted sites data frame
+#' @param llm_sites_data Sites data frame extracted by LLM
 #' @return Data frame in sites module format
 #' @noRd
 create_sites_from_llm <- function(llm_sites_data) {
-  if (is.null(llm_sites_data) || length(llm_sites_data) == 0) {
+  if (is.null(llm_sites_data) || nrow(llm_sites_data) == 0) {
     return(data.frame())
   }
 
   sites_df <- data.frame()
 
-  # Handle array of site objects
-  for (i in seq_along(llm_sites_data)) {
-    site <- llm_sites_data[[i]]
-
-    # Handle the case where site might be a list or atomic vector
-    if (is.list(site)) {
-      site_data <- site
-    } else {
-      # Skip if not a proper site object
-      next
-    }
+  # Process each row of the sites data frame
+  for (i in seq_len(nrow(llm_sites_data))) {
+    site <- llm_sites_data[i, ]
 
     # Create site row with LLM data, filling in defaults where needed
     site_row <- data.frame(
       SITE_CODE = safe_extract_field(
-        site_data,
+        site,
         "site_code",
         paste0("SITE_", sprintf("%03d", i))
       ),
-      SITE_NAME = safe_extract_field(site_data, "site_name", ""),
-      SITE_GEOGRAPHIC_FEATURE = map_geographic_feature(safe_extract_field(
-        site_data,
+      SITE_NAME = safe_extract_field(site, "site_name", ""),
+      SITE_GEOGRAPHIC_FEATURE = map_geographic_feature_strict(safe_extract_field(
+        site,
         "site_geographic_feature",
         ""
       )),
       SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported", # LLM doesn't extract this level of detail
       SITE_COORDINATE_SYSTEM = "WGS 84", # Assume WGS84 for LLM coordinates
       LATITUDE = validate_latitude(safe_extract_field(
-        site_data,
+        site,
         "latitude",
         NA
       )),
       LONGITUDE = validate_longitude(safe_extract_field(
-        site_data,
+        site,
         "longitude",
         NA
       )),
-      COUNTRY = safe_extract_field(site_data, "country", "Not reported"),
+      COUNTRY = safe_extract_field(site, "country", "Not reported"),
       AREA = "Not reported", # LLM doesn't typically extract area info
       ALTITUDE_VALUE = 0, # Default altitude, LLM rarely has this
       ALTITUDE_UNIT = "m",
@@ -247,6 +242,72 @@ create_sites_from_llm <- function(llm_sites_data) {
   print_dev(glue("Created {nrow(sites_df)} sites from LLM data"))
   return(sites_df)
 }
+
+# Helper mapping functions for sites ----
+
+#' Map LLM geographic feature to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in sites module
+#' @noRd
+map_geographic_feature_strict <- function(feature) {
+  if (is.null(feature) || feature == "") {
+    return("Not reported")
+  }
+
+  feature_lower <- tolower(feature)
+
+  # Exact mappings to controlled vocabulary
+  if (grepl("river|stream|canal", feature_lower)) {
+    return("River, stream, canal")
+  }
+  if (grepl("lake|pond|pool|reservoir", feature_lower)) {
+    return("Lake, pond, pool, reservoir")
+  }
+  if (grepl("ocean|sea|territorial", feature_lower)) {
+    return("Ocean, sea, territorial waters")
+  }
+  if (grepl("coast|fjord", feature_lower)) {
+    return("Coastal, fjord")
+  }
+  if (grepl("estuary", feature_lower)) {
+    return("Estuary")
+  }
+  if (grepl("drainage|sewer|artificial", feature_lower)) {
+    return("Drainage, sewer, artificial water")
+  }
+  if (grepl("swamp|wetland", feature_lower)) {
+    return("Swamp, wetland")
+  }
+  if (grepl("ground|aquifer", feature_lower)) {
+    return("Groundwater, aquifer")
+  }
+  if (grepl("wwtp|wastewater.*treatment", feature_lower)) {
+    return("WWTP")
+  }
+  if (grepl("urban|artificial.*land", feature_lower)) {
+    return("Artificial Land/Urban Areas")
+  }
+  if (grepl("landfill", feature_lower)) {
+    return("Landfills")
+  }
+  if (grepl("crop|farm|agricultural", feature_lower)) {
+    return("Cropland")
+  }
+  if (grepl("forest|wood", feature_lower)) {
+    return("Woodland, forest")
+  }
+  if (grepl("shrub", feature_lower)) {
+    return("Shrubland")
+  }
+  if (grepl("grass", feature_lower)) {
+    return("Grassland")
+  }
+  if (grepl("bare.*land|lichen|moss", feature_lower)) {
+    return("Bare land and lichen/moss")
+  }
+
+  return("Other")
+}
+
 
 #' Populate Parameters Data from LLM Data
 #'
@@ -386,21 +447,39 @@ safe_extract_field <- function(data_obj, field_name, default = NA) {
 #' Map LLM geographic feature to controlled vocabulary
 #' @noRd
 map_geographic_feature <- function(feature) {
-  if (is.null(feature) || feature == "") return("Not reported")
+  if (is.null(feature) || feature == "") {
+    return("Not reported")
+  }
 
   feature_lower <- tolower(feature)
 
-  if (grepl("river|stream|canal", feature_lower)) return("River, stream, canal")
-  if (grepl("lake|pond|reservoir", feature_lower))
+  if (grepl("river|stream|canal", feature_lower)) {
+    return("River, stream, canal")
+  }
+  if (grepl("lake|pond|reservoir", feature_lower)) {
     return("Lake, pond, pool, reservoir")
-  if (grepl("ocean|sea", feature_lower))
+  }
+  if (grepl("ocean|sea", feature_lower)) {
     return("Ocean, sea, territorial waters")
-  if (grepl("coast|fjord", feature_lower)) return("Coastal, fjord")
-  if (grepl("estuary", feature_lower)) return("Estuary")
-  if (grepl("ground|aquifer", feature_lower)) return("Groundwater, aquifer")
-  if (grepl("crop|farm", feature_lower)) return("Cropland")
-  if (grepl("forest|wood", feature_lower)) return("Woodland, forest")
-  if (grepl("grass", feature_lower)) return("Grassland")
+  }
+  if (grepl("coast|fjord", feature_lower)) {
+    return("Coastal, fjord")
+  }
+  if (grepl("estuary", feature_lower)) {
+    return("Estuary")
+  }
+  if (grepl("ground|aquifer", feature_lower)) {
+    return("Groundwater, aquifer")
+  }
+  if (grepl("crop|farm", feature_lower)) {
+    return("Cropland")
+  }
+  if (grepl("forest|wood", feature_lower)) {
+    return("Woodland, forest")
+  }
+  if (grepl("grass", feature_lower)) {
+    return("Grassland")
+  }
 
   return("Other")
 }
@@ -408,14 +487,24 @@ map_geographic_feature <- function(feature) {
 #' Map LLM parameter type to controlled vocabulary
 #' @noRd
 map_parameter_type <- function(param_type) {
-  if (is.null(param_type) || param_type == "") return("Stressor")
+  if (is.null(param_type) || param_type == "") {
+    return("Stressor")
+  }
 
   type_lower <- tolower(param_type)
 
-  if (grepl("stress", type_lower)) return("Stressor")
-  if (grepl("quality", type_lower)) return("Quality parameter")
-  if (grepl("normal", type_lower)) return("Normalization")
-  if (grepl("background", type_lower)) return("Background")
+  if (grepl("stress", type_lower)) {
+    return("Stressor")
+  }
+  if (grepl("quality", type_lower)) {
+    return("Quality parameter")
+  }
+  if (grepl("normal", type_lower)) {
+    return("Normalization")
+  }
+  if (grepl("background", type_lower)) {
+    return("Background")
+  }
 
   return("Stressor") # Default assumption
 }
@@ -423,8 +512,12 @@ map_parameter_type <- function(param_type) {
 #' Infer parameter subtype based on type and name
 #' @noRd
 infer_parameter_subtype <- function(param_type, param_name) {
-  if (param_type != "Stressor") return("Not reported")
-  if (is.null(param_name) || param_name == "") return("Not reported")
+  if (param_type != "Stressor") {
+    return("Not reported")
+  }
+  if (is.null(param_name) || param_name == "") {
+    return("Not reported")
+  }
 
   name_lower <- tolower(param_name)
 
@@ -438,12 +531,19 @@ infer_parameter_subtype <- function(param_type, param_name) {
     "arsenic",
     "chromium"
   )
-  if (any(sapply(metals, function(x) grepl(x, name_lower))))
+  if (any(sapply(metals, function(x) grepl(x, name_lower)))) {
     return("Metal/metalloid")
+  }
 
-  if (grepl("ph", name_lower)) return("pH")
-  if (grepl("temperature|temp", name_lower)) return("Temperature")
-  if (grepl("oxygen|o2", name_lower)) return("Dissolved oxygen")
+  if (grepl("ph", name_lower)) {
+    return("pH")
+  }
+  if (grepl("temperature|temp", name_lower)) {
+    return("Temperature")
+  }
+  if (grepl("oxygen|o2", name_lower)) {
+    return("Dissolved oxygen")
+  }
 
   return("Organic chemical") # Default for stressors
 }
@@ -451,14 +551,24 @@ infer_parameter_subtype <- function(param_type, param_name) {
 #' Map compartment to controlled vocabulary TODO: This needs to be much better!
 #' @noRd
 map_compartment <- function(compartment) {
-  if (is.null(compartment) || compartment == "") return("Not reported")
+  if (is.null(compartment) || compartment == "") {
+    return("Not reported")
+  }
 
   comp_lower <- tolower(compartment)
 
-  if (grepl("aquatic|water", comp_lower)) return("Aquatic")
-  if (grepl("atmosph|air", comp_lower)) return("Atmospheric")
-  if (grepl("terrestrial|soil|land", comp_lower)) return("Terrestrial")
-  if (grepl("biota|organism", comp_lower)) return("Biota")
+  if (grepl("aquatic|water", comp_lower)) {
+    return("Aquatic")
+  }
+  if (grepl("atmosph|air", comp_lower)) {
+    return("Atmospheric")
+  }
+  if (grepl("terrestrial|soil|land", comp_lower)) {
+    return("Terrestrial")
+  }
+  if (grepl("biota|organism", comp_lower)) {
+    return("Biota")
+  }
 
   return("Other")
 }
@@ -466,21 +576,45 @@ map_compartment <- function(compartment) {
 #' Map compartment sub to controlled vocabulary TODO: This needs to be much better!
 #' @noRd
 map_compartment_sub <- function(compartment_sub) {
-  if (is.null(compartment_sub) || compartment_sub == "") return("Not reported")
+  if (is.null(compartment_sub) || compartment_sub == "") {
+    return("Not reported")
+  }
 
   sub_lower <- tolower(compartment_sub)
 
-  if (grepl("fresh", sub_lower)) return("Freshwater")
-  if (grepl("marine|salt|sea", sub_lower)) return("Marine/Salt Water")
-  if (grepl("brackish", sub_lower)) return("Brackish/Transitional Water")
-  if (grepl("ground", sub_lower)) return("Groundwater")
-  if (grepl("waste", sub_lower)) return("Wastewater")
-  if (grepl("indoor", sub_lower)) return("Indoor Air")
-  if (grepl("outdoor", sub_lower)) return("Outdoor Air")
-  if (grepl("topsoil|a horizon", sub_lower)) return("Soil A Horizon (Topsoil)")
-  if (grepl("organic|o horizon", sub_lower)) return("Soil O Horizon (Organic)")
-  if (grepl("terrestrial", sub_lower)) return("Biota, Terrestrial")
-  if (grepl("aquatic", sub_lower)) return("Biota, Aquatic")
+  if (grepl("fresh", sub_lower)) {
+    return("Freshwater")
+  }
+  if (grepl("marine|salt|sea", sub_lower)) {
+    return("Marine/Salt Water")
+  }
+  if (grepl("brackish", sub_lower)) {
+    return("Brackish/Transitional Water")
+  }
+  if (grepl("ground", sub_lower)) {
+    return("Groundwater")
+  }
+  if (grepl("waste", sub_lower)) {
+    return("Wastewater")
+  }
+  if (grepl("indoor", sub_lower)) {
+    return("Indoor Air")
+  }
+  if (grepl("outdoor", sub_lower)) {
+    return("Outdoor Air")
+  }
+  if (grepl("topsoil|a horizon", sub_lower)) {
+    return("Soil A Horizon (Topsoil)")
+  }
+  if (grepl("organic|o horizon", sub_lower)) {
+    return("Soil O Horizon (Organic)")
+  }
+  if (grepl("terrestrial", sub_lower)) {
+    return("Biota, Terrestrial")
+  }
+  if (grepl("aquatic", sub_lower)) {
+    return("Biota, Aquatic")
+  }
 
   return("Other")
 }
@@ -488,13 +622,21 @@ map_compartment_sub <- function(compartment_sub) {
 #' Map measured category to controlled vocabulary
 #' @noRd
 map_measured_category <- function(category) {
-  if (is.null(category) || category == "") return("External")
+  if (is.null(category) || category == "") {
+    return("External")
+  }
 
   cat_lower <- tolower(category)
 
-  if (grepl("external", cat_lower)) return("External")
-  if (grepl("internal", cat_lower)) return("Internal")
-  if (grepl("surface", cat_lower)) return("Surface")
+  if (grepl("external", cat_lower)) {
+    return("External")
+  }
+  if (grepl("internal", cat_lower)) {
+    return("Internal")
+  }
+  if (grepl("surface", cat_lower)) {
+    return("Surface")
+  }
 
   return("External") # Default assumption
 }
@@ -502,17 +644,25 @@ map_measured_category <- function(category) {
 #' Validate latitude value
 #' @noRd
 validate_latitude <- function(lat) {
-  if (is.null(lat) || is.na(lat)) return(NA)
+  if (is.null(lat) || is.na(lat)) {
+    return(NA)
+  }
   lat_num <- as.numeric(lat)
-  if (is.na(lat_num) || lat_num < -90 || lat_num > 90) return(NA)
+  if (is.na(lat_num) || lat_num < -90 || lat_num > 90) {
+    return(NA)
+  }
   return(lat_num)
 }
 
 #' Validate longitude value
 #' @noRd
 validate_longitude <- function(lon) {
-  if (is.null(lon) || is.na(lon)) return(NA)
+  if (is.null(lon) || is.na(lon)) {
+    return(NA)
+  }
   lon_num <- as.numeric(lon)
-  if (is.na(lon_num) || lon_num < -180 || lon_num > 180) return(NA)
+  if (is.na(lon_num) || lon_num < -180 || lon_num > 180) {
+    return(NA)
+  }
   return(lon_num)
 }

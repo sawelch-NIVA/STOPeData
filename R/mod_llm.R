@@ -62,6 +62,7 @@ mod_llm_ui <- function(id) {
                 list("Anthropic API Key", bs_icon("info-circle-fill")),
                 "Your Anthropic API key for Claude access. Set ANTHROPIC_API_KEY environment variable to avoid entering this each time."
               ),
+              value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
               placeholder = "sk-ant-...",
               width = "100%"
             )
@@ -106,7 +107,7 @@ mod_llm_ui <- function(id) {
           )
         ),
 
-        ## Extract button ----
+        ## Extract buttons ----
         div(
           style = "margin-top: 15px;",
           input_task_button(
@@ -116,7 +117,16 @@ mod_llm_ui <- function(id) {
             class = "btn-success",
             width = "200px"
           ) |>
-            disabled()
+            disabled(),
+
+          input_task_button(
+            id = ns("load_dummy_data"),
+            label = "Load Dummy Data",
+            icon = icon("flask"),
+            class = "btn-info",
+            width = "200px",
+            style = "margin-left: 10px;"
+          )
         ),
 
         ## Status and results ----
@@ -134,52 +144,32 @@ mod_llm_ui <- function(id) {
             icon = bs_icon("cpu"),
             div(
               h6("Raw Extraction Output"),
-              verbatimTextOutput(ns("extraction_results")),
-
-              br(),
-
-              ### Action buttons for extracted data ----
-              div(
-                style = "margin-top: 15px;",
-                input_task_button(
-                  id = ns("populate_forms"),
-                  label = "Populate Forms with Extracted Data",
-                  icon = icon("download"),
-                  class = "btn-primary",
-                  width = "250px"
-                ) |>
-                  disabled(),
-
-                input_task_button(
-                  id = ns("clear_extraction"),
-                  label = "Clear Extraction",
-                  icon = icon("trash"),
-                  class = "btn-danger",
-                  width = "150px"
-                ) |>
-                  disabled()
-              )
+              verbatimTextOutput(ns("extraction_results"))
             )
           )
         ),
 
-        ## TODO items accordion ----
-        accordion(
-          id = ns("todo_accordion"),
-          open = FALSE,
-          accordion_panel(
-            title = "Future Directions",
-            icon = bs_icon("list-check"),
-            div(
-              tags$ul(
-                tags$li("Add confidence scoring for extracted fields"),
-                tags$li("Progressive field-by-field acceptance/rejection"),
-                tags$li(
-                  "Support for different document types (reports, theses, etc.)"
-                ),
-              )
-            )
-          )
+        ## Action buttons for extracted data (moved outside accordion) ----
+        div(
+          style = "margin-top: 15px;",
+          input_task_button(
+            id = ns("populate_forms"),
+            label = "Populate Forms with Extracted Data",
+            icon = icon("download"),
+            class = "btn-primary",
+            width = "250px"
+          ) |>
+            disabled(),
+
+          input_task_button(
+            id = ns("clear_extraction"),
+            label = "Clear Extraction",
+            icon = icon("trash"),
+            class = "btn-danger",
+            width = "150px",
+            style = "margin-left: 10px;"
+          ) |>
+            disabled()
         )
       )
     )
@@ -241,6 +231,34 @@ mod_llm_server <- function(id) {
       }
     })
 
+    ## observe: Load dummy data ----
+    # upstream: user clicks input$load_dummy_data
+    # downstream: moduleState$*, session$userData$reactiveValues$*DataLLM
+    observe({
+      # Create dummy data structure
+      dummy_data <- create_dummy_data()
+
+      # Store results
+      moduleState$extraction_complete <- TRUE
+      moduleState$extraction_successful <- TRUE
+      moduleState$structured_data <- dummy_data
+      moduleState$raw_extraction <- dummy_data
+      moduleState$error_message <- NULL
+
+      # Store in session data with LLM suffix
+      store_llm_data_in_session(session, dummy_data)
+
+      showNotification(
+        "Dummy data loaded successfully!",
+        type = "default"
+      )
+
+      # Enable form population button
+      enable("populate_forms")
+      enable("clear_extraction")
+    }) |>
+      bindEvent(input$load_dummy_data)
+
     ## observe: PDF data extraction ----
     # upstream: user clicks input$extract_data
     # downstream: moduleState$*, session$userData$reactiveValues$*DataLLM
@@ -286,7 +304,9 @@ mod_llm_server <- function(id) {
             }
           )
 
-          if (is.null(test_chat)) return()
+          if (is.null(test_chat)) {
+            return()
+          }
 
           # Create chat instance for extraction
           chat <- chat_anthropic(
@@ -452,13 +472,13 @@ mod_llm_server <- function(id) {
       if (!moduleState$extraction_complete) {
         div(
           bs_icon("info-circle"),
-          "Upload a PDF and provide your API key to begin extraction.",
+          "Upload a PDF and provide your API key to begin extraction, or use dummy data for testing.",
           class = "validation-status validation-info"
         )
       } else if (moduleState$extraction_successful) {
         div(
           bs_icon("check-circle"),
-          "PDF extraction completed successfully. Review results below.",
+          "Data extraction completed successfully. Review results and populate forms below.",
           class = "validation-status validation-complete"
         )
       } else {
@@ -493,6 +513,57 @@ mod_llm_server <- function(id) {
 }
 
 # 4. Helper Functions ----
+
+#' Create dummy data for testing
+#' @noRd
+create_dummy_data <- function() {
+  list(
+    campaign = list(
+      campaign_name = "Copepod trace element accumulation study",
+      campaign_start_date = "1997-01-01",
+      campaign_end_date = "1997-03-31",
+      organisation = "State University of New York",
+      campaign_comment = "Laboratory study measuring assimilation efficiencies, uptake rates, and efflux rate constants of five trace elements in marine copepods"
+    ),
+    references = list(
+      author = "Wang, Wen-Xiong; Fisher, Nicholas S.",
+      title = "Accumulation of trace elements in a marine copepod",
+      year = 1998L,
+      periodical_journal = "Limnology and Oceanography",
+      volume = 43L,
+      issue = 2L,
+      publisher = "American Society of Limnology and Oceanography",
+      doi = NULL
+    ),
+    sites = data.frame(
+      site_code = "SBH",
+      site_name = "Stony Brook Harbor",
+      latitude = 40.9,
+      longitude = -73.1,
+      country = "United States",
+      site_geographic_feature = "Coastal fjord",
+      stringsAsFactors = FALSE
+    ),
+    parameters = data.frame(
+      parameter_name = c("Silver", "Cadmium", "Cobalt", "Selenium", "Zinc"),
+      parameter_type = rep("Stressor", 5),
+      cas_rn = c(
+        "7440-22-4",
+        "7440-43-9",
+        "7440-48-4",
+        "7782-49-2",
+        "7440-66-6"
+      ),
+      stringsAsFactors = FALSE
+    ),
+    compartments = data.frame(
+      environ_compartment = c("Aquatic", "Biota"),
+      environ_compartment_sub = c("Marine/Salt Water", "Biota Aquatic"),
+      measured_category = c("External", "Internal"),
+      stringsAsFactors = FALSE
+    )
+  )
+}
 
 #' Create extraction schema with correct ellmer syntax
 #' @noRd
@@ -575,19 +646,19 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         latitude = type_number(
-          description = "Latitude in decimal degrees (-90 to 90)",
+          description = "Latitude in decimal degrees (-90 to 90) - ONLY if explicitly stated in document",
           required = FALSE
         ),
         longitude = type_number(
-          description = "Longitude in decimal degrees (-180 to 180)",
+          description = "Longitude in decimal degrees (-180 to 180) - ONLY if explicitly stated in document",
           required = FALSE
         ),
         country = type_string(
-          description = "Country where site is located",
+          description = "Country where site is located - ONLY if explicitly stated",
           required = FALSE
         ),
         site_geographic_feature = type_string(
-          description = "Geographic feature type (river, lake, ocean, etc.)",
+          description = "Geographic feature type from: River stream canal, Lake pond pool reservoir, Ocean sea territorial waters, Coastal fjord, Estuary, Drainage sewer artificial water, Swamp wetland, Groundwater aquifer, WWTP, Artificial Land/Urban Areas, Landfills, Cropland, Woodland forest, Shrubland, Grassland, Bare land and lichen/moss, Other",
           required = FALSE
         )
       )
@@ -621,7 +692,7 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         environ_compartment_sub = type_string(
-          description = "Sub-compartment (e.g., Freshwater, Soil A Horizon, etc.)",
+          description = "Sub-compartment: Freshwater, Marine/Salt Water, Brackish/Transitional Water, Groundwater, Wastewater, Indoor Air, Outdoor Air, Soil A Horizon (Topsoil), Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic",
           required = FALSE
         ),
         measured_category = type_string(
@@ -665,11 +736,12 @@ create_extraction_prompt <- function() {
 
     "CRITICAL RULES:\n",
     "- Only extract information that is explicitly stated in the document\n",
-    "- Do NOT guess, infer, or make assumptions about missing data\n",
-    "- Use 'null' for any field where information is not clearly provided\n",
+    "- Do NOT guess, infer, make assumptions, or use outside knowledge to fill gaps\n",
+    "- Do NOT use your knowledge of places, chemicals, or studies to add information not in the document\n",
+    "- Use 'null' for any field where information is not clearly provided in the text\n",
+    "- For coordinates: ONLY extract if latitude/longitude are explicitly stated as numbers in the document\n",
     "- For dates, use YYYY-MM-DD format only\n",
-    "- For years, only use values between 1800-2026\n",
-    "- For coordinates, use decimal degrees only\n\n",
+    "- For years, only use values between 1800-2026\n\n",
 
     "CONTROLLED VOCABULARY (use these exact terms when applicable):\n",
     "Parameter Types: Stressor, Quality parameter, Normalization, Background\n",
@@ -679,18 +751,19 @@ create_extraction_prompt <- function() {
     "Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic\n",
     "Measurement Categories: External, Internal, Surface\n",
     "Geographic Features: River stream canal, Lake pond pool reservoir, ",
-    "Ocean sea territorial waters, Coastal fjord, Estuary, Cropland, ",
-    "Woodland forest, Grassland, Other\n\n",
+    "Ocean sea territorial waters, Coastal fjord, Estuary, Drainage sewer artificial water, ",
+    "Swamp wetland, Groundwater aquifer, WWTP, Artificial Land/Urban Areas, Landfills, ",
+    "Cropland, Woodland forest, Shrubland, Grassland, Bare land and lichen/moss, Other\n\n",
 
     "Focus on extracting:\n",
     "1. Study metadata (dates, organization, campaign details)\n",
     "2. Bibliographic information (authors, title, journal, DOI)\n",
-    "3. Sampling sites (locations, coordinates, site descriptions)\n",
+    "3. Sampling sites (locations ONLY if coordinates are explicitly stated)\n",
     "4. Measured parameters (chemicals, stressors, quality parameters)\n",
     "5. Environmental compartments sampled\n\n",
 
-    "Return structured data following the provided schema. Be conservative - ",
-    "it's better to return null than to guess incorrectly."
+    "Return structured data following the provided schema. Be extremely conservative - ",
+    "it's better to return null than to guess or use external knowledge not in the document."
   )
 }
 
