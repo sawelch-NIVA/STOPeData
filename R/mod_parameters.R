@@ -85,6 +85,20 @@ mod_parameters_ui <- function(id) {
           )
         ),
 
+        ## Parameter validation results (in case of LLM data only) ----
+        conditionalPanel(
+          condition = "output.show_validation",
+          ns = ns,
+          div(
+            style = "margin-top: 15px;",
+            h6("Parameter Database Validation", style = "color: #0066cc;"),
+            div(
+              style = "background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0066cc;",
+              verbatimTextOutput(ns("parameter_validation_results"))
+            )
+          )
+        ),
+
         ## Parameters table ----
         rHandsontableOutput(ns("parameters_table")),
 
@@ -135,7 +149,9 @@ mod_parameters_server <- function(id) {
       validated_data = NULL,
       is_valid = FALSE,
       next_param_id = 1,
-      session_parameters = list() # Store user-added parameters
+      session_parameters = list(),
+      validation_results = NULL,
+      show_validation = FALSE
     )
 
     ## Dummy parameter data ----
@@ -326,12 +342,77 @@ mod_parameters_server <- function(id) {
           session,
           "parameter_name_select",
           choices = available_names,
-          selected = if (length(available_names) > 1) available_names[1] else
-            "",
+          selected = if (length(available_names) > 1) {
+            available_names[1]
+          } else {
+            ""
+          },
           server = TRUE # server-side selectize for better performance
         )
       }
     })
+
+    ## observe ~bindEvent(LLM data validates or updates): Load and validate parameters ----
+    # upstream: session$userData$reactiveValues$llmExtractionComplete
+    # downstream: moduleState$parameters_data, moduleState$show_validation, moduleState$validation_results
+    observe({
+      browser()
+      llm_parameters <- session$userData$reactiveValues$parametersDataLLM
+      if (
+        !is.null(llm_parameters) &&
+          nrow(llm_parameters) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Load and validate parameters
+        moduleState$parameters_data <- llm_parameters
+
+        # Run validation if chemical_parameters is available
+        if (exists("chemical_parameters")) {
+          validation_result <- validate_parameters_against_database(
+            moduleState$parameters_data,
+            chemical_parameters
+          )
+          moduleState$validation_results <- validation_result
+          moduleState$show_validation <- TRUE
+
+          # Show notification based on validation
+          if (validation_result$has_warnings) {
+            showNotification(
+              paste(
+                "Loaded",
+                nrow(llm_parameters),
+                "parameters with validation warnings. Check results below."
+              ),
+              type = "warning"
+            )
+          } else {
+            showNotification(
+              paste(
+                "Loaded",
+                nrow(llm_parameters),
+                "parameters - all validated successfully!"
+              ),
+              type = "message"
+            )
+          }
+        } else {
+          showNotification(
+            paste(
+              "Loaded",
+              nrow(llm_parameters),
+              "parameters. Chemical database not available for validation."
+            ),
+            type = "message"
+          )
+          moduleState$show_validation <- FALSE
+        }
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
 
     ## observe: Add existing parameter ----
     # upstream: user clicks input$add_existing
@@ -473,7 +554,10 @@ mod_parameters_server <- function(id) {
           session$userData$reactiveValues$llmExtractionComplete
       ) {
         # Replace current parameters data with LLM data
-        moduleState$parameters_data <- llm_parameters
+        moduleState$parameters_data <- create_parameters_from_llm(
+          llm_parameters,
+          if (exists("chemical_parameters")) chemical_parameters else NULL
+        )
 
         showNotification(
           paste(
@@ -588,6 +672,22 @@ mod_parameters_server <- function(id) {
           "Add at least one complete, valid parameter to proceed. Edit fields directly in the table above.",
           class = "validation-status validation-warning"
         )
+      }
+    })
+
+    ## output: checking of llm data ----
+    # upstream: moduleState$show_validation, moduleState$validation_results
+    # downstream: output$show_validation
+    output$show_validation <- reactive({
+      moduleState$show_validation
+    })
+    outputOptions(output, "show_validation", suspendWhenHidden = FALSE)
+
+    output$parameter_validation_results <- renderText({
+      if (!is.null(moduleState$validation_results)) {
+        moduleState$validation_results$validation_text
+      } else {
+        "No validation results available."
       }
     })
 

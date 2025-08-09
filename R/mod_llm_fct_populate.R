@@ -1,5 +1,7 @@
-# LLM Form Population Helper Functions ----
+# LLM Form Population Helper Functions
 # Functions to populate module forms from LLM extracted data
+
+# mod_campaign ----
 
 #' Populate Campaign Form from LLM Data
 #'
@@ -85,6 +87,8 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
 
   print_dev("Campaign form populated from LLM data")
 }
+
+# mod_references ----
 
 #' Populate References Form from LLM Data
 #'
@@ -184,6 +188,8 @@ populate_references_from_llm <- function(session, llm_references_data) {
   print_dev("References form populated from LLM data")
 }
 
+# mod_sites ----
+
 #' Populate Sites Data from LLM Data
 #'
 #' @description Creates sites data frame from LLM extracted sites data frame
@@ -243,7 +249,7 @@ create_sites_from_llm <- function(llm_sites_data) {
   return(sites_df)
 }
 
-# Helper mapping functions for sites ----
+## mod_sites helper functions ----
 
 #' Map LLM geographic feature to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in sites module
@@ -308,51 +314,81 @@ map_geographic_feature_strict <- function(feature) {
   return("Other")
 }
 
+# mod_parameters ----
 
-#' Populate Parameters Data from LLM Data
+#' Create Parameters Data from LLM with Database Lookup
 #'
-#' @description Creates parameters data frame from LLM extracted parameters array
-#' @param llm_parameters_data Parameters array extracted by LLM
+#' @description Creates parameters data frame from LLM extracted parameters with database lookup
+#' @param llm_parameters_data Parameters data frame extracted by LLM
+#' @param chemical_parameters Reference database for lookups (optional)
 #' @return Data frame in parameters module format
 #' @noRd
-create_parameters_from_llm <- function(llm_parameters_data) {
-  if (is.null(llm_parameters_data) || length(llm_parameters_data) == 0) {
+create_parameters_from_llm <- function(
+  llm_parameters_data,
+  chemical_parameters = NULL
+) {
+  if (is.null(llm_parameters_data) || nrow(llm_parameters_data) == 0) {
     return(data.frame())
   }
 
   params_df <- data.frame()
 
-  # Handle array of parameter objects
-  for (i in seq_along(llm_parameters_data)) {
-    param <- llm_parameters_data[[i]]
+  # Process each row of the parameters data frame
+  for (i in seq_len(nrow(llm_parameters_data))) {
+    param <- llm_parameters_data[i, ]
 
-    # Handle the case where param might be a list or atomic vector
-    if (is.list(param)) {
-      param_data <- param
-    } else {
-      # Skip if not a proper parameter object
-      next
+    param_name <- safe_extract_field(param, "parameter_name", "")
+    cas_rn <- safe_extract_field(param, "cas_rn", "")
+
+    # Try to get data from chemical database
+    db_match <- NULL
+    if (!is.null(chemical_parameters) && param_name != "") {
+      # Try exact name match first
+      exact_match <- chemical_parameters[
+        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
+      ]
+      if (nrow(exact_match) > 0) {
+        db_match <- exact_match[1, ] # Take first match
+      }
     }
 
-    # Map parameter type to controlled vocabulary
-    param_type <- map_parameter_type(safe_extract_field(
-      param_data,
-      "parameter_type",
-      ""
-    ))
+    # If no name match but we have a CAS, try CAS lookup
+    if (is.null(db_match) && !is.null(chemical_parameters) && cas_rn != "") {
+      cas_match <- chemical_parameters[
+        !is.na(chemical_parameters$CAS_RN) &
+          chemical_parameters$CAS_RN == cas_rn,
+      ]
+      if (nrow(cas_match) > 0) {
+        db_match <- cas_match[1, ] # Take first match
+      }
+    }
 
+    # Build parameter row
     param_row <- data.frame(
-      PARAMETER_TYPE = param_type,
-      PARAMETER_TYPE_SUB = infer_parameter_subtype(
-        param_type,
-        safe_extract_field(param_data, "parameter_name", "")
-      ),
-      MEASURED_TYPE = "Concentration", # Default assumption
-      PARAMETER_NAME = safe_extract_field(param_data, "parameter_name", ""),
+      PARAMETER_TYPE = if (!is.null(db_match)) {
+        db_match$PARAMETER_TYPE
+      } else {
+        map_parameter_type_strict(safe_extract_field(
+          param,
+          "parameter_type",
+          ""
+        ))
+      },
+      PARAMETER_TYPE_SUB = if (!is.null(db_match)) {
+        db_match$PARAMETER_TYPE_SUB
+      } else {
+        "Not reported"
+      },
+      MEASURED_TYPE = if (!is.null(db_match)) {
+        db_match$MEASURED_TYPE
+      } else {
+        "Concentration"
+      },
+      PARAMETER_NAME = param_name,
       PARAMETER_NAME_SUB = "",
-      INCHIKEY_SD = "",
-      PUBCHEM_CID = "",
-      CAS_RN = safe_extract_field(param_data, "cas_rn", ""),
+      INCHIKEY_SD = if (!is.null(db_match)) db_match$INCHIKEY_SD else "",
+      PUBCHEM_CID = if (!is.null(db_match)) db_match$PUBCHEM_CID else "",
+      CAS_RN = cas_rn,
       stringsAsFactors = FALSE
     )
 
@@ -363,7 +399,7 @@ create_parameters_from_llm <- function(llm_parameters_data) {
   return(params_df)
 }
 
-# Helper functions ----
+## mod_parameters helper functions ----
 
 #' Safely extract field from LLM data object
 #' @param data_obj The data object (list or atomic)
@@ -391,47 +427,6 @@ safe_extract_field <- function(data_obj, field_name, default = NA) {
   )
 }
 
-# Helper mapping functions ----
-
-#' Map LLM geographic feature to controlled vocabulary
-#' @noRd
-map_geographic_feature <- function(feature) {
-  if (is.null(feature) || feature == "") {
-    return("Not reported")
-  }
-
-  feature_lower <- tolower(feature)
-
-  if (grepl("river|stream|canal", feature_lower)) {
-    return("River, stream, canal")
-  }
-  if (grepl("lake|pond|reservoir", feature_lower)) {
-    return("Lake, pond, pool, reservoir")
-  }
-  if (grepl("ocean|sea", feature_lower)) {
-    return("Ocean, sea, territorial waters")
-  }
-  if (grepl("coast|fjord", feature_lower)) {
-    return("Coastal, fjord")
-  }
-  if (grepl("estuary", feature_lower)) {
-    return("Estuary")
-  }
-  if (grepl("ground|aquifer", feature_lower)) {
-    return("Groundwater, aquifer")
-  }
-  if (grepl("crop|farm", feature_lower)) {
-    return("Cropland")
-  }
-  if (grepl("forest|wood", feature_lower)) {
-    return("Woodland, forest")
-  }
-  if (grepl("grass", feature_lower)) {
-    return("Grassland")
-  }
-
-  return("Other")
-}
 
 #' Map LLM parameter type to controlled vocabulary
 #' @noRd
@@ -458,44 +453,207 @@ map_parameter_type <- function(param_type) {
   return("Stressor") # Default assumption
 }
 
-#' Infer parameter subtype based on type and name
+#' Validate Parameters Against Database
+#'
+#' @description Validates parameters against the chemical_parameters database
+#' @param parameters_data Parameters data frame (in module format with PARAMETER_NAME, CAS_RN columns)
+#' @param chemical_parameters Reference database
+#' @return List with validation results and formatted text output
 #' @noRd
-infer_parameter_subtype <- function(param_type, param_name) {
-  if (param_type != "Stressor") {
-    return("Not reported")
-  }
-  if (is.null(param_name) || param_name == "") {
-    return("Not reported")
+validate_parameters_against_database <- function(
+  parameters_data,
+  chemical_parameters
+) {
+  if (is.null(parameters_data) || nrow(parameters_data) == 0) {
+    return(list(
+      validation_text = "No parameters to validate.",
+      has_warnings = FALSE
+    ))
   }
 
-  name_lower <- tolower(param_name)
+  output_lines <- c("Parameter Database Validation Results:", "")
+  has_warnings <- FALSE
 
-  # Simple chemical classification TODO: This needs to be much better!
-  metals <- c(
-    "mercury",
-    "lead",
-    "cadmium",
-    "copper",
-    "zinc",
-    "arsenic",
-    "chromium"
+  for (i in seq_len(nrow(parameters_data))) {
+    param_name <- parameters_data[i, "PARAMETER_NAME"]
+    cas_rn <- parameters_data[i, "CAS_RN"]
+
+    output_lines <- c(
+      output_lines,
+      paste0(
+        "Row ",
+        i,
+        ": \"",
+        param_name,
+        "\"",
+        if (!is.na(cas_rn) && cas_rn != "") {
+          paste0(" (CAS: ", cas_rn, ")")
+        } else {
+          ""
+        }
+      )
+    )
+
+    # Name validation (exact match only)
+    name_found <- FALSE
+    if (!is.na(param_name) && param_name != "") {
+      exact_matches <- chemical_parameters[
+        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
+      ]
+
+      if (nrow(exact_matches) > 0) {
+        name_found <- TRUE
+        output_lines <- c(output_lines, "  ✓ Name found in database")
+
+        # Suggest CAS if missing
+        if (
+          (is.na(cas_rn) || cas_rn == "") && !is.na(exact_matches$CAS_RN[1])
+        ) {
+          output_lines <- c(
+            output_lines,
+            paste0("  → Suggested CAS: ", exact_matches$CAS_RN[1])
+          )
+        }
+      } else {
+        output_lines <- c(output_lines, "  ⚠ Name not found in database")
+        has_warnings <- TRUE
+      }
+    } else {
+      output_lines <- c(output_lines, "  ⚠ No parameter name provided")
+      has_warnings <- TRUE
+    }
+
+    # CAS validation
+    cas_found <- FALSE
+    if (!is.na(cas_rn) && cas_rn != "") {
+      cas_matches <- chemical_parameters[
+        !is.na(chemical_parameters$CAS_RN) &
+          chemical_parameters$CAS_RN == cas_rn,
+      ]
+
+      if (nrow(cas_matches) > 0) {
+        cas_found <- TRUE
+        output_lines <- c(output_lines, "  ✓ CAS number found in database")
+
+        # Check name-CAS consistency
+        if (
+          name_found &&
+            !tolower(param_name) %in% tolower(cas_matches$PARAMETER_NAME)
+        ) {
+          output_lines <- c(
+            output_lines,
+            paste0(
+              "  ⚠ Name-CAS mismatch. CAS ",
+              cas_rn,
+              " belongs to: ",
+              cas_matches$PARAMETER_NAME[1]
+            )
+          )
+          has_warnings <- TRUE
+        }
+      } else {
+        output_lines <- c(output_lines, "  ⚠ CAS number not found in database")
+        has_warnings <- TRUE
+      }
+    }
+
+    # Overall status
+    if (!name_found && !cas_found) {
+      output_lines <- c(
+        output_lines,
+        "  → Recommendation: Verify parameter identity"
+      )
+    }
+
+    output_lines <- c(output_lines, "") # Blank line between parameters
+  }
+
+  # Summary
+  total_params <- nrow(parameters_data)
+  name_matches <- sum(
+    !is.na(parameters_data$PARAMETER_NAME) &
+      parameters_data$PARAMETER_NAME != "" &
+      sapply(1:nrow(parameters_data), function(i) {
+        param_name <- parameters_data[i, "PARAMETER_NAME"]
+        nrow(chemical_parameters[
+          tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
+        ]) >
+          0
+      })
   )
-  if (any(sapply(metals, function(x) grepl(x, name_lower)))) {
-    return("Metal/metalloid")
+
+  cas_matches <- sum(
+    !is.na(parameters_data$CAS_RN) &
+      parameters_data$CAS_RN != "" &
+      sapply(1:nrow(parameters_data), function(i) {
+        cas_rn <- parameters_data[i, "CAS_RN"]
+        nrow(chemical_parameters[
+          !is.na(chemical_parameters$CAS_RN) &
+            chemical_parameters$CAS_RN == cas_rn,
+        ]) >
+          0
+      })
+  )
+
+  output_lines <- c(output_lines, "Summary:")
+  output_lines <- c(
+    output_lines,
+    paste0("  Parameters processed: ", total_params)
+  )
+  output_lines <- c(
+    output_lines,
+    paste0("  Names found in database: ", name_matches, "/", total_params)
+  )
+  output_lines <- c(
+    output_lines,
+    paste0("  CAS numbers found in database: ", cas_matches, "/", total_params)
+  )
+
+  if (has_warnings) {
+    output_lines <- c(output_lines, "")
+    output_lines <- c(
+      output_lines,
+      "⚠ Some parameters need review. Check suggestions above."
+    )
+  } else {
+    output_lines <- c(output_lines, "")
+    output_lines <- c(output_lines, "✓ All parameters found in database!")
   }
 
-  if (grepl("ph", name_lower)) {
-    return("pH")
-  }
-  if (grepl("temperature|temp", name_lower)) {
-    return("Temperature")
-  }
-  if (grepl("oxygen|o2", name_lower)) {
-    return("Dissolved oxygen")
-  }
-
-  return("Organic chemical") # Default for stressors
+  return(list(
+    validation_text = paste(output_lines, collapse = "\n"),
+    has_warnings = has_warnings
+  ))
 }
+
+# Helper mapping functions for parameters ----
+
+#' Map LLM parameter type to strict controlled vocabulary
+#' @noRd
+map_parameter_type_strict <- function(param_type) {
+  if (is.null(param_type) || param_type == "") {
+    return("Stressor")
+  }
+
+  type_lower <- tolower(param_type)
+
+  if (grepl("stress", type_lower)) {
+    return("Stressor")
+  }
+  if (grepl("quality", type_lower)) {
+    return("Quality parameter")
+  }
+  if (grepl("normal", type_lower)) {
+    return("Normalization")
+  }
+  if (grepl("background", type_lower)) {
+    return("Background")
+  }
+
+  return("Stressor") # Default assumption
+}
+
+# mod_compartment ----
 
 #' Populate Compartments Data from LLM Data
 #'
@@ -540,7 +698,7 @@ create_compartments_from_llm <- function(llm_compartments_data) {
   return(comps_df)
 }
 
-# Helper mapping functions for compartments ----
+## mod_compartment helper functions ----
 
 #' Map compartment to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in compartments module
