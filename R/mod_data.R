@@ -24,6 +24,7 @@ mod_data_ui <- function(id) {
 
     # Main data entry card ----
     card(
+      fill = TRUE,
       card_header("Measurement Data Entry"),
       card_body(
         ## Info accordion ----
@@ -280,8 +281,11 @@ mod_data_server <- function(id) {
             "No biota samples"
           }
         } else {
-          status <- if (isTruthy(data) && nrow(data) > 0) "✓ Validated" else
+          status <- if (isTruthy(data) && nrow(data) > 0) {
+            "✓ Validated"
+          } else {
             "⚠ Pending"
+          }
           count <- if (isTruthy(data)) {
             nrow(data)
           } else {
@@ -485,8 +489,11 @@ mod_data_server <- function(id) {
           item$status,
           " (",
           item$count,
-          if (item$module == "Campaign" || item$module == "References")
-            " record" else " records",
+          if (item$module == "Campaign" || item$module == "References") {
+            " record"
+          } else {
+            " records"
+          },
           ")"
         )
       })

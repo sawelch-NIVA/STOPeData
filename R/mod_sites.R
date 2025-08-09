@@ -33,6 +33,7 @@ mod_sites_ui <- function(id) {
       ## Left panel: Table and controls ----
       card(
         full_screen = TRUE,
+        fill = TRUE,
         card_header("Sites Data"),
         card_body(
           ### Info accordion ----

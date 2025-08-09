@@ -25,6 +25,7 @@ mod_samples_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Sample Combinations Data Management"),
       card_body(
         ## Info accordion ----

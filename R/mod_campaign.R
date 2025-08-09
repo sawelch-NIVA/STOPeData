@@ -20,6 +20,7 @@ mod_campaign_ui <- function(id) {
   tagList(
     # Main input card ----
     card(
+      fill = TRUE,
       card_header("Campaign Data Entry"),
       card_body(
         ## Info accordion ----

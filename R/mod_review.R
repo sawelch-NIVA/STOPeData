@@ -20,6 +20,7 @@ mod_review_ui <- function(id) {
   tagList(
     # Main review card ----
     card(
+      fill = TRUE,
       card_header("Data Review & Visualization"),
       card_body(
         ## Info accordion ----
