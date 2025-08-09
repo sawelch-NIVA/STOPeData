@@ -74,7 +74,9 @@ body {
 }
 
 /* Code Elements */
-code, pre, .code {
+code,
+pre,
+.code {
     font-family: var(--font-code);
 }
 
@@ -92,9 +94,10 @@ code, pre, .code {
 }
 
 /* Nudge icons in line with validation text */
-.validation-status fas, .validation-status bi {
-  margin-left: 1em !important;
-  font-size: 1.2em !important;
+.validation-status fas,
+.validation-status bi {
+    margin-left: 1em !important;
+    font-size: 1.2em !important;
 }
 
 .validation-complete {
@@ -130,17 +133,31 @@ code, pre, .code {
 
 /* Dark Mode Support */
 [data-bs-theme="dark"] .rhandsontable {
-      filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
 /* Pulldown can break out of handsontable boundary Credit https://stackoverflow.com/questions/32593414/handsontable-dropdowns-hidden-in-overflowauto-div */
 .htColumnHeaders {
-    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
 }
 
 /* Dropdown menus inherit the whole table width, somehow */
-.handsontableInput, .listbox, .wtHider, .handsontableInputHolder {
-  max-width: 500px !important;
+.handsontableInput,
+.listbox,
+.wtHider,
+.handsontableInputHolder {
+    max-width: 550px !important;
+    width: fit-content !important;
+}
+
+.ht_master .handsontable {
+    margin-right: -200px !important;
+    width: max-content !important;
+}
+
+textarea .handsontableInput {
+    width: auto !important;
 }
 
 
@@ -150,13 +167,13 @@ code, pre, .code {
 
 /* Main leaflet container - Credit to https://dev.to/deepakdevanand/leaflet-map-dark-theme-5ej0 */
 [data-bs-theme="dark"] .leaflet-container {
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
 /* ===================
    Plotly Dark Mode Support
    =================== */
 
-[data-bs-theme="dark"]  .plot-container {
+[data-bs-theme="dark"] .plot-container {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }

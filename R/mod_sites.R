@@ -20,6 +20,7 @@ mod_sites_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
+    tags$style(),
     # Enable shinyjs
     useShinyjs(),
 
@@ -32,10 +33,12 @@ mod_sites_ui <- function(id) {
 
       ## Left panel: Table and controls ----
       card(
-        full_screen = TRUE,
+        full_screen = FALSE,
+        height = "40vh",
         fill = TRUE,
-        card_header("Sites Data"),
+        fillable = TRUE,
         card_body(
+          style = "min-height: 300px !important;",
           ### Info accordion ----
           accordion(
             id = ns("info_accordion"),
@@ -91,12 +94,8 @@ mod_sites_ui <- function(id) {
             )
           ),
 
-          ### Sites table ----
-          rHandsontableOutput(ns("sites_table")),
-
           ### Validation status ----
           div(
-            style = "margin-top: 15px;",
             uiOutput(ns("validation_reporter"))
           ),
 
@@ -112,12 +111,23 @@ mod_sites_ui <- function(id) {
           )
         )
       ),
-
-      ## Right panel: Map ----
+      ## Top right card: Map ----
       card(
+        height = "40vh",
         full_screen = TRUE,
         ### Leaflet map ----
         leafletOutput(ns("sites_map"), height = "500px")
+      )
+    ),
+
+    ### Bottom card: Sites table ----
+    card(
+      full_screen = TRUE,
+      height = "40vh",
+      card_body(
+        div(
+          rHandsontableOutput(ns("sites_table"))
+        )
       )
     )
   )
@@ -356,32 +366,6 @@ mod_sites_server <- function(id) {
     }) |>
       bindEvent(input$add_site)
 
-    ## observe: Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$sites_data
-    observe({
-      if (!is.null(input$sites_table)) {
-        # Get current table data
-        current_data <- hot_to_r(input$sites_table)
-
-        # For now, remove the last row (rhandsontable selection is complex)
-        # TODO: Implement proper row selection detection
-        if (nrow(current_data) > 0) {
-          moduleState$sites_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-          showNotification("Removed last row", type = "message")
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
-      } else {
-        showNotification("Please select a row to remove", type = "warning")
-      }
-    }) |>
-      bindEvent(input$remove_selected)
-
     ## observe: Handle table changes ----
     # upstream: input$sites_table changes
     # downstream: moduleState$sites_data
@@ -422,13 +406,14 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df(), stretchH = "all") |>
+        rhandsontable(init_sites_df()) |>
           hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(
           moduleState$sites_data,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
+          height = NULL
         ) |>
           hot_table(overflow = "visible") |>
           hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
