@@ -319,6 +319,30 @@ mod_campaign_server <- function(id) {
     }) |>
       bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
 
+    ## observe: Populate from LLM data when available ----
+    # upstream: session$userData$reactiveValues$campaignDataLLM
+    # downstream: input fields
+    observe({
+      llm_data <- session$userData$reactiveValues$campaignDataLLM
+      if (
+        !is.null(llm_data) &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        populate_campaign_from_llm(session, llm_data)
+
+        showNotification(
+          "Campaign form populated from LLM extraction. Please review and correct as needed.",
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$campaignDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 3. Outputs ----
 
     ## output: validation_reporter ----

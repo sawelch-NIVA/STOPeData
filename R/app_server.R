@@ -12,6 +12,8 @@ app_server <- function(input, output, session) {
   if (!is.reactivevalues(session$userData$reactiveValues)) {
     session$userData$reactiveValues <- reactiveValues(
       ENTERED_BY = character(0),
+
+      # Standard validated data (existing structure)
       sitesData = tibble(NULL),
       parametersData = tibble(NULL),
       compartmentsData = tibble(NULL),
@@ -20,7 +22,21 @@ app_server <- function(input, output, session) {
       methodsData = tibble(NULL),
       samplesData = tibble(NULL),
       biotaData = tibble(NULL),
-      dataData = tibble(NULL)
+      dataData = tibble(NULL),
+
+      # LLM extracted data (new structure)
+      campaignDataLLM = NULL,
+      referencesDataLLM = NULL,
+      sitesDataLLM = NULL,
+      parametersDataLLM = NULL,
+      compartmentsDataLLM = NULL,
+      methodsDataLLM = NULL,
+      samplesDataLLM = NULL,
+      biotaDataLLM = NULL,
+
+      # LLM extraction status flags
+      llmExtractionComplete = FALSE,
+      llmExtractionSuccessful = FALSE
     )
   }
 
@@ -28,10 +44,11 @@ app_server <- function(input, output, session) {
   db_status <- reactive({
     # Add invalidateLater if you want periodic checks
     # invalidateLater(5000)
-
     FALSE
   })
 
+  # Module servers ----
+  moduleLLM <- mod_llm_server("llm_extract")
   moduleCampaign <- mod_campaign_server("campaign")
   moduleReference <- mod_references_server("references")
   moduleSites <- mod_sites_server("sites")
@@ -40,17 +57,13 @@ app_server <- function(input, output, session) {
   moduleMethods <- mod_methods_server("methods")
   moduleSamples <- mod_samples_server("samples")
   moduleBiota <- mod_biota_server("biota")
-  moduleData <- mod_data_server(
-    "data"
-  )
-  moduleReview <- mod_review_server(
-    "review"
-  )
+  moduleData <- mod_data_server("data")
+  moduleReview <- mod_review_server("review")
 
   # Module navigation ----
   ## Navigation setup ----
   module_order <- c(
-    "00-landing",
+    "00-llm-extract",
     "01-campaign",
     "02-references",
     "03-sites",
@@ -66,7 +79,7 @@ app_server <- function(input, output, session) {
   ## Track current module position ----
   current_position <- reactive({
     current_tab <- input$`main-page`
-    if (is.null(current_tab)) return(2) # Default to campaign (position 2)
+    if (is.null(current_tab)) return(1) # Default to LLM extract (position 1)
     match(current_tab, module_order)
   })
 
@@ -74,8 +87,8 @@ app_server <- function(input, output, session) {
   observe({
     pos <- current_position()
 
-    # Disable previous button on first active module (campaign)
-    if (pos <= 2) {
+    # Disable previous button on first module (LLM extract)
+    if (pos <= 1) {
       disable("previous_section")
     } else {
       enable("previous_section")
@@ -93,8 +106,8 @@ app_server <- function(input, output, session) {
   ## observe: Previous section navigation ----
   observe({
     pos <- current_position()
-    if (pos > 2) {
-      # Don't go before campaign
+    if (pos > 1) {
+      # Don't go before LLM extract
       new_tab <- module_order[pos - 1]
       updateNavbarPage(session, "main-page", selected = new_tab)
     }

@@ -396,6 +396,42 @@ mod_sites_server <- function(id) {
       }
     })
 
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$sitesDataLLM
+    # downstream: moduleState$sites_data
+    observe({
+      print_dev("observe~bindEvent: load data from LLM module")
+      llm_sites <- session$userData$reactiveValues$sitesDataLLM
+      if (
+        !is.null(llm_sites) &&
+          nrow(llm_sites) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Replace current sites data with LLM data
+        # This will trigger validation and may show warnings for invalid fields
+        moduleState$sites_data <- llm_sites
+
+        # Update next_site_id counter
+        moduleState$next_site_id <- nrow(llm_sites) + 1
+
+        showNotification(
+          paste(
+            "Loaded",
+            nrow(llm_sites),
+            "sites from LLM extraction. Review coordinates and details."
+          ),
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        label = "observe~bindEvent: load data from LLM module",
+        session$userData$reactiveValues$sitesDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 4. Outputs ----
 
     ## output: sites_table ----
@@ -616,10 +652,23 @@ mod_sites_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
@@ -636,6 +685,8 @@ mod_sites_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status)
     })
 
     ## output: validated_data_display ----

@@ -17,6 +17,7 @@ Imports:
     digest,
     dplyr,
     DT,
+    ellmer,
     ggplot2,
     glue,
     golem,
