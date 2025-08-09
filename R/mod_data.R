@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib card card_header card_body accordion accordion_panel
+#' @importFrom bslib card card_body accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -25,7 +25,6 @@ mod_data_ui <- function(id) {
     # Main data entry card ----
     card(
       fill = TRUE,
-      card_header("Measurement Data Entry"),
       card_body(
         ## Info accordion ----
         accordion(

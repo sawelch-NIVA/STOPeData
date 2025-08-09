@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip
+#' @importFrom bslib card card_body accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -26,7 +26,6 @@ mod_biota_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Biota Sample Details"),
       card_body(
         ## Info accordion ----
         accordion(

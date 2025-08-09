@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectizeInput dateInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs enable disable
@@ -26,7 +26,6 @@ mod_samples_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Sample Combinations Data Management"),
       card_body(
         ## Info accordion ----
         accordion(

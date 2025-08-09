@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList fileInput textInput actionButton
-#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
+#' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
 mod_llm_ui <- function(id) {
@@ -22,7 +22,6 @@ mod_llm_ui <- function(id) {
 
     # Main extraction card ----
     card(
-      card_header("Automated Data Extraction"),
       card_body(
         ## Info accordion ----
         accordion(

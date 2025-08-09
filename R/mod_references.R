@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton numericInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs enable disable
 #' @importFrom rcrossref cr_works
@@ -27,7 +27,6 @@ mod_references_ui <- function(id) {
     # Main input card ----
     card(
       fill = TRUE,
-      card_header("Reference Data Entry"),
       card_body(
         ## Info accordion ----
         accordion(
