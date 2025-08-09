@@ -26,20 +26,10 @@ mod_biota_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Biota Sample Details"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Biota Information",
-            icon = bs_icon("info-circle"),
-            div(
-              p(
-                "This module captures detailed biological information for samples from living organisms. All biota samples require species identification, tissue type, life stage, and gender information to be considered valid."
-              )
-            )
-          )
+        info_accordion(
+          content_file = "inst/app/www/md/intro_biota.md"
         ),
 
         ## Biota table ----

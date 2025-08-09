@@ -29,14 +29,7 @@ mod_samples_ui <- function(id) {
       card_header("Sample Combinations Data Management"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Sample Combinations Information",
-            icon = bs_icon("info-circle"),
-            "This module creates sample combinations by selecting sites, parameters, compartments, and sampling dates. Each combination represents a specific sample that will be collected. Select multiple values from each category to generate all possible combinations."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_samples.md"),
 
         ## Sample combination form ----
         div(

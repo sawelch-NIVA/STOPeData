@@ -30,14 +30,7 @@ mod_references_ui <- function(id) {
       card_header("Reference Data Entry"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Reference Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects bibliographic reference data. Fields marked with (*) are always required. Additional fields become required based on the selected reference type. Use the DOI lookup or BibTeX import features to auto-populate fields when available."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_references.md"),
 
         ## Import tools section ----
         layout_column_wrap(

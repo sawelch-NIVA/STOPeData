@@ -24,14 +24,7 @@ mod_review_ui <- function(id) {
       card_header("Data Review & Visualization"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Data Review Information",
-            icon = bs_icon("info-circle"),
-            "This module provides visual review of your measurement data. Explore measured values across different parameters, sites, compartments, and sampling dates. Use the controls below to customize the visualizations and identify any data patterns or potential issues before export."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_review.md"),
 
         ## Data availability status ----
         div(

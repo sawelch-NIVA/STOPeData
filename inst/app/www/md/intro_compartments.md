@@ -1,0 +1,1 @@
+This module manages environmental compartment combinations that will be sampled. Select an environmental compartment (e.g., Aquatic), then choose the appropriate sub-compartment (e.g., Freshwater) and measurement category. Each combination represents a different sampling context you'll use in your study.

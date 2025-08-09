@@ -1,0 +1,1 @@
+This module provides visual review of your measurement data. Explore measured values across different parameters, sites, compartments, and sampling dates. Use the controls below to customize the visualizations and identify any data patterns or potential issues before export.

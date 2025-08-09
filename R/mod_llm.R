@@ -25,13 +25,8 @@ mod_llm_ui <- function(id) {
       card_header("Automated Data Extraction"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "LLM Extraction Information",
-            icon = bs_icon("info-circle"),
-            "This module uses Claude AI to automatically extract environmental exposure data from uploaded PDFs. Upload a research paper or report, provide your Anthropic API key, and the system will attempt to populate all form fields automatically. Review and correct the extracted data in subsequent modules before validation."
-          )
+        info_accordion(
+          content_file = "inst/app/www/md/intro_llm.md"
         ),
 
         ## Upload and API section ----
