@@ -1,6 +1,6 @@
 Package: STOPeData
 Title: PKG_TITLE
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("aut", "cre"))
 Description: PKG_DESC.

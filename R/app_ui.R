@@ -21,7 +21,11 @@ app_ui <- function(request) {
         theme = "auto",
         position = "static-top"
       ),
-      # nav_panel(title = "Landing", value = "00-landing", mod_landing_ui("landing")),
+      nav_panel(
+        title = "Landing",
+        value = "00-landing",
+        mod_landing_ui("landing")
+      ),
       nav_panel(
         title = "0. LLM Extract",
         value = "00-llm-extract",

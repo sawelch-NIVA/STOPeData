@@ -1,0 +1,3 @@
+Welcome to version 0.0.0.9002 of the eData app, a tool for importing, formatting, validating and exploring environmental exposure and monitoring data from a wide range of sources. The goal of the tool is to make it as easy as possible for data owners to reuse and share their using a standard data/metadata format.
+
+This tool is under active development, and features may change or be removed as the needs of the project and users evolve. If you have any feedback, comments, questions or requests, I encourage you to contact me at [sam.welch\@niva.no](mailto:sam.welch@niva.no).
