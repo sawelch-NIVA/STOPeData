@@ -20,16 +20,16 @@
 ##
 golem::fill_desc(
   pkg_name = "STOPeData", # The name of the golem package containing the app (typically lowercase, no underscore or periods)
-  pkg_title = "PKG_TITLE", # What the Package Does (One Line, Title Case, No Period)
-  pkg_description = "PKG_DESC.", # What the package does (one paragraph).
+  pkg_title = "eData - A data entry, formatting, and review tool for exposure data", # What the Package Does (One Line, Title Case, No Period)
+  pkg_description = "A Shiny app to import environmental monitoring data from papers or other data sources, formatting with the eData format and validating. Review data, export, and check data quality against the CREED criteria.", # What the package does (one paragraph).
   authors = person(
-    given = "AUTHOR_FIRST", # Your First Name
-    family = "AUTHOR_LAST", # Your Last Name
-    email = "AUTHOR@MAIL.COM", # Your email
+    given = "Sam A.", # Your First Name
+    family = "Welch", # Your Last Name
+    email = "saw@niva.no", # Your email
     role = c("aut", "cre") # Your role (here author/creator)
   ),
-  repo_url = NULL, # The URL of the GitHub repo (optional),
-  pkg_version = "0.0.0.9000", # The version of the package containing the app
+  repo_url = "https://github.com/sawelch-NIVA/STOPeData", # The URL of the GitHub repo (optional),
+  pkg_version = "0.0.0.9002", # The version of the package containing the app
   set_options = TRUE # Set the global golem options
 )
 

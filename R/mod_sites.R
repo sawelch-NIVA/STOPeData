@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput numericInput textInput dateInput textAreaInput actionButton tags
-#' @importFrom bslib css card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib css card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -63,7 +63,7 @@ mod_sites_ui <- function(id) {
                 list("n sites", bs_icon("info-circle-fill")),
                 "Number of sites to add at once."
               ),
-              value = 1,
+              value = 10,
               min = 1,
               max = 50,
               width = "80px"

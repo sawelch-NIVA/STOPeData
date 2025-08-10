@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput updateSelectizeInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom rhandsontable rHandsontableOutput
@@ -27,7 +27,6 @@ mod_parameters_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Parameters Data Management"),
       card_body(
         ## Info accordion ----
         accordion(
