@@ -999,6 +999,12 @@ mod_references_server <- function(id) {
         }
       }
     )
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
+    )
   })
 }
 
