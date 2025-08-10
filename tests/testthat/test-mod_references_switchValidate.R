@@ -170,4 +170,21 @@ describe("{shinytest2} mod_references", {
     expect_true(valid)
     expect_equal(data, dataset_test_data)
   })
+  it("clears all inputs when clear button is clicked", {
+    # Verify data is populated before clearing ----
+    data_before_clear <- app$get_value(export = "references-module_data") |>
+      dplyr::select(-ACCESS_DATE)
+    expect_false(all(is.na(data_before_clear$AUTHOR))) # Should have data
+
+    # Click the clear button ----
+    app$click("references-clear")
+
+    # Verify all fields are cleared ----
+    data_after_clear <- app$get_value(export = "references-module_data")
+    valid_after_clear <- app$get_value(export = "references-module_valid")
+
+    # Check that data matches empty state ----
+    expect_null(data_after_clear)
+    expect_false(valid_after_clear)
+  })
 })

@@ -1,5 +1,5 @@
 describe("parameter_units() loads expected data", {
-  withr::local_dir(new = "../") # set wd to root
+  withr::local_dir(new = here::here()) # set wd to root
   it(description = "loads a dataframe with the right four columns", {
     units <- parameter_units()
     testthat::expect_equal(

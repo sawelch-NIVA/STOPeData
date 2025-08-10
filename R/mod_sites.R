@@ -63,7 +63,7 @@ mod_sites_ui <- function(id) {
                 list("n sites", bs_icon("info-circle-fill")),
                 "Number of sites to add at once."
               ),
-              value = 1,
+              value = 10,
               min = 1,
               max = 50,
               width = "80px"

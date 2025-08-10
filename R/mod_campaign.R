@@ -373,6 +373,12 @@ mod_campaign_server <- function(id) {
         "# Data object will be created when valid data is entered."
       }
     })
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
+    )
   })
 }
 
