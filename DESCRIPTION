@@ -23,6 +23,7 @@ Imports:
     htmltools,
     httr,
     leaflet,
+    markdown,
     plotly,
     purrr,
     rcrossref (>= 1.2.0),
