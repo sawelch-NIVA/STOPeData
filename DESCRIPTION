@@ -5,47 +5,41 @@ Authors@R:
     person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("aut", "cre"))
 Description: PKG_DESC.
 License: What license is it under?
+URL: https://github.com/sawelch-NIVA/STOPeData
+BugReports: https://github.com/sawelch-NIVA/STOPeData/issues
 Depends: 
-  R (>= 4.1.0)
+    R (>= 4.1.0)
 Imports: 
     arrow,
-    attempt,
     bib2df,
     bsicons,
     bslib,
     config,
-    digest,
     dplyr,
-    DT,
     ellmer,
     ggplot2,
     glue,
     golem,
     htmltools,
     httr,
-    ISOcodes,
     leaflet,
-    lubridate,
-    openxlsx2,
-    pkgload,
     plotly,
     purrr,
     rcrossref (>= 1.2.0),
     rhandsontable,
     shiny (>= 1.11.1),
     shinyjs,
-    shinytest2,
     shinyvalidate,
     shinyWidgets,
     stringi,
     stringr,
     tibble,
     xml2
+Suggests: 
+    lubridate,
+    shinytest2,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
-URL: https://github.com/sawelch-NIVA/STOPeData
-BugReports: https://github.com/sawelch-NIVA/STOPeData/issues

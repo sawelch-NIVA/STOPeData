@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^data-raw$
@@ -9,3 +11,4 @@ _\.new\.png$
 ^app\.R$
 ^rsconnect$
 ^\.rscignore$
+^\.dockerignore$
