@@ -1,11 +1,6 @@
 # Tests for Crossref Functions ----
 # Simple tests for DOI/PMID validation and lookup functions
 
-library(lubridate)
-library(glue)
-library(purrr)
-
-
 # Helper function for offline testing
 skip_if_offline <- function() {
   if (!has_internet()) {
@@ -193,7 +188,7 @@ test_that("map_crossref_to_reference_fields works with real Crossref data", {
   expect_true(nchar(mapped_fields$TITLE) > 0)
   expect_true(is.character(mapped_fields$DOI))
   expect_equal(mapped_fields$DOI, "10.1038/nature11247")
-  expect_true(is.Date(mapped_fields$ACCESS_DATE))
+  expect_true(lubridate::is.Date(mapped_fields$ACCESS_DATE))
 })
 
 test_that("validate_and_lookup_identifier works end-to-end with DOI", {
@@ -286,12 +281,14 @@ test_that("validate_and_lookup_identifier works with diverse DOIs", {
     doi <- test_dois[i]
 
     # Add some delay to be respectful to APIs
-    if (i > 1) Sys.sleep(0.01) # limit as of 2025 is 50/sec
+    if (i > 1) {
+      Sys.sleep(0.01)
+    } # limit as of 2025 is 50/sec
 
     result <- validate_and_lookup_identifier(doi)
     results[[i]] <- result
 
-    message(glue("DOI query {i}: {doi}; result: {result$success}"))
+    # message(glue::glue("DOI query {i}: {doi}; result: {result$success}"))
 
     if (result$success) {
       successful_lookups <- successful_lookups + 1
@@ -300,10 +297,10 @@ test_that("validate_and_lookup_identifier works with diverse DOIs", {
       expect_equal(result$identifier_type, "doi")
       expect_true(is.list(result$data))
       expect_true(is.character(result$data$TITLE) || is.na(result$data$TITLE))
-      expect_true(is.Date(result$data$ACCESS_DATE))
+      expect_true(lubridate::is.Date(result$data$ACCESS_DATE))
 
       # Check that DOI is preserved correctly
-      if (!is_empty(result$data$DOI)) {
+      if (!purrr::is_empty(result$data$DOI)) {
         expect_equal(
           extract_clean_doi(result$data$DOI) |> tolower(),
           extract_clean_doi(doi) |> tolower()
@@ -326,21 +323,6 @@ test_that("validate_and_lookup_identifier works with diverse DOIs", {
       paste(failed_lookups, collapse = ", ")
     )
   )
-
-  # Print summary for debugging
-  cat("\nDOI Lookup Test Summary:\n")
-  cat(
-    "Successful lookups:",
-    successful_lookups,
-    "/",
-    length(test_dois),
-    "(",
-    round(success_rate * 100, 1),
-    "%)\n"
-  )
-  if (length(failed_lookups) > 0) {
-    cat("Failed DOIs:", paste(failed_lookups, collapse = ", "), "\n")
-  }
 })
 
 test_that("validate_and_lookup_identifier handles different DOI formats consistently", {

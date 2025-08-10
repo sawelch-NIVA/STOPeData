@@ -27,8 +27,10 @@ withr::with_dir(new = here::here(), {
       # expect_true(inherits(output$tbl$html, "html"))
     }
   )
+})
 
-  test_that("module ui works", {
+test_that("module ui works", {
+  withr::with_dir(new = here::here(), {
     ui <- mod_data_ui(id = "test")
     golem::expect_shinytaglist(ui)
     # Check that formals have not been removed

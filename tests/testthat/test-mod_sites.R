@@ -1,5 +1,3 @@
-library(shinytest2)
-
 testServer(
   mod_sites_server,
   # Add here your module params
@@ -29,17 +27,19 @@ testServer(
   }
 )
 
-test_that("module ui works", {
-  ui <- mod_sites_ui(id = "test")
-  golem::expect_shinytaglist(ui)
-  # Check that formals have not been removed
-  fmls <- formals(mod_sites_ui)
-  for (i in c("id")) {
-    expect_true(i %in% names(fmls))
-  }
+withr::with_dir(new = here::here(), {
+  test_that("module ui works", {
+    ui <- mod_sites_ui(id = "test")
+    golem::expect_shinytaglist(ui)
+    # Check that formals have not been removed
+    fmls <- formals(mod_sites_ui)
+    for (i in c("id")) {
+      expect_true(i %in% names(fmls))
+    }
+  })
 })
 
-describe("{shinytest2} mod_sites bulk addition", {
+test_that("{shinytest2} mod_sites bulk addition", {
   app <- AppDriver$new(name = "add50Sites")
 
   it("successfully adds 50 blank sites to the table", {
