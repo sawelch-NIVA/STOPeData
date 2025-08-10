@@ -115,46 +115,10 @@ mod_data_server <- function(id) {
     ## Controlled vocabulary options ----
     measured_flags <- c("", "<LOQ", "<LOD")
 
-    measured_units <- c(
-      "mg/L",
-      "ug/L",
-      "ng/L",
-      "pg/L",
-      "mol/L",
-      "mmol/L",
-      "umol/L",
-      "nmol/L",
-      "pmol/L",
-      "M",
-      "mM",
-      "uM",
-      "nM",
-      "pM",
-      "deg C",
-      "K",
-      "Pa",
-      "bar",
-      "atm",
-      "psu",
-      "%",
-      "ppm",
-      "ppb",
-      "ppt",
-      "Gy",
-      "Gy/h",
-      "mGy",
-      "uGy",
-      "J/m2",
-      "W/m2",
-      "mm",
-      "cm",
-      "m",
-      "g",
-      "kg",
-      "Other"
-    )
+    measured_units <- parameter_units("MEASURED_UNIT")
 
     ## InputValidator for measurement data validation ----
+    # ! FORMAT-BASED
     iv <- InputValidator$new()
     iv$add_rule("measurement_table_validation", function(value) {
       if (!moduleState$data_entry_ready) {
@@ -299,6 +263,7 @@ mod_data_server <- function(id) {
     }
 
     ## Create sample-parameter combinations for measurement entry ----
+    # ! FORMAT-BASED
     create_measurement_combinations <- function() {
       # Get all validated data
       samples_data <- session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
@@ -352,6 +317,7 @@ mod_data_server <- function(id) {
     }
 
     ## Initialize measurement combinations data frame ----
+    # ! FORMAT-BASED
     init_measurement_df <- function() {
       tibble(
         SAMPLE_ID = character(0),
@@ -411,6 +377,7 @@ mod_data_server <- function(id) {
     ## observe: Handle table changes ----
     # upstream: input$measurement_table changes
     # downstream: moduleState$measurement_combinations
+    # ! FORMAT-BASED
     observe({
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
@@ -523,6 +490,7 @@ mod_data_server <- function(id) {
     ## output: measurement_table ----
     # upstream: moduleState$measurement_combinations, moduleState$data_entry_ready
     # downstream: UI table display
+    # ! FORMAT-BASED
     output$measurement_table <- renderRHandsontable({
       if (
         !moduleState$data_entry_ready ||
@@ -612,6 +580,7 @@ mod_data_server <- function(id) {
     ## output: complete_data_preview ----
     # upstream: moduleState$complete_dataset
     # downstream: UI data display
+    # ! FORMAT-BASED
     output$complete_data_preview <- renderText({
       if (isTruthy(moduleState$complete_dataset)) {
         # Show overview of complete dataset

@@ -10,6 +10,7 @@
 #' @param llm_campaign_data Campaign data extracted by LLM
 #' @noRd
 #' @importFrom shiny updateTextInput updateDateInput updateSelectInput updateTextAreaInput
+# ! FORMAT-BASED
 populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (is.null(llm_campaign_data)) {
     return()
@@ -96,6 +97,7 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
 #' @param session Shiny session object
 #' @param llm_references_data References data extracted by LLM
 #' @noRd
+# ! FORMAT-BASED
 populate_references_from_llm <- function(session, llm_references_data) {
   if (is.null(llm_references_data)) {
     return()
@@ -196,6 +198,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
 #' @param llm_sites_data Sites data frame extracted by LLM
 #' @return Data frame in sites module format
 #' @noRd
+# ! FORMAT-BASED
 create_sites_from_llm <- function(llm_sites_data) {
   if (is.null(llm_sites_data) || nrow(llm_sites_data) == 0) {
     return(data.frame())
@@ -254,6 +257,7 @@ create_sites_from_llm <- function(llm_sites_data) {
 #' Map LLM geographic feature to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in sites module
 #' @noRd
+# ! FORMAT-BASED
 map_geographic_feature_strict <- function(feature) {
   if (is.null(feature) || feature == "") {
     return("Not reported")
@@ -323,6 +327,7 @@ map_geographic_feature_strict <- function(feature) {
 #' @param chemical_parameters Reference database for lookups (optional)
 #' @return Data frame in parameters module format
 #' @noRd
+# ! FORMAT-BASED
 create_parameters_from_llm <- function(
   llm_parameters_data,
   chemical_parameters = NULL
@@ -430,6 +435,7 @@ safe_extract_field <- function(data_obj, field_name, default = NA) {
 
 #' Map LLM parameter type to controlled vocabulary
 #' @noRd
+# ! FORMAT-BASED
 map_parameter_type <- function(param_type) {
   if (is.null(param_type) || param_type == "") {
     return("Stressor")
@@ -460,6 +466,7 @@ map_parameter_type <- function(param_type) {
 #' @param chemical_parameters Reference database
 #' @return List with validation results and formatted text output
 #' @noRd
+# ! FORMAT-BASED
 validate_parameters_against_database <- function(
   parameters_data,
   chemical_parameters
@@ -630,6 +637,7 @@ validate_parameters_against_database <- function(
 
 #' Map LLM parameter type to strict controlled vocabulary
 #' @noRd
+# ! FORMAT-BASED
 map_parameter_type_strict <- function(param_type) {
   if (is.null(param_type) || param_type == "") {
     return("Stressor")
@@ -661,6 +669,7 @@ map_parameter_type_strict <- function(param_type) {
 #' @param llm_compartments_data Compartments data frame extracted by LLM
 #' @return Data frame in compartments module format
 #' @noRd
+# ! FORMAT-BASED
 create_compartments_from_llm <- function(llm_compartments_data) {
   if (is.null(llm_compartments_data) || nrow(llm_compartments_data) == 0) {
     return(data.frame())
@@ -703,6 +712,7 @@ create_compartments_from_llm <- function(llm_compartments_data) {
 #' Map compartment to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in compartments module
 #' @noRd
+# ! FORMAT-BASED
 map_compartment_strict <- function(compartment) {
   if (is.null(compartment) || compartment == "") {
     return("Not reported")
@@ -729,6 +739,7 @@ map_compartment_strict <- function(compartment) {
 #' Map compartment sub to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in compartments module
 #' @noRd
+# ! FORMAT-BASED
 map_compartment_sub_strict <- function(compartment_sub) {
   if (is.null(compartment_sub) || compartment_sub == "") {
     return("Not reported")
@@ -819,6 +830,7 @@ map_compartment_sub_strict <- function(compartment_sub) {
 #' Map measured category to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in compartments module
 #' @noRd
+# ! FORMAT-BASED
 map_measured_category_strict <- function(category) {
   if (is.null(category) || category == "") {
     return("External")
