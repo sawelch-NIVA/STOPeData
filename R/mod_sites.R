@@ -40,17 +40,7 @@ mod_sites_ui <- function(id) {
         card_body(
           style = "min-height: 300px !important;",
           ### Info accordion ----
-          accordion(
-            id = ns("info_accordion"),
-            accordion_panel(
-              title = "Sites Data Information",
-              icon = bs_icon("info-circle"),
-              "This module manages sampling site information.
-              Add sites by clicking 'Add Site(s)' which creates editable rows in the table.
-              Edit fields directly in the table. Use the map to verify coordinates are correct.
-              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom right of each card."
-            )
-          ),
+          info_accordion(content_file = "inst/app/www/md/intro_sites.md"),
 
           ### Table controls ----
           div(

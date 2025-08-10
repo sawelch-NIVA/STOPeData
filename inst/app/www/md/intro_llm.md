@@ -1,0 +1,1 @@
+This module uses Claude AI to automatically extract environmental exposure data from uploaded PDFs. Upload a research paper or report, provide your Anthropic API key, and the system will attempt to populate all form fields automatically. LLMs can and do make mistakes, so carefully review and correct the extracted data in subsequent modules before validation.

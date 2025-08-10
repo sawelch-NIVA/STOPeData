@@ -29,14 +29,7 @@ mod_parameters_ui <- function(id) {
       fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Parameters Data Information",
-            icon = bs_icon("info-circle"),
-            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type, subtype and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table. Stressor subtypes are derived from the ClassyFire taxonomy (https://ice.ntp.niehs.nih.gov/DATASETDESCRIPTION?section=Chemical%20Taxonomies)."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_parameters.md"),
 
         ## Parameter selection controls ----
         layout_column_wrap(

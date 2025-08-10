@@ -1,0 +1,1 @@
+This form collects bibliographic reference data. Fields marked with (*) are always required. Additional fields become required based on the selected reference type. Use the DOI lookup or BibTeX import features to auto-populate fields when available.
