@@ -20,7 +20,7 @@ map_to_vocabulary <- function(
   }
 
   mapping_table <- readr::read_csv(
-    "inst/data/clean/llm_vocabulary_mappings.csv",
+    "inst/data/clean/llm_vocabulary_mapping.csv",
     show_col_types = FALSE
   )
 
