@@ -1,9 +1,9 @@
 Package: STOPeData
-Title: PKG_TITLE
-Version: 0.0.0.9001
+Title: eData - A data entry, formatting, and review tool for exposure data
+Version: 0.0.0.9002
 Authors@R: 
-    person("AUTHOR_FIRST", "AUTHOR_LAST", , "AUTHOR@MAIL.COM", role = c("aut", "cre"))
-Description: PKG_DESC.
+    person("Sam A.", "Welch", , "saw@niva.no", role = c("aut", "cre"))
+Description: A Shiny app to import environmental monitoring data from papers or other data sources, formatting with the eData format and validating. Review data, export, and check data quality against the CREED criteria.
 License: What license is it under?
 Depends: 
   R (>= 4.1.0)
@@ -17,6 +17,7 @@ Imports:
     digest,
     dplyr,
     DT,
+    ellmer,
     ggplot2,
     glue,
     golem,
@@ -25,6 +26,7 @@ Imports:
     ISOcodes,
     leaflet,
     lubridate,
+    markdown,
     openxlsx2,
     pkgload,
     plotly,

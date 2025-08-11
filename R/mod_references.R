@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton numericInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs enable disable
 #' @importFrom rcrossref cr_works
@@ -26,17 +26,10 @@ mod_references_ui <- function(id) {
 
     # Main input card ----
     card(
-      card_header("Reference Data Entry"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Reference Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects bibliographic reference data. Fields marked with (*) are always required. Additional fields become required based on the selected reference type. Use the DOI lookup or BibTeX import features to auto-populate fields when available."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_references.md"),
 
         ## Import tools section ----
         layout_column_wrap(
@@ -894,6 +887,30 @@ mod_references_server <- function(id) {
       }
     })
 
+    ## observe: Populate from LLM data when available ----
+    # upstream: session$userData$reactiveValues$referencesDataLLM
+    # downstream: input fields
+    observe({
+      llm_data <- session$userData$reactiveValues$referencesDataLLM
+      if (
+        !is.null(llm_data) &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        populate_references_from_llm(session, llm_data)
+
+        showNotification(
+          "References form populated from LLM extraction. Please review and correct as needed.",
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$referencesDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     ## observe ~ bindEvent: Clear fields button ----
     # upstream: user clicks input$clear
     # downstream: all input fields
@@ -974,6 +991,12 @@ mod_references_server <- function(id) {
           "# Data object will be created when valid data is entered."
         }
       }
+    )
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
     )
   })
 }

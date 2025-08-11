@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card  card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -24,17 +24,10 @@ mod_methods_ui <- function(id) {
 
     # Main content card ----
     card(
-      card_header("Methods Data Management"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Methods Data Information",
-            icon = bs_icon("info-circle"),
-            "Sampling, fractionation, extraction, and analytical protocols can affect ultimate measured concentrations by order of magnitude. Please report the relevant protocol types/classes her. In the Samples module, you will be able to match specific protocols to samples."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_methods.md"),
 
         ## Method selection form ----
         div(

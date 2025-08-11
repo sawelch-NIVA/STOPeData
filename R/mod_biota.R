@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip
+#' @importFrom bslib card card_body accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -25,20 +25,11 @@ mod_biota_ui <- function(id) {
 
     # Main content card ----
     card(
-      card_header("Biota Sample Details"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Biota Information",
-            icon = bs_icon("info-circle"),
-            div(
-              p(
-                "This module captures detailed biological information for samples from living organisms. All biota samples require species identification, tissue type, life stage, and gender information to be considered valid."
-              )
-            )
-          )
+        info_accordion(
+          content_file = "inst/app/www/md/intro_biota.md"
         ),
 
         ## Biota table ----
