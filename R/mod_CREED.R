@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput textAreaInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel
+#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 #' @export
 mod_CREED_ui <- function(id) {
@@ -32,14 +32,32 @@ mod_CREED_ui <- function(id) {
           )
         ),
 
+        ## Purpose Statement ---
+        div(
+          style = "margin: 20px 0;",
+          h5("Dataset Purpose Statement"),
+          p(
+            "Give the purpose of the study here. (WIP)",
+            class = "text-muted"
+          )
+        ),
         ## Dataset Details section ----
         div(
           style = "margin: 20px 0;",
           h5("Dataset Details - Key Attributes"),
           p(
-            "Review the auto-populated fields below and add any missing information.",
+            "This section providse basic details on the dataset. 
+            Review the auto-populated fields below and add any missing information.",
             class = "text-muted"
           )
+        ),
+
+        input_task_button(
+          id = ns("update_details"),
+          label = "Update Dataset Details",
+          icon = icon("refresh"),
+          class = "btn-primary",
+          width = "200px"
         ),
 
         ## Two-column layout for dataset details ----
@@ -52,86 +70,51 @@ mod_CREED_ui <- function(id) {
           div(
             h6("Auto-populated from Dataset", style = "color: #0066cc;"),
 
-            textInput(
+            textAreaInput(
               inputId = ns("source_auto"),
               label = "Source (reference):",
               value = "",
+              rows = 1,
               width = "100%"
             ),
 
-            textInput(
+            textAreaInput(
               inputId = ns("analyte_auto"),
               label = "Reported Analyte:",
               value = "",
+              rows = 1,
               width = "100%"
             ),
 
-            textInput(
+            textAreaInput(
               inputId = ns("medium_auto"),
               label = "Sample Medium/Matrix:",
               value = "",
+              rows = 1,
               width = "100%"
             ),
-
-            textInput(
-              inputId = ns("study_area_auto"),
-              label = "Study Area:",
-              value = "",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("num_sites_auto"),
-              label = "Number of Sites:",
-              value = "",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("num_samples_auto"),
-              label = "Number of Samples:",
-              value = "",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("sampling_period_auto"),
-              label = "Sampling Period:",
-              value = "",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("analytical_methods_auto"),
-              label = "Analytical Method(s):",
-              value = "",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("loq_auto"),
-              label = "Limit of Quantification:",
-              value = "",
-              width = "100%"
-            )
-          ),
-
-          ### User input fields (right column) ----
-          div(
-            h6("Additional Details", style = "color: #0066cc;"),
 
             textAreaInput(
               inputId = ns("sampling_conditions"),
               label = "Sampling Conditions:",
               placeholder = "Describe sampling conditions, protocols, etc.",
-              rows = 2,
+              rows = 1,
               width = "100%"
             ),
 
-            textInput(
-              inputId = ns("site_density"),
-              label = "Site Density:",
-              placeholder = "e.g., 1 site per 100 km²",
+            textAreaInput(
+              inputId = ns("study_area_auto"),
+              label = "Study Area:",
+              value = "",
+              rows = 1,
+              width = "100%"
+            ),
+
+            textAreaInput(
+              inputId = ns("num_sites_auto"),
+              label = "Number of Sites:",
+              value = "",
+              rows = 1,
               width = "100%"
             ),
 
@@ -143,10 +126,27 @@ mod_CREED_ui <- function(id) {
               width = "100%"
             ),
 
-            textInput(
-              inputId = ns("sampling_frequency"),
-              label = "Sampling Frequency:",
-              placeholder = "e.g., monthly, quarterly",
+            textAreaInput(
+              inputId = ns("num_samples_auto"),
+              label = "Number of Samples:",
+              value = "",
+              rows = 1,
+              width = "100%"
+            ),
+
+            textAreaInput(
+              inputId = ns("sampling_period_auto"),
+              label = "Sampling Period:",
+              value = "",
+              rows = 1,
+              width = "100%"
+            ),
+
+            textAreaInput(
+              inputId = ns("analytical_methods_auto"),
+              label = "Analytical Method(s):",
+              value = "",
+              rows = 1,
               width = "100%"
             ),
 
@@ -154,7 +154,34 @@ mod_CREED_ui <- function(id) {
               inputId = ns("sampling_methods"),
               label = "Sampling Method(s):",
               placeholder = "Describe sampling protocols used",
-              rows = 2,
+              rows = 1,
+              width = "100%"
+            ),
+
+            textAreaInput(
+              inputId = ns("loq_auto"),
+              label = "Limit of Quantification:",
+              value = "",
+              rows = 1,
+              width = "100%"
+            )
+          ),
+
+          ### User input fields (right column) ----
+          div(
+            h6("Additional Details (free text)", style = "color: #0066cc;"),
+
+            textInput(
+              inputId = ns("site_density"),
+              label = "Site Density:",
+              placeholder = "e.g., 1 site per 100 km²",
+              width = "100%"
+            ),
+
+            textInput(
+              inputId = ns("sampling_frequency"),
+              label = "Sampling Frequency:",
+              placeholder = "e.g., monthly, quarterly",
               width = "100%"
             ),
 
@@ -169,22 +196,43 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Action buttons ----
+        input_task_button(
+          id = ns("save_assessment"),
+          label = "Save Assessment",
+          icon = icon("save"),
+          class = "btn-success",
+          width = "200px",
+          style = "margin-left: 10px;"
+        ),
+
+        ## Gateway Criteria ---
         div(
           style = "margin: 20px 0;",
-          actionButton(
-            inputId = ns("update_details"),
-            label = "Update Dataset Details",
-            icon = icon("refresh"),
-            class = "btn-primary",
-            width = "200px"
-          ),
-          actionButton(
-            inputId = ns("save_assessment"),
-            label = "Save Assessment",
-            icon = icon("save"),
-            class = "btn-success",
-            width = "200px",
-            style = "margin-left: 10px;"
+          h5("Gateway Criteria"),
+          p(
+            "Any study chosen for upload more or less definitely meets 
+            this critera, so how valuable this part will be is definitely questionable.",
+            class = "text-muted"
+          )
+        ),
+
+        ## Reliability Criteria ---
+        div(
+          style = "margin: 20px 0;",
+          h5("Reliability Criteria"),
+          p(
+            "Is the study reliable?",
+            class = "text-muted"
+          )
+        ),
+
+        ## Reliability Criteria ---
+        div(
+          style = "margin: 20px 0;",
+          h5("Relevance Criteria"),
+          p(
+            "Is the study relevant to your goals? (again, probably yes)",
+            class = "text-muted"
           )
         ),
 
@@ -195,13 +243,12 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Future CREED sections placeholder ----
-        accordion(
-          id = ns("future_accordion"),
-          open = FALSE,
-          accordion_panel(
-            title = "Full CREED Assessment (Coming Soon)",
-            icon = bs_icon("gear"),
-            "Future versions will include Gateway Criteria, Reliability Assessment, and Relevance Assessment tabs for complete CREED evaluation."
+        div(
+          style = "margin: 20px 0;",
+          h5("Generate Final Report"),
+          p(
+            "This part is complicated...",
+            class = "text-muted"
           )
         )
       )
@@ -258,6 +305,10 @@ mod_CREED_server <- function(id) {
         ref_parts <- c(ref_parts, ref_data$PUBLISHER)
       }
 
+      if (!is.na(ref_data$DOI) && ref_data$DOI != "") {
+        ref_parts <- c(ref_parts, "(", ref_data$DOI, ")")
+      }
+
       if (length(ref_parts) > 0) {
         return(paste(ref_parts, collapse = ". "))
       } else {
@@ -266,7 +317,7 @@ mod_CREED_server <- function(id) {
     }
 
     ## Summarize multiple values ----
-    summarize_multiple <- function(values, prefix = "", max_display = 3) {
+    summarize_multiple <- function(values, prefix = "", max_display = 10) {
       if (is.null(values) || length(values) == 0) {
         return("Relevant data not found")
       }
@@ -364,6 +415,16 @@ mod_CREED_server <- function(id) {
       # Number of sites
       num_sites <- if (!is.null(sites_data)) {
         as.character(nrow(sites_data))
+      } else {
+        "Relevant data not found"
+      }
+
+      # Site Types
+      site_types <- if (!is.null(sites_data)) {
+        types <- summarize_multiple(
+          sites_data$SITE_GEOGRAPHICAL_FEATURE,
+          "Countries"
+        )
       } else {
         "Relevant data not found"
       }

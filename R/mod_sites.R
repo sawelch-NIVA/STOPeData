@@ -129,7 +129,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
-#' @importFrom ISOcodes ISO_3166_1
+#' @import ISOcodes
 #' @importFrom dplyr pull
 #' @export
 mod_sites_server <- function(id) {

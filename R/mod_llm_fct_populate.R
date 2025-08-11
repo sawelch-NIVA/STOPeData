@@ -329,6 +329,7 @@ create_parameters_from_llm <- function(
       INCHIKEY_SD = if (!is.null(db_match)) db_match$INCHIKEY_SD else "",
       PUBCHEM_CID = if (!is.null(db_match)) db_match$PUBCHEM_CID else "",
       CAS_RN = cas_rn,
+      ENTERED_BY = "",
       stringsAsFactors = FALSE
     )
 

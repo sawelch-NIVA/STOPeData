@@ -60,7 +60,18 @@ mod_llm_ui <- function(id) {
               value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
               placeholder = "sk-ant-...",
               width = "100%"
-            )
+            ),
+            ### ENTERED_BY
+            textInput(
+              inputId = ns("entered_by"),
+              label = tooltip(
+                list("Entered By", bs_icon("info-circle-fill")),
+                "Name/contact details."
+              ),
+              value = Sys.getenv("EDATA_USERNAME", unset = ""),
+              placeholder = "Ole Nordman",
+              width = "100%"
+            ),
           )
         ),
 
@@ -458,6 +469,18 @@ mod_llm_server <- function(id) {
       showNotification("Extraction cleared", type = "message")
     }) |>
       bindEvent(input$clear_extraction)
+
+    ## observe ~ bindEvent: Set session user name ----
+    observe({
+      # Set the reactive value
+      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+      showNotification(
+        glue("Saved your username {input$ENTERED_BY} to session data."),
+        type = "message"
+      )
+    }) |>
+      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
 
     # 3. Outputs ----
 
