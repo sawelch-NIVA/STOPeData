@@ -692,7 +692,7 @@ mod_sites_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one complete, valid site to proceed. Edit fields directly in the table above.",
+          "Add at least one complete, valid site to proceed. Edit fields directly in the table below.",
           class = "validation-status validation-warning"
         )
       }
