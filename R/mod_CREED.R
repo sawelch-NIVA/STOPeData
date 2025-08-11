@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textInput textAreaInput actionButton
+#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 #' @export
@@ -205,14 +205,142 @@ mod_CREED_ui <- function(id) {
           style = "margin-left: 10px;"
         ),
 
-        ## Gateway Criteria ---
+        ## Gateway Criteria ----
         div(
           style = "margin: 20px 0;",
           h5("Gateway Criteria"),
           p(
-            "Any study chosen for upload more or less definitely meets 
-            this critera, so how valuable this part will be is definitely questionable.",
+            "Each criterion is auto-evaluated based on your data, but can be manually overridden.",
             class = "text-muted"
+          )
+        ),
+
+        # Gateway Criterion 1: Sampling Medium/Matrix
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6(
+            "1. Sampling Medium/Matrix",
+            style = "color: #495057; margin-bottom: 10px;"
+          ),
+          p(
+            "Does the study specify which medium/matrix is sampled?",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_medium_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_medium_answer"),
+            label = "Yes",
+            value = FALSE
+          )
+        ),
+
+        # Gateway Criterion 2: Analyte
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6("2. Analyte", style = "color: #495057; margin-bottom: 10px;"),
+          p(
+            "Does the study specify which unique analyte is measured?",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_analyte_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_analyte_answer"),
+            label = "Yes",
+            value = FALSE
+          )
+        ),
+
+        # Gateway Criterion 3: Spatial Location
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6(
+            "3. Spatial Location",
+            style = "color: #495057; margin-bottom: 10px;"
+          ),
+          p(
+            "Does the study specify where samples were collected? At a minimum, there is enough information for the given purpose (e.g., country).",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_location_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_location_answer"),
+            label = "Yes",
+            value = FALSE
+          )
+        ),
+
+        # Gateway Criterion 4: Year
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6("4. Year", style = "color: #495057; margin-bottom: 10px;"),
+          p(
+            "Does the study indicate when samples were collected? At a minimum, there is enough information for the given purpose (e.g., sampling year).",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_year_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_year_answer"),
+            label = "Yes",
+            value = FALSE
+          )
+        ),
+
+        # Gateway Criterion 5: Units
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6("5. Units", style = "color: #495057; margin-bottom: 10px;"),
+          p(
+            "Does the study specify units of measurement?",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_units_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_units_answer"),
+            label = "Yes",
+            value = FALSE
+          )
+        ),
+
+        # Gateway Criterion 6: Data Source/Citation
+        div(
+          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 10px 0;",
+          h6(
+            "6. Data Source/Citation",
+            style = "color: #495057; margin-bottom: 10px;"
+          ),
+          p(
+            "Does the study cite the source of data and/or is a suitable bibliographic reference available for the study?",
+            style = "margin-bottom: 8px;"
+          ),
+          div(
+            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
+            strong("Data found: "),
+            textOutput(ns("gateway_citation_summary"), inline = TRUE)
+          ),
+          checkboxInput(
+            inputId = ns("gateway_citation_answer"),
+            label = "Yes",
+            value = FALSE
           )
         ),
 
@@ -226,7 +354,7 @@ mod_CREED_ui <- function(id) {
           )
         ),
 
-        ## Reliability Criteria ---
+        ## Relevance Criteria ---
         div(
           style = "margin: 20px 0;",
           h5("Relevance Criteria"),
@@ -259,7 +387,7 @@ mod_CREED_ui <- function(id) {
 #' CREED Server Functions ----
 #'
 #' @noRd
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderUI showNotification updateTextInput updateTextAreaInput bindEvent
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderUI showNotification updateTextAreaInput updateCheckboxInput bindEvent
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @export
@@ -274,242 +402,110 @@ mod_CREED_server <- function(id) {
       assessment_saved = FALSE
     )
 
+    ## Reactive: moduleData ----
+    # upstream: session$userData$reactiveValues
+    # downstream: all helper functions
+    moduleData <- reactive({
+      list(
+        campaign = session$userData$reactiveValues$campaignData,
+        references = session$userData$reactiveValues$referencesData,
+        sites = session$userData$reactiveValues$sitesData,
+        parameters = session$userData$reactiveValues$parametersData,
+        compartments = session$userData$reactiveValues$compartmentsData,
+        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
+          session$userData$reactiveValues$sampleData,
+        methods = session$userData$reactiveValues$methodsData,
+        measurements = session$userData$reactiveValues$dataData
+      )
+    })
+
+    ## Reactive: gateway_summaries ----
+    # upstream: moduleData()
+    # downstream: gateway summary outputs
+    gateway_summaries <- reactive({
+      get_gateway_summaries(moduleData())
+    })
+
     # 2. Helper functions ----
-
-    ## Create bibliographic reference from reference data ----
-    create_bibliography_reference <- function(ref_data) {
-      if (is.null(ref_data) || nrow(ref_data) == 0) {
-        return("Relevant data not found")
-      }
-
-      # Basic format: Author (Year). Title. Journal/Source.
-      ref_parts <- c()
-
-      if (!is.na(ref_data$AUTHOR) && ref_data$AUTHOR != "") {
-        ref_parts <- c(ref_parts, ref_data$AUTHOR)
-      }
-
-      if (!is.na(ref_data$YEAR)) {
-        ref_parts <- c(ref_parts, paste0("(", ref_data$YEAR, ")"))
-      }
-
-      if (!is.na(ref_data$TITLE) && ref_data$TITLE != "") {
-        ref_parts <- c(ref_parts, ref_data$TITLE)
-      }
-
-      if (
-        !is.na(ref_data$PERIODICAL_JOURNAL) && ref_data$PERIODICAL_JOURNAL != ""
-      ) {
-        ref_parts <- c(ref_parts, ref_data$PERIODICAL_JOURNAL)
-      } else if (!is.na(ref_data$PUBLISHER) && ref_data$PUBLISHER != "") {
-        ref_parts <- c(ref_parts, ref_data$PUBLISHER)
-      }
-
-      if (!is.na(ref_data$DOI) && ref_data$DOI != "") {
-        ref_parts <- c(ref_parts, "(", ref_data$DOI, ")")
-      }
-
-      if (length(ref_parts) > 0) {
-        return(paste(ref_parts, collapse = ". "))
-      } else {
-        return("Reference data incomplete")
-      }
-    }
-
-    ## Summarize multiple values ----
-    summarize_multiple <- function(values, prefix = "", max_display = 10) {
-      if (is.null(values) || length(values) == 0) {
-        return("Relevant data not found")
-      }
-
-      unique_values <- unique(values[!is.na(values) & values != ""])
-
-      if (length(unique_values) == 0) {
-        return("Relevant data not found")
-      }
-
-      if (length(unique_values) <= max_display) {
-        result <- paste(unique_values, collapse = ", ")
-      } else {
-        displayed <- paste(unique_values[1:max_display], collapse = ", ")
-        result <- paste0(
-          displayed,
-          " (and ",
-          length(unique_values) - max_display,
-          " more)"
-        )
-      }
-
-      if (prefix != "" && length(unique_values) > 1) {
-        result <- paste0(prefix, " (", length(unique_values), "): ", result)
-      } else if (prefix != "") {
-        result <- paste0(prefix, ": ", result)
-      }
-
-      return(result)
-    }
-
-    ## Calculate date range ----
-    calculate_date_range <- function(dates) {
-      if (is.null(dates) || length(dates) == 0) {
-        return("Relevant data not found")
-      }
-
-      valid_dates <- dates[!is.na(dates)]
-      if (length(valid_dates) == 0) {
-        return("Relevant data not found")
-      }
-
-      min_date <- min(valid_dates)
-      max_date <- max(valid_dates)
-
-      if (min_date == max_date) {
-        return(as.character(min_date))
-      } else {
-        return(paste(min_date, "to", max_date))
-      }
-    }
 
     ## Auto-populate dataset details ----
     auto_populate_details <- function() {
-      # Get data from session
-      campaign_data <- session$userData$reactiveValues$campaignData
-      reference_data <- session$userData$reactiveValues$referencesData
-      sites_data <- session$userData$reactiveValues$sitesData
-      parameters_data <- session$userData$reactiveValues$parametersData
-      samples_data <- session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-        session$userData$reactiveValues$sampleData
-      methods_data <- session$userData$reactiveValues$methodsData
-      measurement_data <- session$userData$reactiveValues$dataData
-
-      # Source reference
-      source_ref <- if (!is.null(reference_data)) {
-        create_bibliography_reference(reference_data)
-      } else {
-        "Relevant data not found"
-      }
-
-      # Reported analytes
-      analytes <- if (!is.null(parameters_data)) {
-        summarize_multiple(parameters_data$PARAMETER_NAME, "Parameters")
-      } else {
-        "Relevant data not found"
-      }
-
-      # Sample medium/matrix
-      medium <- if (!is.null(samples_data)) {
-        summarize_multiple(samples_data$ENVIRON_COMPARTMENT, "Compartments")
-      } else {
-        "Relevant data not found"
-      }
-
-      # Study area (countries and areas)
-      study_area <- if (!is.null(sites_data)) {
-        countries <- summarize_multiple(sites_data$COUNTRY, "Countries")
-        areas <- summarize_multiple(sites_data$AREA, "Areas")
-        paste(countries, areas, sep = "; ")
-      } else {
-        "Relevant data not found"
-      }
-
-      # Number of sites
-      num_sites <- if (!is.null(sites_data)) {
-        as.character(nrow(sites_data))
-      } else {
-        "Relevant data not found"
-      }
-
-      # Site Types
-      site_types <- if (!is.null(sites_data)) {
-        types <- summarize_multiple(
-          sites_data$SITE_GEOGRAPHICAL_FEATURE,
-          "Countries"
-        )
-      } else {
-        "Relevant data not found"
-      }
-
-      # Number of samples
-      num_samples <- if (!is.null(samples_data)) {
-        as.character(nrow(samples_data))
-      } else {
-        "Relevant data not found"
-      }
-
-      # Sampling period
-      sampling_period <- if (!is.null(samples_data)) {
-        calculate_date_range(samples_data$SAMPLING_DATE)
-      } else {
-        "Relevant data not found"
-      }
-
-      # Analytical methods
-      analytical_methods <- if (!is.null(methods_data)) {
-        analytical_only <- methods_data[
-          methods_data$PROTOCOL_CATEGORY == "Analytical Protocol",
-        ]
-        if (nrow(analytical_only) > 0) {
-          summarize_multiple(
-            analytical_only$PROTOCOL_NAME,
-            "Analytical Protocols"
-          )
-        } else {
-          "Relevant data not found"
-        }
-      } else {
-        "Relevant data not found"
-      }
-
-      # LOQ/LOD
-      loq_info <- if (!is.null(measurement_data)) {
-        loq_values <- measurement_data$LOQ_VALUE[
-          !is.na(measurement_data$LOQ_VALUE)
-        ]
-        lod_values <- measurement_data$LOD_VALUE[
-          !is.na(measurement_data$LOD_VALUE)
-        ]
-
-        info_parts <- c()
-        if (length(loq_values) > 0) {
-          loq_range <- paste(min(loq_values), "to", max(loq_values))
-          loq_unit <- measurement_data$LOQ_UNIT[
-            !is.na(measurement_data$LOQ_UNIT)
-          ][1]
-          info_parts <- c(info_parts, paste("LOQ:", loq_range, loq_unit))
-        }
-        if (length(lod_values) > 0) {
-          lod_range <- paste(min(lod_values), "to", max(lod_values))
-          lod_unit <- measurement_data$LOD_UNIT[
-            !is.na(measurement_data$LOD_UNIT)
-          ][1]
-          info_parts <- c(info_parts, paste("LOD:", lod_range, lod_unit))
-        }
-
-        if (length(info_parts) > 0) {
-          paste(info_parts, collapse = "; ")
-        } else {
-          "Relevant data not found"
-        }
-      } else {
-        "Relevant data not found"
-      }
+      # Get dataset summaries
+      summaries <- get_dataset_summaries(moduleData())
 
       # Update UI fields
-      updateTextInput(session, "source_auto", value = source_ref)
-      updateTextInput(session, "analyte_auto", value = analytes)
-      updateTextInput(session, "medium_auto", value = medium)
-      updateTextInput(session, "study_area_auto", value = study_area)
-      updateTextInput(session, "num_sites_auto", value = num_sites)
-      updateTextInput(session, "num_samples_auto", value = num_samples)
-      updateTextInput(session, "sampling_period_auto", value = sampling_period)
-      updateTextInput(
+      updateTextAreaInput(session, "source_auto", value = summaries$source)
+      updateTextAreaInput(session, "analyte_auto", value = summaries$analytes)
+      updateTextAreaInput(session, "medium_auto", value = summaries$medium)
+      updateTextAreaInput(
+        session,
+        "study_area_auto",
+        value = summaries$study_area
+      )
+      updateTextAreaInput(
+        session,
+        "num_sites_auto",
+        value = summaries$num_sites
+      )
+      updateTextAreaInput(
+        session,
+        "num_samples_auto",
+        value = summaries$num_samples
+      )
+      updateTextAreaInput(
+        session,
+        "sampling_period_auto",
+        value = summaries$sampling_period
+      )
+      updateTextAreaInput(
         session,
         "analytical_methods_auto",
-        value = analytical_methods
+        value = summaries$analytical_methods
       )
-      updateTextInput(session, "loq_auto", value = loq_info)
+      updateTextAreaInput(session, "loq_auto", value = summaries$loq_info)
+
+      # Auto-populate gateway criteria
+      auto_populate_gateway_criteria()
 
       print_dev("CREED dataset details auto-populated")
+    }
+
+    ## Auto-populate gateway criteria ----
+    auto_populate_gateway_criteria <- function() {
+      # Get gateway availability
+      availability <- check_gateway_availability(moduleData())
+
+      # Update checkboxes
+      updateCheckboxInput(
+        session,
+        "gateway_medium_answer",
+        value = availability$medium
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_analyte_answer",
+        value = availability$analyte
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_location_answer",
+        value = availability$location
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_year_answer",
+        value = availability$year
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_units_answer",
+        value = availability$units
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_citation_answer",
+        value = availability$citation
+      )
     }
 
     # 3. Observers and Reactives ----
@@ -551,6 +547,16 @@ mod_CREED_server <- function(id) {
         sampling_methods = input$sampling_methods %|truthy|% "",
         other_details = input$other_details %|truthy|% "",
 
+        # Gateway Criteria - simplified structure
+        gateway_criteria = list(
+          medium_matrix = input$gateway_medium_answer %|truthy|% FALSE,
+          analyte = input$gateway_analyte_answer %|truthy|% FALSE,
+          spatial_location = input$gateway_location_answer %|truthy|% FALSE,
+          year = input$gateway_year_answer %|truthy|% FALSE,
+          units = input$gateway_units_answer %|truthy|% FALSE,
+          citation = input$gateway_citation_answer %|truthy|% FALSE
+        ),
+
         # Metadata
         created_date = Sys.time(),
         created_by = session$userData$reactiveValues$ENTERED_BY %|truthy|%
@@ -591,6 +597,38 @@ mod_CREED_server <- function(id) {
           class = "validation-status validation-info"
         )
       }
+    })
+
+    ## Gateway Criteria Summary Outputs ----
+
+    # Gateway 1: Medium/Matrix summary
+    output$gateway_medium_summary <- renderText({
+      gateway_summaries()$medium
+    })
+
+    # Gateway 2: Analyte summary
+    output$gateway_analyte_summary <- renderText({
+      gateway_summaries()$analyte
+    })
+
+    # Gateway 3: Location summary
+    output$gateway_location_summary <- renderText({
+      gateway_summaries()$location
+    })
+
+    # Gateway 4: Year summary
+    output$gateway_year_summary <- renderText({
+      gateway_summaries()$year
+    })
+
+    # Gateway 5: Units summary
+    output$gateway_units_summary <- renderText({
+      gateway_summaries()$units
+    })
+
+    # Gateway 6: Citation summary
+    output$gateway_citation_summary <- renderText({
+      gateway_summaries()$citation
     })
   })
 }

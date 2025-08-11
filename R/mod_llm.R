@@ -63,7 +63,7 @@ mod_llm_ui <- function(id) {
             ),
             ### ENTERED_BY
             textInput(
-              inputId = ns("entered_by"),
+              inputId = ns("ENTERED_BY"),
               label = tooltip(
                 list("Entered By", bs_icon("info-circle-fill")),
                 "Name/contact details."
@@ -480,7 +480,7 @@ mod_llm_server <- function(id) {
         type = "message"
       )
     }) |>
-      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+      bindEvent(input$ENTERED_BY, ignoreInit = FALSE)
 
     # 3. Outputs ----
 
