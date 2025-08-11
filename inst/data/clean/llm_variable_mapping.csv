@@ -1,0 +1,51 @@
+VARIABLE_NAME,pattern,output_value,priority
+parameter_type,stress,Stressor,1
+parameter_type,quality,"Quality parameter",2
+parameter_type,normal,Normalization,3
+parameter_type,background,Background,4
+measured_category,external,External,1
+measured_category,internal,Internal,2
+measured_category,surface,Surface,3
+compartment,aquatic|water,Aquatic,1
+compartment,atmosph|air,Atmospheric,2
+compartment,terrestrial|soil|land,Terrestrial,3
+compartment,biota|organism,Biota,4
+compartment_sub,fresh,Freshwater,1
+compartment_sub,marine|salt|sea,"Marine/Salt Water",2
+compartment_sub,brackish,"Brackish/Transitional Water",3
+compartment_sub,ground,Groundwater,4
+compartment_sub,waste,Wastewater,5
+compartment_sub,growth.*medium,"Liquid Growth Medium",6
+compartment_sub,rain,Rainwater,7
+compartment_sub,storm,Stormwater,8
+compartment_sub,leachate,Leachate,9
+compartment_sub,indoor,"Indoor Air",10
+compartment_sub,outdoor,"Outdoor Air",11
+compartment_sub,biological.*residue,"Terrestrial Biological Residue",12
+compartment_sub,h.*horizon|peat,"Soil H Horizon (Peat)",13
+compartment_sub,o.*horizon|organic,"Soil O Horizon (Organic)",14
+compartment_sub,a.*horizon|topsoil,"Soil A Horizon (Topsoil)",15
+compartment_sub,e.*horizon.*mineral,"Soil E Horizon (Mineral)",16
+compartment_sub,s.*horizon.*mineral,"Soil S Horizon (Mineral)",17
+compartment_sub,c.*horizon|parent.*material,"Soil C Horizon (Parent Material)",18
+compartment_sub,r.*horizon|bedrock,"Soil R Horizon (Bedrock)",19
+compartment_sub,biota.*terrestrial,"Biota, Terrestrial",20
+compartment_sub,biota.*aquatic,"Biota, Aquatic",21
+compartment_sub,biota.*atmospheric,"Biota, Atmospheric",22
+compartment_sub,biota.*other,"Biota, Other",23
+geographic_feature,river|stream|canal,"River, stream, canal",1
+geographic_feature,lake|pond|pool|reservoir,"Lake, pond, pool, reservoir",2
+geographic_feature,ocean|sea|territorial,"Ocean, sea, territorial waters",3
+geographic_feature,coast|fjord,"Coastal, fjord",4
+geographic_feature,estuary,Estuary,5
+geographic_feature,drainage|sewer|artificial,"Drainage, sewer, artificial water",6
+geographic_feature,swamp|wetland,"Swamp, wetland",7
+geographic_feature,ground|aquifer,"Groundwater, aquifer",8
+geographic_feature,wwtp|wastewater.*treatment,WWTP,9
+geographic_feature,urban|artificial.*land,"Artificial Land/Urban Areas",10
+geographic_feature,landfill,Landfills,11
+geographic_feature,crop|farm|agricultural,Cropland,12
+geographic_feature,forest|wood,"Woodland, forest",13
+geographic_feature,shrub,Shrubland,14
+geographic_feature,grass,Grassland,15
+geographic_feature,bare.*land|lichen|moss,"Bare land and lichen/moss",16

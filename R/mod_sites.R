@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput numericInput textInput dateInput textAreaInput actionButton tags
-#' @importFrom bslib css card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib css card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -20,6 +20,7 @@ mod_sites_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
+    tags$style(),
     # Enable shinyjs
     useShinyjs(),
 
@@ -32,41 +33,58 @@ mod_sites_ui <- function(id) {
 
       ## Left panel: Table and controls ----
       card(
-        full_screen = TRUE,
-        card_header("Sites Data"),
+        full_screen = FALSE,
+        height = "40vh",
+        fill = TRUE,
+        fillable = TRUE,
         card_body(
+          style = "min-height: 300px !important;",
           ### Info accordion ----
-          accordion(
-            id = ns("info_accordion"),
-            accordion_panel(
-              title = "Sites Data Information",
-              icon = bs_icon("info-circle"),
-              "This module manages sampling site information.
-              Add sites by clicking 'Add New Site' which creates an editable row in the table.
-              Edit fields directly in the table. Use the map to verify coordinates are correct.
-              At least one complete site is required to proceed.
-              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom of the table (left) and map (right) cards."
-            )
-          ),
+          info_accordion(content_file = "inst/app/www/md/intro_sites.md"),
 
           ### Table controls ----
           div(
-            style = "margin: 15px 0;",
-            input_task_button(
-              id = ns("add_site"),
-              label = "Add New Site",
-              icon = icon("plus"),
-              class = "btn-success",
-              width = "200px"
-            ),
-          ),
+            style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
 
-          ### Sites table ----
-          rHandsontableOutput(ns("sites_table")),
+            # Number of sites input
+            numericInput(
+              inputId = ns("num_sites"),
+              label = tooltip(
+                list("n sites", bs_icon("info-circle-fill")),
+                "Number of sites to add at once."
+              ),
+              value = 10,
+              min = 1,
+              max = 50,
+              width = "80px"
+            ),
+
+            # Base site code input
+            textInput(
+              inputId = ns("base_site_code"),
+              label = tooltip(
+                list("Site Code Root", bs_icon("info-circle-fill")),
+                "Project/Campaign-related short name to append to all site codes in format base_nnn"
+              ),
+              value = "",
+              placeholder = "e.g., NIVA_AQUAMONITOR_",
+              width = "150px"
+            ),
+
+            # Add button
+            div(
+              input_task_button(
+                id = ns("add_site"),
+                label = "Add Site(s)",
+                icon = icon("plus"),
+                class = "btn-success",
+                width = "120px"
+              )
+            )
+          ),
 
           ### Validation status ----
           div(
-            style = "margin-top: 15px;",
             uiOutput(ns("validation_reporter"))
           ),
 
@@ -82,12 +100,22 @@ mod_sites_ui <- function(id) {
           )
         )
       ),
-
-      ## Right panel: Map ----
+      ## Top right card: Map ----
       card(
+        height = "40vh",
         full_screen = TRUE,
         ### Leaflet map ----
         leafletOutput(ns("sites_map"), height = "500px")
+      )
+    ),
+
+    ### Bottom card: Sites table ----
+    card(
+      full_screen = TRUE,
+      card_body(
+        div(
+          rHandsontableOutput(ns("sites_table"))
+        )
       )
     )
   )
@@ -101,6 +129,8 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
+#' @importFrom ISOcodes ISO_3166_1
+#' @importFrom dplyr pull
 #' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -136,6 +166,7 @@ mod_sites_server <- function(id) {
       "Shrubland",
       "Grassland",
       "Bare land and lichen/moss",
+      "Glacier",
       "Other"
     )
 
@@ -163,17 +194,17 @@ mod_sites_server <- function(id) {
     countries <- c(
       "Not relevant",
       "Not reported",
-      "Norway",
-      "Other"
+      "Other/Not a Country",
+      ISOcodes::ISO_3166_1$Name
     )
+
+    IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
 
     areas <- c(
       "Not relevant",
       "Not reported",
-      "Area 1",
-      "Area 2",
-      "Area 3",
-      "Other"
+      "Other",
+      IHO_oceans
     )
 
     altitude_units <- c("km", "m", "cm", "mm")
@@ -264,9 +295,16 @@ mod_sites_server <- function(id) {
     # 2. Helper functions ----
 
     ## Create new site row with defaults ----
-    create_new_site <- function() {
+    create_new_site <- function(site_number = 1, base_code = "") {
+      # Generate site code
+      if (base_code == "" || is.null(base_code)) {
+        site_code <- paste0("SITE_", sprintf("%03d", site_number))
+      } else {
+        site_code <- paste0(base_code, sprintf("%03d", site_number))
+      }
+
       data.frame(
-        SITE_CODE = paste0("SITE_", sprintf("%03d", moduleState$next_site_id)),
+        SITE_CODE = site_code,
         SITE_NAME = "",
         SITE_GEOGRAPHIC_FEATURE = "Not reported",
         SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
@@ -286,46 +324,38 @@ mod_sites_server <- function(id) {
 
     # 3. Observers and Reactives ----
 
-    ## observe: Add new site ----
+    ## observe: Add new site(s) ----
     # upstream: user clicks input$add_site
     # downstream: moduleState$sites_data
     observe({
-      new_site <- create_new_site()
-      moduleState$sites_data <- rbind(moduleState$sites_data, new_site)
-      moduleState$next_site_id <- moduleState$next_site_id + 1
+      num_sites <- input$num_sites
+      base_code <- input$base_site_code
 
-      showNotification(
-        "New site added. Edit fields directly in the table.",
-        type = "message"
-      )
-    }) |>
-      bindEvent(input$add_site)
+      # Create multiple sites
+      new_sites_list <- lapply(1:num_sites, function(i) {
+        create_new_site(site_number = i, base_code = base_code)
+      })
 
-    ## observe: Remove selected rows ----
-    # upstream: user clicks input$remove_selected
-    # downstream: moduleState$sites_data
-    observe({
-      if (!is.null(input$sites_table)) {
-        # Get current table data
-        current_data <- hot_to_r(input$sites_table)
+      # Combine into single data frame
+      new_sites <- do.call(rbind, new_sites_list)
 
-        # For now, remove the last row (rhandsontable selection is complex)
-        # TODO: Implement proper row selection detection
-        if (nrow(current_data) > 0) {
-          moduleState$sites_data <- current_data[
-            -nrow(current_data),
-            ,
-            drop = FALSE
-          ]
-          showNotification("Removed last row", type = "message")
-        } else {
-          showNotification("No rows to remove", type = "warning")
-        }
+      # Add to existing data
+      moduleState$sites_data <- rbind(moduleState$sites_data, new_sites)
+
+      # Show notification
+      if (num_sites == 1) {
+        showNotification(
+          "New site added. Edit fields directly in the table.",
+          type = "message"
+        )
       } else {
-        showNotification("Please select a row to remove", type = "warning")
+        showNotification(
+          paste(num_sites, "sites added. Edit fields directly in the table."),
+          type = "message"
+        )
       }
     }) |>
-      bindEvent(input$remove_selected)
+      bindEvent(input$add_site)
 
     ## observe: Handle table changes ----
     # upstream: input$sites_table changes
@@ -359,6 +389,42 @@ mod_sites_server <- function(id) {
       }
     })
 
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$sitesDataLLM
+    # downstream: moduleState$sites_data
+    observe({
+      print_dev("observe~bindEvent: load data from LLM module")
+      llm_sites <- session$userData$reactiveValues$sitesDataLLM
+      if (
+        !is.null(llm_sites) &&
+          nrow(llm_sites) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Replace current sites data with LLM data
+        # This will trigger validation and may show warnings for invalid fields
+        moduleState$sites_data <- llm_sites
+
+        # Update next_site_id counter
+        moduleState$next_site_id <- nrow(llm_sites) + 1
+
+        showNotification(
+          paste(
+            "Loaded",
+            nrow(llm_sites),
+            "sites from LLM extraction. Review coordinates and details."
+          ),
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        label = "observe~bindEvent: load data from LLM module",
+        session$userData$reactiveValues$sitesDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 4. Outputs ----
 
     ## output: sites_table ----
@@ -367,13 +433,14 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df(), stretchH = "all") |>
+        rhandsontable(create_new_site(), stretchH = "all") |>
           hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(
           moduleState$sites_data,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
+          height = NULL
         ) |>
           hot_table(overflow = "visible") |>
           hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
@@ -546,42 +613,73 @@ mod_sites_server <- function(id) {
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
-        valid_coords <- !is.na(moduleState$sites_data$LATITUDE) &
-          !is.na(moduleState$sites_data$LONGITUDE) &
-          moduleState$sites_data$LATITUDE != "" &
-          moduleState$sites_data$LONGITUDE != ""
+        # Convert to numeric, handling potential character values
+        lat_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LATITUDE
+        ))
+        lng_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LONGITUDE
+        ))
+
+        # Check for valid coordinates
+        valid_coords <- !is.na(lat_numeric) &
+          !is.na(lng_numeric) &
+          is.finite(lat_numeric) &
+          is.finite(lng_numeric) &
+          lat_numeric >= -90 &
+          lat_numeric <= 90 & # Valid latitude range
+          lng_numeric >= -180 &
+          lng_numeric <= 180 # Valid longitude range
 
         if (any(valid_coords)) {
           valid_sites <- moduleState$sites_data[valid_coords, ]
+          valid_lat <- lat_numeric[valid_coords]
+          valid_lng <- lng_numeric[valid_coords]
 
           map <- map |>
             addMarkers(
-              lng = valid_sites$LONGITUDE,
-              lat = valid_sites$LATITUDE,
+              lng = valid_lng,
+              lat = valid_lat,
               popup = paste0(
                 "<strong>",
                 valid_sites$SITE_CODE,
                 "</strong><br/>",
                 valid_sites$SITE_NAME,
                 "<br/>",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE,
+                ":",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE_SUB,
+                "<br/>",
                 "Lat: ",
-                round(valid_sites$LATITUDE, 6),
+                round(valid_lat, 6),
                 "<br/>",
                 "Lng: ",
-                round(valid_sites$LONGITUDE, 6)
+                round(valid_lng, 6)
               )
             )
         }
       }
-
       map
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
@@ -594,10 +692,12 @@ mod_sites_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one complete, valid site to proceed. Edit fields directly in the table above.",
+          "Add at least one complete, valid site to proceed. Edit fields directly in the table below.",
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status)
     })
 
     ## output: validated_data_display ----

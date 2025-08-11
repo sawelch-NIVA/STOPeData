@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput updateSelectizeInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom rhandsontable rHandsontableOutput
@@ -26,17 +26,10 @@ mod_parameters_ui <- function(id) {
 
     # Main content card ----
     card(
-      card_header("Parameters Data Management"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Parameters Data Information",
-            icon = bs_icon("info-circle"),
-            "This module manages measured parameters (stressors, quality parameters, etc.). Select parameter type, subtype and name from dropdowns, then add to table. You can add existing parameters (with pre-filled chemical IDs) or create new ones. Edit fields directly in the table. Stressor subtypes are derived from the ClassyFire taxonomy (https://ice.ntp.niehs.nih.gov/DATASETDESCRIPTION?section=Chemical%20Taxonomies)."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_parameters.md"),
 
         ## Parameter selection controls ----
         layout_column_wrap(
@@ -95,6 +88,20 @@ mod_parameters_ui <- function(id) {
           )
         ),
 
+        ## Parameter validation results (in case of LLM data only) ----
+        conditionalPanel(
+          condition = "output.show_validation",
+          ns = ns,
+          div(
+            style = "margin-top: 15px;",
+            h6("Parameter Database Validation", style = "color: #0066cc;"),
+            div(
+              style = "background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0066cc;",
+              verbatimTextOutput(ns("parameter_validation_results"))
+            )
+          )
+        ),
+
         ## Parameters table ----
         rHandsontableOutput(ns("parameters_table")),
 
@@ -128,7 +135,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom golem print_dev
 #' @importFrom glue glue
-#' @importFrom dplyr mutate bind_rows pull filter arrange
+#' @importFrom dplyr mutate bind_rows pull filter arrange select distinct
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
 #' @importFrom tibble tibble
@@ -146,14 +153,17 @@ mod_parameters_server <- function(id) {
       validated_data = NULL,
       is_valid = FALSE,
       next_param_id = 1,
-      session_parameters = list() # Store user-added parameters
+      session_parameters = list(),
+      validation_results = NULL,
+      show_validation = FALSE
     )
 
     ## Dummy parameter data ----
     # Read dummy_parameters ----
     dummy_quality_params <- read_parquet(
       file = "inst/data/clean/dummy_quality_parameters.parquet"
-    )
+    ) |>
+      mutate(ENTERED_BY = "saw@niva.no")
 
     # Read and prepare chemical_parameters ----
     chemical_parameters <- read_parquet(
@@ -161,8 +171,16 @@ mod_parameters_server <- function(id) {
     ) |>
       mutate(
         MEASURED_TYPE = "Concentration",
+        ENTERED_BY = "saw@niva.no"
       ) |>
-      arrange(PARAMETER_NAME)
+      arrange(PARAMETER_NAME) |>
+      mutate(
+        PARAMETER_TYPE_SUB = case_when(
+          PARAMETER_NAME == "Carbon" ~ "Carbon",
+          TRUE ~ PARAMETER_TYPE_SUB
+        ),
+        PARAMETER_NAME_SUB = ""
+      )
 
     # Merge datasets ----
     dummy_parameters <- bind_rows(dummy_quality_params, chemical_parameters)
@@ -177,29 +195,11 @@ mod_parameters_server <- function(id) {
       "Other"
     )
 
-    parameter_types_sub <- c(
-      c(
-        "Not reported",
-        "Nanomaterial",
-        "Microplastic",
-        "Chemical mixture",
-        "Temperature",
-        "Radiation",
-        "Pressure",
-        "Sound",
-        "Pathogen",
-        "Toxin",
-        "pH",
-        "Dissolved oxygen",
-        "Conductivity",
-        "Salinity",
-        "Turbidity",
-        "Total organic carbon",
-        "Nutrient",
-        "Other"
-      ),
-      chemical_parameters$PARAMETER_TYPE_SUB |> unique()
-    )
+    parameter_types_sub <- dummy_parameters |>
+      select(PARAMETER_TYPE_SUB) |>
+      distinct() |>
+      arrange(PARAMETER_TYPE_SUB) |>
+      pull(PARAMETER_TYPE_SUB)
 
     measured_types <- c(
       "Not relevant",
@@ -226,7 +226,8 @@ mod_parameters_server <- function(id) {
         PARAMETER_NAME_SUB = character(0),
         INCHIKEY_SD = character(0),
         PUBCHEM_CID = character(0),
-        CAS_RN = NA
+        CAS_RN = NA,
+        ENTERED_BY = character(0)
       )
     }
 
@@ -243,7 +244,8 @@ mod_parameters_server <- function(id) {
         required_fields <- c(
           "PARAMETER_TYPE",
           "MEASURED_TYPE",
-          "PARAMETER_NAME"
+          "PARAMETER_NAME",
+          "ENTERED_BY"
         )
 
         for (i in 1:nrow(moduleState$parameters_data)) {
@@ -372,9 +374,12 @@ mod_parameters_server <- function(id) {
           session,
           "parameter_name_select",
           choices = available_names,
-          selected = if (length(available_names) > 1) available_names[1] else
-            "",
-          server = TRUE
+          selected = if (length(available_names) > 1) {
+            available_names[1]
+          } else {
+            ""
+          },
+          server = TRUE # server-side selectize for better performance
         )
       }
     }) |>
@@ -382,6 +387,67 @@ mod_parameters_server <- function(id) {
         input$parameter_type_select,
         input$parameter_subtype_select,
         ignoreInit = FALSE
+      )
+
+    ## observe ~bindEvent(LLM data validates or updates): Load and validate parameters ----
+    # upstream: session$userData$reactiveValues$llmExtractionComplete
+    # downstream: moduleState$parameters_data, moduleState$show_validation, moduleState$validation_results
+    observe({
+      llm_parameters <- session$userData$reactiveValues$parametersDataLLM
+      if (
+        !is.null(llm_parameters) &&
+          nrow(llm_parameters) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Load and validate parameters
+        moduleState$parameters_data <- llm_parameters
+
+        # Run validation if chemical_parameters is available
+        if (exists("chemical_parameters")) {
+          validation_result <- validate_parameters_against_database(
+            moduleState$parameters_data,
+            chemical_parameters
+          )
+          moduleState$validation_results <- validation_result
+          moduleState$show_validation <- TRUE
+
+          # Show notification based on validation
+          if (validation_result$has_warnings) {
+            showNotification(
+              paste(
+                "Loaded",
+                nrow(llm_parameters),
+                "parameters with validation warnings. Check results below."
+              ),
+              type = "warning"
+            )
+          } else {
+            showNotification(
+              paste(
+                "Loaded",
+                nrow(llm_parameters),
+                "parameters - all validated successfully!"
+              ),
+              type = "message"
+            )
+          }
+        } else {
+          showNotification(
+            paste(
+              "Loaded",
+              nrow(llm_parameters),
+              "parameters. Chemical database not available for validation."
+            ),
+            type = "message"
+          )
+          moduleState$show_validation <- FALSE
+        }
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
       )
 
     ## observe: Add existing parameter ----
@@ -394,7 +460,6 @@ mod_parameters_server <- function(id) {
       if (
         isTruthy(param_type) &&
           isTruthy(param_name) &&
-          param_name != "-- New Parameter --" &&
           param_name %notin% moduleState$parameters_data$PARAMETER_NAME
       ) {
         new_param <- create_existing_parameter(
@@ -434,7 +499,10 @@ mod_parameters_server <- function(id) {
       param_type <- input$parameter_type_select
 
       if (isTruthy(param_type)) {
-        new_param <- create_new_parameter(param_type)
+        new_param <- create_new_parameter(
+          param_type,
+          session$userData$reactiveValues$ENTERED_BY %|truthy|% ""
+        )
         moduleState$parameters_data <- rbind(
           moduleState$parameters_data,
           new_param
@@ -482,7 +550,8 @@ mod_parameters_server <- function(id) {
                 PARAMETER_NAME_SUB = updated_data[i, "PARAMETER_NAME_SUB"],
                 INCHIKEY_SD = updated_data[i, "INCHIKEY_SD"],
                 PUBCHEM_CID = updated_data[i, "PUBCHEM_CID"],
-                CAS_RN = updated_data[i, "CAS_RN"]
+                CAS_RN = updated_data[i, "CAS_RN"],
+                ENTERED_BY = updated_data[i, "ENTERED_BY"]
               )
             }
           }
@@ -512,6 +581,39 @@ mod_parameters_server <- function(id) {
         moduleState$validated_data <- NULL
       }
     })
+
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$parametersDataLLM
+    # downstream: moduleState$parameters_data
+    observe({
+      llm_parameters <- session$userData$reactiveValues$parametersDataLLM
+      if (
+        !is.null(llm_parameters) &&
+          nrow(llm_parameters) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Replace current parameters data with LLM data
+        moduleState$parameters_data <- create_parameters_from_llm(
+          llm_parameters,
+          if (exists("chemical_parameters")) chemical_parameters else NULL
+        )
+
+        showNotification(
+          paste(
+            "Loaded",
+            nrow(llm_parameters),
+            "parameters from LLM extraction. Review and add missing chemical identifiers."
+          ),
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$parametersDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
 
     # 3. Outputs ----
 
@@ -545,11 +647,15 @@ mod_parameters_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
+          hot_table(overflow = "visible", stretchH = "right") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",
             renderer = mandatory_highlight_text()
+          ) |>
+          hot_col(
+            "PARAMETER_NAME_SUB",
+            type = "text"
           ) |>
           hot_col(
             "PARAMETER_TYPE",
@@ -572,6 +678,7 @@ mod_parameters_server <- function(id) {
             renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
+          hot_col("ENTERED_BY", renderer = mandatory_highlight_text()) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -607,6 +714,22 @@ mod_parameters_server <- function(id) {
           "Add at least one complete, valid parameter to proceed. Edit fields directly in the table above.",
           class = "validation-status validation-warning"
         )
+      }
+    })
+
+    ## output: checking of llm data ----
+    # upstream: moduleState$show_validation, moduleState$validation_results
+    # downstream: output$show_validation
+    output$show_validation <- reactive({
+      moduleState$show_validation
+    })
+    outputOptions(output, "show_validation", suspendWhenHidden = FALSE)
+
+    output$parameter_validation_results <- renderText({
+      if (!is.null(moduleState$validation_results)) {
+        moduleState$validation_results$validation_text
+      } else {
+        "No validation results available."
       }
     })
 

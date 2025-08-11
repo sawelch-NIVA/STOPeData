@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton numericInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs enable disable
 #' @importFrom rcrossref cr_works
@@ -26,17 +26,10 @@ mod_references_ui <- function(id) {
 
     # Main input card ----
     card(
-      card_header("Reference Data Entry"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Reference Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects bibliographic reference data. Fields marked with (*) are always required. Additional fields become required based on the selected reference type. Use the DOI lookup or BibTeX import features to auto-populate fields when available."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_references.md"),
 
         ## Import tools section ----
         layout_column_wrap(
@@ -437,18 +430,6 @@ mod_references_server <- function(id) {
       }
     })
 
-    iv$add_rule("VOLUME", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
-        "Volume is required for journal articles"
-      }
-    })
-
-    iv$add_rule("ISSUE", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
-        "Issue is required for journal articles"
-      }
-    })
-
     # Book-specific required fields
     iv$add_rule("PUBLISHER", function(value) {
       if (input$REFERENCE_TYPE %in% c("book", "report") && !isTruthy(value)) {
@@ -525,79 +506,79 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
-    ## observe: conditional field enable/disable based on reference type ----
+    ## observe: conditional field enable/disable based on reference type DISABLED ----
     # upstream: input$REFERENCE_TYPE
     # downstream: field enable/disable states
-    observe({
-      ref_type <- input$REFERENCE_TYPE
+    # observe({
+    #   ref_type <- input$REFERENCE_TYPE
 
-      # Clear non-relevant fields when reference type changes
-      if (ref_type != "journal") {
-        updateTextInput(session, "PERIODICAL_JOURNAL", value = "")
-        updateNumericInput(session, "VOLUME", value = NA)
-        updateNumericInput(session, "ISSUE", value = NA)
-      }
+    #   # Clear non-relevant fields when reference type changes
+    #   if (ref_type != "journal") {
+    #     updateTextInput(session, "PERIODICAL_JOURNAL", value = "")
+    #     updateNumericInput(session, "VOLUME", value = NA)
+    #     updateNumericInput(session, "ISSUE", value = NA)
+    #   }
 
-      if (ref_type != "book") {
-        if (ref_type != "report") {
-          # PUBLISHER is shared between book and report
-          updateTextInput(session, "PUBLISHER", value = "")
-        }
-      }
+    #   if (ref_type != "book") {
+    #     if (ref_type != "report") {
+    #       # PUBLISHER is shared between book and report
+    #       updateTextInput(session, "PUBLISHER", value = "")
+    #     }
+    #   }
 
-      if (ref_type != "report") {
-        updateTextInput(session, "INSTITUTION", value = "")
-        if (ref_type != "book") {
-          # PUBLISHER is shared between book and report
-          updateTextInput(session, "PUBLISHER", value = "")
-        }
-      }
+    #   if (ref_type != "report") {
+    #     updateTextInput(session, "INSTITUTION", value = "")
+    #     if (ref_type != "book") {
+    #       # PUBLISHER is shared between book and report
+    #       updateTextInput(session, "PUBLISHER", value = "")
+    #     }
+    #   }
 
-      if (ref_type != "dataset") {
-        updateTextInput(session, "DB_NAME", value = "")
-        updateTextInput(session, "DB_PROVIDER", value = "")
-      }
+    #   if (ref_type != "dataset") {
+    #     updateTextInput(session, "DB_NAME", value = "")
+    #     updateTextInput(session, "DB_PROVIDER", value = "")
+    #   }
 
-      # Enable/disable fields based on reference type
-      # Journal fields
-      if (ref_type == "journal") {
-        enable("PERIODICAL_JOURNAL")
-        enable("VOLUME")
-        enable("ISSUE")
-      } else {
-        disable("PERIODICAL_JOURNAL")
-        disable("VOLUME")
-        disable("ISSUE")
-      }
+    #   # Enable/disable fields based on reference type
+    #   # Journal fields
+    #   if (ref_type == "journal") {
+    #     enable("PERIODICAL_JOURNAL")
+    #     enable("VOLUME")
+    #     enable("ISSUE")
+    #   } else {
+    #     disable("PERIODICAL_JOURNAL")
+    #     disable("VOLUME")
+    #     disable("ISSUE")
+    #   }
 
-      # Disable PUBLISHER only if dataset
-      if (ref_type == "dataset") {
-        disable("PUBLISHER")
-      } else {
-        enable("PUBLISHER")
-      }
+    #   # Disable PUBLISHER only if dataset
+    #   if (ref_type == "dataset") {
+    #     disable("PUBLISHER")
+    #   } else {
+    #     enable("PUBLISHER")
+    #   }
 
-      # Report fields
-      if (ref_type == "report") {
-        enable("INSTITUTION")
-        enable("PUBLISHER")
-      } else {
-        disable("INSTITUTION")
-        if (ref_type != "book") {
-          # PUBLISHER shared with book
-          disable("PUBLISHER")
-        }
-      }
+    #   # Report fields
+    #   if (ref_type == "report") {
+    #     enable("INSTITUTION")
+    #     enable("PUBLISHER")
+    #   } else {
+    #     disable("INSTITUTION")
+    #     if (ref_type != "book") {
+    #       # PUBLISHER shared with book
+    #       disable("PUBLISHER")
+    #     }
+    #   }
 
-      # Dataset fields
-      if (ref_type == "dataset") {
-        enable("DB_NAME")
-        enable("DB_PROVIDER")
-      } else {
-        disable("DB_NAME")
-        disable("DB_PROVIDER")
-      }
-    })
+    #   # Dataset fields
+    #   if (ref_type == "dataset") {
+    #     enable("DB_NAME")
+    #     enable("DB_PROVIDER")
+    #   } else {
+    #     disable("DB_NAME")
+    #     disable("DB_PROVIDER")
+    #   }
+    # })
 
     ## observe: DOI/PMID lookup functionality ----
     # upstream: input$lookup_doi, input$doi_lookup
@@ -894,6 +875,30 @@ mod_references_server <- function(id) {
       }
     })
 
+    ## observe: Populate from LLM data when available ----
+    # upstream: session$userData$reactiveValues$referencesDataLLM
+    # downstream: input fields
+    observe({
+      llm_data <- session$userData$reactiveValues$referencesDataLLM
+      if (
+        !is.null(llm_data) &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        populate_references_from_llm(session, llm_data)
+
+        showNotification(
+          "References form populated from LLM extraction. Please review and correct as needed.",
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$referencesDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     ## observe ~ bindEvent: Clear fields button ----
     # upstream: user clicks input$clear
     # downstream: all input fields
@@ -974,6 +979,12 @@ mod_references_server <- function(id) {
           "# Data object will be created when valid data is entered."
         }
       }
+    )
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
     )
   })
 }

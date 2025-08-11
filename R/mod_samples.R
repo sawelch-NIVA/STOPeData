@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectizeInput dateInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs enable disable
@@ -25,17 +25,10 @@ mod_samples_ui <- function(id) {
 
     # Main content card ----
     card(
-      card_header("Sample Combinations Data Management"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Sample Combinations Information",
-            icon = bs_icon("info-circle"),
-            "This module creates sample combinations by selecting sites, parameters, compartments, and sampling dates. Each combination represents a specific sample that will be collected. Select multiple values from each category to generate all possible combinations."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_samples.md"),
 
         ## Sample combination form ----
         div(
@@ -386,7 +379,6 @@ mod_samples_server <- function(id) {
         enable(id = "add_all_parameters")
         enable(id = "parameters_select")
       } else {
-        showNotification("No parameters found to add.")
         disable(id = "add_all_parameters")
         disable(id = "parameters_select")
       }

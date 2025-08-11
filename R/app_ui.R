@@ -9,6 +9,23 @@
 #' @noRd
 app_ui <- function(request) {
   tagList(
+    # Notification CSS gets overwritten unless we set it here - moved to top right
+    tags$head(
+      tags$style(HTML(
+        "
+          #shiny-notification-panel {
+            top: 0;
+            bottom: unset;
+            left: unset;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 450px;
+          }
+    "
+      ))
+    ),
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
@@ -22,6 +39,12 @@ app_ui <- function(request) {
         position = "static-top"
       ),
       # nav_panel(title = "Landing", value = "00-landing", mod_landing_ui("landing")),
+      nav_panel(
+        title = "0. LLM Extract",
+        value = "00-llm-extract",
+        mod_llm_ui("llm_extract"),
+        icon = bs_icon("cpu")
+      ),
       nav_panel(
         title = "1. Campaign",
         value = "01-campaign",

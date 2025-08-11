@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom tibble tibble
 #' @export
@@ -20,18 +20,10 @@ mod_campaign_ui <- function(id) {
   tagList(
     # Main input card ----
     card(
-      card_header("Campaign Data Entry"),
+      fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Campaign Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign."
-          )
-        ),
-
+        info_accordion(content_file = "inst/app/www/md/intro_campaign.md"),
         ## Input fields layout ----
         layout_column_wrap(
           width = "300px",
@@ -318,6 +310,30 @@ mod_campaign_server <- function(id) {
     }) |>
       bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
 
+    ## observe: Populate from LLM data when available ----
+    # upstream: session$userData$reactiveValues$campaignDataLLM
+    # downstream: input fields
+    observe({
+      llm_data <- session$userData$reactiveValues$campaignDataLLM
+      if (
+        !is.null(llm_data) &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        populate_campaign_from_llm(session, llm_data)
+
+        showNotification(
+          "Campaign form populated from LLM extraction. Please review and correct as needed.",
+          type = "message"
+        )
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$campaignDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     # 3. Outputs ----
 
     ## output: validation_reporter ----
@@ -349,6 +365,12 @@ mod_campaign_server <- function(id) {
         "# Data object will be created when valid data is entered."
       }
     })
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
+    )
   })
 }
 
