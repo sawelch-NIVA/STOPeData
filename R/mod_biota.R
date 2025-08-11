@@ -157,7 +157,8 @@ mod_biota_server <- function(id) {
     )
 
     moduleState$species_options <- readr::read_csv(
-      "inst/data/clean/dummy_species.csv"
+      "inst/data/clean/dummy_species.csv",
+      show_col_types = FALSE
     )
 
     ## InputValidator for table-level validation ----
@@ -350,10 +351,6 @@ mod_biota_server <- function(id) {
             input$study_species_selector
           ))
         }
-
-        print_dev(glue(
-          "mod_biota study species updated: {length(moduleState$study_species)} species selected"
-        ))
       }
     }) |>
       bindEvent(input$study_species_selector)
