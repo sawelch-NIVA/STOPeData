@@ -93,6 +93,22 @@ mod_references_ui <- function(id) {
           width = "300px"
         ),
 
+        ## Data source selector (always required) ----
+        selectInput(
+          inputId = ns("DATA_SOURCE"),
+          label = tooltip(
+            list("Data Source *", bs_icon("info-circle-fill")),
+            "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
+          ),
+          choices = c(
+            "Primary" = "primary",
+            "Secondary/Review" = "secondary_review",
+            "Other" = "other"
+          ),
+          selected = "primary",
+          width = "300px"
+        ),
+
         ## Always required fields ----
         layout_column_wrap(
           width = "300px",
@@ -383,6 +399,8 @@ mod_references_server <- function(id) {
 
     ### Always required fields ----
     iv$add_rule("REFERENCE_TYPE", sv_required())
+
+    iv$add_rule("DATA_SOURCE", sv_required())
 
     iv$add_rule("AUTHOR", sv_required())
     iv$add_rule("AUTHOR", function(value) {
@@ -833,6 +851,7 @@ mod_references_server <- function(id) {
         # Collect validated data
         validated_data <- tibble(
           REFERENCE_TYPE = input$REFERENCE_TYPE,
+          DATA_SOURCE = input$DATA_SOURCE,
           AUTHOR = input$AUTHOR,
           TITLE = input$TITLE,
           YEAR = input$YEAR,
@@ -906,6 +925,7 @@ mod_references_server <- function(id) {
       {
         # Reset all inputs to default values
         updateSelectInput(session, "REFERENCE_TYPE", selected = "journal")
+        updateSelectInput(session, "DATA_SOURCE", selected = "primary")
         updateTextAreaInput(session, "AUTHOR", value = "")
         updateTextAreaInput(session, "TITLE", value = "")
         updateNumericInput(
