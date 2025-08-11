@@ -4,7 +4,7 @@
 \alias{create_new_parameter}
 \title{Create new blank parameter row}
 \usage{
-create_new_parameter(param_type)
+create_new_parameter(param_type, entered_by)
 }
 \arguments{
 \item{param_type}{Character string specifying the parameter type}

@@ -27,14 +27,7 @@ mod_compartments_ui <- function(id) {
       fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Environmental Compartments Information",
-            icon = bs_icon("info-circle"),
-            "This module manages environmental compartment combinations that will be sampled. Select an environmental compartment (e.g., Aquatic), then choose the appropriate sub-compartment (e.g., Freshwater) and measurement category. Each combination represents a different sampling context you'll use in your study."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_compartments.md"),
 
         ## Compartment selection form ----
         layout_column_wrap(

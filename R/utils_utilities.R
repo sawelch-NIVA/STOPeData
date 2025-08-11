@@ -72,3 +72,29 @@ printreactiveValues <- function(data) {
   )
   paste(data_lines, collapse = "\n")
 }
+
+
+#' Create a collapsible single-panel accordion containing a markdown file
+#'
+#' @param title the desired title of the accordion panel
+#' @param content_file the path to a markdown file
+#'
+#' @returns a bslib::accordion html element
+#'
+#' @export
+#' @importFrom bslib card card_body card_header accordion accordion_panel
+#' @importFrom htmltools includeMarkdown
+#' @importFrom glue glue
+info_accordion <- function(title = "Instructions", content_file) {
+  accordion(
+    accordion_panel(
+      title,
+      icon = bs_icon("info-circle"),
+      if (!is.null(content_file)) {
+        includeMarkdown(content_file)
+      } else {
+        p(glue("MD file {content_file} not found."))
+      }
+    )
+  )
+}

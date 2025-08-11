@@ -27,14 +27,7 @@ mod_data_ui <- function(id) {
       fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Data Entry Information",
-            icon = bs_icon("info-circle"),
-            "This module consolidates all setup data and presents sample-parameter combinations for measurement data entry. All modules must be completed and validated before data entry is enabled. Enter measured concentrations, detection limits, and associated metadata for each combination."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_data.md"),
 
         ## Validation status overview ----
         accordion(

@@ -26,6 +26,7 @@ Imports:
     ISOcodes,
     leaflet,
     lubridate,
+    markdown,
     openxlsx2,
     pkgload,
     plotly,

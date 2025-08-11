@@ -9,6 +9,23 @@
 #' @noRd
 app_ui <- function(request) {
   tagList(
+    # Notification CSS gets overwritten unless we set it here - moved to top right
+    tags$head(
+      tags$style(HTML(
+        "
+          #shiny-notification-panel {
+            top: 0;
+            bottom: unset;
+            left: unset;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 450px;
+          }
+    "
+      ))
+    ),
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic

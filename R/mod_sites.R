@@ -40,17 +40,7 @@ mod_sites_ui <- function(id) {
         card_body(
           style = "min-height: 300px !important;",
           ### Info accordion ----
-          accordion(
-            id = ns("info_accordion"),
-            accordion_panel(
-              title = "Sites Data Information",
-              icon = bs_icon("info-circle"),
-              "This module manages sampling site information.
-              Add sites by clicking 'Add Site(s)' which creates editable rows in the table.
-              Edit fields directly in the table. Use the map to verify coordinates are correct.
-              On narrower screens the table will sometimes fail to render. Use the Full Screen buttons at the bottom right of each card."
-            )
-          ),
+          info_accordion(content_file = "inst/app/www/md/intro_sites.md"),
 
           ### Table controls ----
           div(
@@ -139,6 +129,8 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
+#' @importFrom ISOcodes ISO_3166_1
+#' @importFrom dplyr pull
 #' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -174,6 +166,7 @@ mod_sites_server <- function(id) {
       "Shrubland",
       "Grassland",
       "Bare land and lichen/moss",
+      "Glacier",
       "Other"
     )
 
@@ -201,17 +194,17 @@ mod_sites_server <- function(id) {
     countries <- c(
       "Not relevant",
       "Not reported",
-      "Norway",
-      "Other"
+      "Other/Not a Country",
+      ISOcodes::ISO_3166_1$Name
     )
+
+    IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
 
     areas <- c(
       "Not relevant",
       "Not reported",
-      "Area 1",
-      "Area 2",
-      "Area 3",
-      "Other"
+      "Other",
+      IHO_oceans
     )
 
     altitude_units <- c("km", "m", "cm", "mm")
@@ -440,7 +433,7 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       if (nrow(moduleState$sites_data) == 0) {
         # Show empty table structure
-        rhandsontable(init_sites_df()) |>
+        rhandsontable(create_new_site(), stretchH = "all") |>
           hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
       } else {
         rhandsontable(
@@ -620,34 +613,52 @@ mod_sites_server <- function(id) {
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
-        valid_coords <- !is.na(moduleState$sites_data$LATITUDE) &
-          !is.na(moduleState$sites_data$LONGITUDE) &
-          moduleState$sites_data$LATITUDE != "" &
-          moduleState$sites_data$LONGITUDE != ""
+        # Convert to numeric, handling potential character values
+        lat_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LATITUDE
+        ))
+        lng_numeric <- suppressWarnings(as.numeric(
+          moduleState$sites_data$LONGITUDE
+        ))
+
+        # Check for valid coordinates
+        valid_coords <- !is.na(lat_numeric) &
+          !is.na(lng_numeric) &
+          is.finite(lat_numeric) &
+          is.finite(lng_numeric) &
+          lat_numeric >= -90 &
+          lat_numeric <= 90 & # Valid latitude range
+          lng_numeric >= -180 &
+          lng_numeric <= 180 # Valid longitude range
 
         if (any(valid_coords)) {
           valid_sites <- moduleState$sites_data[valid_coords, ]
+          valid_lat <- lat_numeric[valid_coords]
+          valid_lng <- lng_numeric[valid_coords]
 
           map <- map |>
             addMarkers(
-              lng = valid_sites$LONGITUDE,
-              lat = valid_sites$LATITUDE,
+              lng = valid_lng,
+              lat = valid_lat,
               popup = paste0(
                 "<strong>",
                 valid_sites$SITE_CODE,
                 "</strong><br/>",
                 valid_sites$SITE_NAME,
                 "<br/>",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE,
+                ":",
+                valid_sites$SITE_GEOGRAPHICAL_FEATURE_SUB,
+                "<br/>",
                 "Lat: ",
-                round(valid_sites$LATITUDE, 6),
+                round(valid_lat, 6),
                 "<br/>",
                 "Lng: ",
-                round(valid_sites$LONGITUDE, 6)
+                round(valid_lng, 6)
               )
             )
         }
       }
-
       map
     })
 
@@ -681,7 +692,7 @@ mod_sites_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one complete, valid site to proceed. Edit fields directly in the table above.",
+          "Add at least one complete, valid site to proceed. Edit fields directly in the table below.",
           class = "validation-status validation-warning"
         )
       }

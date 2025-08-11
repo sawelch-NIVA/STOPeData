@@ -23,15 +23,7 @@ mod_campaign_ui <- function(id) {
       fill = TRUE,
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Campaign Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign."
-          )
-        ),
-
+        info_accordion(content_file = "inst/app/www/md/intro_campaign.md"),
         ## Input fields layout ----
         layout_column_wrap(
           width = "300px",

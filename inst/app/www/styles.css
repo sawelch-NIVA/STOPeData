@@ -151,7 +151,7 @@ pre,
     width: fit-content !important;
 }
 
-.ht_master .handsontable {
+/* .ht_master .handsontable {
     margin-right: -200px !important;
     width: max-content !important;
     overflow-y: hidden !important;
@@ -164,7 +164,7 @@ textarea .handsontableInput {
 .ht_master>.wtHolder {
     height: unset !important;
     height: unset !important;
-}
+} */
 
 /* ===================
    Leaflet Dark Mode Support
