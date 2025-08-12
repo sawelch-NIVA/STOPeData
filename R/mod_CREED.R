@@ -60,10 +60,12 @@ mod_CREED_ui <- function(id) {
 
           ### Auto-populated fields ----
           div(
-            span(bs_icon("arrow-down-circle-fill", class = "text-primary")),
-            h6(
-              "Auto-populated from Dataset (but can be overwritten as needed)",
-              style = "color: #0066cc;"
+            span(
+              bs_icon("arrow-down-circle-fill", class = "text-primary"),
+              h6(
+                "Populated from entered data, can be overwritten as needed",
+                style = "color: #0066cc; display: contents;"
+              )
             ),
 
             textAreaInput(
@@ -195,7 +197,7 @@ mod_CREED_ui <- function(id) {
 
           ### User input fields ----
           div(
-            h6("Additional Details (free text)", style = "color: #0066cc;"),
+            h6("Additional Details (free text)"),
 
             textAreaInput(
               inputId = ns("sampling_conditions"),

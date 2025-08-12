@@ -14,6 +14,14 @@
 #' @importFrom bsicons bs_icon
 #' @export
 mod_CREED_reliability_ui <- function(id) {
+  CREED_choices <- c(
+    "Fully Met" = "fully",
+    "Partly Met" = "partly",
+    "Not Met" = "not_met",
+    "Not Reported" = "not_reported",
+    "Not Relevant" = "not_relevant"
+  )
+
   ns <- NS(id)
 
   tagList(
@@ -21,8 +29,8 @@ mod_CREED_reliability_ui <- function(id) {
     tags$head(
       tags$style(HTML(
         "
-        .reliability-required .award-fill { color: #ffc107; }
-        .reliability-recommended .award-fill { color: #6c757d; }
+        .reliability-required { fill: #aaaaaa !important;}
+        .reliability-recommended { fill:  #ffc107 !important; }
         .criterion-disabled { 
           opacity: 0.6; 
           pointer-events: none; 
@@ -69,19 +77,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB1_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB1_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -106,19 +108,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB2_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB2_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -143,19 +139,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB3_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB3_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -180,19 +170,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB4_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB4_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -217,19 +201,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB5_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB5_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -254,19 +232,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB6_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB6_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -296,19 +268,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB7_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB7_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -341,19 +307,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB8_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB8_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -384,20 +344,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB9_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported",
-              "Not Applicable" = "notapplicable"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB9_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -428,20 +381,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB10_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported",
-              "Not Applicable" = "notapplicable"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB10_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -472,20 +418,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB11_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported",
-              "Not Applicable" = "notapplicable"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB11_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -516,20 +455,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB12_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported",
-              "Not Applicable" = "notapplicable"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB12_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
@@ -554,19 +486,13 @@ mod_CREED_reliability_ui <- function(id) {
           selectInput(
             inputId = ns("RB13_score"),
             label = "Score:",
-            choices = c(
-              "Select..." = "",
-              "Fully Met" = "fully",
-              "Partly Met" = "partly",
-              "Not Met/Inappropriate" = "notmet",
-              "Not Reported" = "notreported"
-            ),
+            choices = CREED_choices,
             width = "200px"
           ),
 
           textAreaInput(
             inputId = ns("RB13_justification"),
-            label = "Justification (required if not 'Fully Met'):",
+            label = "Justification:",
             placeholder = "Provide justification for your scoring...",
             rows = 3,
             width = "100%"
