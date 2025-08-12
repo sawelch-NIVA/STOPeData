@@ -298,17 +298,32 @@ mod_campaign_server <- function(id) {
     ) |>
       bindEvent(input$clear)
 
-    ## observe ~ bindEvent: Set session user name ----
+    ## observe ~ bindEvent: Set session username from ENTERED_BY ----
     observe({
-      # Set the reactive value
-      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+      # only trigger if a username doesn't already exist in the session
+      if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
+        # Set the reactive value
+        session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
 
-      showNotification(
-        glue("Saved your username {input$ENTERED_BY} to session data."),
-        type = "message"
-      )
+        showNotification(
+          glue("Saved your username {input$ENTERED_BY} to session data."),
+          type = "message"
+        )
+      }
     }) |>
       bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+
+    ## observe: update ENTERED_BY field with user_id ----
+    # upstream: session$userData$reactiveValues$ENTERED_BY
+    # downstream: input$ENTERED_BY
+    observe({
+      updateTextInput(
+        session,
+        "ENTERED_BY",
+        value = session$userData$reactiveValues$ENTERED_BY
+      )
+    }) |>
+      bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
     ## observe: Populate from LLM data when available ----
     # upstream: session$userData$reactiveValues$campaignDataLLM
