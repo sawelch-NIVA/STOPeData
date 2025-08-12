@@ -212,6 +212,22 @@ get_dataset_summaries <- function(module_data) {
       "Relevant data not found"
     },
 
+    sampling_methods = if (!is.null(module_data$methods)) {
+      sampling_only <- module_data$methods[
+        module_data$methods$PROTOCOL_CATEGORY == "Sampling Protocol",
+      ]
+      if (nrow(sampling_only) > 0) {
+        summarize_multiple(
+          sampling_only$PROTOCOL_NAME,
+          "Sampling Protocols"
+        )
+      } else {
+        "Relevant data not found"
+      }
+    } else {
+      "Relevant data not found"
+    },
+
     analytical_methods = if (!is.null(module_data$methods)) {
       analytical_only <- module_data$methods[
         module_data$methods$PROTOCOL_CATEGORY == "Analytical Protocol",

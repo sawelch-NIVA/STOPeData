@@ -187,16 +187,44 @@ mod_CREED_ui <- function(id) {
                   "Limit of Quantification",
                   bs_icon("arrow-down-circle-fill", class = "text-primary")
                 ),
-                "Lowest concentration that can be reliably quantified by the analytical method."
+                "Lowest concentration of a stressor that can be reliably quantified by the analytical method."
               ),
               value = "",
               rows = 1,
               width = "100%"
             )
           ),
-
-          ### User input fields ----
           div(
+            textAreaInput(
+              inputId = ns("site_types"),
+              label = tooltip(
+                list(
+                  "Site Type(s)",
+                  bs_icon("arrow-down-circle-fill", class = "text-primary")
+                ),
+                "Description of sampling site characteristics (e.g., urban, rural, industrial, background)."
+              ),
+              placeholder = "Describe types of sampling sites",
+              rows = 1,
+              width = "100%"
+            ),
+
+            textAreaInput(
+              inputId = ns("sampling_methods_auto"),
+              label = tooltip(
+                list(
+                  "Sampling Method(s)",
+                  bs_icon("arrow-down-circle-fill", class = "text-primary")
+                ),
+                "Field protocols and equipment used for sample collection."
+              ),
+              placeholder = "Describe sampling protocols used",
+              rows = 1,
+              width = "100%"
+            ),
+
+            ### User input fields ----
+
             h6("Additional Details (free text)"),
 
             textAreaInput(
@@ -205,29 +233,7 @@ mod_CREED_ui <- function(id) {
                 list("Sampling Conditions", bs_icon("info-circle-fill")),
                 "Describe environmental conditions during sampling (e.g., weather, season, flow conditions)."
               ),
-              placeholder = "Describe sampling conditions, protocols, etc.",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("site_types"),
-              label = tooltip(
-                list("Site Type(s)", bs_icon("info-circle-fill")),
-                "Description of sampling site characteristics (e.g., urban, rural, industrial, background)."
-              ),
-              placeholder = "Describe types of sampling sites",
-              rows = 2,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("sampling_methods"),
-              label = tooltip(
-                list("Sampling Method(s)", bs_icon("info-circle-fill")),
-                "Field protocols and equipment used for sample collection."
-              ),
-              placeholder = "Describe sampling protocols used",
+              placeholder = "Describe sampling conditions, etc.",
               rows = 1,
               width = "100%"
             ),
@@ -346,7 +352,7 @@ mod_CREED_ui <- function(id) {
             style = "margin-bottom: 8px;"
           ),
           checkboxInput(
-            inputId = ns("gateway_analyte_answer"),
+            inputId = ns("gateway_location_answer"),
             label = "Yes",
             value = FALSE
           ),
@@ -354,11 +360,6 @@ mod_CREED_ui <- function(id) {
             style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
             strong("Data found: "),
             textOutput(ns("gateway_location_summary"), inline = TRUE)
-          ),
-          checkboxInput(
-            inputId = ns("gateway_location_answer"),
-            label = "Yes",
-            value = FALSE
           )
         ),
 
@@ -533,6 +534,11 @@ mod_CREED_server <- function(id) {
       )
       updateTextAreaInput(
         session,
+        "site_types_auto",
+        value = summaries$site_types
+      )
+      updateTextAreaInput(
+        session,
         "num_samples_auto",
         value = summaries$num_samples
       )
@@ -545,6 +551,11 @@ mod_CREED_server <- function(id) {
         session,
         "analytical_methods_auto",
         value = summaries$analytical_methods
+      )
+      updateTextAreaInput(
+        session,
+        "sampling_methods_auto",
+        value = summaries$sampling_methods
       )
       updateTextAreaInput(session, "loq_auto", value = summaries$loq_info)
 

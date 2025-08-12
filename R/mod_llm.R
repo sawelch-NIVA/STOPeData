@@ -16,8 +16,12 @@
 #' @export
 mod_llm_ui <- function(id) {
   ns <- NS(id)
-
   tagList(
+    tags$head(tags$style(HTML(
+      ".btn-file {
+    padding: 6px 20px !important;
+}"
+    ))),
     # Enable shinyjs
     useShinyjs(),
 
@@ -31,7 +35,7 @@ mod_llm_ui <- function(id) {
 
         ## Upload and API section ----
         div(
-          style = "margin: 20px 0;",
+          style = "margin: 10px 0px 0px 0px;",
           h5("Upload & Configuration"),
 
           layout_column_wrap(
@@ -44,10 +48,11 @@ mod_llm_ui <- function(id) {
               inputId = ns("pdf_file"),
               label = tooltip(
                 list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report containing environmental exposure data"
+                "Upload a research paper or report (pdf) containing environmental exposure data"
               ),
               accept = ".pdf",
-              width = "100%"
+              width = "100%",
+              buttonLabel = "Browse..."
             ),
 
             ### API key input ----
@@ -80,7 +85,7 @@ mod_llm_ui <- function(id) {
           id = ns("config_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Advanced Configuration",
+            title = "Modify Prompt and Data Structure (Advanced)",
             icon = bs_icon("gear"),
             div(
               h6("System Prompt"),
@@ -137,7 +142,6 @@ mod_llm_ui <- function(id) {
 
         ## Status and results ----
         div(
-          style = "margin-top: 20px;",
           uiOutput(ns("extraction_status"))
         ),
 
@@ -355,7 +359,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "PDF extraction completed successfully!",
-            type = "default"
+            type = "success"
           )
 
           # Enable form population button

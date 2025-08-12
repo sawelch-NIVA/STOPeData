@@ -1,5 +1,5 @@
 /* ===================
-   Root Variables
+Root Variables
    =================== */
 :root {
     /* Font Families */
@@ -60,7 +60,7 @@
 }
 
 /* ===================
-   Typography & Font Imports
+Typography & Font Imports
    =================== */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
@@ -128,7 +128,7 @@ pre,
 }
 
 /* ===================
-   rhandsontable
+rhandsontable
    =================== */
 
 /* Dark Mode Support */
@@ -167,7 +167,7 @@ textarea .handsontableInput {
 } */
 
 /* ===================
-   Leaflet Dark Mode Support
+Leaflet Dark Mode Support
    =================== */
 
 /* Main leaflet container - Credit to https://dev.to/deepakdevanand/leaflet-map-dark-theme-5ej0 */
@@ -176,7 +176,7 @@ textarea .handsontableInput {
 }
 
 /* ===================
-   Plotly Dark Mode Support
+Plotly Dark Mode Support
    =================== */
 
 [data-bs-theme="dark"] .plot-container {
