@@ -13,10 +13,15 @@
 #' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
+#' @export
 mod_llm_ui <- function(id) {
   ns <- NS(id)
-
   tagList(
+    tags$head(tags$style(HTML(
+      ".btn-file {
+    padding: 6px 20px !important;
+}"
+    ))),
     # Enable shinyjs
     useShinyjs(),
 
@@ -30,7 +35,7 @@ mod_llm_ui <- function(id) {
 
         ## Upload and API section ----
         div(
-          style = "margin: 20px 0;",
+          style = "margin: 10px 0px 0px 0px;",
           h5("Upload & Configuration"),
 
           layout_column_wrap(
@@ -43,10 +48,11 @@ mod_llm_ui <- function(id) {
               inputId = ns("pdf_file"),
               label = tooltip(
                 list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report containing environmental exposure data"
+                "Upload a research paper or report (pdf) containing environmental exposure data"
               ),
               accept = ".pdf",
-              width = "100%"
+              width = "100%",
+              buttonLabel = "Browse..."
             ),
 
             ### API key input ----
@@ -59,7 +65,18 @@ mod_llm_ui <- function(id) {
               value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
               placeholder = "sk-ant-...",
               width = "100%"
-            )
+            ),
+            ### ENTERED_BY
+            textInput(
+              inputId = ns("ENTERED_BY"),
+              label = tooltip(
+                list("Entered By", bs_icon("info-circle-fill")),
+                "Name/contact details."
+              ),
+              value = Sys.getenv("EDATA_USERNAME", unset = ""),
+              placeholder = "Ole Nordman",
+              width = "100%"
+            ),
           )
         ),
 
@@ -68,7 +85,7 @@ mod_llm_ui <- function(id) {
           id = ns("config_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Advanced Configuration",
+            title = "Modify Prompt and Data Structure (Advanced)",
             icon = bs_icon("gear"),
             div(
               h6("System Prompt"),
@@ -125,7 +142,6 @@ mod_llm_ui <- function(id) {
 
         ## Status and results ----
         div(
-          style = "margin-top: 20px;",
           uiOutput(ns("extraction_status"))
         ),
 
@@ -178,6 +194,7 @@ mod_llm_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
+#' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -342,7 +359,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "PDF extraction completed successfully!",
-            type = "default"
+            type = "success"
           )
 
           # Enable form population button
@@ -456,6 +473,18 @@ mod_llm_server <- function(id) {
       showNotification("Extraction cleared", type = "message")
     }) |>
       bindEvent(input$clear_extraction)
+
+    ## observe ~ bindEvent: Set session user name ----
+    observe({
+      # Set the reactive value
+      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+      showNotification(
+        glue("Saved your username {input$ENTERED_BY} to session data."),
+        type = "message"
+      )
+    }) |>
+      bindEvent(input$ENTERED_BY, ignoreInit = FALSE)
 
     # 3. Outputs ----
 

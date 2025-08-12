@@ -109,6 +109,12 @@ app_ui <- function(request) {
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),
+      nav_panel(
+        title = "12. Data Quality",
+        value = "12-CREED",
+        mod_CREED_ui("CREED"),
+        icon = bs_icon("clipboard-data-fill")
+      ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
@@ -121,13 +127,15 @@ app_ui <- function(request) {
           input_task_button(
             id = "previous_section",
             label = HTML('Previous Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           ),
 
           input_task_button(
             id = "next_section",
             label = HTML('Next Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           )
         ),
         div(
