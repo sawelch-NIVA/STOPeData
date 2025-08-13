@@ -18,9 +18,11 @@
 #' @export
 mod_sites_ui <- function(id) {
   ns <- NS(id)
-
   tagList(
-    tags$style(),
+    tags$style(HTML(
+      "
+  "
+    )),
     # Enable shinyjs
     useShinyjs(),
 
@@ -34,7 +36,7 @@ mod_sites_ui <- function(id) {
       ## Left panel: Table and controls ----
       card(
         full_screen = FALSE,
-        height = "40vh",
+        height = "30vh",
         fill = TRUE,
         fillable = TRUE,
         card_body(
@@ -102,22 +104,24 @@ mod_sites_ui <- function(id) {
       ),
       ## Top right card: Map ----
       card(
-        height = "40vh",
+        height = "30vh",
         full_screen = TRUE,
         ### Leaflet map ----
-        leafletOutput(ns("sites_map"), height = "500px")
+        leafletOutput(ns("sites_map"))
       )
     ),
 
     ### Bottom card: Sites table ----
-    card(
-      full_screen = TRUE,
-      card_body(
-        div(
-          rHandsontableOutput(ns("sites_table"))
-        )
-      )
+    # card(
+    #   full_screen = TRUE,
+    #   card_body(
+    #     max_height_full_screen = "80vh",
+    div(
+      class = "table-container",
+      rHandsontableOutput(ns("sites_table"))
     )
+    #   )
+    # )
   )
 }
 
@@ -381,7 +385,7 @@ mod_sites_server <- function(id) {
         session$userData$reactiveValues$sitesData <- moduleState$validated_data
         print_dev(glue(
           "moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"
+          session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"
         ))
       } else {
         moduleState$is_valid <- FALSE
@@ -431,177 +435,176 @@ mod_sites_server <- function(id) {
     # upstream: moduleState$sites_data
     # downstream: UI table display
     output$sites_table <- renderRHandsontable({
-      if (nrow(moduleState$sites_data) == 0) {
-        # Show empty table structure
-        rhandsontable(create_new_site(), stretchH = "all") |>
-          hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
-      } else {
-        rhandsontable(
-          moduleState$sites_data,
-          selectCallback = TRUE,
-          width = NULL,
-          height = NULL
+      # if (nrow(moduleState$sites_data) == 0) {
+      #   # Show empty table structure
+      #   rhandsontable(create_new_site(), stretchH = "all") |>
+      #     hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
+      # } else {
+      rhandsontable(
+        moduleState$sites_data,
+        overflow = "visible",
+        height = 500
+      ) |>
+        hot_table(stretchH = "right") |>
+        hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
+        hot_cell(
+          1,
+          1,
+          comment = 'Site Code: A short, unique code identifying identify the site.'
         ) |>
-          hot_table(overflow = "visible") |>
-          hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
-          hot_cell(
-            1,
-            1,
-            comment = 'Site Code: A short, unique code identifying identify the site.'
-          ) |>
-          hot_col("SITE_NAME", renderer = mandatory_highlight_text()) |>
-          hot_cell(
-            1,
-            2,
-            comment = 'Site Name: A longer site name identifying the site.'
-          ) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE",
-            type = "dropdown",
-            source = geographic_features,
-            strict = TRUE,
-            renderer = mandatory_highlight_dropdown()
-          ) |>
-          hot_cell(
-            1,
-            3,
-            comment = 'Site Geographical Feature: The geographical category of the site.'
-          ) |>
-          hot_col(
-            "SITE_GEOGRAPHIC_FEATURE_SUB",
-            type = "dropdown",
-            source = geographic_features_sub,
-            strict = TRUE,
-            renderer = mandatory_highlight_dropdown()
-          ) |>
-          hot_cell(
-            1,
-            4,
-            comment = 'Site Geographical Sub-Feature: The geographical sub-category of the site.'
-          ) |>
-          hot_col(
-            "SITE_COORDINATE_SYSTEM",
-            type = "dropdown",
-            source = coordinate_systems,
-            strict = TRUE,
-            renderer = mandatory_highlight_dropdown()
-          ) |>
-          hot_cell(
-            1,
-            5,
-            comment = 'Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude.'
-          ) |>
-          hot_col(
-            "LATITUDE",
-            type = "numeric",
-            format = "0.000000",
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_cell(
-            1,
-            6,
-            comment = "Latitude: The site's latitude (northing, y axis, in decimal degrees)"
-          ) |>
-          hot_col(
-            "LONGITUDE",
-            type = "numeric",
-            format = "0.000000",
-            allowInvalid = FALSE,
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_cell(
-            1,
-            7,
-            comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)"
-          ) |>
-          hot_col(
-            "COUNTRY",
-            type = "dropdown",
-            source = countries,
-            strict = TRUE
-          ) |>
-          hot_cell(
-            1,
-            8,
-            comment = 'Country: The country where the site was sampled.'
-          ) |>
-          hot_col(
-            "AREA",
-            type = "dropdown",
-            source = areas,
-            strict = TRUE
-          ) |>
-          hot_cell(
-            1,
-            9,
-            comment = 'Area: The region where the site was sampled.'
-          ) |>
-          hot_col(
-            "ALTITUDE_VALUE",
-            type = "numeric",
-            allowInvalid = FALSE,
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_cell(
-            1,
-            10,
-            comment = "Altitude: The sampling site's altitude above or below sea level."
-          ) |>
-          hot_col(
-            "ALTITUDE_UNIT",
-            type = "dropdown",
-            source = altitude_units,
-            strict = TRUE
-          ) |>
-          hot_cell(
-            1,
-            11,
-            comment = "Altitude Unit: The unit associated with the site's reported altitude."
-          ) |>
-          hot_col(
-            "ENTERED_DATE",
-            type = "date",
-            dateFormat = "YYYY-MM-DD",
-            allowInvalid = FALSE,
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_cell(
-            1,
-            12,
-            comment = "Entered Data: The date this site is added to the database."
-          ) |>
-          hot_col(
-            "ENTERED_BY",
-            type = "text",
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_cell(
-            1,
-            13,
-            comment = "Entered By: Your name or initials (autofilled from Campaign if available)."
-          ) |>
-          hot_col(
-            "SITE_COMMENT",
-            type = "text",
-          ) |>
-          hot_cell(
-            1,
-            14,
-            comment = "Site Comment: Any additional comments or relevant details about the site."
-          ) |>
-          hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
-            customOpts = list(
-              # Only include remove_row in the menu
-              "row_above" = NULL,
-              "row_below" = NULL,
-              "remove_row" = list(
-                name = "Remove selected rows"
-              )
+        hot_col("SITE_NAME", renderer = mandatory_highlight_text()) |>
+        hot_cell(
+          1,
+          2,
+          comment = 'Site Name: A longer site name identifying the site.'
+        ) |>
+        hot_col(
+          "SITE_GEOGRAPHIC_FEATURE",
+          type = "dropdown",
+          source = geographic_features,
+          strict = TRUE,
+          renderer = mandatory_highlight_dropdown()
+        ) |>
+        hot_cell(
+          1,
+          3,
+          comment = 'Site Geographical Feature: The geographical category of the site.'
+        ) |>
+        hot_col(
+          "SITE_GEOGRAPHIC_FEATURE_SUB",
+          type = "dropdown",
+          source = geographic_features_sub,
+          strict = TRUE,
+          renderer = mandatory_highlight_dropdown()
+        ) |>
+        hot_cell(
+          1,
+          4,
+          comment = 'Site Geographical Sub-Feature: The geographical sub-category of the site.'
+        ) |>
+        hot_col(
+          "SITE_COORDINATE_SYSTEM",
+          type = "dropdown",
+          source = coordinate_systems,
+          strict = TRUE,
+          renderer = mandatory_highlight_dropdown()
+        ) |>
+        hot_cell(
+          1,
+          5,
+          comment = 'Coordinate System: The Coordinate Reference System (CRS) associated with the site longitude and latitude.'
+        ) |>
+        hot_col(
+          "LATITUDE",
+          type = "numeric",
+          format = "0.000000",
+          renderer = mandatory_highlight_text()
+        ) |>
+        hot_cell(
+          1,
+          6,
+          comment = "Latitude: The site's latitude (northing, y axis, in decimal degrees)"
+        ) |>
+        hot_col(
+          "LONGITUDE",
+          type = "numeric",
+          format = "0.000000",
+          allowInvalid = FALSE,
+          renderer = mandatory_highlight_text()
+        ) |>
+        hot_cell(
+          1,
+          7,
+          comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)"
+        ) |>
+        hot_col(
+          "COUNTRY",
+          type = "dropdown",
+          source = countries,
+          strict = TRUE
+        ) |>
+        hot_cell(
+          1,
+          8,
+          comment = 'Country: The country where the site was sampled.'
+        ) |>
+        hot_col(
+          "AREA",
+          type = "dropdown",
+          source = areas,
+          strict = TRUE
+        ) |>
+        hot_cell(
+          1,
+          9,
+          comment = 'Area: The region where the site was sampled.'
+        ) |>
+        hot_col(
+          "ALTITUDE_VALUE",
+          type = "numeric",
+          allowInvalid = FALSE,
+          renderer = mandatory_highlight_text()
+        ) |>
+        hot_cell(
+          1,
+          10,
+          comment = "Altitude: The sampling site's altitude above or below sea level."
+        ) |>
+        hot_col(
+          "ALTITUDE_UNIT",
+          type = "dropdown",
+          source = altitude_units,
+          strict = TRUE
+        ) |>
+        hot_cell(
+          1,
+          11,
+          comment = "Altitude Unit: The unit associated with the site's reported altitude."
+        ) |>
+        hot_col(
+          "ENTERED_DATE",
+          type = "date",
+          dateFormat = "YYYY-MM-DD",
+          allowInvalid = FALSE,
+          renderer = mandatory_highlight_text()
+        ) |>
+        hot_cell(
+          1,
+          12,
+          comment = "Entered Data: The date this site is added to the database."
+        ) |>
+        hot_col(
+          "ENTERED_BY",
+          type = "text",
+          renderer = mandatory_highlight_text()
+        ) |>
+        hot_cell(
+          1,
+          13,
+          comment = "Entered By: Your name or initials (autofilled from Campaign if available)."
+        ) |>
+        hot_col(
+          "SITE_COMMENT",
+          type = "text",
+        ) |>
+        hot_cell(
+          1,
+          14,
+          comment = "Site Comment: Any additional comments or relevant details about the site."
+        ) |>
+        hot_context_menu(
+          allowRowEdit = TRUE, # Enable row operations
+          allowColEdit = FALSE, # Disable column operations
+          customOpts = list(
+            # Only include remove_row in the menu
+            "row_above" = NULL,
+            "row_below" = NULL,
+            "remove_row" = list(
+              name = "Remove selected rows"
             )
           )
-      }
+        )
+      # }
     })
 
     ## output: sites_map ----
