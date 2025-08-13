@@ -80,17 +80,45 @@ pre,
     font-family: var(--font-code);
 }
 
+.validation-container {
+    flex-grow: 1;
+}
+
 /* Validation Elements */
 .validation-status {
     transition: all 0.3s ease;
-    border-radius: var(--radius-sm);
-    padding: var(--spacing-sm);
+    border-radius: var(--bs-border-radius);
+    /* Use Bootstrap's border radius */
+
+    /* Bootstrap button padding */
+    padding: 0.75rem 2rem;
+    /* Same as .btn */
+
+    /* Bootstrap button font properties */
+    font-size: 1rem;
+    /* Same as .btn */
+    font-weight: 400;
+    /* Same as .btn */
+    line-height: 1.5;
+    /* Same as .btn */
+
+    /* Bootstrap button positioning */
+    position: relative;
+    /* Same as .btn */
+    display: inline-flex !important;
+    /* Changed from flex to inline-flex like .btn */
+    vertical-align: middle;
+    /* Same as .btn */
+
+
     margin: var(--spacing-sm) 0;
-    display: flex;
     align-items: center;
     gap: 0.5em;
     opacity: 1 !important;
     width: 100%;
+
+    /* Grow to fill rest of line */
+    flex: 1;
 }
 
 /* Nudge icons in line with validation text */
@@ -105,7 +133,7 @@ pre,
     color: var(--bs-white) !important;
 }
 
-.validation-not-started {
+.validation-info {
     background-color: var(--color-neutral) !important;
     color: var(--bs-white) !important;
 }

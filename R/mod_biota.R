@@ -77,7 +77,7 @@ mod_biota_ui <- function(id) {
             )
           ),
 
-          ## Selected species display ----
+          ## Selected species display and clear button ----
           div(
             style = "margin-top: 10px;",
             layout_columns(
@@ -102,16 +102,11 @@ mod_biota_ui <- function(id) {
           )
         ),
 
-        ## Biota table ----
-        rHandsontableOutput(
-          ns("biota_table"),
-          width = "100%",
-          height = "100%"
-        ),
-
         ## Validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -125,6 +120,18 @@ mod_biota_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Biota table card ----
+    card(
+      div(
+        rHandsontableOutput(
+          ns("biota_table"),
+          width = "100%",
+          height = "100%"
+        ),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -486,19 +493,10 @@ mod_biota_server <- function(id) {
     output$biota_table <- renderRHandsontable({
       if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
         # Show message when no biota samples
-        empty_df <- data.frame(
-          Message = "No biota samples found. Add samples with ENVIRON_COMPARTMENT = 'Biota' in the Samples module.",
-          stringsAsFactors = FALSE
-        )
-
         rhandsontable(
-          empty_df,
-          stretchH = "all",
-          height = NULL,
+          init_biota_df(),
           readOnly = TRUE,
-          width = NULL
-        ) |>
-          hot_table(overflow = "visible", stretchH = "all")
+        )
       } else {
         # Create controlled vocabulary for biota fields
 
@@ -617,10 +615,23 @@ mod_biota_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, moduleState$has_biota_samples
+    # upstream: moduleState$is_valid, moduleState$has_biota_samples, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (!moduleState$has_biota_samples) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (!moduleState$has_biota_samples) {
         div(
           bs_icon("info-circle"),
           "No biota samples detected. Biota validation not required.",
@@ -643,6 +654,8 @@ mod_biota_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----

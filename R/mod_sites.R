@@ -70,7 +70,7 @@ mod_sites_ui <- function(id) {
               ),
               value = "",
               placeholder = "e.g., NIVA_AQUAMONITOR_",
-              width = "150px"
+              width = "200px"
             ),
 
             # Add button
@@ -82,14 +82,11 @@ mod_sites_ui <- function(id) {
                 class = "btn-success",
                 width = "120px"
               )
-            )
-          ),
+            ),
 
-          ### Validation status ----
-          div(
+            ### Validation status ----
             uiOutput(ns("validation_reporter"))
           ),
-
           ### Raw data accordion ----
           accordion(
             id = ns("data_accordion"),
@@ -116,9 +113,11 @@ mod_sites_ui <- function(id) {
     #   full_screen = TRUE,
     #   card_body(
     #     max_height_full_screen = "80vh",
-    div(
-      class = "table-container",
-      rHandsontableOutput(ns("sites_table"))
+    card(
+      div(
+        rHandsontableOutput(ns("sites_table")),
+        style = "margin-bottom: 10px;"
+      )
     )
     #   )
     # )
@@ -700,7 +699,7 @@ mod_sites_server <- function(id) {
         )
       }
 
-      div(llm_indicator, validation_status)
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----
