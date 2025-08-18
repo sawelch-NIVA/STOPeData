@@ -36,7 +36,7 @@ app_ui <- function(request) {
       navbar_options = navbar_options(
         underline = TRUE,
         theme = "auto",
-        position = "top"
+        position = "static-top"
       ),
       # nav_panel(title = "Landing", value = "00-landing", mod_landing_ui("landing")),
       nav_panel(
