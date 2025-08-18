@@ -23,6 +23,7 @@ app_server <- function(input, output, session) {
       samplesData = tibble(NULL),
       biotaData = tibble(NULL),
       dataData = tibble(NULL),
+      creedData = tibble(NULL),
 
       # LLM extracted data (new structure)
       campaignDataLLM = NULL,
@@ -59,6 +60,7 @@ app_server <- function(input, output, session) {
   moduleBiota <- mod_biota_server("biota")
   moduleData <- mod_data_server("data")
   moduleReview <- mod_review_server("review")
+  moduleCREED <- mod_CREED_server("CREED")
 
   # Module navigation ----
   ## Navigation setup ----
@@ -73,13 +75,16 @@ app_server <- function(input, output, session) {
     "07-samples",
     "08-biota",
     "09-data",
-    "10-review"
+    "10-review",
+    "12-CREED"
   )
 
   ## Track current module position ----
   current_position <- reactive({
     current_tab <- input$`main-page`
-    if (is.null(current_tab)) return(1) # Default to LLM extract (position 1)
+    if (is.null(current_tab)) {
+      return(1)
+    } # Default to LLM extract (position 1)
     match(current_tab, module_order)
   })
 

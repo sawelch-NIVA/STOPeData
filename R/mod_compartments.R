@@ -34,6 +34,7 @@ mod_compartments_ui <- function(id) {
           width = "300px",
           fill = FALSE,
           fillable = FALSE,
+          style = "margin-bottom: -20px;",
 
           selectInput(
             inputId = ns("environ_compartment_select"),
@@ -91,24 +92,19 @@ mod_compartments_ui <- function(id) {
           )
         ),
 
-        ## Add combination button ----
+        ## Add combination button and validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
           input_task_button(
             id = ns("add_combination"),
             label = "Add Combination",
             icon = icon("plus-circle"),
             class = "btn-success",
             width = "200px"
-          )
-        ),
+          ),
 
-        ## Compartments table ----
-        rHandsontableOutput(ns("compartments_table")),
-
-        ## Validation status ----
-        div(
-          style = "margin-top: 15px;",
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -122,6 +118,14 @@ mod_compartments_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Compartments table card ----
+    card(
+      div(
+        rHandsontableOutput(ns("compartments_table")),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -540,26 +544,41 @@ mod_compartments_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All compartment data validated successfully.",
             nrow(moduleState$compartments_data),
-            "combination(s) ready."
+            "compartment combination(s) ready."
           ),
           class = "validation-status validation-complete"
         )
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one valid compartment combination to proceed. Use the form above to add combinations.",
+          "Add at least one complete, valid compartment to proceed.",
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----
@@ -596,16 +615,6 @@ mod_compartments_server <- function(id) {
         "# Compartment combinations will appear here when valid combinations are added"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

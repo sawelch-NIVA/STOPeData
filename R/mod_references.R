@@ -93,6 +93,22 @@ mod_references_ui <- function(id) {
           width = "300px"
         ),
 
+        ## Data source selector (always required) ----
+        selectInput(
+          inputId = ns("DATA_SOURCE"),
+          label = tooltip(
+            list("Data Source *", bs_icon("info-circle-fill")),
+            "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
+          ),
+          choices = c(
+            "Primary" = "primary",
+            "Secondary/Review" = "secondary_review",
+            "Other" = "other"
+          ),
+          selected = "primary",
+          width = "300px"
+        ),
+
         ## Always required fields ----
         layout_column_wrap(
           width = "300px",
@@ -384,6 +400,8 @@ mod_references_server <- function(id) {
     ### Always required fields ----
     iv$add_rule("REFERENCE_TYPE", sv_required())
 
+    iv$add_rule("DATA_SOURCE", sv_required())
+
     iv$add_rule("AUTHOR", sv_required())
     iv$add_rule("AUTHOR", function(value) {
       if (isTruthy(value) && nchar(value) > 1000) {
@@ -427,18 +445,6 @@ mod_references_server <- function(id) {
     iv$add_rule("PERIODICAL_JOURNAL", function(value) {
       if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
         "Journal Name is required for journal articles"
-      }
-    })
-
-    iv$add_rule("VOLUME", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
-        "Volume is required for journal articles"
-      }
-    })
-
-    iv$add_rule("ISSUE", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
-        "Issue is required for journal articles"
       }
     })
 
@@ -518,79 +524,79 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
-    ## observe: conditional field enable/disable based on reference type ----
+    ## observe: conditional field enable/disable based on reference type DISABLED ----
     # upstream: input$REFERENCE_TYPE
     # downstream: field enable/disable states
-    observe({
-      ref_type <- input$REFERENCE_TYPE
+    # observe({
+    #   ref_type <- input$REFERENCE_TYPE
 
-      # Clear non-relevant fields when reference type changes
-      if (ref_type != "journal") {
-        updateTextInput(session, "PERIODICAL_JOURNAL", value = "")
-        updateNumericInput(session, "VOLUME", value = NA)
-        updateNumericInput(session, "ISSUE", value = NA)
-      }
+    #   # Clear non-relevant fields when reference type changes
+    #   if (ref_type != "journal") {
+    #     updateTextInput(session, "PERIODICAL_JOURNAL", value = "")
+    #     updateNumericInput(session, "VOLUME", value = NA)
+    #     updateNumericInput(session, "ISSUE", value = NA)
+    #   }
 
-      if (ref_type != "book") {
-        if (ref_type != "report") {
-          # PUBLISHER is shared between book and report
-          updateTextInput(session, "PUBLISHER", value = "")
-        }
-      }
+    #   if (ref_type != "book") {
+    #     if (ref_type != "report") {
+    #       # PUBLISHER is shared between book and report
+    #       updateTextInput(session, "PUBLISHER", value = "")
+    #     }
+    #   }
 
-      if (ref_type != "report") {
-        updateTextInput(session, "INSTITUTION", value = "")
-        if (ref_type != "book") {
-          # PUBLISHER is shared between book and report
-          updateTextInput(session, "PUBLISHER", value = "")
-        }
-      }
+    #   if (ref_type != "report") {
+    #     updateTextInput(session, "INSTITUTION", value = "")
+    #     if (ref_type != "book") {
+    #       # PUBLISHER is shared between book and report
+    #       updateTextInput(session, "PUBLISHER", value = "")
+    #     }
+    #   }
 
-      if (ref_type != "dataset") {
-        updateTextInput(session, "DB_NAME", value = "")
-        updateTextInput(session, "DB_PROVIDER", value = "")
-      }
+    #   if (ref_type != "dataset") {
+    #     updateTextInput(session, "DB_NAME", value = "")
+    #     updateTextInput(session, "DB_PROVIDER", value = "")
+    #   }
 
-      # Enable/disable fields based on reference type
-      # Journal fields
-      if (ref_type == "journal") {
-        enable("PERIODICAL_JOURNAL")
-        enable("VOLUME")
-        enable("ISSUE")
-      } else {
-        disable("PERIODICAL_JOURNAL")
-        disable("VOLUME")
-        disable("ISSUE")
-      }
+    #   # Enable/disable fields based on reference type
+    #   # Journal fields
+    #   if (ref_type == "journal") {
+    #     enable("PERIODICAL_JOURNAL")
+    #     enable("VOLUME")
+    #     enable("ISSUE")
+    #   } else {
+    #     disable("PERIODICAL_JOURNAL")
+    #     disable("VOLUME")
+    #     disable("ISSUE")
+    #   }
 
-      # Disable PUBLISHER only if dataset
-      if (ref_type == "dataset") {
-        disable("PUBLISHER")
-      } else {
-        enable("PUBLISHER")
-      }
+    #   # Disable PUBLISHER only if dataset
+    #   if (ref_type == "dataset") {
+    #     disable("PUBLISHER")
+    #   } else {
+    #     enable("PUBLISHER")
+    #   }
 
-      # Report fields
-      if (ref_type == "report") {
-        enable("INSTITUTION")
-        enable("PUBLISHER")
-      } else {
-        disable("INSTITUTION")
-        if (ref_type != "book") {
-          # PUBLISHER shared with book
-          disable("PUBLISHER")
-        }
-      }
+    #   # Report fields
+    #   if (ref_type == "report") {
+    #     enable("INSTITUTION")
+    #     enable("PUBLISHER")
+    #   } else {
+    #     disable("INSTITUTION")
+    #     if (ref_type != "book") {
+    #       # PUBLISHER shared with book
+    #       disable("PUBLISHER")
+    #     }
+    #   }
 
-      # Dataset fields
-      if (ref_type == "dataset") {
-        enable("DB_NAME")
-        enable("DB_PROVIDER")
-      } else {
-        disable("DB_NAME")
-        disable("DB_PROVIDER")
-      }
-    })
+    #   # Dataset fields
+    #   if (ref_type == "dataset") {
+    #     enable("DB_NAME")
+    #     enable("DB_PROVIDER")
+    #   } else {
+    #     disable("DB_NAME")
+    #     disable("DB_PROVIDER")
+    #   }
+    # })
 
     ## observe: DOI/PMID lookup functionality ----
     # upstream: input$lookup_doi, input$doi_lookup
@@ -845,6 +851,7 @@ mod_references_server <- function(id) {
         # Collect validated data
         validated_data <- tibble(
           REFERENCE_TYPE = input$REFERENCE_TYPE,
+          DATA_SOURCE = input$DATA_SOURCE,
           AUTHOR = input$AUTHOR,
           TITLE = input$TITLE,
           YEAR = input$YEAR,
@@ -918,6 +925,7 @@ mod_references_server <- function(id) {
       {
         # Reset all inputs to default values
         updateSelectInput(session, "REFERENCE_TYPE", selected = "journal")
+        updateSelectInput(session, "DATA_SOURCE", selected = "primary")
         updateTextAreaInput(session, "AUTHOR", value = "")
         updateTextAreaInput(session, "TITLE", value = "")
         updateNumericInput(
