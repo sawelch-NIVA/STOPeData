@@ -32,6 +32,7 @@ Imports:
     plotly,
     purrr,
     rcrossref (>= 1.2.0),
+    readr,
     report,
     rhandsontable,
     shiny (>= 1.11.1),

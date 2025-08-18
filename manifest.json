@@ -284,7 +284,7 @@
         "Description": "A Shiny app to import environmental monitoring data from papers or other data sources, formatting with the eData format and validating. Review data, export, and check data quality against the CREED criteria.",
         "License": "What license is it under?",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "arrow,\nattempt,\nbib2df,\nbsicons,\nbslib,\nconfig,\ndigest,\ndplyr,\nDT,\nellmer,\nggplot2,\nglue,\ngolem,\nhtmltools,\nhttr,\nISOcodes,\nleaflet,\nlubridate,\nmarkdown,\nopenxlsx2,\npkgload,\nplotly,\npurrr,\nrcrossref (>= 1.2.0),\nreport,\nrhandsontable,\nshiny (>= 1.11.1),\nshinyjs,\nshinytest2,\nshinyvalidate,\nshinyWidgets,\nstringi,\nstringr,\ntibble,\nxml2",
+        "Imports": "arrow,\nattempt,\nbib2df,\nbsicons,\nbslib,\nconfig,\ndigest,\ndplyr,\nDT,\nellmer,\nggplot2,\nglue,\ngolem,\nhtmltools,\nhttr,\nISOcodes,\nleaflet,\nlubridate,\nmarkdown,\nopenxlsx2,\npkgload,\nplotly,\npurrr,\nrcrossref (>= 1.2.0),\nreadr,\nreport,\nrhandsontable,\nshiny (>= 1.11.1),\nshinyjs,\nshinytest2,\nshinyvalidate,\nshinyWidgets,\nstringi,\nstringr,\ntibble,\nxml2",
         "Encoding": "UTF-8",
         "LazyData": "true",
         "RoxygenNote": "7.3.2",
@@ -4507,7 +4507,7 @@
       "checksum": "16b143ac8ddd5f660d3fbc6f7629daec"
     },
     "DESCRIPTION": {
-      "checksum": "67212e4ecac932e8d108a620fcdb06d4"
+      "checksum": "120a5d9ec792b95f3086a1359d359c9f"
     },
     "inst/app/www/favicon.ico": {
       "checksum": "81560d1b906a530c87fa0acbb2f5cca4"
@@ -4603,7 +4603,7 @@
       "checksum": "20e2d34ca4f3b31d9427189c3fe473e4"
     },
     "R/app_ui.R": {
-      "checksum": "acdf072c8bdaf0342fa3349bdfe2151a"
+      "checksum": "a7178d795910ddb4164de1155566649e"
     },
     "R/fct_load_js.R": {
       "checksum": "fc69884a4553422c763b1d90fb7ec788"
