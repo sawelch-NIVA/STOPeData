@@ -143,6 +143,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
 #' @importFrom tibble tibble
+#' @importFrom stats setNames
 #' @export
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {

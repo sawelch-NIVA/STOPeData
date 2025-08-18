@@ -98,6 +98,7 @@ mod_data_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
+#' @importFrom utils capture.output head
 #' @export
 mod_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {

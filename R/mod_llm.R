@@ -194,6 +194,7 @@ mod_llm_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
+#' @importFrom utils str
 #' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {

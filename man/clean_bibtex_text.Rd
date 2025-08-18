@@ -19,7 +19,7 @@ non-ASCII characters.
 }
 \details{
 This function performs the following cleaning operations:
-- Removes double curly braces {{}} used for capitalization preservation
+- Removes double curly braces used for capitalization preservation
 - Converts common LaTeX accent commands to Unicode characters
 - Normalises whitespace
 }

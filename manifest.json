@@ -4591,7 +4591,7 @@
       "checksum": "16b16fad83a64801542dc750422078c6"
     },
     "NAMESPACE": {
-      "checksum": "bb6b2646581012dbfecbff0c9d5773c3"
+      "checksum": "392b07defd2448ce03c95ca1aa5d5c74"
     },
     "R/_disable_autoload.R": {
       "checksum": "9d8f7f20e88b559c046ec1f59fe82cba"
@@ -4607,9 +4607,6 @@
     },
     "R/fct_load_js.R": {
       "checksum": "fc69884a4553422c763b1d90fb7ec788"
-    },
-    "R/hot_reprex_that_isn't_awful.R": {
-      "checksum": "4f4beb668bf54fec7f6329faa4a363a0"
     },
     "R/llm_data_extraction_mre.R": {
       "checksum": "d7a85bb5dca72c73388a94b4676fbab4"
@@ -4633,7 +4630,7 @@
       "checksum": "5e80e435e5cfa79456b1b68c84aad279"
     },
     "R/mod_data.R": {
-      "checksum": "b4c1915219de6462cfd8853df4c587da"
+      "checksum": "d1ba6bd29f8da555544bce9c9c0959bc"
     },
     "R/mod_data_fct_utils.R": {
       "checksum": "2020e0e68bc6513765108d29ffe79ad5"
@@ -4645,7 +4642,7 @@
       "checksum": "a4a84025b3e5466354474461c5e5f0fe"
     },
     "R/mod_llm.R": {
-      "checksum": "58e61c0cf5e5025f20fb961dfdacf683"
+      "checksum": "98b04e31845df5cbb12c1d58f0d85aec"
     },
     "R/mod_llm_fct_populate.R": {
       "checksum": "135cd36545765d7bc8d95a9c901f89d5"
@@ -4657,7 +4654,7 @@
       "checksum": "cf1a8835a1cd381478de408edfd6062e"
     },
     "R/mod_parameters.R": {
-      "checksum": "36ad5cb4025c790a8169df82ea894de2"
+      "checksum": "6352900eae067e9b487d9a6669d09787"
     },
     "R/mod_parameters_fct.R": {
       "checksum": "892e18544b3267cb632e28952c6dcca9"
@@ -4666,10 +4663,10 @@
       "checksum": "e169fec6f310d592d03e81ff5b2f029e"
     },
     "R/mod_references_fct_bibtex.R": {
-      "checksum": "58c4341fbc556cf33ff71fd92697903c"
+      "checksum": "1b2255d33bbaf35f0516062f3a479456"
     },
     "R/mod_references_fct_crossref.R": {
-      "checksum": "133efd801efcf0b0d16f9c56589b7dd2"
+      "checksum": "f9de943c2787d00cb906677b3a226c3c"
     },
     "R/mod_review.R": {
       "checksum": "63ebbc96f930e6a3c9fcc25c5f809db7"
@@ -4678,7 +4675,7 @@
       "checksum": "e4c73813c744036600042009344f90b0"
     },
     "R/mod_samples_fct.R": {
-      "checksum": "e747d2e9c9420c82269aeda825abe9a0"
+      "checksum": "74a0099324b47560025e1e7cd68b5999"
     },
     "R/mod_sites.R": {
       "checksum": "532846d0b15b6212886832356ca1a0b3"

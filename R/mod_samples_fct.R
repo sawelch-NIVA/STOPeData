@@ -4,6 +4,7 @@
 #' Update Sites Selectize Input ----
 #' @param session Shiny session
 #' @param sites_data Data frame with SITE_CODE and SITE_NAME columns
+#' @importFrom stats setNames
 #' @noRd
 update_sites_selectize <- function(session, sites_data) {
   if (is.null(sites_data) || nrow(sites_data) == 0) {
@@ -35,6 +36,7 @@ update_sites_selectize <- function(session, sites_data) {
 #' Update Parameters Selectize Input ----
 #' @param session Shiny session
 #' @param parameters_data Data frame with PARAMETER_NAME and PARAMETER_TYPE columns
+#' @importFrom stats setNames
 #' @noRd
 update_parameters_selectize <- function(session, parameters_data) {
   if (is.null(parameters_data) || nrow(parameters_data) == 0) {
@@ -73,6 +75,7 @@ update_parameters_selectize <- function(session, parameters_data) {
 #' Update Compartments Selectize Input ----
 #' @param session Shiny session
 #' @param compartments_data Data frame with compartment columns
+#' @importFrom stats setNames
 #' @noRd
 update_compartments_selectize <- function(session, compartments_data) {
   if (is.null(compartments_data) || nrow(compartments_data) == 0) {
@@ -219,7 +222,9 @@ combination_exists_with_components <- function(
   date,
   replicate
 ) {
-  if (nrow(existing_data) == 0) return(FALSE)
+  if (nrow(existing_data) == 0) {
+    return(FALSE)
+  }
 
   # Check if REPLICATE column exists in existing data
   if (!"REPLICATE" %in% names(existing_data)) {
@@ -252,6 +257,7 @@ combination_exists_with_components <- function(
 #' @param available_compartments Available compartments data frame for parsing
 #' @param available_sites Available sites data frame for lookup (optional)
 #' @param available_parameters Available parameters data frame for lookup (optional)
+#' @importFrom stats setNames
 #' @noRd
 create_sample_combinations <- function(
   sites,
