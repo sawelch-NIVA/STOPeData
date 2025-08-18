@@ -18,7 +18,7 @@ mod_information_ui <- function(id) {
         "The following packages and software were used in the development of 
       this app."
       ),
-      HTML(cite_packages() |> suppressWarnings())
+      HTML(cite_packages(prefix = "<br>") |> suppressWarnings())
     ))
   )
 }
