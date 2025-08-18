@@ -115,6 +115,12 @@ app_ui <- function(request) {
         mod_CREED_ui("CREED"),
         icon = bs_icon("clipboard-data-fill")
       ),
+      nav_panel(
+        title = "",
+        value = "info",
+        mod_information_ui("information"),
+        icon = bs_icon("info-circle")
+      ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
