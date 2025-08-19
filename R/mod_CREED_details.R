@@ -3,14 +3,16 @@
 #' @description A shiny Module.
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
-#'
+#' @importFrom shiny NS tagList textAreaInput
+#' @importFrom bslib input_task_button tooltip
 #' @noRd
-#'
-#' @importFrom shiny NS tagList
+
 mod_CREED_details_ui <- function(id) {
   ns <- NS(id)
+
   tagList(
     input_task_button(
+      # TODO: Why doesn't this work!?
       id = ns("populate_from_data"),
       label = "Populate section from data",
       icon = bs_icon("arrow-down-circle")
@@ -231,11 +233,20 @@ mod_CREED_details_ui <- function(id) {
 }
 
 #' CREED_details Server Functions
+#' @import shiny
+#' @importFrom golem print_dev
 #'
 #' @noRd
+
 mod_CREED_details_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    observe({
+      print_dev(";)")
+    }) |>
+      bindEvent(input$populate_from_data, input$save_assessment)
+
     ## Auto-populate dataset details ----
     auto_populate_details <- function() {
       # Get dataset summaries
@@ -285,7 +296,7 @@ mod_CREED_details_server <- function(id) {
       # Auto-populate gateway criteria
       auto_populate_gateway_criteria()
 
-      print_dev("CREED dataset details auto-populated")
+      print_dev("CREED Dataset Details auto-populated")
     }
   })
 }

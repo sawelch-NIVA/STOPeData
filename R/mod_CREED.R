@@ -74,13 +74,13 @@ mod_CREED_ui <- function(id) {
         h5("Gateway Criteria"),
         markdown(
           "- CREED's gateway criteria are designed to allow for the easy 
-    rejection of a study without requiring methodical examination.
-    - Most studies processed using this tool can be expected 
-    to pass these criteria without issue. 
-    
-    - Nevertheless they are included for the sake of completeness.
-    - Each criterion is auto-evaluated based on your entered data, but can be 
-    manually overridden."
+          rejection of a study without requiring methodical examination.
+          - Most studies processed using this tool can be expected 
+          to pass these criteria without issue. 
+          
+          - Nevertheless they are included for the sake of completeness.
+          - Each criterion is auto-evaluated based on your entered data, but can be 
+          manually overridden."
         ),
         accordion(
           open = FALSE,
