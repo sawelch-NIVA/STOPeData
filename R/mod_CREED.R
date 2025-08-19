@@ -22,7 +22,9 @@ mod_CREED_ui <- function(id) {
       fill = TRUE,
       card_body(
         ## Info accordion ----
-        info_accordion(content_file = "inst/app/www/md/intro_CREED.md"),
+        info_accordion(
+          content_file = "inst/app/www/md/intro_CREED.md"
+        ),
         div(
           class = "alert alert-primary",
           p(
@@ -46,10 +48,13 @@ mod_CREED_ui <- function(id) {
             per assessment.
             "
         ),
-        accordion(accordion_panel(
-          title = "Purpose Statement",
-          mod_CREED_purpose_ui("CREED_purpose"),
-        )),
+        accordion(
+          open = FALSE,
+          accordion_panel(
+            title = "Purpose Statement",
+            mod_CREED_purpose_ui("CREED_purpose"),
+          )
+        ),
 
         ## Dataset Details  ----
         h5("Dataset Details - Key Attributes"),
@@ -57,10 +62,13 @@ mod_CREED_ui <- function(id) {
           "- This section provides a summary of basic details for the dataset. 
           - Review the auto-populated fields below and add any missing information."
         ),
-        accordion(accordion_panel(
-          title = "Dataset Details",
-          mod_CREED_details_ui("CREED_details")
-        )),
+        accordion(
+          open = FALSE,
+          accordion_panel(
+            title = "Dataset Details",
+            mod_CREED_details_ui("CREED_details")
+          )
+        ),
 
         ## Gateway Criteria ----
         h5("Gateway Criteria"),
@@ -74,10 +82,13 @@ mod_CREED_ui <- function(id) {
     - Each criterion is auto-evaluated based on your entered data, but can be 
     manually overridden."
         ),
-        accordion(accordion_panel(
-          title = "Gateway Criteria",
-          mod_CREED_gateway_ui("CREED_gateway")
-        )),
+        accordion(
+          open = FALSE,
+          accordion_panel(
+            title = "Gateway Criteria",
+            mod_CREED_gateway_ui("CREED_gateway")
+          )
+        ),
 
         ## Reliability Criteria ---
         h5("Reliability Criteria"),
@@ -85,10 +96,13 @@ mod_CREED_ui <- function(id) {
           "Assess how reliable the dataset is for answering your assessment 
           questions."
         ),
-        accordion(accordion_panel(
-          title = "Reliability Criteria",
-          mod_CREED_reliability_ui("CREED_reliability")
-        )),
+        accordion(
+          open = FALSE,
+          accordion_panel(
+            title = "Reliability Criteria",
+            mod_CREED_reliability_ui("CREED_reliability")
+          )
+        ),
 
         ## Relevance Criteria ---
 
@@ -98,10 +112,13 @@ mod_CREED_ui <- function(id) {
           Purpose Statement."
         ),
 
-        accordion(accordion_panel(
-          title = "Relevance Criteria",
-          mod_CREED_relevance_ui("CREED_relevance")
-        )),
+        accordion(
+          open = FALSE,
+          accordion_panel(
+            title = "Relevance Criteria",
+            mod_CREED_relevance_ui("CREED_relevance")
+          )
+        ),
 
         ## Status display ----
         div(

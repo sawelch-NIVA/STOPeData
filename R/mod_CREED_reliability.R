@@ -89,7 +89,7 @@ mod_CREED_reliability_ui <- function(id) {
           style = "flex-grow: 1; margin-right: 20px;",
           h6(
             HTML(paste(
-              bs_icon("award-fill", class = "reliability-required"),
+              bs_icon("award-fill", class = "CREED-required"),
               "RB8: Accreditation/Quality Management System (Required - Shortcut Criterion)"
             ))
           ),
@@ -290,26 +290,33 @@ mod_CREED_reliability_server <- function(id) {
       bindEvent(input$RB8_score, ignoreInit = TRUE)
 
     ## observe: autopopulate from session$userData ----
-    # upstream: button
+    # upstream: button populate_from_data
     # downstream: reliability input fields
     observe({
-      # Get auto-populated data
-      auto_data <- auto_populate_reliability_fields(moduleData())
+      print("hello I am button")
+      # Get auto-populated data directly from userData
+      auto_data <- auto_populate_reliability_fields(
+        session$userData$reactiveValues
+      )
 
-      # Update relevant_data fields only
+      # Update relevant_data fields
       for (field_name in names(auto_data)) {
-        if (grepl("_relevant_data$", field_name)) {
-          updateTextAreaInput(
-            session,
-            field_name,
-            value = auto_data[[field_name]]
-          )
-        }
+        updateTextAreaInput(
+          session,
+          field_name,
+          value = auto_data[[field_name]]
+        )
       }
 
       showNotification("Reliability fields updated from data", type = "message")
     }) |>
-      bindEvent(input$autopopulate_from_session)
+      bindEvent(input$populate_from_data)
+
+    ## observe: test ----
+    observe({
+      print("Hello!")
+    }) |>
+      bindEvent(input$save_assessment)
 
     ## observe: Collect reliability scores ----
     # upstream: button

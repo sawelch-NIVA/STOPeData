@@ -567,10 +567,22 @@ create_conditional_criterion <- function(
 #' Auto-populate Reliability Fields
 #'
 #' @description Wrapper for reliability-specific auto-population
-#' @param module_data List containing all module data
+#' @param user_data session$userData$reactiveValues object
 #' @return Named list of reliability field data
 #' @noRd
-auto_populate_reliability_fields <- function(module_data) {
+auto_populate_reliability_fields <- function(user_data) {
+  # Create module_data structure from userData
+  module_data <- list(
+    campaign = user_data$campaignData,
+    references = user_data$referenceData,
+    sites = user_data$sitesData,
+    parameters = user_data$parametersData,
+    compartments = user_data$compartmentsData,
+    samples = user_data$samplesData,
+    methods = user_data$methodsData,
+    measurements = user_data$dataData
+  )
+
   summaries <- get_dataset_summaries(module_data)
 
   # Map to reliability-specific fields
@@ -580,19 +592,30 @@ auto_populate_reliability_fields <- function(module_data) {
     RB4_relevant_data = summaries$study_area,
     RB5_relevant_data = summaries$sampling_period,
     RB6_relevant_data = summaries$analytes,
-    RB7_relevant_data = summaries$loq_info,
-    # Add mappings for other RB criteria as needed
-    source = summaries$source
+    RB7_relevant_data = summaries$loq_info
+    # Add other mappings as needed
   )
 }
 
 #' Auto-populate Relevance Fields
 #'
 #' @description Wrapper for relevance-specific auto-population
-#' @param module_data List containing all module data
+#' @param user_data session$userData$reactiveValues object
 #' @return Named list of relevance field data
 #' @noRd
-auto_populate_relevance_fields <- function(module_data) {
+auto_populate_relevance_fields <- function(user_data) {
+  # Same pattern as above
+  module_data <- list(
+    campaign = user_data$campaignData,
+    references = user_data$referenceData,
+    sites = user_data$sitesData,
+    parameters = user_data$parametersData,
+    compartments = user_data$compartmentsData,
+    samples = user_data$samplesData,
+    methods = user_data$methodsData,
+    measurements = user_data$dataData
+  )
+
   summaries <- get_dataset_summaries(module_data)
 
   # Map to relevance-specific fields
@@ -601,10 +624,8 @@ auto_populate_relevance_fields <- function(module_data) {
     RV02_relevant_data = summaries$sampling_methods,
     RV03_relevant_data = summaries$study_area,
     RV05_relevant_data = summaries$sampling_period,
-    RV06_relevant_data = summaries$sampling_period,
     RV08_relevant_data = summaries$analytes,
-    RV09_relevant_data = summaries$loq_info,
-    # Add mappings for other RV criteria
-    source = summaries$source
+    RV09_relevant_data = summaries$loq_info
+    # Add other mappings
   )
 }
