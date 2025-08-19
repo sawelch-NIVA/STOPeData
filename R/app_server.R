@@ -49,6 +49,7 @@ app_server <- function(input, output, session) {
   })
 
   # Module servers ----
+  moduleLanding <- mod_landing_server("landing")
   moduleLLM <- mod_llm_server("llm_extract")
   moduleCampaign <- mod_campaign_server("campaign")
   moduleReference <- mod_references_server("references")
@@ -72,6 +73,7 @@ app_server <- function(input, output, session) {
   # Module navigation ----
   ## Navigation setup ----
   module_order <- c(
+    "00-landing",
     "00-llm-extract",
     "01-campaign",
     "02-references",
@@ -84,7 +86,8 @@ app_server <- function(input, output, session) {
     "09-data",
     "10-review",
     "11-export",
-    "12-CREED"
+    "12-CREED",
+    "info"
   )
 
   ## Track current module position ----
