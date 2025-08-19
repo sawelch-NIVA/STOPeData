@@ -401,9 +401,9 @@ create_criterion_section <- function(
   description
 ) {
   icon_class <- if (type == "required") {
-    "relevance-required"
+    "CREED-required"
   } else {
-    "relevance-recommended"
+    "CREED-recommended"
   }
   type_text <- if (type == "required") "Required" else "Recommended"
 
@@ -415,9 +415,9 @@ create_criterion_section <- function(
       style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
       div(
         style = "flex-grow: 1; margin-right: 20px;",
-        h4(
+        h6(
           HTML(paste(
-            bs_icon("geo-alt-fill", class = icon_class),
+            bs_icon("award-fill", class = icon_class),
             paste0(
               criterion_id,
               ": ",
@@ -442,8 +442,8 @@ create_criterion_section <- function(
     ),
 
     # Two-column layout for data and justification ----
-    layout_columns(
-      col_widths = c(6, 6),
+    layout_column_wrap(
+      width = "400px",
       create_relevant_data_input(ns, criterion_id),
       create_limitations_input(ns, criterion_id)
     )

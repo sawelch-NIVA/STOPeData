@@ -16,49 +16,7 @@ mod_CREED_relevance_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Custom CSS for required/recommended styling ----
-    tags$head(
-      tags$style(HTML(
-        "
-        .relevance-required { fill: #dc3545 !important;}
-        .relevance-recommended { fill: #28a745 !important; }
-      "
-      ))
-    ),
-
-    # Main relevance section ----
-
-    ## Info section ----
-    div(
-      style = "margin-bottom: 10px;",
-      p(
-        "Evaluate the relevance of your dataset for its intended purpose across 11 criteria. ",
-        "Required criteria (",
-        bs_icon("geo-alt-fill", class = "relevance-required"),
-        ") are essential for determining dataset fitness-for-purpose. ",
-        "Recommended criteria (",
-        bs_icon("geo-alt-fill", class = "relevance-recommended"),
-        ") provide additional assessment depth.",
-        class = "text-muted"
-      ),
-      div(
-        class = "alert alert-warning",
-        p(
-          bs_icon("exclamation-triangle"),
-          strong(" Note: "),
-          "Server functionality for auto-population and score calculation is not yet implemented."
-        )
-      )
-    ),
-
-    # Relevance criteria sections ----
-
     ## Media criteria ----
-    h5(
-      "Media",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV01: Sample Medium/Matrix ----
     create_criterion_section(
@@ -79,11 +37,6 @@ mod_CREED_relevance_ui <- function(id) {
     ),
 
     ## Spatial criteria ----
-    h5(
-      "Spatial",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV03: Study Area ----
     create_criterion_section(
@@ -104,11 +57,6 @@ mod_CREED_relevance_ui <- function(id) {
     ),
 
     ## Temporal criteria ----
-    h5(
-      "Temporal",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV05: Sampling Timespan ----
     create_criterion_section(
@@ -138,11 +86,6 @@ mod_CREED_relevance_ui <- function(id) {
     ),
 
     ## Analytical criteria ----
-    h5(
-      "Analytical",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV08: Analyte ----
     create_criterion_section(
@@ -179,11 +122,6 @@ mod_CREED_relevance_ui <- function(id) {
     ),
 
     ## Supporting Parameters criteria ----
-    h5(
-      "Supporting Parameters",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV11: Supporting Parameters ----
     create_criterion_section(
