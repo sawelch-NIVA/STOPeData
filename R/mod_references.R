@@ -41,7 +41,10 @@ mod_references_ui <- function(id) {
           div(
             textInput(
               inputId = ns("doi_lookup"),
-              label = "DOI Lookup",
+              label = tooltip(
+                list("DOI Lookup", bs_icon("info-circle-fill")),
+                "Enter a DOI to automatically populate reference fields"
+              ),
               placeholder = "Look up a paper on Crossref",
               width = "100%"
             ),
@@ -77,36 +80,41 @@ mod_references_ui <- function(id) {
         ),
 
         ## Reference type selector (always required) ----
-        selectInput(
-          inputId = ns("REFERENCE_TYPE"),
-          label = tooltip(
-            list("Reference Type *", bs_icon("info-circle-fill")),
-            "Select the type of reference to add"
+        layout_column_wrap(
+          width = "300px",
+          fill = FALSE,
+          fillable = FALSE,
+          selectInput(
+            inputId = ns("REFERENCE_TYPE"),
+            label = tooltip(
+              list("Reference Type", bs_icon("info-circle-fill")),
+              "Select the type of reference to add"
+            ),
+            choices = c(
+              "Journal Article" = "journal",
+              "Book" = "book",
+              "Report" = "report",
+              "Dataset/Database" = "dataset"
+            ),
+            selected = "journal",
+            width = "300px"
           ),
-          choices = c(
-            "Journal Article" = "journal",
-            "Book" = "book",
-            "Report" = "report",
-            "Dataset/Database" = "dataset"
-          ),
-          selected = "journal",
-          width = "300px"
-        ),
 
-        ## Data source selector (always required) ----
-        selectInput(
-          inputId = ns("DATA_SOURCE"),
-          label = tooltip(
-            list("Data Source *", bs_icon("info-circle-fill")),
-            "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
-          ),
-          choices = c(
-            "Primary" = "primary",
-            "Secondary/Review" = "secondary_review",
-            "Other" = "other"
-          ),
-          selected = "primary",
-          width = "300px"
+          ## Data source selector (always required) ----
+          selectInput(
+            inputId = ns("DATA_SOURCE"),
+            label = tooltip(
+              list("Data Source", bs_icon("info-circle-fill")),
+              "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
+            ),
+            choices = c(
+              "Primary" = "primary",
+              "Secondary/Review" = "secondary_review",
+              "Other" = "other"
+            ),
+            selected = "primary",
+            width = "300px"
+          )
         ),
 
         ## Always required fields ----
@@ -119,7 +127,7 @@ mod_references_ui <- function(id) {
           textAreaInput(
             inputId = ns("AUTHOR"),
             label = tooltip(
-              list("Author(s) *", bs_icon("info-circle-fill")),
+              list("Author(s)", bs_icon("info-circle-fill")),
               "Authors in format: Last1, First1; Last2, First2"
             ),
             placeholder = "Last1, First1; Last2, First2",
@@ -131,7 +139,7 @@ mod_references_ui <- function(id) {
           textAreaInput(
             inputId = ns("TITLE"),
             label = tooltip(
-              list("Title *", bs_icon("info-circle-fill")),
+              list("Title", bs_icon("info-circle-fill")),
               "Full title of the publication"
             ),
             placeholder = "Full publication title",
@@ -143,7 +151,7 @@ mod_references_ui <- function(id) {
           numericInput(
             inputId = ns("YEAR"),
             label = tooltip(
-              list("Year *", bs_icon("info-circle-fill")),
+              list("Year", bs_icon("info-circle-fill")),
               "Year of publication, last update, etc. as appropriate"
             ),
             value = as.numeric(format(Sys.Date(), "%Y")),
@@ -163,7 +171,10 @@ mod_references_ui <- function(id) {
           ### ACCESS_DATE - Required for all  ----
           dateInput(
             inputId = ns("ACCESS_DATE"),
-            label = "Date Accessed *",
+            label = tooltip(
+              list("Date Accessed", bs_icon("info-circle-fill")),
+              "Date when you accessed or retrieved this reference"
+            ),
             value = as.Date(NA),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -175,7 +186,7 @@ mod_references_ui <- function(id) {
             inputId = ns("ENTERED_BY"),
             label = tooltip(
               list("Entered by", bs_icon("info-circle-fill")),
-              "Your name or initials. Autofilled from campaign module if availible."
+              "Your name or initials. Autofilled from first module if availible."
             ),
             placeholder = "Your name or initials...",
             width = "100%"
@@ -188,13 +199,16 @@ mod_references_ui <- function(id) {
               list("Journal Name", bs_icon("info-circle-fill")),
               "Name of journal or publication series"
             ),
-            placeholder = "Journal name",
+            placeholder = "Journal name if relevant",
             width = "100%"
           ),
 
           numericInput(
             inputId = ns("VOLUME"),
-            label = "Volume",
+            label = tooltip(
+              list("Volume", bs_icon("info-circle-fill")),
+              "Volume number of journal or publication series"
+            ),
             value = NA,
             min = 1,
             step = 1,
@@ -203,7 +217,10 @@ mod_references_ui <- function(id) {
 
           numericInput(
             inputId = ns("ISSUE"),
-            label = "Issue",
+            label = tooltip(
+              list("Issue", bs_icon("info-circle-fill")),
+              "Issue number within volume if relevant"
+            ),
             value = NA,
             min = 1,
             step = 1,
@@ -212,141 +229,199 @@ mod_references_ui <- function(id) {
 
           textInput(
             inputId = ns("PUBLISHER"),
-            label = "Publisher",
-            placeholder = "Publishing organization",
+            label = tooltip(
+              list("Publisher", bs_icon("info-circle-fill")),
+              "Publishing organisation or company"
+            ),
+            placeholder = "Publishing organisation if relevant",
             width = "100%"
           ),
 
           ### Report-specific fields ----
           textInput(
             inputId = ns("INSTITUTION"),
-            label = "Institution",
-            placeholder = "Institution responsible for the data",
+            label = tooltip(
+              list("Institution", bs_icon("info-circle-fill")),
+              "Institution responsible for data"
+            ),
+            placeholder = "Institution responsible for data",
             width = "100%"
           ),
 
-          ### Dataset-specific fields ----
-          textInput(
-            inputId = ns("DB_NAME"),
-            label = "Database Name",
-            placeholder = "Name of the database/dataset",
-            width = "100%"
-          ),
+          ### Dataset-specific fields - COMMENTED OUT ----
+          # textInput(
+          #   inputId = ns("DB_NAME"),
+          #   label = tooltip(
+          #     list("Database Name", bs_icon("info-circle-fill")),
+          #     "Name of the database or dataset"
+          #   ),
+          #   placeholder = "Name of the database/dataset",
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("DB_PROVIDER"),
-            label = "Database Provider",
-            placeholder = "Provider of the database/dataset",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("DB_PROVIDER"),
+          #   label = tooltip(
+          #     list("Database Provider", bs_icon("info-circle-fill")),
+          #     "Organization or entity providing the database"
+          #   ),
+          #   placeholder = "Provider of the database/dataset",
+          #   width = "100%"
+          # ),
 
           ### Optional fields for all types ----
           textInput(
             inputId = ns("DOI"),
-            label = "DOI",
+            label = tooltip(
+              list("DOI", bs_icon("info-circle-fill")),
+              "Digital Object Identifier for publication"
+            ),
             placeholder = "Digital Object Identifier",
             width = "100%"
           ),
 
           textInput(
             inputId = ns("URL"),
-            label = "URL",
+            label = tooltip(
+              list("URL", bs_icon("info-circle-fill")),
+              "Web address where the reference/data can be accessed"
+            ),
             placeholder = "Web address",
             width = "100%"
           ),
 
-          textInput(
-            inputId = ns("PAGES"),
-            label = "Pages",
-            placeholder = "e.g., 123-145",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("PAGES"),
+          #   label = tooltip(
+          #     list("Pages", bs_icon("info-circle-fill")),
+          #     "Page range or specific pages referenced"
+          #   ),
+          #   placeholder = "e.g., 123-145",
+          #   width = "100%"
+          # ),
 
           textInput(
             inputId = ns("ISBN_ISSN"),
-            label = "ISBN/ISSN",
-            placeholder = "ISBN for books or ISSN for journals",
+            label = tooltip(
+              list("ISBN/ISSN", bs_icon("info-circle-fill")),
+              "International Standard Book Number or International Standard Serial Number"
+            ),
+            placeholder = "ISBN for books or ISSN for journals if relevant",
             width = "100%"
           ),
 
           textInput(
             inputId = ns("EDITION"),
-            label = "Edition",
-            placeholder = "Edition number or description",
+            label = tooltip(
+              list("Edition", bs_icon("info-circle-fill")),
+              "Edition number or description (e.g., 2nd, revised)"
+            ),
+            placeholder = "Edition number or description if relevant",
             width = "100%"
           ),
 
-          textInput(
-            inputId = ns("PUBLISHED_PLACE"),
-            label = "Published Place",
-            placeholder = "City or location of publication",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("PUBLISHED_PLACE"),
+          #   label = tooltip(
+          #     list("Published Place", bs_icon("info-circle-fill")),
+          #     "City or location where the work was published"
+          #   ),
+          #   placeholder = "City or location of publication",
+          #   width = "100%"
+          # ),
 
           textInput(
             inputId = ns("DOCUMENT_NUMBER"),
-            label = "Document Number",
-            placeholder = "Document identification number",
+            label = tooltip(
+              list("Document Number", bs_icon("info-circle-fill")),
+              "Official document identification number"
+            ),
+            placeholder = "Document identification number if relevant",
             width = "100%"
           ),
 
-          textInput(
-            inputId = ns("ACCESSION_NUMBER"),
-            label = "Accession Number",
-            placeholder = "Database accession number",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("ACCESSION_NUMBER"),
+          #   label = tooltip(
+          #     list("Accession Number", bs_icon("info-circle-fill")),
+          #     "Unique identifier assigned by a database"
+          #   ),
+          #   placeholder = "Database accession number",
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("PMCID"),
-            label = "PubMed CID",
-            placeholder = "PubMed Central ID",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("PMCID"),
+          #   label = tooltip(
+          #     list("PubMed CID", bs_icon("info-circle-fill")),
+          #     "PubMed Central identifier for biomedical literature"
+          #   ),
+          #   placeholder = "PubMed Central ID",
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("SERIES_TITLE"),
-            label = "Series Title",
-            placeholder = "Title of the series if part of one",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("SERIES_TITLE"),
+          #   label = tooltip(
+          #     list("Series Title", bs_icon("info-circle-fill")),
+          #     "Title of the publication series if part of one"
+          #   ),
+          #   placeholder = "Title of the series if part of one",
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("SERIES_EDITOR"),
-            label = "Series Editor",
-            placeholder = "Editor of the series if applicable",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("SERIES_EDITOR"),
+          #   label = tooltip(
+          #     list("Series Editor", bs_icon("info-circle-fill")),
+          #     "Editor responsible for the publication series"
+          #   ),
+          #   placeholder = "Editor of the series if applicable",
+          #   width = "100%"
+          # ),
 
-          numericInput(
-            inputId = ns("SERIES_VOLUME"),
-            label = "Series Volume",
-            value = NA,
-            min = 1,
-            step = 1,
-            width = "100%"
-          ),
+          # numericInput(
+          #   inputId = ns("SERIES_VOLUME"),
+          #   label = tooltip(
+          #     list("Series Volume", bs_icon("info-circle-fill")),
+          #     "Volume number within the publication series"
+          #   ),
+          #   value = NA,
+          #   min = 1,
+          #   step = 1,
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("NUMBER_OF_PAGES"),
-            label = "Number of Pages",
-            placeholder = "Total pages",
-            width = "100%"
-          ),
+          # textInput(
+          #   inputId = ns("NUMBER_OF_PAGES"),
+          #   label = tooltip(
+          #     list("Number of Pages", bs_icon("info-circle-fill")),
+          #     "Total number of pages in the publication"
+          #   ),
+          #   placeholder = "Total pages",
+          #   width = "100%"
+          # ),
 
-          textInput(
-            inputId = ns("NUMBER_OF_VOLUMES"),
-            label = "Number of Volumes",
-            placeholder = "Number of volumes",
-            width = "100%"
-          )
+          # textInput(
+          #   inputId = ns("NUMBER_OF_VOLUMES"),
+          #   label = tooltip(
+          #     list("Number of Volumes", bs_icon("info-circle-fill")),
+          #     "Total number of volumes in the work"
+          #   ),
+          #   placeholder = "Number of volumes",
+          #   width = "100%"
+          # )
         ),
 
         ### REF_COMMENT - Full width text area ----
         textAreaInput(
           inputId = ns("REF_COMMENT"),
-          label = "Reference Comment",
-          placeholder = "Additional notes about the reference (optional)",
+          label = tooltip(
+            list("Reference Comment", bs_icon("info-circle-fill")),
+            "Additional notes or comments about this reference"
+          ),
+          placeholder = "Please add any ddditional notes about the reference that
+          may be relevant or useful for understanding it by later users.",
           width = "100%",
           rows = 3
         ),
@@ -462,39 +537,39 @@ mod_references_server <- function(id) {
       }
     })
 
-    # Dataset-specific required fields
-    iv$add_rule("DB_NAME", function(value) {
-      if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
-        "Database Name is required for datasets"
-      }
-    })
+    # Dataset-specific required fields - COMMENTED OUT
+    # iv$add_rule("DB_NAME", function(value) {
+    #   if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
+    #     "Database Name is required for datasets"
+    #   }
+    # })
 
-    iv$add_rule("DB_PROVIDER", function(value) {
-      if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
-        "Database Provider is required for datasets"
-      }
-    })
+    # iv$add_rule("DB_PROVIDER", function(value) {
+    #   if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
+    #     "Database Provider is required for datasets"
+    #   }
+    # })
 
     ### Character limit validations for optional fields ----
     char_limit_fields <- list(
-      ACCESSION_NUMBER = 200,
-      DB_NAME = 200,
-      DB_PROVIDER = 200,
+      # ACCESSION_NUMBER = 200,  # COMMENTED OUT
+      # DB_NAME = 200,           # COMMENTED OUT
+      # DB_PROVIDER = 200,       # COMMENTED OUT
       DOCUMENT_NUMBER = 200,
       DOI = 200,
       EDITION = 200,
       INSTITUTION = 200,
       ISBN_ISSN = 200,
-      NUMBER_OF_PAGES = 50,
-      NUMBER_OF_VOLUMES = 100,
-      PAGES = 200,
+      # NUMBER_OF_PAGES = 50,    # COMMENTED OUT
+      # NUMBER_OF_VOLUMES = 100, # COMMENTED OUT
+      # PAGES = 200,             # COMMENTED OUT
       PERIODICAL_JOURNAL = 200,
-      PMCID = 200,
-      PUBLISHED_PLACE = 200,
+      # PMCID = 200,             # COMMENTED OUT
+      # PUBLISHED_PLACE = 200,   # COMMENTED OUT
       PUBLISHER = 200,
       REF_COMMENT = 1000,
-      SERIES_EDITOR = 200,
-      SERIES_TITLE = 200,
+      # SERIES_EDITOR = 200,     # COMMENTED OUT
+      # SERIES_TITLE = 200,      # COMMENTED OUT
       URL = 200
     )
 
@@ -650,62 +725,62 @@ mod_references_server <- function(id) {
         "INSTITUTION",
         value = mapped_fields$INSTITUTION %||% ""
       )
-      updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
-      updateTextInput(
-        session,
-        "DB_PROVIDER",
-        value = mapped_fields$DB_PROVIDER %||% ""
-      )
+      # updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")  # COMMENTED OUT
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "DB_PROVIDER",                                                            # COMMENTED OUT
+      #   value = mapped_fields$DB_PROVIDER %||% ""                                 # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
       updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
       updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
-      updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
+      # updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")      # COMMENTED OUT
       updateTextInput(
         session,
         "ISBN_ISSN",
         value = mapped_fields$ISBN_ISSN %||% ""
       )
       updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
-      updateTextInput(
-        session,
-        "PUBLISHED_PLACE",
-        value = mapped_fields$PUBLISHED_PLACE %||% ""
-      )
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "PUBLISHED_PLACE",                                                        # COMMENTED OUT
+      #   value = mapped_fields$PUBLISHED_PLACE %||% ""                             # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
       updateTextInput(
         session,
         "DOCUMENT_NUMBER",
         value = mapped_fields$DOCUMENT_NUMBER %||% ""
       )
-      updateTextInput(
-        session,
-        "ACCESSION_NUMBER",
-        value = mapped_fields$ACCESSION_NUMBER %||% ""
-      )
-      updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
-      updateTextInput(
-        session,
-        "SERIES_TITLE",
-        value = mapped_fields$SERIES_TITLE %||% ""
-      )
-      updateTextInput(
-        session,
-        "SERIES_EDITOR",
-        value = mapped_fields$SERIES_EDITOR %||% ""
-      )
-      updateNumericInput(
-        session,
-        "SERIES_VOLUME",
-        value = mapped_fields$SERIES_VOLUME
-      )
-      updateTextInput(
-        session,
-        "NUMBER_OF_PAGES",
-        value = mapped_fields$NUMBER_OF_PAGES %||% ""
-      )
-      updateTextInput(
-        session,
-        "NUMBER_OF_VOLUMES",
-        value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
-      )
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "ACCESSION_NUMBER",                                                       # COMMENTED OUT
+      #   value = mapped_fields$ACCESSION_NUMBER %||% ""                            # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
+      # updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")      # COMMENTED OUT
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "SERIES_TITLE",                                                           # COMMENTED OUT
+      #   value = mapped_fields$SERIES_TITLE %||% ""                                # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "SERIES_EDITOR",                                                          # COMMENTED OUT
+      #   value = mapped_fields$SERIES_EDITOR %||% ""                               # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
+      # updateNumericInput(                                                         # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "SERIES_VOLUME",                                                          # COMMENTED OUT
+      #   value = mapped_fields$SERIES_VOLUME                                       # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "NUMBER_OF_PAGES",                                                        # COMMENTED OUT
+      #   value = mapped_fields$NUMBER_OF_PAGES %||% ""                             # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
+      # updateTextInput(                                                            # COMMENTED OUT
+      #   session,                                                                  # COMMENTED OUT
+      #   "NUMBER_OF_VOLUMES",                                                      # COMMENTED OUT
+      #   value = mapped_fields$NUMBER_OF_VOLUMES %||% ""                           # COMMENTED OUT
+      # )                                                                           # COMMENTED OUT
       updateTextAreaInput(
         session,
         "REF_COMMENT",
@@ -770,62 +845,62 @@ mod_references_server <- function(id) {
         "INSTITUTION",
         value = mapped_fields$INSTITUTION %||% ""
       )
-      updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
-      updateTextInput(
-        session,
-        "DB_PROVIDER",
-        value = mapped_fields$DB_PROVIDER %||% ""
-      )
+      # updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
+      # updateTextInput(
+      #   session,
+      #   "DB_PROVIDER",
+      #   value = mapped_fields$DB_PROVIDER %||% ""
+      # )
       updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
       updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
-      updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
+      # updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
       updateTextInput(
         session,
         "ISBN_ISSN",
         value = mapped_fields$ISBN_ISSN %||% ""
       )
       updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
-      updateTextInput(
-        session,
-        "PUBLISHED_PLACE",
-        value = mapped_fields$PUBLISHED_PLACE %||% ""
-      )
+      # updateTextInput(
+      #   session,
+      #   "PUBLISHED_PLACE",
+      #   value = mapped_fields$PUBLISHED_PLACE %||% ""
+      # )
       updateTextInput(
         session,
         "DOCUMENT_NUMBER",
         value = mapped_fields$DOCUMENT_NUMBER %||% ""
       )
-      updateTextInput(
-        session,
-        "ACCESSION_NUMBER",
-        value = mapped_fields$ACCESSION_NUMBER %||% ""
-      )
-      updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
-      updateTextInput(
-        session,
-        "SERIES_TITLE",
-        value = mapped_fields$SERIES_TITLE %||% ""
-      )
-      updateTextInput(
-        session,
-        "SERIES_EDITOR",
-        value = mapped_fields$SERIES_EDITOR %||% ""
-      )
-      updateNumericInput(
-        session,
-        "SERIES_VOLUME",
-        value = mapped_fields$SERIES_VOLUME
-      )
-      updateTextInput(
-        session,
-        "NUMBER_OF_PAGES",
-        value = mapped_fields$NUMBER_OF_PAGES %||% ""
-      )
-      updateTextInput(
-        session,
-        "NUMBER_OF_VOLUMES",
-        value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
-      )
+      # updateTextInput(
+      #   session,
+      #   "ACCESSION_NUMBER",
+      #   value = mapped_fields$ACCESSION_NUMBER %||% ""
+      # )
+      # updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
+      # updateTextInput(
+      #   session,
+      #   "SERIES_TITLE",
+      #   value = mapped_fields$SERIES_TITLE %||% ""
+      # )
+      # updateTextInput(
+      #   session,
+      #   "SERIES_EDITOR",
+      #   value = mapped_fields$SERIES_EDITOR %||% ""
+      # )
+      # updateNumericInput(
+      #   session,
+      #   "SERIES_VOLUME",
+      #   value = mapped_fields$SERIES_VOLUME
+      # )
+      # updateTextInput(
+      #   session,
+      #   "NUMBER_OF_PAGES",
+      #   value = mapped_fields$NUMBER_OF_PAGES %||% ""
+      # )
+      # updateTextInput(
+      #   session,
+      #   "NUMBER_OF_VOLUMES",
+      #   value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
+      # )
       updateTextAreaInput(
         session,
         "REF_COMMENT",
@@ -861,22 +936,22 @@ mod_references_server <- function(id) {
           ISSUE = input$ISSUE %|truthy|% NA,
           PUBLISHER = input$PUBLISHER %|truthy|% NA,
           INSTITUTION = input$INSTITUTION %|truthy|% NA,
-          DB_NAME = input$DB_NAME %|truthy|% NA,
-          DB_PROVIDER = input$DB_PROVIDER %|truthy|% NA,
+          # DB_NAME = input$DB_NAME %|truthy|% NA,
+          # DB_PROVIDER = input$DB_PROVIDER %|truthy|% NA,
           DOI = input$DOI %|truthy|% NA,
           URL = input$URL %|truthy|% NA,
-          PAGES = input$PAGES %|truthy|% NA,
+          # PAGES = input$PAGES %|truthy|% NA,
           ISBN_ISSN = input$ISBN_ISSN %|truthy|% NA,
           EDITION = input$EDITION %|truthy|% NA,
-          PUBLISHED_PLACE = input$PUBLISHED_PLACE %|truthy|% NA,
+          # PUBLISHED_PLACE = input$PUBLISHED_PLACE %|truthy|% NA,
           DOCUMENT_NUMBER = input$DOCUMENT_NUMBER %|truthy|% NA,
-          ACCESSION_NUMBER = input$ACCESSION_NUMBER %|truthy|% NA,
-          PMCID = input$PMCID %|truthy|% NA,
-          SERIES_TITLE = input$SERIES_TITLE %|truthy|% NA,
-          SERIES_EDITOR = input$SERIES_EDITOR %|truthy|% NA,
-          SERIES_VOLUME = input$SERIES_VOLUME %|truthy|% NA,
-          NUMBER_OF_PAGES = input$NUMBER_OF_PAGES %|truthy|% NA,
-          NUMBER_OF_VOLUMES = input$NUMBER_OF_VOLUMES %|truthy|% NA,
+          # ACCESSION_NUMBER = input$ACCESSION_NUMBER %|truthy|% NA,
+          # PMCID = input$PMCID %|truthy|% NA,
+          # SERIES_TITLE = input$SERIES_TITLE %|truthy|% NA,
+          # SERIES_EDITOR = input$SERIES_EDITOR %|truthy|% NA,
+          # SERIES_VOLUME = input$SERIES_VOLUME %|truthy|% NA,
+          # NUMBER_OF_PAGES = input$NUMBER_OF_PAGES %|truthy|% NA,
+          # NUMBER_OF_VOLUMES = input$NUMBER_OF_VOLUMES %|truthy|% NA,
           REF_COMMENT = input$REF_COMMENT %|truthy|% NA
         )
 
@@ -939,22 +1014,22 @@ mod_references_server <- function(id) {
         updateNumericInput(session, "ISSUE", value = NA)
         updateTextInput(session, "PUBLISHER", value = "")
         updateTextInput(session, "INSTITUTION", value = "")
-        updateTextInput(session, "DB_NAME", value = "")
-        updateTextInput(session, "DB_PROVIDER", value = "")
+        # updateTextInput(session, "DB_NAME", value = "")
+        # updateTextInput(session, "DB_PROVIDER", value = "")
         updateTextInput(session, "DOI", value = "")
         updateTextInput(session, "URL", value = "")
-        updateTextInput(session, "PAGES", value = "")
+        # updateTextInput(session, "PAGES", value = "")
         updateTextInput(session, "ISBN_ISSN", value = "")
         updateTextInput(session, "EDITION", value = "")
-        updateTextInput(session, "PUBLISHED_PLACE", value = "")
+        # updateTextInput(session, "PUBLISHED_PLACE", value = "")
         updateTextInput(session, "DOCUMENT_NUMBER", value = "")
-        updateTextInput(session, "ACCESSION_NUMBER", value = "")
-        updateTextInput(session, "PMCID", value = "")
-        updateTextInput(session, "SERIES_TITLE", value = "")
-        updateTextInput(session, "SERIES_EDITOR", value = "")
-        updateNumericInput(session, "SERIES_VOLUME", value = NA)
-        updateTextInput(session, "NUMBER_OF_PAGES", value = "")
-        updateTextInput(session, "NUMBER_OF_VOLUMES", value = "")
+        # updateTextInput(session, "ACCESSION_NUMBER", value = "")
+        # updateTextInput(session, "PMCID", value = "")
+        # updateTextInput(session, "SERIES_TITLE", value = "")
+        # updateTextInput(session, "SERIES_EDITOR", value = "")
+        # updateNumericInput(session, "SERIES_VOLUME", value = NA)
+        # updateTextInput(session, "NUMBER_OF_PAGES", value = "")
+        # updateTextInput(session, "NUMBER_OF_VOLUMES", value = "")
         updateTextAreaInput(session, "REF_COMMENT", value = "")
         updateTextInput(session, "doi_lookup", value = "")
         updateTextAreaInput(session, "bibtex_import", value = "")
@@ -1014,12 +1089,3 @@ mod_references_server <- function(id) {
 
 ## To be copied in the server ----
 # references_data <- mod_references_server("references_1")
-#
-# # Access validated data in other parts of your app:
-# observe({
-#   if (isTruthy(references_data())) {
-#     # Do something with the validated data
-#     print("References data validated!")
-#     print(references_data())
-#   }
-# })
