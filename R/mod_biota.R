@@ -212,7 +212,7 @@ mod_biota_server <- function(id) {
         ENVIRON_COMPARTMENT_SUB = character(0),
         MEASURED_CATEGORY = character(0),
         SAMPLING_DATE = character(0),
-        REPLICATE = integer(0),
+        REP = integer(0),
         SPECIES_GROUP = character(0),
         SAMPLE_SPECIES = character(0),
         SAMPLE_TISSUE = character(0),
@@ -262,7 +262,7 @@ mod_biota_server <- function(id) {
         "ENVIRON_COMPARTMENT_SUB",
         "MEASURED_CATEGORY",
         "SAMPLING_DATE",
-        "REPLICATE",
+        "REP",
         biota_columns
       )
 
@@ -570,7 +570,7 @@ mod_biota_server <- function(id) {
           hot_col("ENVIRON_COMPARTMENT_SUB", readOnly = TRUE) |>
           hot_col("MEASURED_CATEGORY", readOnly = TRUE) |>
           hot_col("SAMPLING_DATE", readOnly = TRUE) |>
-          hot_col("REPLICATE", readOnly = TRUE) |>
+          hot_col("REP", readOnly = TRUE) |>
           # Add dropdowns for biota-specific fields
           hot_col(
             "SPECIES_GROUP",

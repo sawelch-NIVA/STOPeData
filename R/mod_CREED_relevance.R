@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText selectInput h4 p strong em div
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 mod_CREED_relevance_ui <- function(id) {
   ns <- NS(id)

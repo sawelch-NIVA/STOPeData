@@ -9,8 +9,8 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText markdown
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
+#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 #' @export
 mod_CREED_ui <- function(id) {

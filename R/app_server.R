@@ -58,8 +58,15 @@ app_server <- function(input, output, session) {
   moduleMethods <- mod_methods_server("methods")
   moduleSamples <- mod_samples_server("samples")
   moduleBiota <- mod_biota_server("biota")
-  moduleData <- mod_data_server("data")
-  moduleReview <- mod_review_server("review")
+  moduleData <- mod_data_server(
+    "data"
+  )
+  moduleReview <- mod_review_server(
+    "review"
+  )
+  moduleExport <- mod_export_server(
+    "export"
+  )
   moduleCREED <- mod_CREED_server("CREED")
 
   # Module navigation ----
@@ -76,13 +83,14 @@ app_server <- function(input, output, session) {
     "08-biota",
     "09-data",
     "10-review",
+    "11-export",
     "12-CREED"
   )
 
   ## Track current module position ----
   current_position <- reactive({
     current_tab <- input$`main-page`
-    if (is.null(current_tab) | current_tab == "info") {
+    if (is.null(current_tab)) {
       return(1)
     } # Default to LLM extract (position 1)
     match(current_tab, module_order)
