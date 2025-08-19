@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList downloadButton
-#' @importFrom bslib card card_header card_body accordion accordion_panel
+#' @importFrom bslib card  card_body accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @export
 mod_export_ui <- function(id) {
@@ -19,7 +19,6 @@ mod_export_ui <- function(id) {
   tagList(
     # Main export card ----
     card(
-      card_header("Data Export"),
       card_body(
         ## Info accordion ----
         accordion(

@@ -82,7 +82,7 @@ printreactiveValues <- function(data) {
 #' @returns a bslib::accordion html element
 #'
 #' @export
-#' @importFrom bslib card card_body card_header accordion accordion_panel
+#' @importFrom bslib card card_body accordion accordion_panel
 #' @importFrom htmltools includeMarkdown
 #' @importFrom glue glue
 info_accordion <- function(title = "Instructions", content_file) {

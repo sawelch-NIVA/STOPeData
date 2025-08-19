@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @importFrom plotly plotlyOutput
 #' @export
@@ -104,20 +104,6 @@ mod_review_ui <- function(id) {
             width = "400px",
             fill = FALSE,
             fillable = FALSE,
-
-            card(
-              card_header("Value Distribution"),
-              card_body(
-                plotlyOutput(ns("value_distribution"), height = "300px")
-              )
-            ),
-
-            card(
-              card_header("Unit Distribution"),
-              card_body(
-                plotlyOutput(ns("unit_distribution"), height = "300px")
-              )
-            )
           )
         ),
 

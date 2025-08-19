@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 #' @export
 mod_CREED_ui <- function(id) {
@@ -20,7 +20,6 @@ mod_CREED_ui <- function(id) {
     # Main CREED card ----
     card(
       fill = TRUE,
-      card_header("Dataset Quality Assessment (CREED)"),
       card_body(
         ## Info accordion ----
         info_accordion(content_file = "inst/app/www/md/intro_CREED.md"),
