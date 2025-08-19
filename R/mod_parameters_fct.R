@@ -71,7 +71,8 @@ create_existing_parameter <- function(
     INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
     PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
     CAS_RN = param_data$CAS_RN %||% "",
-    stringsAsFactors = FALSE
+    stringsAsFactors = FALSE,
+    ENTERED_BY = param_data$ENTERED_BY %||% "Not found"
   )
 }
 
@@ -81,7 +82,7 @@ create_existing_parameter <- function(
 #'
 #' @return Data.frame with blank parameter template
 #' @export
-create_new_parameter <- function(param_type) {
+create_new_parameter <- function(param_type, entered_by) {
   data.frame(
     PARAMETER_TYPE = param_type,
     PARAMETER_TYPE_SUB = "",
@@ -91,6 +92,7 @@ create_new_parameter <- function(param_type) {
     INCHIKEY_SD = "",
     PUBCHEM_CID = "",
     CAS_RN = "",
+    ENTERED_BY = entered_by,
     stringsAsFactors = FALSE
   )
 }
@@ -151,6 +153,6 @@ get_parameters_filtered <- function(
     character(0)
   }
 
-  all_params <- c("-- New Parameter --", base_params, session_params)
+  all_params <- c(base_params, session_params)
   return(all_params)
 }

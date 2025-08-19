@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card  card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -25,93 +25,86 @@ mod_compartments_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Environmental Compartments Data Management"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Environmental Compartments Information",
-            icon = bs_icon("info-circle"),
-            "This module manages environmental compartment combinations that will be sampled. Select an environmental compartment (e.g., Aquatic), then choose the appropriate sub-compartment (e.g., Freshwater) and measurement category. Each combination represents a different sampling context you'll use in your study."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_compartments.md"),
 
         ## Compartment selection form ----
-        div(
-          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
-          h5("Add New Compartment Combination"),
+        layout_column_wrap(
+          width = "300px",
+          fill = FALSE,
+          fillable = FALSE,
+          style = "margin-bottom: -20px;",
 
-          layout_column_wrap(
-            width = "300px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            selectInput(
-              inputId = ns("environ_compartment_select"),
-              label = tooltip(
-                list("Environmental Compartment", bs_icon("info-circle-fill")),
-                "Which sphere does the sample come from?"
-              ),
-              choices = c(
-                "Aquatic" = "Aquatic",
-                "Atmospheric" = "Atmospheric",
-                "Terrestrial" = "Terrestrial",
-                "Biota" = "Biota"
-              ),
-              width = "100%",
-              selected = "Aquatic"
+          selectInput(
+            inputId = ns("environ_compartment_select"),
+            label = tooltip(
+              list("Environmental Compartment", bs_icon("info-circle-fill")),
+              "Which sphere does the sample come from?"
             ),
-
-            selectInput(
-              inputId = ns("environ_compartment_sub_select"),
-              label = tooltip(
-                list(
-                  "Environmental Sub-Compartment",
-                  bs_icon("info-circle-fill")
-                ),
-                "Specific subset within the environmental compartment"
-              ),
-              choices = NULL,
-              width = "100%",
-              selected = "Marine/Salt Water"
+            choices = c(
+              "Aquatic" = "Aquatic",
+              "Atmospheric" = "Atmospheric",
+              "Terrestrial" = "Terrestrial",
+              "Biota" = "Biota"
             ),
-
-            selectInput(
-              inputId = ns("measured_category_select"),
-              label = tooltip(
-                list("Measured Category", bs_icon("info-circle-fill")),
-                "Type of exposure measurement"
-              ),
-              choices = c(
-                "External" = "External",
-                "Internal" = "Internal",
-                "Surface" = "Surface"
-              ),
-              selected = "External",
-              width = "100%"
-            )
+            width = "100%",
+            selected = "Aquatic"
           ),
 
-          ## Add combination button ----
-          div(
-            style = "margin-top: 15px;",
-            input_task_button(
-              id = ns("add_combination"),
-              label = "Add Combination",
-              icon = icon("plus-circle"),
-              class = "btn-success",
-              width = "200px"
-            )
+          selectInput(
+            inputId = ns("environ_compartment_sub_select"),
+            label = tooltip(
+              list(
+                "Environmental Sub-Compartment",
+                bs_icon("info-circle-fill")
+              ),
+              "Specific subset within the environmental compartment"
+            ),
+            choices = c(
+              "Freshwater" = "Freshwater",
+              "Marine/Salt Water" = "Marine/Salt Water",
+              "Brackish/Transitional Water" = "Brackish/Transitional Water",
+              "Groundwater" = "Groundwater",
+              "Wastewater" = "Wastewater",
+              "Liquid Growth Medium" = "Liquid Growth Medium",
+              "Rainwater" = "Rainwater",
+              "Stormwater" = "Stormwater",
+              "Leachate" = "Leachate"
+            ),
+            width = "100%",
+            selected = "Marine/Salt Water"
+          ),
+
+          selectInput(
+            inputId = ns("measured_category_select"),
+            label = tooltip(
+              list("Measured Category", bs_icon("info-circle-fill")),
+              "Type of exposure measurement"
+            ),
+            choices = c(
+              "External" = "External",
+              "Internal" = "Internal",
+              "Surface" = "Surface"
+            ),
+            selected = "External",
+            width = "100%"
           )
         ),
 
-        ## Compartments table ----
-        rHandsontableOutput(ns("compartments_table")),
-
-        ## Validation status ----
+        ## Add combination button and validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          input_task_button(
+            id = ns("add_combination"),
+            label = "Add Combination",
+            icon = icon("plus-circle"),
+            class = "btn-success",
+            width = "200px"
+          ),
+
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -125,6 +118,14 @@ mod_compartments_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Compartments table card ----
+    card(
+      div(
+        rHandsontableOutput(ns("compartments_table")),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -543,26 +544,41 @@ mod_compartments_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All compartment data validated successfully.",
             nrow(moduleState$compartments_data),
-            "combination(s) ready."
+            "compartment combination(s) ready."
           ),
           class = "validation-status validation-complete"
         )
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one valid compartment combination to proceed. Use the form above to add combinations.",
+          "Add at least one complete, valid compartment to proceed.",
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----
@@ -599,16 +615,6 @@ mod_compartments_server <- function(id) {
         "# Compartment combinations will appear here when valid combinations are added"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

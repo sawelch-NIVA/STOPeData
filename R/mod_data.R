@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bslib card card_header card_body accordion accordion_panel
+#' @importFrom bslib card card_body accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -22,20 +22,12 @@ mod_data_ui <- function(id) {
     # Enable shinyjs
     useShinyjs(),
 
-    # Main data entry card ----
+    # Main content card ----
     card(
       fill = TRUE,
-      card_header("Measurement Data Entry"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Data Entry Information",
-            icon = bs_icon("info-circle"),
-            "This module consolidates all setup data and presents sample-parameter combinations for measurement data entry. All modules must be completed and validated before data entry is enabled. Enter measured concentrations, detection limits, and associated metadata for each combination."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_data.md"),
 
         ## Validation status overview ----
         accordion(
@@ -59,16 +51,11 @@ mod_data_ui <- function(id) {
           )
         ),
 
-        ## Measurement data table ----
-        rHandsontableOutput(
-          ns("measurement_table"),
-          width = "100%",
-          height = "100%"
-        ),
-
         ## Validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -82,6 +69,19 @@ mod_data_ui <- function(id) {
             verbatimTextOutput(ns("complete_data_preview"))
           )
         )
+      )
+    ),
+
+    ## Measurement data table card ----
+    card(
+      style = "overflow: clip;",
+      div(
+        rHandsontableOutput(
+          ns("measurement_table"),
+          width = "100%",
+          height = "100%"
+        ),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -98,6 +98,7 @@ mod_data_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
+#' @importFrom utils capture.output head
 #' @export
 mod_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -116,46 +117,10 @@ mod_data_server <- function(id) {
     ## Controlled vocabulary options ----
     measured_flags <- c("", "<LOQ", "<LOD")
 
-    measured_units <- c(
-      "mg/L",
-      "ug/L",
-      "ng/L",
-      "pg/L",
-      "mol/L",
-      "mmol/L",
-      "umol/L",
-      "nmol/L",
-      "pmol/L",
-      "M",
-      "mM",
-      "uM",
-      "nM",
-      "pM",
-      "deg C",
-      "K",
-      "Pa",
-      "bar",
-      "atm",
-      "psu",
-      "%",
-      "ppm",
-      "ppb",
-      "ppt",
-      "Gy",
-      "Gy/h",
-      "mGy",
-      "uGy",
-      "J/m2",
-      "W/m2",
-      "mm",
-      "cm",
-      "m",
-      "g",
-      "kg",
-      "Other"
-    )
+    measured_units <- parameter_units("MEASURED_UNIT")
 
     ## InputValidator for measurement data validation ----
+    # ! FORMAT-BASED
     iv <- InputValidator$new()
     iv$add_rule("measurement_table_validation", function(value) {
       if (!moduleState$data_entry_ready) {
@@ -300,6 +265,7 @@ mod_data_server <- function(id) {
     }
 
     ## Create sample-parameter combinations for measurement entry ----
+    # ! FORMAT-BASED
     create_measurement_combinations <- function() {
       # Get all validated data
       samples_data <- session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
@@ -321,7 +287,7 @@ mod_data_server <- function(id) {
             SAMPLING_DATE,
             ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB,
-            REPLICATE
+            REP
           ),
         parameters_data |> select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE)
       )
@@ -329,7 +295,6 @@ mod_data_server <- function(id) {
       # Add campaign and reference info
       combinations <- combinations |>
         mutate(
-          CAMPAIGN_NAME = campaign_data$CAMPAIGN_NAME,
           REFERENCE_ID = reference_data$REFERENCE_TYPE, # Simplified for now
 
           # Add measurement fields with empty defaults
@@ -353,6 +318,7 @@ mod_data_server <- function(id) {
     }
 
     ## Initialize measurement combinations data frame ----
+    # ! FORMAT-BASED
     init_measurement_df <- function() {
       tibble(
         SAMPLE_ID = character(0),
@@ -361,7 +327,7 @@ mod_data_server <- function(id) {
         SAMPLING_DATE = character(0),
         ENVIRON_COMPARTMENT = character(0),
         ENVIRON_COMPARTMENT_SUB = character(0),
-        REPLICATE = integer(0),
+        REP = integer(0),
         MEASURED_FLAG = character(0),
         MEASURED_VALUE = numeric(0),
         MEASURED_SD = numeric(0),
@@ -412,6 +378,7 @@ mod_data_server <- function(id) {
     ## observe: Handle table changes ----
     # upstream: input$measurement_table changes
     # downstream: moduleState$measurement_combinations
+    # ! FORMAT-BASED
     observe({
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
@@ -524,6 +491,7 @@ mod_data_server <- function(id) {
     ## output: measurement_table ----
     # upstream: moduleState$measurement_combinations, moduleState$data_entry_ready
     # downstream: UI table display
+    # ! FORMAT-BASED
     output$measurement_table <- renderRHandsontable({
       if (
         !moduleState$data_entry_ready ||
@@ -548,30 +516,31 @@ mod_data_server <- function(id) {
               "SITE_CODE",
               "PARAMETER_NAME",
               "SAMPLING_DATE",
-              "COMPARTMENT",
-              "REPLICATE"
+              "ENVIRON_COMPARTMENT",
+              "ENVIRON_COMPARTMENT_SUB",
+              "REP"
             ),
             readOnly = TRUE
+          ) |>
+
+          # Configure measurement fields
+          hot_col(
+            "MEASURED_FLAG",
+            type = "dropdown",
+            source = measured_flags,
+            strict = TRUE
+          ) |>
+          hot_col(
+            c("MEASURED_VALUE", "MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
+            type = "numeric",
+            format = "0.0000"
+          ) |>
+          hot_col(
+            c("MEASURED_UNIT", "LOQ_UNIT", "LOD_UNIT"),
+            type = "dropdown",
+            source = measured_units,
+            strict = TRUE
           )
-        #
-        # # Configure measurement fields
-        # hot_col(
-        #   "MEASURED_FLAG",
-        #   type = "dropdown",
-        #   source = measured_flags,
-        #   strict = TRUE
-        # ) |>
-        # hot_col(
-        #   c("MEASURED_VALUE", "MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
-        #   type = "numeric",
-        #   format = "0.0000"
-        # ) |>
-        # hot_col(
-        #   c("MEASURED_UNIT", "LOQ_UNIT", "LOD_UNIT"),
-        #   type = "dropdown",
-        #   source = measured_units,
-        #   strict = TRUE
-        # ) |>
         #
         # hot_context_menu(
         #   allowRowEdit = FALSE, # Disable row operations for measurement data
@@ -582,10 +551,23 @@ mod_data_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, moduleState$data_entry_ready
+    # upstream: moduleState$is_valid, moduleState$data_entry_ready, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (!moduleState$data_entry_ready) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (!moduleState$data_entry_ready) {
         div(
           bs_icon("info-circle"),
           "Complete all setup modules to enable measurement data entry.",
@@ -608,11 +590,14 @@ mod_data_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: complete_data_preview ----
     # upstream: moduleState$complete_dataset
     # downstream: UI data display
+    # ! FORMAT-BASED
     output$complete_data_preview <- renderText({
       if (isTruthy(moduleState$complete_dataset)) {
         # Show overview of complete dataset

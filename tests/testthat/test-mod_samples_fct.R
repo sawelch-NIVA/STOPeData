@@ -35,7 +35,7 @@ setup_test_data <- function() {
       ENVIRON_COMPARTMENT_SUB = c("Freshwater", "Marine/Salt Water"),
       MEASURED_CATEGORY = c("External", "External"),
       SAMPLING_DATE = c("2024-01-15", "2024-01-15"),
-      REPLICATE = c(1, 1),
+      REP = c(1, 1),
       stringsAsFactors = FALSE
     )
   )
@@ -204,7 +204,7 @@ test_that("create_sample_combinations generates correct combinations", {
     "ENVIRON_COMPARTMENT_SUB",
     "MEASURED_CATEGORY",
     "SAMPLING_DATE",
-    "REPLICATE",
+    "REP",
     "REPLICATE_ID",
     "SAMPLE_ID"
   )
@@ -225,7 +225,7 @@ test_that("create_sample_combinations generates correct combinations", {
 
   expect_equal(nrow(result$combinations), 3) # 1 combination × 3 replicates
   expect_equal(result$skipped, 0)
-  expect_equal(unique(result$combinations$REPLICATE), c(1, 2, 3))
+  expect_equal(unique(result$combinations$REP), c(1, 2, 3))
 
   # Test duplicate filtering
   existing <- test_data$existing_samples
@@ -291,7 +291,7 @@ test_that("init_samples_df creates correct empty data frame", {
     "ENVIRON_COMPARTMENT_SUB",
     "MEASURED_CATEGORY",
     "SAMPLING_DATE",
-    "REPLICATE",
+    "REP",
     "REPLICATE_ID",
     "SAMPLE_ID"
   )
@@ -311,7 +311,7 @@ test_that("init_samples_df creates correct empty data frame", {
     "SAMPLE_ID"
   )
   expect_true(all(sapply(result[char_cols], is.character)))
-  expect_true(is.numeric(result$REPLICATE))
+  expect_true(is.numeric(result$REP))
 })
 
 # Integration tests ----
@@ -354,7 +354,7 @@ test_that("functions work together correctly", {
     first_combo$ENVIRON_COMPARTMENT_SUB,
     first_combo$MEASURED_CATEGORY,
     first_combo$SAMPLING_DATE,
-    first_combo$REPLICATE
+    first_combo$REP
   )
   expect_true(exists_result)
 })

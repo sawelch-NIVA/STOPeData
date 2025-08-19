@@ -10,63 +10,69 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList fileInput textInput actionButton
-#' @importFrom bslib card card_header card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
+#' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
+#' @export
 mod_llm_ui <- function(id) {
   ns <- NS(id)
-
   tagList(
+    tags$head(tags$style(HTML(
+      ".btn-file {
+    padding: 6px 20px !important;
+}"
+    ))),
     # Enable shinyjs
     useShinyjs(),
 
     # Main extraction card ----
     card(
-      card_header("Automated Data Extraction"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "LLM Extraction Information",
-            icon = bs_icon("info-circle"),
-            "This module uses Claude AI to automatically extract environmental exposure data from uploaded PDFs. Upload a research paper or report, provide your Anthropic API key, and the system will attempt to populate all form fields automatically. Review and correct the extracted data in subsequent modules before validation."
-          )
+        info_accordion(
+          content_file = "inst/app/www/md/intro_llm.md"
         ),
 
         ## Upload and API section ----
-        div(
-          style = "margin: 20px 0;",
-          h5("Upload & Configuration"),
+        layout_column_wrap(
+          width = "400px",
+          fill = FALSE,
+          fillable = FALSE,
 
-          layout_column_wrap(
-            width = "400px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            ### PDF upload ----
-            fileInput(
-              inputId = ns("pdf_file"),
-              label = tooltip(
-                list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report containing environmental exposure data"
-              ),
-              accept = ".pdf",
-              width = "100%"
+          ### PDF upload ----
+          fileInput(
+            inputId = ns("pdf_file"),
+            label = tooltip(
+              list("Upload PDF", bs_icon("info-circle-fill")),
+              "Upload a research paper or report (pdf) containing environmental exposure data"
             ),
+            accept = ".pdf",
+            width = "100%",
+            buttonLabel = "Browse..."
+          ),
 
-            ### API key input ----
-            textInput(
-              inputId = ns("api_key"),
-              label = tooltip(
-                list("Anthropic API Key", bs_icon("info-circle-fill")),
-                "Your Anthropic API key for Claude access. Set ANTHROPIC_API_KEY environment variable to avoid entering this each time."
-              ),
-              value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
-              placeholder = "sk-ant-...",
-              width = "100%"
-            )
-          )
+          ### API key input ----
+          textInput(
+            inputId = ns("api_key"),
+            label = tooltip(
+              list("Anthropic API Key", bs_icon("info-circle-fill")),
+              "Your Anthropic API key for Claude access. Set ANTHROPIC_API_KEY environment variable to avoid entering this each time."
+            ),
+            value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
+            placeholder = "sk-ant-...",
+            width = "100%"
+          ),
+          ### ENTERED_BY
+          textInput(
+            inputId = ns("ENTERED_BY"),
+            label = tooltip(
+              list("Entered By", bs_icon("info-circle-fill")),
+              "Name/contact details."
+            ),
+            value = Sys.getenv("EDATA_USERNAME", unset = ""),
+            placeholder = "Ole Nordman",
+            width = "100%"
+          ),
         ),
 
         ## Prompt and Schema Configuration ----
@@ -74,10 +80,9 @@ mod_llm_ui <- function(id) {
           id = ns("config_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Advanced Configuration",
+            title = "Modify Prompt and Data Structure (Advanced)",
             icon = bs_icon("gear"),
             div(
-              h6("System Prompt"),
               textAreaInput(
                 inputId = ns("system_prompt"),
                 label = "Extraction Instructions",
@@ -86,7 +91,6 @@ mod_llm_ui <- function(id) {
                 width = "100%"
               ),
 
-              h6("Extraction Schema"),
               textAreaInput(
                 inputId = ns("extraction_schema_display"),
                 label = "Schema Definition",
@@ -108,14 +112,13 @@ mod_llm_ui <- function(id) {
         ),
 
         ## Extract buttons ----
-        div(
-          style = "margin-top: 15px;",
+        layout_columns(
+          fill = FALSE,
           input_task_button(
             id = ns("extract_data"),
             label = "Extract Data from PDF",
             icon = icon("magic"),
-            class = "btn-success",
-            width = "200px"
+            class = "btn-success"
           ) |>
             disabled(),
 
@@ -123,15 +126,12 @@ mod_llm_ui <- function(id) {
             id = ns("load_dummy_data"),
             label = "Load Dummy Data",
             icon = icon("flask"),
-            class = "btn-info",
-            width = "200px",
-            style = "margin-left: 10px;"
+            class = "btn-info"
           )
         ),
 
         ## Status and results ----
         div(
-          style = "margin-top: 20px;",
           uiOutput(ns("extraction_status"))
         ),
 
@@ -143,21 +143,19 @@ mod_llm_ui <- function(id) {
             title = "Extraction Results",
             icon = bs_icon("cpu"),
             div(
-              h6("Raw Extraction Output"),
               verbatimTextOutput(ns("extraction_results"))
             )
           )
         ),
 
-        ## Action buttons for extracted data (moved outside accordion) ----
-        div(
-          style = "margin-top: 15px;",
+        ## Action buttons for extracted data  ----
+        layout_columns(
+          fill = FALSE,
           input_task_button(
             id = ns("populate_forms"),
             label = "Populate Forms with Extracted Data",
             icon = icon("download"),
-            class = "btn-primary",
-            width = "250px"
+            class = "btn-primary"
           ) |>
             disabled(),
 
@@ -165,9 +163,7 @@ mod_llm_ui <- function(id) {
             id = ns("clear_extraction"),
             label = "Clear Extraction",
             icon = icon("trash"),
-            class = "btn-danger",
-            width = "150px",
-            style = "margin-left: 10px;"
+            class = "btn-danger"
           ) |>
             disabled()
         )
@@ -184,6 +180,8 @@ mod_llm_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
+#' @importFrom utils str
+#' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -348,7 +346,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "PDF extraction completed successfully!",
-            type = "default"
+            type = "success"
           )
 
           # Enable form population button
@@ -462,6 +460,18 @@ mod_llm_server <- function(id) {
       showNotification("Extraction cleared", type = "message")
     }) |>
       bindEvent(input$clear_extraction)
+
+    ## observe ~ bindEvent: Set session user name ----
+    observe({
+      # Set the reactive value
+      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+      showNotification(
+        glue("Saved your username {input$ENTERED_BY} to session data."),
+        type = "message"
+      )
+    }) |>
+      bindEvent(input$ENTERED_BY, ignoreInit = FALSE)
 
     # 3. Outputs ----
 

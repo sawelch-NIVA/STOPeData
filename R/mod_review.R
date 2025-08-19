@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @importFrom plotly plotlyOutput
 #' @export
@@ -21,17 +21,9 @@ mod_review_ui <- function(id) {
     # Main review card ----
     card(
       fill = TRUE,
-      card_header("Data Review & Visualization"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Data Review Information",
-            icon = bs_icon("info-circle"),
-            "This module provides visual review of your measurement data. Explore measured values across different parameters, sites, compartments, and sampling dates. Use the controls below to customize the visualizations and identify any data patterns or potential issues before export."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_review.md"),
 
         ## Data availability status ----
         div(
@@ -112,20 +104,6 @@ mod_review_ui <- function(id) {
             width = "400px",
             fill = FALSE,
             fillable = FALSE,
-
-            card(
-              card_header("Value Distribution"),
-              card_body(
-                plotlyOutput(ns("value_distribution"), height = "300px")
-              )
-            ),
-
-            card(
-              card_header("Unit Distribution"),
-              card_body(
-                plotlyOutput(ns("unit_distribution"), height = "300px")
-              )
-            )
           )
         ),
 
@@ -214,7 +192,7 @@ mod_review_server <- function(id) {
           ),
           each = 10
         ),
-        REPLICATE = rep(1:2, length.out = 50),
+        REP = rep(1:2, length.out = 50),
 
         # Create realistic measurement data with some variation
         MEASURED_VALUE = c(

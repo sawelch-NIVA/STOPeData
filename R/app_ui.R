@@ -9,6 +9,23 @@
 #' @noRd
 app_ui <- function(request) {
   tagList(
+    # Notification CSS gets overwritten unless we set it here - moved to top right
+    tags$head(
+      tags$style(HTML(
+        "
+          #shiny-notification-panel {
+            top: 0;
+            bottom: unset;
+            left: unset;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 450px;
+          }
+    "
+      ))
+    ),
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
@@ -84,13 +101,31 @@ app_ui <- function(request) {
         title = "9. Data",
         value = "09-data",
         mod_data_ui("data"),
-        icon = bs_icon("box-arrow-right")
+        icon = bs_icon("app")
       ),
       nav_panel(
         title = "10. Review",
         value = "10-review",
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
+      ),
+      nav_panel(
+        title = "11. Export",
+        value = "11-export",
+        mod_export_ui("export"),
+        icon = bs_icon("box-arrow-right")
+      ),
+      nav_panel(
+        title = "12. Quality",
+        value = "12-CREED",
+        mod_CREED_ui("CREED"),
+        icon = bs_icon("award-fill")
+      ),
+      nav_panel(
+        title = "",
+        value = "info",
+        mod_information_ui("information"),
+        icon = bs_icon("info-circle")
       ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
@@ -104,13 +139,15 @@ app_ui <- function(request) {
           input_task_button(
             id = "previous_section",
             label = HTML('Previous Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           ),
 
           input_task_button(
             id = "next_section",
             label = HTML('Next Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           )
         ),
         div(

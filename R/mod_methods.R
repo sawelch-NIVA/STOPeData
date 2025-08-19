@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList selectInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
+#' @importFrom bslib card  card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
@@ -25,75 +25,58 @@ mod_methods_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
-      card_header("Methods Data Management"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Methods Data Information",
-            icon = bs_icon("info-circle"),
-            "Sampling, fractionation, extraction, and analytical protocols can affect ultimate measured concentrations by order of magnitude. Please report the relevant protocol types/classes her. In the Samples module, you will be able to match specific protocols to samples."
-          )
-        ),
+        info_accordion(content_file = "inst/app/www/md/intro_methods.md"),
 
         ## Method selection form ----
-        div(
-          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
-          h5("Add New Method"),
+        layout_column_wrap(
+          width = "300px",
+          fill = FALSE,
+          fillable = FALSE,
+          margin = "-10px",
 
-          layout_column_wrap(
-            width = "300px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            selectInput(
-              inputId = ns("protocol_category_select"),
-              label = tooltip(
-                list("Protocol Category", bs_icon("info-circle-fill")),
-                "Type of protocol or method being used"
-              ),
-              choices = c(
-                "Sampling Protocol" = "Sampling Protocol",
-                "Fractionation Protocol" = "Fractionation Protocol",
-                "Extraction Protocol" = "Extraction Protocol",
-                "Analytical Protocol" = "Analytical Protocol"
-              ),
-              selected = "Sampling Protocol",
-              width = "100%"
+          selectInput(
+            inputId = ns("protocol_category_select"),
+            label = tooltip(
+              list("Protocol Category", bs_icon("info-circle-fill")),
+              "Type of protocol or method being used"
             ),
-
-            selectInput(
-              inputId = ns("protocol_name_select"),
-              label = tooltip(
-                list("Protocol Name", bs_icon("info-circle-fill")),
-                "Specific method or protocol within the category"
-              ),
-              choices = c("Select category first..." = ""),
-              width = "100%",
-              multiple = TRUE
-            )
+            choices = c(
+              "Sampling Protocol" = "Sampling Protocol",
+              "Fractionation Protocol" = "Fractionation Protocol",
+              "Extraction Protocol" = "Extraction Protocol",
+              "Analytical Protocol" = "Analytical Protocol"
+            ),
+            selected = "Sampling Protocol",
+            width = "100%"
           ),
 
-          ## Add method button ----
-          div(
-            style = "margin-top: 15px;",
-            input_task_button(
-              id = ns("add_method"),
-              label = "Add Method",
-              icon = icon("plus-circle"),
-              class = "btn-success",
-              width = "200px"
-            )
+          selectInput(
+            inputId = ns("protocol_name_select"),
+            label = tooltip(
+              list("Protocol Name", bs_icon("info-circle-fill")),
+              "Specific method or protocol within the category"
+            ),
+            choices = c("Select category first..." = ""),
+            width = "100%",
+            multiple = TRUE
           )
         ),
 
-        ## Methods table ----
-        rHandsontableOutput(ns("methods_table")),
-
-        ## Validation status ----
+        ## Add method button and validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          input_task_button(
+            id = ns("add_method"),
+            label = "Add Method",
+            icon = icon("plus-circle"),
+            class = "btn-success",
+            width = "200px"
+          ),
+
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -107,6 +90,14 @@ mod_methods_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Methods table card ----
+    card(
+      div(
+        rHandsontableOutput(ns("methods_table")),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -400,10 +391,23 @@ mod_methods_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
@@ -420,6 +424,8 @@ mod_methods_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----

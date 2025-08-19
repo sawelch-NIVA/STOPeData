@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList textInput dateInput selectInput textAreaInput actionButton
-#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel tooltip
+#' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom tibble tibble
 #' @export
@@ -21,18 +21,9 @@ mod_campaign_ui <- function(id) {
     # Main input card ----
     card(
       fill = TRUE,
-      card_header("Campaign Data Entry"),
       card_body(
         ## Info accordion ----
-        accordion(
-          id = ns("info_accordion"),
-          accordion_panel(
-            title = "Campaign Data Information",
-            icon = bs_icon("info-circle"),
-            "This form collects basic campaign metadata for environmental sampling data. Required fields are marked with an asterisk (*). All date fields should use ISO format (YYYY-MM-DD). Use the Campaign Comment field for any additional notes about the sampling campaign."
-          )
-        ),
-
+        info_accordion(content_file = "inst/app/www/md/intro_campaign.md"),
         ## Input fields layout ----
         layout_column_wrap(
           width = "300px",
@@ -43,7 +34,7 @@ mod_campaign_ui <- function(id) {
           textInput(
             inputId = ns("CAMPAIGN_NAME"),
             label = tooltip(
-              list("Campaign Name *", bs_icon("info-circle-fill")),
+              list("Campaign Name", bs_icon("info-circle-fill")),
               "Text string used to identify the sampling campaign or project. Ensure a consistent Campaign string is used."
             ),
             placeholder = "e.g., 'Vm_Tilt'",
@@ -53,7 +44,7 @@ mod_campaign_ui <- function(id) {
           ### CAMPAIGN_START_DATE - Required date ----
           dateInput(
             inputId = ns("CAMPAIGN_START_DATE"),
-            label = "Campaign Start Date *",
+            label = "Campaign Start Date",
             value = as.Date(NA),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -105,7 +96,7 @@ mod_campaign_ui <- function(id) {
           ### ORGANISATION - Required string, 50 char ----
           textInput(
             inputId = ns("ORGANISATION"),
-            label = "Organisation *",
+            label = "Organisation",
             placeholder = "Data collection organisation",
             width = "100%"
           ),
@@ -113,7 +104,7 @@ mod_campaign_ui <- function(id) {
           ### ENTERED_BY - Required string, 50 char ----
           textInput(
             inputId = ns("ENTERED_BY"),
-            label = "Entered By *",
+            label = "Entered By",
             placeholder = "Your initials or name",
             width = "100%"
           ),
@@ -121,7 +112,7 @@ mod_campaign_ui <- function(id) {
           ### ENTERED_DATE - Required date ----
           dateInput(
             inputId = ns("ENTERED_DATE"),
-            label = "Entered Date *",
+            label = "Entered Date",
             value = Sys.Date(),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -138,7 +129,10 @@ mod_campaign_ui <- function(id) {
         ),
 
         ## Validation status and raw data ----
-        uiOutput(ns("validation_reporter")),
+        span(
+          # prevent flex-grow validation element from growing vertically
+          uiOutput(ns("validation_reporter"))
+        ),
         accordion(
           id = ns("data_accordion"),
           open = FALSE,
@@ -307,17 +301,32 @@ mod_campaign_server <- function(id) {
     ) |>
       bindEvent(input$clear)
 
-    ## observe ~ bindEvent: Set session user name ----
+    ## observe ~ bindEvent: Set session username from ENTERED_BY ----
     observe({
-      # Set the reactive value
-      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+      # only trigger if a username doesn't already exist in the session
+      if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
+        # Set the reactive value
+        session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
 
-      showNotification(
-        glue("Saved your username {input$ENTERED_BY} to session data."),
-        type = "message"
-      )
+        showNotification(
+          glue("Saved your username {input$ENTERED_BY} to session data."),
+          type = "message"
+        )
+      }
     }) |>
       bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+
+    ## observe: update ENTERED_BY field with user_id ----
+    # upstream: session$userData$reactiveValues$ENTERED_BY
+    # downstream: input$ENTERED_BY
+    observe({
+      updateTextInput(
+        session,
+        "ENTERED_BY",
+        value = session$userData$reactiveValues$ENTERED_BY
+      )
+    }) |>
+      bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
     ## observe: Populate from LLM data when available ----
     # upstream: session$userData$reactiveValues$campaignDataLLM
@@ -374,6 +383,12 @@ mod_campaign_server <- function(id) {
         "# Data object will be created when valid data is entered."
       }
     })
+
+    ## export: export variables for testing ----
+    exportTestValues(
+      module_data = moduleState$validated_data,
+      module_valid = moduleState$is_valid
+    )
   })
 }
 
