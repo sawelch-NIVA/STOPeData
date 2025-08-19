@@ -28,7 +28,7 @@ mod_CREED_ui <- function(id) {
           class = "alert alert-primary",
           p(
             bs_icon("arrow-down-circle-fill", class = "text-primary"),
-            strong(" Note: "),
+            strong(" Auto-population: "),
             "Fields marked with this icon are auto-populated from data entered in 
           earlier modules. This data can be overwritten as needed, but note that
           if you populate fields from data again, your changes will not be 
@@ -47,7 +47,7 @@ mod_CREED_ui <- function(id) {
         ),
         accordion(accordion_panel(
           title = "Purpose Statement",
-          p("This section doesn't exist yet.")
+          mod_CREED_purpose_ui("CREED_purpose"),
         )),
         ## Dataset Details section ----
         div(
@@ -110,7 +110,7 @@ mod_CREED_ui <- function(id) {
 
         accordion(accordion_panel(
           title = "Relevance Criteria",
-          p("put module here")
+          mod_CREED_relevance_ui("CREED_relevance")
         )),
 
         ## Status display ----
@@ -175,9 +175,11 @@ mod_CREED_server <- function(id) {
       get_gateway_summaries(moduleData())
     })
 
+    mod_CREED_purpose_server("CREED_purpose")
+    mod_CREED_details_server("CREED_details")
     mod_CREED_gateway_server("CREED_gateway")
     mod_CREED_reliability_server("CREED_reliability")
-    mod_CREED_details_server("CREED_details")
+    mod_CREED_relevance_server("CREED_relevance")
 
     # 2. Helper functions ----
 

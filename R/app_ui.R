@@ -113,7 +113,7 @@ app_ui <- function(request) {
         title = "12. Quality",
         value = "12-CREED",
         mod_CREED_ui("CREED"),
-        icon = bs_icon("clipboard-data-fill")
+        icon = bs_icon("award-fill")
       ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),

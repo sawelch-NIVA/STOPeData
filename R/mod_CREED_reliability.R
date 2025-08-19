@@ -1,159 +1,13 @@
 # CREED Reliability Assessment Module ----
 # A Shiny module for CREED reliability criteria evaluation
+#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText
+#' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
+#' @importFrom bsicons bs_icon
 
 mod_CREED_reliability_ui <- function(id) {
-  CREED_choices <- c(
-    "Not Met" = "not_met",
-    "Fully Met" = "fully",
-    "Partly Met" = "partly",
-    "Not Reported" = "not_reported",
-    "Not Relevant" = "not_relevant"
-  )
-
   ns <- NS(id)
 
-  # Helper function to create criterion sections ----
-  create_criterion_section <- function(
-    criterion_id,
-    title,
-    type,
-    description,
-    note = NULL,
-    is_conditional = FALSE
-  ) {
-    icon_class <- if (type == "required") {
-      "reliability-required"
-    } else {
-      "reliability-recommended"
-    }
-    type_text <- if (type == "required") "Required" else "Recommended"
-
-    div(
-      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
-
-      # Header with title and dropdown ----
-      div(
-        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
-        div(
-          style = "flex-grow: 1; margin-right: 20px;",
-          h4(
-            HTML(paste(
-              bs_icon("award-fill", class = icon_class),
-              paste0(
-                criterion_id,
-                ": ",
-                title,
-                " (",
-                tools::toTitleCase(type_text),
-                ")"
-              )
-            ))
-          ),
-          p(
-            strong("Criterion: "),
-            description
-          ),
-          if (!is.null(note)) {
-            p(
-              em("Note: "),
-              note,
-              class = "text-muted"
-            )
-          }
-        ),
-        selectInput(
-          inputId = ns(paste0(criterion_id, "_score")),
-          label = "Score:",
-          choices = CREED_choices,
-          width = "200px"
-        )
-      ),
-
-      # Two-column layout for data and justification ----
-      layout_columns(
-        col_widths = c(6, 6),
-        create_relevant_data_input(ns, criterion_id),
-        create_justification_input(ns, criterion_id)
-      ),
-
-      # Conditional styling if needed ----
-      if (is_conditional) {
-        tags$script(HTML(paste0(
-          "document.getElementById('",
-          ns(paste0(criterion_id, "_container")),
-          "').classList.add('criterion-disabled');"
-        )))
-      }
-    )
-  }
-
-  # Helper function for relevant data input ----
-  create_relevant_data_input <- function(ns, criterion_id) {
-    div(
-      textAreaInput(
-        inputId = ns(paste0(criterion_id, "_relevant_data")),
-        label = tooltip(
-          list(
-            "Relevant Data",
-            bs_icon("arrow-down-circle-fill", class = "text-primary")
-          ),
-          "Data extracted from your dataset that is relevant to this criterion."
-        ),
-        value = "",
-        rows = 3,
-        width = "100%"
-      )
-    )
-  }
-
-  # Helper function for justification input ----
-  create_justification_input <- function(ns, criterion_id) {
-    textAreaInput(
-      inputId = ns(paste0(criterion_id, "_justification")),
-      label = "Justification (free text)",
-      placeholder = "Provide justification for your scoring...",
-      rows = 3,
-      width = "100%"
-    )
-  }
-
-  # Helper function for conditional criteria ----
-  create_conditional_criterion <- function(
-    criterion_id,
-    title,
-    type,
-    description,
-    note = NULL
-  ) {
-    div(
-      id = ns(paste0(criterion_id, "_container")),
-      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
-      create_criterion_section(
-        criterion_id,
-        title,
-        type,
-        description,
-        note,
-        is_conditional = TRUE
-      )
-    )
-  }
-
   tagList(
-    # Custom CSS for required/recommended styling ----
-    tags$head(
-      tags$style(HTML(
-        "
-        .reliability-required { fill: #aaaaaa !important;}
-        .reliability-recommended { fill:  #ffc107 !important; }
-        .criterion-disabled { 
-          opacity: 0.6; 
-          pointer-events: none; 
-        }
-      "
-      ))
-    ),
-
     # Main reliability section ----
 
     ## Info section ----
@@ -162,10 +16,10 @@ mod_CREED_reliability_ui <- function(id) {
       p(
         "Evaluate the reliability (data quality) of your dataset across 19 criteria. ",
         "Required criteria (",
-        bs_icon("award-fill", class = "reliability-required"),
+        bs_icon("award-fill", class = "CREED-required"),
         ") are needed for Silver level scoring. ",
         "Recommended criteria (",
-        bs_icon("award-fill", class = "reliability-recommended"),
+        bs_icon("award-fill", class = "CREED-recommended"),
         ") are additional requirements for Gold level scoring.",
         class = "text-muted"
       ),
@@ -181,61 +35,67 @@ mod_CREED_reliability_ui <- function(id) {
 
     # Reliability criteria using helper functions ----
 
-    ## RB1: Media - Sample medium/matrix ----
+    # RB1: Media - Sample medium/matrix ----
     create_criterion_section(
-      "RB1",
-      "Sample Medium/Matrix",
-      "required",
-      "Was the sampling medium/matrix reported in detail (for water: dissolved fraction or whole water; for sediment: sieved or whole; for soil, grain size; for biota, species, age, sex, tissue type), and was the matrix appropriate for the analyte of interest?"
+      ns,
+      criterion_id = "RB1",
+      title = "Sample Medium/Matrix",
+      type = "required",
+      description = "Was the sampling medium/matrix reported in detail (for water: dissolved fraction or whole water; for sediment: sieved or whole; for soil, grain size; for biota, species, age, sex, tissue type), and was the matrix appropriate for the analyte of interest?"
     ),
 
     ## RB2: Media - Collection method/sample type ----
     create_criterion_section(
-      "RB2",
-      "Collection Method/Sample Type",
-      "recommended",
-      "Was the sample collection method reported? Examples include grab, depth- and width-integrated, discrete, composite, or time-integrated samples, or continuous monitoring."
+      ns,
+      criterion_id = "RB2",
+      title = "Collection Method/Sample Type",
+      type = "recommended",
+      description = "Was the sample collection method reported? Examples include grab, depth- and width-integrated, discrete, composite, or time-integrated samples, or continuous monitoring."
     ),
 
     ## RB3: Media - Sample handling ----
     create_criterion_section(
-      "RB3",
-      "Sample Handling",
-      "recommended",
-      "Was information reported on sample handling (transport conditions, preservation, filtration, storage)? Was the type of container suitable for use with the analyte of interest (i.e., no loss or contamination)?"
+      ns,
+      criterion_id = "RB3",
+      title = "Sample Handling",
+      type = "recommended",
+      description = "Was information reported on sample handling (transport conditions, preservation, filtration, storage)? Was the type of container suitable for use with the analyte of interest (i.e., no loss or contamination)?"
     ),
 
     ## RB4: Spatial - Site location ----
     create_criterion_section(
-      "RB4",
-      "Site Location",
-      "required",
-      "Were the site locations reported?"
+      ns,
+      criterion_id = "RB4",
+      title = "Site Location",
+      type = "required",
+      description = "Were the site locations reported?"
     ),
 
     ## RB5: Temporal - Date and time ----
     create_criterion_section(
-      "RB5",
-      "Date and Time",
-      "required",
-      "Were the date and time of sample collection reported?"
+      ns,
+      criterion_id = "RB5",
+      title = "Date and Time",
+      type = "required",
+      description = "Were the date and time of sample collection reported?"
     ),
 
     ## RB6: Analytical - Analyte(s) measured ----
     create_criterion_section(
-      "RB6",
-      "Analyte(s) Measured",
-      "required",
-      "Was/were the analyte(s) of interest suitably and definitively identified?"
+      ns,
+      criterion_id = "RB6",
+      title = "Analyte(s) Measured",
+      type = "required",
+      description = "Was/were the analyte(s) of interest suitably and definitively identified?"
     ),
 
     ## RB7: Analytical - LOD/LOQ ----
     create_criterion_section(
-      "RB7",
-      "Limit of Detection and/or Limit of Quantification",
-      "required",
-      "Were limits of detection and/or quantification provided?",
-      note = "The limit of detection (LOD) is the minimum value that the method can determine is statistically different from blanks. The limit of quantification (LOQ) is the minimum value that the method can quantify with a defined uncertainty."
+      ns,
+      criterion_id = "RB7",
+      title = "Limit of Detection and/or Limit of Quantification",
+      type = "required",
+      description = "Were limits of detection and/or quantification provided?"
     ),
 
     ## RB8: Analytical - Accreditation/QMS (Shortcut criterion) ----
@@ -267,7 +127,7 @@ mod_CREED_reliability_ui <- function(id) {
         selectInput(
           inputId = ns("RB8_score"),
           label = "Score:",
-          choices = CREED_choices,
+          choices = CREED_choices(),
           width = "200px"
         )
       ),
@@ -278,57 +138,60 @@ mod_CREED_reliability_ui <- function(id) {
       )
     ),
 
-    ## RB9-RB12: Conditional criteria ----
+    # RB9-RB12: Conditional criteria ----
     div(
       id = ns("RB9_container"),
       create_criterion_section(
-        "RB9",
-        "Method",
-        "required",
-        "Was the method sufficiently described or referenced, such that it can be reproduced if necessary? Was method validation included?",
-        note = "Skip this criterion if you answered 'Fully Met' to RB8 (Accreditation/QMS)."
+        ns,
+        criterion_id = "RB9",
+        title = "Method",
+        type = "required",
+        description = "Was the method sufficiently described or referenced, such that it can be reproduced if necessary? Was method validation included?"
       )
     ),
 
     div(
       id = ns("RB10_container"),
       create_criterion_section(
-        "RB10",
-        "Lab Blank Contamination",
-        "recommended",
-        "Was method blank contamination assessed with laboratory blanks?",
-        note = "Skip this criterion if you answered 'Fully Met' to RB8 (Accreditation/QMS)."
+        ns,
+        criterion_id = "RB10",
+        title = "Lab Blank Contamination",
+        type = "recommended",
+        description = "Was method blank contamination assessed with laboratory blanks?"
       )
     ),
 
     div(
       id = ns("RB11_container"),
       create_criterion_section(
-        "RB11",
-        "Recovery/Accuracy",
-        "recommended",
-        "Were method recovery/accuracy and/or uncertainty assessed by recovery of standard reference material (SRM) and/or were lab spike samples assessed?",
-        note = "Skip this criterion if you answered 'Fully Met' to RB8 (Accreditation/QMS)."
+        ns,
+        criterion_id = "RB11",
+        title = "Recovery/Accuracy",
+        type = "recommended",
+        description = "Were method recovery/accuracy and/or uncertainty 
+    assessed by recovery of standard reference material (SRM) and/or were lab spike samples assessed?"
       )
     ),
 
     div(
       id = ns("RB12_container"),
       create_criterion_section(
-        "RB12",
-        "Reproducibility/Precision",
-        "recommended",
-        "Were method reproducibility and/or uncertainty assessed with lab replicates and long-term control recoveries?",
-        note = "Skip this criterion if you answered 'Fully Met' to RB8 (Accreditation/QMS)."
+        ns,
+        criterion_id = "RB12",
+        title = "Reproducibility/Precision",
+        type = "recommended",
+        description = "Were method reproducibility and/or uncertainty assessed with lab replicates and long-term control recoveries?"
       )
     ),
 
     ## RB13: Analytical - Field QC ----
     create_criterion_section(
-      "RB13",
-      "Field QC",
-      "recommended",
-      "Were quality control (QC) samples collected during field sampling (such as field blanks, spikes, replicates) to demonstrate the method performance for a given field study?"
+      ns,
+      criterion_id = "RB13",
+      title = "Field QC",
+      type = "recommended",
+      description = "Were quality control (QC) samples collected during field 
+    sampling (such as field blanks, spikes, replicates) to demonstrate the method performance for a given field study?"
     ),
 
     # Note: RB14-RB19 would continue using create_criterion_section()

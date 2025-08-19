@@ -182,3 +182,20 @@ Plotly Dark Mode Support
 [data-bs-theme="dark"] .plot-container {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+/* ===================
+CREED-Specific Formatting
+   =================== */
+
+.CREED-required {
+    fill: #aaaaaa !important;
+}
+
+.CREED-recommended {
+    fill: #ffc107 !important;
+}
+
+.criterion-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
