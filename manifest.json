@@ -278,20 +278,34 @@
       "Repository": null,
       "description": {
         "Package": "STOPeData",
-        "Title": "eData - A data entry, formatting, and review tool for exposure data",
-        "Version": "0.0.0.9002",
-        "Authors@R": "person(\"Sam A.\", \"Welch\", , \"saw@niva.no\", role = c(\"aut\", \"cre\"))",
-        "Description": "A Shiny app to import environmental monitoring data from papers or other data sources, formatting with the eData format and validating. Review data, export, and check data quality against the CREED criteria.",
+        "Title": "PKG_TITLE",
+        "Version": "0.0.0.9001",
+        "Authors@R": "\n    person(\"AUTHOR_FIRST\", \"AUTHOR_LAST\", , \"AUTHOR@MAIL.COM\", role = c(\"aut\", \"cre\"))",
+        "Description": "PKG_DESC.",
         "License": "What license is it under?",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "arrow,\nattempt,\nbib2df,\nbsicons,\nbslib,\nconfig,\ndigest,\ndplyr,\nDT,\nellmer,\nggplot2,\nglue,\ngolem,\nhtmltools,\nhttr,\nISOcodes,\nleaflet,\nlubridate,\nmarkdown,\nopenxlsx2,\npkgload,\nplotly,\npurrr,\nrcrossref (>= 1.2.0),\nreadr,\nreport,\nrhandsontable,\nshiny (>= 1.11.1),\nshinyjs,\nshinytest2,\nshinyvalidate,\nshinyWidgets,\nstringi,\nstringr,\ntibble,\nxml2",
+        "Imports": "arrow, attempt, bib2df, bsicons, bslib, config, digest, dplyr,\nDT, ellmer, ggplot2, glue, golem, htmltools, httr, ISOcodes,\nleaflet, lubridate, openxlsx2, pkgload, plotly, purrr,\nrcrossref (>= 1.2.0), rhandsontable, shiny (>= 1.11.1),\nshinyjs, shinytest2, shinyvalidate, shinyWidgets, stringi,\nstringr, tibble, xml2",
         "Encoding": "UTF-8",
-        "LazyData": "true",
         "RoxygenNote": "7.3.2",
         "Suggests": "testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "URL": "https://github.com/sawelch-NIVA/STOPeData",
-        "BugReports": "https://github.com/sawelch-NIVA/STOPeData/issues"
+        "BugReports": "https://github.com/sawelch-NIVA/STOPeData/issues",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "stopedata",
+        "RemoteUsername": "sawelch-NIVA",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "cebad0c46116577cfa67f7d79a199654c8e3e39e",
+        "GithubRepo": "stopedata",
+        "GithubUsername": "sawelch-NIVA",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "cebad0c46116577cfa67f7d79a199654c8e3e39e",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-08-09 19:40:10 UTC; sawel",
+        "Author": "AUTHOR_FIRST AUTHOR_LAST [aut, cre]",
+        "Maintainer": "AUTHOR_FIRST AUTHOR_LAST <AUTHOR@MAIL.COM>",
+        "Built": "R 4.5.1; ; 2025-08-09 19:40:11 UTC; windows"
       }
     },
     "arrow": {
@@ -4489,7 +4503,10 @@
   },
   "files": {
     ".Rbuildignore": {
-      "checksum": "dd8ba8e489949d14436835ba08ccc721"
+      "checksum": "da419cbaca84852beff20207281ec360"
+    },
+    ".Renviron": {
+      "checksum": "04ced9ea21e7a34c773d1791a2e2b810"
     },
     "app.R": {
       "checksum": "2fedc0cb34d981ee081bb8d4e2f57df6"
@@ -4507,7 +4524,7 @@
       "checksum": "16b143ac8ddd5f660d3fbc6f7629daec"
     },
     "DESCRIPTION": {
-      "checksum": "120a5d9ec792b95f3086a1359d359c9f"
+      "checksum": "ae62555c58aea5494ac451e8cbb7121a"
     },
     "inst/app/www/favicon.ico": {
       "checksum": "81560d1b906a530c87fa0acbb2f5cca4"
@@ -4636,7 +4653,7 @@
       "checksum": "2020e0e68bc6513765108d29ffe79ad5"
     },
     "R/mod_information.R": {
-      "checksum": "337de97fbdf70577bb6006b3ae0d2d86"
+      "checksum": "bf4cb55d1f04c84a05e1dfba91de56dd"
     },
     "R/mod_landing.R": {
       "checksum": "a4a84025b3e5466354474461c5e5f0fe"

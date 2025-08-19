@@ -8,7 +8,6 @@
 #'
 #' @importFrom shiny NS tagList
 #' @importFrom bslib card card_body
-#' @importFrom report cite_packages
 mod_information_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -18,7 +17,7 @@ mod_information_ui <- function(id) {
         "The following packages and software were used in the development of 
       this app."
       ),
-      HTML(cite_packages(prefix = "<br>") |> suppressWarnings())
+      p("tba")
     ))
   )
 }

@@ -4,7 +4,7 @@ Version: 0.0.0.9002
 Authors@R: 
     person("Sam A.", "Welch", , "saw@niva.no", role = c("aut", "cre"))
 Description: A Shiny app to import environmental monitoring data from papers or other data sources, formatting with the eData format and validating. Review data, export, and check data quality against the CREED criteria.
-License: What license is it under?
+License: MIT + file LICENSE
 Depends: 
   R (>= 4.1.0)
 Imports: 
@@ -33,7 +33,6 @@ Imports:
     purrr,
     rcrossref (>= 1.2.0),
     readr,
-    report,
     rhandsontable,
     shiny (>= 1.11.1),
     shinyjs,
