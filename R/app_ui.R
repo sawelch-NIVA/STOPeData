@@ -110,10 +110,10 @@ app_ui <- function(request) {
         icon = bs_icon("clipboard-data-fill")
       ),
       nav_panel(
-        title = "12. Data Quality",
+        title = "12. Quality",
         value = "12-CREED",
         mod_CREED_ui("CREED"),
-        icon = bs_icon("clipboard-data-fill")
+        icon = bs_icon("award-fill")
       ),
       nav_panel(
         title = "",

@@ -24,6 +24,17 @@ mod_CREED_ui <- function(id) {
       card_body(
         ## Info accordion ----
         info_accordion(content_file = "inst/app/www/md/intro_CREED.md"),
+        div(
+          class = "alert alert-primary",
+          p(
+            bs_icon("arrow-down-circle-fill", class = "text-primary"),
+            strong(" Auto-population: "),
+            "Fields marked with this icon are auto-populated from data entered in 
+          earlier modules. This data can be overwritten as needed, but note that
+          if you populate fields from data again, your changes will not be 
+          saved."
+          )
+        ),
 
         ## Purpose Statement ---
         div(
@@ -34,252 +45,24 @@ mod_CREED_ui <- function(id) {
             class = "text-muted"
           )
         ),
+        accordion(accordion_panel(
+          title = "Purpose Statement",
+          mod_CREED_purpose_ui("CREED_purpose"),
+        )),
         ## Dataset Details section ----
         div(
           style = "margin: 20px 0;",
           h5("Dataset Details - Key Attributes"),
           p(
-            "This section providse basic details on the dataset. 
+            "This section provides basic details on the dataset. 
             Review the auto-populated fields below and add any missing information.",
             class = "text-muted"
           )
         ),
-
-        input_task_button(
-          id = ns("update_details"),
-          label = "Update Dataset Details",
-          icon = icon("refresh"),
-          class = "btn-primary",
-          width = "200px"
-        ),
-
-        layout_column_wrap(
-          width = "300px",
-          fill = FALSE,
-          fillable = FALSE,
-
-          ### Auto-populated fields ----
-          div(
-            span(
-              bs_icon("arrow-down-circle-fill", class = "text-primary"),
-              h6(
-                "Populated from entered data, can be overwritten as needed",
-                style = "color: #0066cc; display: contents;"
-              )
-            ),
-
-            textAreaInput(
-              inputId = ns("source_auto"),
-              label = tooltip(
-                list(
-                  "Source (reference)",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Reference citation or source of the dataset being processed."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("analyte_auto"),
-              label = tooltip(
-                list(
-                  "Reported Analyte",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Chemical analyte(s) or substance(s) measured in the study."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("medium_auto"),
-              label = tooltip(
-                list(
-                  "Sample Medium/Matrix",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Type of environmental medium sampled (e.g., water, sediment, biota)."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("study_area_auto"),
-              label = tooltip(
-                list(
-                  "Study Area",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Geographic area or region where sampling was conducted."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("num_sites_auto"),
-              label = tooltip(
-                list(
-                  "Number of Sites",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Total number of sampling locations in the study."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("num_samples_auto"),
-              label = tooltip(
-                list(
-                  "Number of Samples",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Total number of samples collected and analyzed."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("sampling_period_auto"),
-              label = tooltip(
-                list(
-                  "Sampling Period",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Time period when samples were collected (e.g., dates, seasons, years)."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("analytical_methods_auto"),
-              label = tooltip(
-                list(
-                  "Analytical Method(s)",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Laboratory methods used for chemical analysis of samples."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("loq_auto"),
-              label = tooltip(
-                list(
-                  "Limit of Quantification",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Lowest concentration of a stressor that can be reliably quantified by the analytical method."
-              ),
-              value = "",
-              rows = 1,
-              width = "100%"
-            )
-          ),
-          div(
-            textAreaInput(
-              inputId = ns("site_types"),
-              label = tooltip(
-                list(
-                  "Site Type(s)",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Description of sampling site characteristics (e.g., urban, rural, industrial, background)."
-              ),
-              placeholder = "Describe types of sampling sites",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("sampling_methods_auto"),
-              label = tooltip(
-                list(
-                  "Sampling Method(s)",
-                  bs_icon("arrow-down-circle-fill", class = "text-primary")
-                ),
-                "Field protocols and equipment used for sample collection."
-              ),
-              placeholder = "Describe sampling protocols used",
-              rows = 1,
-              width = "100%"
-            ),
-
-            ### User input fields ----
-
-            h6("Additional Details (free text)"),
-
-            textAreaInput(
-              inputId = ns("sampling_conditions"),
-              label = tooltip(
-                list("Sampling Conditions", bs_icon("info-circle-fill")),
-                "Describe environmental conditions during sampling (e.g., weather, season, flow conditions)."
-              ),
-              placeholder = "Describe sampling conditions, etc.",
-              rows = 1,
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("site_density"),
-              label = tooltip(
-                list("Site Density", bs_icon("info-circle-fill")),
-                "Spatial distribution of sampling sites (e.g., 1 site per 100 km², grid spacing)."
-              ),
-              placeholder = "e.g., 1 site per 100 km²",
-              width = "100%"
-            ),
-
-            textInput(
-              inputId = ns("sampling_frequency"),
-              label = tooltip(
-                list("Sampling Frequency", bs_icon("info-circle-fill")),
-                "Temporal frequency of sample collection (e.g., monthly, quarterly, one-time)."
-              ),
-              placeholder = "e.g., monthly, quarterly",
-              width = "100%"
-            ),
-
-            textAreaInput(
-              inputId = ns("other_details"),
-              label = tooltip(
-                list("Other Details", bs_icon("info-circle-fill")),
-                "Any additional relevant information about the study design, methods, or data quality."
-              ),
-              placeholder = "Any additional relevant information",
-              rows = 3,
-              width = "100%"
-            )
-          )
-        ),
-
-        ## Action buttons ----
-        input_task_button(
-          id = ns("save_assessment"),
-          label = "Save Assessment",
-          icon = icon("save"),
-          class = "btn-success",
-          width = "200px",
-          style = "margin-left: 10px;"
-        ),
+        accordion(accordion_panel(
+          title = "Dataset Details",
+          mod_CREED_details_ui("CREED_details")
+        )),
 
         ## Gateway Criteria ----
         div(
@@ -287,144 +70,19 @@ mod_CREED_ui <- function(id) {
           h5("Gateway Criteria"),
           p(
             "CREED's gateway criteria are designed to allow for the easy 
-            rejection of a study without requiring methodical examination.
-            Consequently, most studies processed using this tool can be expected 
-            to pass these criteria without issue. Nevertheless they are included
-            for the sake of completeness.
-            Each criterion is auto-evaluated based on your data, but can be 
-            manually overridden.",
+    rejection of a study without requiring methodical examination.
+    Consequently, most studies processed using this tool can be expected 
+    to pass these criteria without issue. Nevertheless they are included
+    for the sake of completeness.
+    Each criterion is auto-evaluated based on your data, but can be 
+    manually overridden.",
             class = "text-muted"
           )
         ),
-
-        # Gateway Criterion 1: Sampling Medium/Matrix
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6(
-            "1. Sampling Medium/Matrix",
-            style = "margin-bottom: 10px;"
-          ),
-          p(
-            "Does the study specify which medium/matrix is sampled?",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_medium_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_medium_summary"), inline = TRUE)
-          ),
-        ),
-
-        # Gateway Criterion 2: Analyte
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6("2. Analyte", style = "margin-bottom: 10px;"),
-          p(
-            "Does the study specify which unique analyte is measured?",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_analyte_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_analyte_summary"), inline = TRUE)
-          )
-        ),
-
-        # Gateway Criterion 3: Spatial Location
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6(
-            "3. Spatial Location",
-            style = "margin-bottom: 10px;"
-          ),
-          p(
-            "Does the study specify where samples were collected? At a minimum, there is enough information for the given purpose (e.g., country).",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_location_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_location_summary"), inline = TRUE)
-          )
-        ),
-
-        # Gateway Criterion 4: Year
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6("4. Year", style = "margin-bottom: 10px;"),
-          p(
-            "Does the study indicate when samples were collected? At a minimum, there is enough information for the given purpose (e.g., sampling year).",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_year_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_year_summary"), inline = TRUE)
-          )
-        ),
-
-        # Gateway Criterion 5: Units
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6("5. Units", style = "margin-bottom: 10px;"),
-          p(
-            "Does the study specify units of measurement?",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_units_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_units_summary"), inline = TRUE)
-          )
-        ),
-
-        # Gateway Criterion 6: Data Source/Citation
-        div(
-          style = "border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;",
-          h6(
-            "6. Data Source/Citation",
-            style = "margin-bottom: 10px;"
-          ),
-          p(
-            "Does the study cite the source of data and/or is a suitable bibliographic reference available for the study?",
-            style = "margin-bottom: 8px;"
-          ),
-          checkboxInput(
-            inputId = ns("gateway_citation_answer"),
-            label = "Yes",
-            value = FALSE
-          ),
-          div(
-            style = "background-color: #f8f9fa; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 0.9em;",
-            strong("Data found: "),
-            textOutput(ns("gateway_citation_summary"), inline = TRUE)
-          )
-        ),
+        accordion(accordion_panel(
+          title = "Gateway Criteria",
+          mod_CREED_gateway_ui("CREED_gateway")
+        )),
 
         ## Reliability Criteria ---
         div(
@@ -435,7 +93,10 @@ mod_CREED_ui <- function(id) {
             class = "text-muted"
           )
         ),
-        mod_CREED_reliability_ui("CREED_reliability"),
+        accordion(accordion_panel(
+          title = "Reliability Criteria",
+          mod_CREED_reliability_ui("CREED_reliability")
+        )),
 
         ## Relevance Criteria ---
         div(
@@ -446,6 +107,11 @@ mod_CREED_ui <- function(id) {
             class = "text-muted"
           )
         ),
+
+        accordion(accordion_panel(
+          title = "Relevance Criteria",
+          mod_CREED_relevance_ui("CREED_relevance")
+        )),
 
         ## Status display ----
         div(
@@ -509,61 +175,13 @@ mod_CREED_server <- function(id) {
       get_gateway_summaries(moduleData())
     })
 
+    mod_CREED_purpose_server("CREED_purpose")
+    mod_CREED_details_server("CREED_details")
+    mod_CREED_gateway_server("CREED_gateway")
     mod_CREED_reliability_server("CREED_reliability")
+    mod_CREED_relevance_server("CREED_relevance")
 
     # 2. Helper functions ----
-
-    ## Auto-populate dataset details ----
-    auto_populate_details <- function() {
-      # Get dataset summaries
-      summaries <- get_dataset_summaries(moduleData())
-
-      # Update UI fields
-      updateTextAreaInput(session, "source_auto", value = summaries$source)
-      updateTextAreaInput(session, "analyte_auto", value = summaries$analytes)
-      updateTextAreaInput(session, "medium_auto", value = summaries$medium)
-      updateTextAreaInput(
-        session,
-        "study_area_auto",
-        value = summaries$study_area
-      )
-      updateTextAreaInput(
-        session,
-        "num_sites_auto",
-        value = summaries$num_sites
-      )
-      updateTextAreaInput(
-        session,
-        "site_types_auto",
-        value = summaries$site_types
-      )
-      updateTextAreaInput(
-        session,
-        "num_samples_auto",
-        value = summaries$num_samples
-      )
-      updateTextAreaInput(
-        session,
-        "sampling_period_auto",
-        value = summaries$sampling_period
-      )
-      updateTextAreaInput(
-        session,
-        "analytical_methods_auto",
-        value = summaries$analytical_methods
-      )
-      updateTextAreaInput(
-        session,
-        "sampling_methods_auto",
-        value = summaries$sampling_methods
-      )
-      updateTextAreaInput(session, "loq_auto", value = summaries$loq_info)
-
-      # Auto-populate gateway criteria
-      auto_populate_gateway_criteria()
-
-      print_dev("CREED dataset details auto-populated")
-    }
 
     ## Auto-populate gateway criteria ----
     auto_populate_gateway_criteria <- function() {
