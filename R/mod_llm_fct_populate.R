@@ -413,3 +413,278 @@ create_compartments_from_llm <- function(llm_compartments_data) {
   print_dev(glue("Created {nrow(comps_df)} compartments from LLM data"))
   return(comps_df)
 }
+
+## mod_compartment helper functions ----
+
+#' Map compartment to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
+#' @noRd
+map_compartment_strict <- function(compartment) {
+  if (is.null(compartment) || compartment == "") {
+    return("Not reported")
+  }
+
+  comp_lower <- tolower(compartment)
+
+  if (grepl("aquatic|water", comp_lower)) {
+    return("Aquatic")
+  }
+  if (grepl("atmosph|air", comp_lower)) {
+    return("Atmospheric")
+  }
+  if (grepl("terrestrial|soil|land", comp_lower)) {
+    return("Terrestrial")
+  }
+  if (grepl("biota|organism", comp_lower)) {
+    return("Biota")
+  }
+
+  return("Other")
+}
+
+#' Map compartment sub to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
+#' @noRd
+map_compartment_sub_strict <- function(compartment_sub) {
+  if (is.null(compartment_sub) || compartment_sub == "") {
+    return("Not reported")
+  }
+
+  sub_lower <- tolower(compartment_sub)
+
+  # Aquatic sub-compartments
+  if (grepl("fresh", sub_lower)) {
+    return("Freshwater")
+  }
+  if (grepl("marine|salt|sea", sub_lower)) {
+    return("Marine/Salt Water")
+  }
+  if (grepl("brackish", sub_lower)) {
+    return("Brackish/Transitional Water")
+  }
+  if (grepl("ground", sub_lower)) {
+    return("Groundwater")
+  }
+  if (grepl("waste", sub_lower)) {
+    return("Wastewater")
+  }
+  if (grepl("growth.*medium", sub_lower)) {
+    return("Liquid Growth Medium")
+  }
+  if (grepl("rain", sub_lower)) {
+    return("Rainwater")
+  }
+  if (grepl("storm", sub_lower)) {
+    return("Stormwater")
+  }
+  if (grepl("leachate", sub_lower)) {
+    return("Leachate")
+  }
+
+  # Atmospheric sub-compartments
+  if (grepl("indoor", sub_lower)) {
+    return("Indoor Air")
+  }
+  if (grepl("outdoor", sub_lower)) {
+    return("Outdoor Air")
+  }
+
+  # Terrestrial sub-compartments
+  if (grepl("biological.*residue", sub_lower)) {
+    return("Terrestrial Biological Residue")
+  }
+  if (grepl("h.*horizon|peat", sub_lower)) {
+    return("Soil H Horizon (Peat)")
+  }
+  if (grepl("o.*horizon|organic", sub_lower)) {
+    return("Soil O Horizon (Organic)")
+  }
+  if (grepl("a.*horizon|topsoil", sub_lower)) {
+    return("Soil A Horizon (Topsoil)")
+  }
+  if (grepl("e.*horizon.*mineral", sub_lower)) {
+    return("Soil E Horizon (Mineral)")
+  }
+  if (grepl("s.*horizon.*mineral", sub_lower)) {
+    return("Soil S Horizon (Mineral)")
+  }
+  if (grepl("c.*horizon|parent.*material", sub_lower)) {
+    return("Soil C Horizon (Parent Material)")
+  }
+  if (grepl("r.*horizon|bedrock", sub_lower)) {
+    return("Soil R Horizon (Bedrock)")
+  }
+
+  # Biota sub-compartments
+  if (grepl("biota.*terrestrial", sub_lower)) {
+    return("Biota, Terrestrial")
+  }
+  if (grepl("biota.*aquatic", sub_lower)) {
+    return("Biota, Aquatic")
+  }
+  if (grepl("biota.*atmospheric", sub_lower)) {
+    return("Biota, Atmospheric")
+  }
+  if (grepl("biota.*other", sub_lower)) {
+    return("Biota, Other")
+  }
+
+  return("Other")
+}
+
+#' Map measured category to strict controlled vocabulary
+#' @description Maps to the exact controlled vocabulary used in compartments module
+#' @noRd
+map_measured_category_strict <- function(category) {
+  if (is.null(category) || category == "") {
+    return("External")
+  }
+
+  cat_lower <- tolower(category)
+
+  if (grepl("external", cat_lower)) {
+    return("External")
+  }
+  if (grepl("internal", cat_lower)) {
+    return("Internal")
+  }
+  if (grepl("surface", cat_lower)) {
+    return("Surface")
+  }
+
+  return("External") # Default assumption
+}
+
+#' Validate latitude value
+#' @noRd
+validate_latitude <- function(lat) {
+  if (is.null(lat) || is.na(lat)) {
+    return(NA)
+  }
+  lat_num <- as.numeric(lat)
+  if (is.na(lat_num) || lat_num < -90 || lat_num > 90) {
+    return(NA)
+  }
+  return(lat_num)
+}
+
+#' Validate longitude value
+#' @noRd
+validate_longitude <- function(lon) {
+  if (is.null(lon) || is.na(lon)) {
+    return(NA)
+  }
+  lon_num <- as.numeric(lon)
+  if (is.na(lon_num) || lon_num < -180 || lon_num > 180) {
+    return(NA)
+  }
+  return(lon_num)
+}
+
+# mod_biota ----
+
+#' Create Biota Data from LLM Data
+#'
+#' @description Creates biota data frame from LLM extracted biota data frame
+#' @param llm_biota_data Biota data frame extracted by LLM
+#' @return Data frame in biota module format
+#' @noRd
+# ! FORMAT-BASED
+create_biota_from_llm <- function(llm_biota_data) {
+  if (is.null(llm_biota_data) || nrow(llm_biota_data) == 0) {
+    return(data.frame())
+  }
+
+  biota_df <- data.frame()
+
+  # Process each row of the biota data frame
+  for (i in seq_len(nrow(llm_biota_data))) {
+    biota_entry <- llm_biota_data[i, ]
+
+    # Create biota row with LLM data
+    biota_row <- data.frame(
+      SAMPLE_ID = safe_extract_field(
+        biota_entry,
+        "sample_id",
+        paste0("BIO_", sprintf("%03d", i))
+      ),
+      SITE_CODE = "SITE_001", # Default - will be updated when samples are created
+      PARAMETER_NAME = "Parameter_001", # Default - will be updated when samples are created
+      ENVIRON_COMPARTMENT = "Biota",
+      ENVIRON_COMPARTMENT_SUB = "Biota Aquatic", # Default assumption
+      MEASURED_CATEGORY = "Internal", # Default for biota
+      SAMPLING_DATE = as.character(Sys.Date()), # Default
+      REP = 1L, # Default
+      SPECIES_GROUP = map_species_group_strict(safe_extract_field(
+        biota_entry,
+        "species_group",
+        ""
+      )),
+      SAMPLE_SPECIES = safe_extract_field(biota_entry, "sample_species", ""),
+      SAMPLE_TISSUE = map_tissue_type_strict(safe_extract_field(
+        biota_entry,
+        "sample_tissue",
+        ""
+      )),
+      SAMPLE_SPECIES_LIFESTAGE = map_lifestage_strict(safe_extract_field(
+        biota_entry,
+        "sample_species_lifestage",
+        ""
+      )),
+      SAMPLE_SPECIES_GENDER = map_gender_strict(safe_extract_field(
+        biota_entry,
+        "sample_species_gender",
+        ""
+      )),
+      stringsAsFactors = FALSE
+    )
+
+    biota_df <- rbind(biota_df, biota_row)
+  }
+
+  print_dev(glue("Created {nrow(biota_df)} biota entries from LLM data"))
+  return(biota_df)
+}
+
+# mod_methods ----
+
+#' Create Methods Data from LLM Data
+#'
+#' @description Creates methods data frame from LLM extracted methods data frame
+#' @param llm_methods_data Methods data frame extracted by LLM
+#' @return Data frame in methods module format
+#' @noRd
+# ! FORMAT-BASED
+create_methods_from_llm <- function(llm_methods_data) {
+  if (is.null(llm_methods_data) || nrow(llm_methods_data) == 0) {
+    return(data.frame())
+  }
+
+  methods_df <- data.frame()
+
+  # Process each row of the methods data frame
+  for (i in seq_len(nrow(llm_methods_data))) {
+    method_entry <- llm_methods_data[i, ]
+
+    # Create method row with LLM data
+    method_row <- data.frame(
+      PROTOCOL_CATEGORY = map_protocol_category_strict(safe_extract_field(
+        method_entry,
+        "protocol_category",
+        ""
+      )),
+      PROTOCOL_NAME = safe_extract_field(method_entry, "protocol_name", ""),
+      PROTOCOL_COMMENT = safe_extract_field(
+        method_entry,
+        "protocol_comment",
+        ""
+      ),
+      stringsAsFactors = FALSE
+    )
+
+    methods_df <- rbind(methods_df, method_row)
+  }
+
+  print_dev(glue("Created {nrow(methods_df)} methods from LLM data"))
+  return(methods_df)
+}

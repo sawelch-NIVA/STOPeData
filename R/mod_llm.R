@@ -710,6 +710,55 @@ create_extraction_schema <- function() {
           required = FALSE
         )
       )
+    ),
+    # Biota data - ARRAY OF OBJECTS
+    biota = type_array(
+      type_object(
+        .description = "Biological sampling information",
+        sample_id = type_string(
+          description = "Sample identifier",
+          required = FALSE
+        ),
+        species_group = type_string(
+          description = "Taxonomic group: Worms, Insects/Spiders, Molluscs, Fungi, Crustaceans, Mammals, Amphibians, Moss/Hornworts, Birds, Fish, Plants, Algae, Invertebrates, Reptiles, Bacteria, Ecosystem, Other",
+          required = FALSE
+        ),
+        sample_species = type_string(
+          description = "Species name (scientific or common)",
+          required = FALSE
+        ),
+        sample_tissue = type_string(
+          description = "Tissue type: Whole organism, Muscle, Liver, Kidney, Brain, Heart, Lung, Gill, Shell, Carapace, Blood, Egg, Larva, Leaf, Root, Stem, Fruit, Seed, Other",
+          required = FALSE
+        ),
+        sample_species_lifestage = type_string(
+          description = "Life stage: Adult, Juvenile, Larva, Embryo, Egg, Seedling, Mature, Young, Mixed, Not applicable, Other",
+          required = FALSE
+        ),
+        sample_species_gender = type_string(
+          description = "Gender: Male, Female, Mixed, Hermaphrodite, Not applicable, Not determined, Other",
+          required = FALSE
+        )
+      )
+    ),
+
+    # Methods data - ARRAY OF OBJECTS
+    methods = type_array(
+      type_object(
+        .description = "Analytical and sampling methods used",
+        protocol_category = type_string(
+          description = "Protocol type: Sampling Protocol, Fractionation Protocol, Extraction Protocol, Analytical Protocol",
+          required = FALSE
+        ),
+        protocol_name = type_string(
+          description = "Specific method or protocol name",
+          required = FALSE
+        ),
+        protocol_comment = type_string(
+          description = "Additional details about the method",
+          required = FALSE
+        )
+      )
     )
   )
 }

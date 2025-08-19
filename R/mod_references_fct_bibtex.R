@@ -179,7 +179,8 @@ map_bibtex_to_reference_fields <- function(
     NUMBER_OF_PAGES = NA, # Not typically in BibTeX
     NUMBER_OF_VOLUMES = NA, # Not typically in BibTeX
     REF_COMMENT = NA, # Not typically in BibTeX
-    ENTERED_BY = NA # Will be filled from session data
+    ENTERED_BY = NA, # Will be filled from session data
+    REF_COMMENT = NA # Not typically in BibTeX
   )
 
   return(mapped_fields)
@@ -245,51 +246,102 @@ validate_and_parse_bibtex <- function(bibtex_string, allow_multiple = FALSE) {
   tryCatch(
     {
       bibtex_df <- bib_string2df_alt(bibtex_string)
+      tryCatch(
+        {
+          bibtex_df <- bib_string2df_alt(bibtex_string)
 
-      # Check if we have data
-      if (nrow(bibtex_df) == 0) {
-        return(list(
-          success = FALSE,
-          data = NULL,
-          message = "No valid BibTeX entries found in the provided text",
-          warning = NULL
-        ))
-      }
+          # Check if we have data
+          if (nrow(bibtex_df) == 0) {
+            return(list(
+              success = FALSE,
+              data = NULL,
+              message = "No valid BibTeX entries found in the provided text",
+              warning = NULL
+            ))
+          }
+          # Check if we have data
+          if (nrow(bibtex_df) == 0) {
+            return(list(
+              success = FALSE,
+              data = NULL,
+              message = "No valid BibTeX entries found in the provided text",
+              warning = NULL
+            ))
+          }
 
-      # Check for multiple entries
-      warning_msg <- NULL
-      if (nrow(bibtex_df) > 1) {
-        if (!allow_multiple) {
-          warning_msg <- paste(
-            "Multiple BibTeX entries detected.",
-            "Only the first entry will be imported."
-          )
+          # Check for multiple entries
+          warning_msg <- NULL
+          if (nrow(bibtex_df) > 1) {
+            if (!allow_multiple) {
+              warning_msg <- paste(
+                "Multiple BibTeX entries detected.",
+                "Only the first entry will be imported."
+              )
+            }
+          }
+          # Check for multiple entries
+          warning_msg <- NULL
+          if (nrow(bibtex_df) > 1) {
+            if (!allow_multiple) {
+              warning_msg <- paste(
+                "Multiple BibTeX entries detected.",
+                "Only the first entry will be imported."
+              )
+            }
+          }
+
+          return(list(
+            success = TRUE,
+            data = bibtex_df,
+            message = "BibTeX data parsed successfully",
+            warning = warning_msg
+          ))
+        },
+        error = function(e) {
+          # Provide user-friendly error message
+          error_msg <- "BibTeX parsing failed"
+          return(list(
+            success = TRUE,
+            data = bibtex_df,
+            message = "BibTeX data parsed successfully",
+            warning = warning_msg
+          ))
+        },
+        error = function(e) {
+          # Provide user-friendly error message
+          error_msg <- "BibTeX parsing failed"
+
+          # Try to provide more specific error information
+          if (grepl("unexpected", e$message, ignore.case = TRUE)) {
+            error_msg <- paste(
+              error_msg,
+              "- check for syntax errors in BibTeX format"
+            )
+          } else if (grepl("file", e$message, ignore.case = TRUE)) {
+            error_msg <- paste(error_msg, "- internal file handling error")
+          } else {
+            error_msg <- paste(error_msg, "-", e$message)
+          }
+          # Try to provide more specific error information
+          if (grepl("unexpected", e$message, ignore.case = TRUE)) {
+            error_msg <- paste(
+              error_msg,
+              "- check for syntax errors in BibTeX format"
+            )
+          } else if (grepl("file", e$message, ignore.case = TRUE)) {
+            error_msg <- paste(error_msg, "- internal file handling error")
+          } else {
+            error_msg <- paste(error_msg, "-", e$message)
+          }
+
+          return(list(
+            success = FALSE,
+            data = NULL,
+            message = error_msg,
+            warning = NULL
+          ))
         }
-      }
-
-      return(list(
-        success = TRUE,
-        data = bibtex_df,
-        message = "BibTeX data parsed successfully",
-        warning = warning_msg
-      ))
-    },
-    error = function(e) {
-      # Provide user-friendly error message
-      error_msg <- "BibTeX parsing failed"
-
-      # Try to provide more specific error information
-      if (grepl("unexpected", e$message, ignore.case = TRUE)) {
-        error_msg <- paste(
-          error_msg,
-          "- check for syntax errors in BibTeX format"
-        )
-      } else if (grepl("file", e$message, ignore.case = TRUE)) {
-        error_msg <- paste(error_msg, "- internal file handling error")
-      } else {
-        error_msg <- paste(error_msg, "-", e$message)
-      }
-
+      )
       return(list(
         success = FALSE,
         data = NULL,
@@ -396,6 +448,12 @@ clean_bibtex_text <- function(text) {
 
     # Special characters
     '\\{\\\\ss\\}' = 'ß',
+    '\\{\\\\ae\\}' = 'æ',
+    '\\{\\\\AE\\}' = 'Æ',
+    '\\{\\\\o\\}' = 'ø',
+    '\\{\\\\O\\}' = 'Ø',
+    '\\{\\\\aa\\}' = 'å',
+    '\\{\\\\AA\\}' = 'Å',
     '\\{\\\\ae\\}' = 'æ',
     '\\{\\\\AE\\}' = 'Æ',
     '\\{\\\\o\\}' = 'ø',
