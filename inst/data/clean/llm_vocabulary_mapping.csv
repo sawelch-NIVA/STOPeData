@@ -49,3 +49,187 @@ geographic_feature,forest|wood,"Woodland, forest",13
 geographic_feature,shrub,Shrubland,14
 geographic_feature,grass,Grassland,15
 geographic_feature,bare.*land|lichen|moss,"Bare land and lichen/moss",16
+VARIABLE_NAME,pattern,output_value,priority
+protocol_category,sampling,Sampling Protocol,1
+protocol_category,sample collection,Sampling Protocol,2
+protocol_category,field collection,Sampling Protocol,3
+protocol_category,collection protocol,Sampling Protocol,4
+protocol_category,fractionation,Fractionation Protocol,1
+protocol_category,fraction,Fractionation Protocol,2
+protocol_category,separation,Fractionation Protocol,3
+protocol_category,extraction,Extraction Protocol,1
+protocol_category,extract,Extraction Protocol,2
+protocol_category,digestion,Extraction Protocol,3
+protocol_category,dissolution,Extraction Protocol,4
+protocol_category,analytical,Analytical Protocol,1
+protocol_category,analysis,Analytical Protocol,2
+protocol_category,measurement,Analytical Protocol,3
+protocol_category,detection,Analytical Protocol,4
+protocol_category,spectroscopy,Analytical Protocol,5
+protocol_category,chromatography,Analytical Protocol,6
+protocol_category,mass spectrometry,Analytical Protocol,7
+protocol_category,icp,Analytical Protocol,8
+protocol_category,atomic absorption,Analytical Protocol,9
+tissue_type,whole,Whole organism,1
+tissue_type,entire,Whole organism,2
+tissue_type,complete,Whole organism,3
+tissue_type,body,Whole organism,4
+tissue_type,organism,Whole organism,5
+tissue_type,muscle,Muscle,1
+tissue_type,meat,Muscle,2
+tissue_type,flesh,Muscle,3
+tissue_type,liver,Liver,1
+tissue_type,hepatic,Liver,2
+tissue_type,kidney,Kidney,1
+tissue_type,renal,Kidney,2
+tissue_type,brain,Brain,1
+tissue_type,cerebral,Brain,2
+tissue_type,heart,Heart,1
+tissue_type,cardiac,Heart,2
+tissue_type,lung,Lung,1
+tissue_type,pulmonary,Lung,2
+tissue_type,gill,Gill,1
+tissue_type,branchial,Gill,2
+tissue_type,shell,Shell,1
+tissue_type,carapace,Carapace,1
+tissue_type,exoskeleton,Carapace,2
+tissue_type,blood,Blood,1
+tissue_type,plasma,Blood,2
+tissue_type,serum,Blood,3
+tissue_type,egg,Egg,1
+tissue_type,ova,Egg,2
+tissue_type,ovum,Egg,3
+tissue_type,larva,Larva,1
+tissue_type,larvae,Larva,2
+tissue_type,larval,Larva,3
+tissue_type,leaf,Leaf,1
+tissue_type,leaves,Leaf,2
+tissue_type,foliar,Leaf,3
+tissue_type,root,Root,1
+tissue_type,roots,Root,2
+tissue_type,rhizome,Root,3
+tissue_type,stem,Stem,1
+tissue_type,trunk,Stem,2
+tissue_type,shoot,Stem,3
+tissue_type,branch,Stem,4
+tissue_type,fruit,Fruit,1
+tissue_type,berry,Fruit,2
+tissue_type,seed,Seed,1
+tissue_type,seeds,Seed,2
+lifestage,adult,Adult,1
+lifestage,mature,Mature,1
+lifestage,juvenile,Juvenile,1
+lifestage,young,Young,1
+lifestage,immature,Juvenile,2
+lifestage,subadult,Juvenile,3
+lifestage,larva,Larva,1
+lifestage,larvae,Larva,2
+lifestage,larval,Larva,3
+lifestage,embryo,Embryo,1
+lifestage,embryonic,Embryo,2
+lifestage,egg,Egg,1
+lifestage,ova,Egg,2
+lifestage,seedling,Seedling,1
+lifestage,sapling,Seedling,2
+lifestage,mixed,Mixed,1
+lifestage,various,Mixed,2
+lifestage,multiple,Mixed,3
+lifestage,not applicable,Not applicable,1
+lifestage,n/a,Not applicable,2
+lifestage,na,Not applicable,3
+lifestage,not relevant,Not applicable,4
+gender,male,Male,1
+gender,♂,Male,2
+gender,m,Male,3
+gender,female,Female,1
+gender,♀,Female,2
+gender,f,Female,3
+gender,mixed,Mixed,1
+gender,both,Mixed,2
+gender,combined,Mixed,3
+gender,hermaphrodite,Hermaphrodite,1
+gender,hermaphroditic,Hermaphrodite,2
+gender,bisexual,Hermaphrodite,3
+gender,not applicable,Not applicable,1
+gender,n/a,Not applicable,2
+gender,na,Not applicable,3
+gender,not relevant,Not applicable,4
+gender,not determined,Not determined,1
+gender,unknown,Not determined,2
+gender,undetermined,Not determined,3
+gender,not specified,Not determined,4
+species_group,worm,Worms,1
+species_group,annelid,Worms,2
+species_group,polychaete,Worms,3
+species_group,oligochaete,Worms,4
+species_group,nematode,Worms,5
+species_group,insect,Insects/Spiders,1
+species_group,spider,Insects/Spiders,2
+species_group,arthropod,Insects/Spiders,3
+species_group,arachnid,Insects/Spiders,4
+species_group,beetle,Insects/Spiders,5
+species_group,fly,Insects/Spiders,6
+species_group,mollusc,Molluscs,1
+species_group,mollusk,Molluscs,2
+species_group,bivalve,Molluscs,3
+species_group,gastropod,Molluscs,4
+species_group,snail,Molluscs,5
+species_group,mussel,Molluscs,6
+species_group,clam,Molluscs,7
+species_group,oyster,Molluscs,8
+species_group,fungi,Fungi,1
+species_group,fungus,Fungi,2
+species_group,mushroom,Fungi,3
+species_group,yeast,Fungi,4
+species_group,crustacean,Crustaceans,1
+species_group,crab,Crustaceans,2
+species_group,shrimp,Crustaceans,3
+species_group,lobster,Crustaceans,4
+species_group,copepod,Crustaceans,5
+species_group,barnacle,Crustaceans,6
+species_group,mammal,Mammals,1
+species_group,rodent,Mammals,2
+species_group,whale,Mammals,3
+species_group,dolphin,Mammals,4
+species_group,seal,Mammals,5
+species_group,amphibian,Amphibians,1
+species_group,frog,Amphibians,2
+species_group,toad,Amphibians,3
+species_group,salamander,Amphibians,4
+species_group,moss,Moss/Hornworts,1
+species_group,hornwort,Moss/Hornworts,2
+species_group,bryophyte,Moss/Hornworts,3
+species_group,bird,Birds,1
+species_group,avian,Birds,2
+species_group,seabird,Birds,3
+species_group,fish,Fish,1
+species_group,finfish,Fish,2
+species_group,salmon,Fish,3
+species_group,trout,Fish,4
+species_group,cod,Fish,5
+species_group,herring,Fish,6
+species_group,plant,Plants,1
+species_group,vegetation,Plants,2
+species_group,tree,Plants,3
+species_group,shrub,Plants,4
+species_group,herb,Plants,5
+species_group,grass,Plants,6
+species_group,algae,Algae,1
+species_group,alga,Algae,2
+species_group,phytoplankton,Algae,3
+species_group,seaweed,Algae,4
+species_group,macroalgae,Algae,5
+species_group,invertebrate,Invertebrates,1
+species_group,zooplankton,Invertebrates,2
+species_group,benthic,Invertebrates,3
+species_group,reptile,Reptiles,1
+species_group,snake,Reptiles,2
+species_group,lizard,Reptiles,3
+species_group,turtle,Reptiles,4
+species_group,bacteria,Bacteria,1
+species_group,bacterial,Bacteria,2
+species_group,microbe,Bacteria,3
+species_group,microbial,Bacteria,4
+species_group,ecosystem,Ecosystem,1
+species_group,community,Ecosystem,2
+species_group,assemblage,Ecosystem,3

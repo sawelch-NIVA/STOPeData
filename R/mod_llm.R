@@ -346,7 +346,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "PDF extraction completed successfully!",
-            type = "success"
+            type = "message"
           )
 
           # Enable form population button
@@ -413,6 +413,20 @@ mod_llm_server <- function(id) {
               moduleState$structured_data$compartments
             )
             session$userData$reactiveValues$compartmentsDataLLM <- compartments_data
+          }
+
+          if (!is.null(moduleState$structured_data$biota)) {
+            biota_data <- create_biota_from_llm(
+              moduleState$structured_data$biota
+            )
+            session$userData$reactiveValues$biotaDataLLM <- biota_data
+          }
+
+          if (!is.null(moduleState$structured_data$methods)) {
+            methods_data <- create_methods_from_llm(
+              moduleState$structured_data$methods
+            )
+            session$userData$reactiveValues$methodsDataLLM <- methods_data
           }
 
           # Set extraction status flags
@@ -571,10 +585,36 @@ create_dummy_data <- function() {
       environ_compartment_sub = c("Marine/Salt Water", "Biota Aquatic"),
       measured_category = c("External", "Internal"),
       stringsAsFactors = FALSE
+    ),
+    biota = data.frame(
+      sample_id = NA_character_,
+      species_group = "Crustaceans",
+      sample_species = "Temora longicornis",
+      sample_tissue = "Whole organism",
+      sample_species_lifestage = "Adult",
+      sample_species_gender = "Mixed",
+      stringsAsFactors = FALSE
+    ),
+    methods = data.frame(
+      protocol_category = c(
+        "Sampling Protocol",
+        "Analytical Protocol",
+        "Analytical Protocol"
+      ),
+      protocol_name = c(
+        "Collection from Stony Brook Harbor",
+        "Radiolabeling technique",
+        "Gamma spectrometry"
+      ),
+      protocol_comment = c(
+        "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
+        "Used radioisotopes 110mAg, 109Cd, 57Co, 75Se, and 65Zn to track trace element uptake and efflux",
+        "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope"
+      ),
+      stringsAsFactors = FALSE
     )
   )
 }
-
 #' Create extraction schema with correct ellmer syntax
 #' @noRd
 create_extraction_schema <- function() {
@@ -871,6 +911,22 @@ store_llm_data_in_session <- function(session, extracted_data) {
       "Stored {length(extracted_data$compartments)} compartments from LLM extraction"
     ))
   }
+
+  # Biota data
+  if (!is.null(extracted_data$biota) && length(extracted_data$biota) > 0) {
+    session$userData$reactiveValues$biotaDataLLM <- extracted_data$biota
+    print_dev(glue(
+      "Stored {length(extracted_data$biota)} biota entries from LLM extraction"
+    ))
+  }
+
+  # Methods data
+  if (!is.null(extracted_data$methods) && length(extracted_data$methods) > 0) {
+    session$userData$reactiveValues$methodsDataLLM <- extracted_data$methods
+    print_dev(glue(
+      "Stored {length(extracted_data$methods)} methods from LLM extraction"
+    ))
+  }
 }
 
 #' Clear LLM data from session reactiveValues
@@ -882,8 +938,12 @@ clear_llm_data_from_session <- function(session) {
   session$userData$reactiveValues$sitesDataLLM <- NULL
   session$userData$reactiveValues$parametersDataLLM <- NULL
   session$userData$reactiveValues$compartmentsDataLLM <- NULL
-
-  print_dev("Cleared all LLM extracted data from session")
+  session$userData$reactiveValues$biotaDataLLM <- NULL
+  session$userData$reactiveValues$methodsDataLLM <- NULL
+  showNotification(
+    "Cleared all LLM extracted data from session",
+    type = "message"
+  )
 }
 
 ## To be copied in the UI ----

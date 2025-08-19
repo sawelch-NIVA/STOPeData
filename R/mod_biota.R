@@ -464,6 +464,22 @@ mod_biota_server <- function(id) {
       }
     })
 
+    ## observe ~ bindEvent: Load biota data from LLM extraction ----
+    observe({
+      if (!is.null(session$userData$reactiveValues$biotaDataLLM)) {
+        llm_biota_data <- session$userData$reactiveValues$biotaDataLLM
+
+        # replace existing data
+        moduleState$biota_data <-
+          llm_biota_data
+
+        print_dev(glue(
+          "mod_biota loaded {nrow(llm_biota_data)} entries from LLM"
+        ))
+      }
+    }) |>
+      bindEvent(session$userData$reactiveValues$biotaDataLLM, ignoreNULL = TRUE)
+
     # 4. Outputs ----
 
     ## output: selected_species_display ----
@@ -507,6 +523,7 @@ mod_biota_server <- function(id) {
           c("Select species above first")
         }
 
+        # ! FORMAT-BASED
         tissue_types <- c(
           "Whole organism",
           "Muscle",
@@ -528,6 +545,8 @@ mod_biota_server <- function(id) {
           "Seed",
           "Other"
         )
+
+        # ! FORMAT-BASED
         life_stages <- c(
           "Adult",
           "Juvenile",
@@ -541,6 +560,8 @@ mod_biota_server <- function(id) {
           "Not applicable",
           "Other"
         )
+
+        # ! FORMAT-BASED
         genders <- c(
           "Male",
           "Female",
@@ -717,16 +738,6 @@ mod_biota_server <- function(id) {
         "# No biota samples detected"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

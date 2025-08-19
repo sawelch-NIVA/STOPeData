@@ -113,6 +113,7 @@ mod_methods_ui <- function(id) {
 #' @importFrom arrow read_parquet
 #' @importFrom tibble tibble deframe
 #' @importFrom dplyr filter select
+#' @importFrom purrr is_empty
 #' @export
 mod_methods_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -132,6 +133,7 @@ mod_methods_server <- function(id) {
     )
 
     ## Controlled vocabulary for validation ----
+    # ! FORMAT-BASED
     protocol_categories <- c(
       "Sampling Protocol",
       "Fractionation Protocol",
@@ -142,6 +144,7 @@ mod_methods_server <- function(id) {
     all_protocol_names <- unique(protocol_options$Short_Name)
 
     ## Initialize empty methods data frame ----
+    # ! FORMAT-BASED
     init_methods_df <- function() {
       tibble(
         PROTOCOL_CATEGORY = character(0),
@@ -154,6 +157,7 @@ mod_methods_server <- function(id) {
     moduleState$methods_data <- init_methods_df()
 
     ## InputValidator for table-level validation ----
+    # ! FORMAT-BASED
     iv <- InputValidator$new()
     iv$add_rule("methods_table_validation", function(value) {
       if (nrow(moduleState$methods_data) == 0) {
@@ -165,7 +169,7 @@ mod_methods_server <- function(id) {
         for (i in 1:nrow(moduleState$methods_data)) {
           for (field in required_fields) {
             value <- moduleState$methods_data[i, field]
-            if (is.na(value) || value == "") {
+            if (is_empty(value) || value == "") {
               return(paste("Row", i, "is missing required field:", field))
             }
           }
@@ -324,6 +328,24 @@ mod_methods_server <- function(id) {
         moduleState$validated_data <- NULL
       }
     })
+
+    ## observe ~ bindEvent: Load methods data from LLM extraction ----
+    observe({
+      if (!is.null(session$userData$reactiveValues$methodsDataLLM)) {
+        llm_methods_data <- session$userData$reactiveValues$methodsDataLLM
+
+        # Replace existing data
+        moduleState$methods_data <- llm_methods_data
+
+        print_dev(glue(
+          "mod_methods loaded {nrow(llm_methods_data)} entries from LLM"
+        ))
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$methodsDataLLM,
+        ignoreNULL = TRUE
+      )
 
     # 4. Outputs ----
 

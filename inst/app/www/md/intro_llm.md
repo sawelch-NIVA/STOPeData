@@ -8,3 +8,4 @@
 - LLMs can and do make mistakes, including hallucinating information that is not
   present in the source document, so please carefully review and correct the
   extracted data in subsequent modules before validation.
+- **Note that LLM data extraction will overwrite existing manual data.**

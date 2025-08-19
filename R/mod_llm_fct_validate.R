@@ -117,7 +117,7 @@ map_geographic_feature_strict <- function(feature) {
   )
 }
 
-# Validation functions (these remain largely unchanged) ----
+# Validation functions ----
 
 #' Validate latitude value
 #' @noRd
@@ -317,4 +317,63 @@ validate_parameters_against_database <- function(
     validation_text = paste(output_lines, collapse = "\n"),
     has_warnings = has_warnings
   ))
+}
+
+# Biota mapping functions ----
+
+#' Map species group to controlled vocabulary
+#' @noRd
+# ! FORMAT-BASED
+map_species_group_strict <- function(species_group) {
+  map_to_vocabulary(
+    input_value = species_group,
+    variable_name = "species_group",
+    default_value = "Other"
+  )
+}
+
+#' Map tissue type to controlled vocabulary
+#' @noRd
+# ! FORMAT-BASED
+map_tissue_type_strict <- function(tissue_type) {
+  map_to_vocabulary(
+    input_value = tissue_type,
+    variable_name = "tissue_type",
+    default_value = "Whole organism"
+  )
+}
+
+#' Map life stage to controlled vocabulary
+#' @noRd
+# ! FORMAT-BASED
+map_lifestage_strict <- function(lifestage) {
+  map_to_vocabulary(
+    input_value = lifestage,
+    variable_name = "lifestage",
+    default_value = "Adult"
+  )
+}
+
+#' Map gender to controlled vocabulary
+#' @noRd
+# ! FORMAT-BASED
+map_gender_strict <- function(gender) {
+  map_to_vocabulary(
+    input_value = gender,
+    variable_name = "gender",
+    default_value = "Not determined"
+  )
+}
+
+# Methods mapping functions ----
+
+#' Map protocol category to controlled vocabulary
+#' @noRd
+# ! FORMAT-BASED
+map_protocol_category_strict <- function(protocol_category) {
+  map_to_vocabulary(
+    input_value = protocol_category,
+    variable_name = "protocol_category",
+    default_value = "Analytical Protocol"
+  )
 }
