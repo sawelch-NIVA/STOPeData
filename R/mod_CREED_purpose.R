@@ -32,34 +32,29 @@ mod_CREED_purpose_ui <- function(id) {
     hr(),
 
     # Import/Export section ----
-    layout_columns(
-      col_widths = c(6, 6),
-      div(
-        fileInput(
-          inputId = ns("import_file"),
-          label = "Import Purpose & Thresholds (YAML)",
-          accept = c(".yaml", ".yml")
-        ),
-        input_task_button(
-          id = ns("import_btn"),
-          label = "Load Imported Data",
-          icon = bs_icon("upload")
-        )
+    layout_column_wrap(
+      width = "300px",
+
+      fileInput(
+        inputId = ns("import_file"),
+        label = "Import Purpose & Thresholds (YAML)",
+        accept = c(".yaml", ".yml")
       ),
-      div(
-        downloadButton(
-          outputId = ns("export_btn"),
-          label = "Export Purpose & Thresholds",
-          icon = icon("download")
-        ),
-        br(),
-        br(),
-        input_task_button(
-          id = ns("clear_all"),
-          label = "Clear All Fields",
-          icon = bs_icon("trash"),
-          class = "btn-outline-danger"
-        )
+      input_task_button(
+        id = ns("import_btn"),
+        label = "Load Imported Data",
+        icon = bs_icon("upload")
+      ),
+      downloadButton(
+        outputId = ns("export_btn"),
+        label = "Export Purpose & Thresholds",
+        icon = icon("download")
+      ),
+      input_task_button(
+        id = ns("clear_all"),
+        label = "Clear All Fields",
+        icon = bs_icon("trash"),
+        class = "btn-outline-danger"
       )
     ),
 
@@ -311,6 +306,12 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     hr(),
+    input_task_button(
+      id = ns("save_assessment"),
+      label = "Save Section",
+      icon = icon("save"),
+      class = "btn-success"
+    ),
 
     # Status section ----
     h5("Status"),

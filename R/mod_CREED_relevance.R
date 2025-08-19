@@ -16,6 +16,11 @@ mod_CREED_relevance_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
+    input_task_button(
+      id = ns("populate_from_data"),
+      label = "Populate section from data",
+      icon = bs_icon("arrow-down-circle")
+    ),
     ## Media criteria ----
 
     ### RV01: Sample Medium/Matrix ----
@@ -106,11 +111,6 @@ mod_CREED_relevance_ui <- function(id) {
     ),
 
     ## Data Handling and Statistics criteria ----
-    h5(
-      "Data Handling and Statistics",
-      class = "text-primary",
-      style = "margin-top: 20px; margin-bottom: 15px;"
-    ),
 
     ### RV10: Summary Statistics Type ----
     create_criterion_section(
@@ -137,6 +137,12 @@ mod_CREED_relevance_ui <- function(id) {
     input_task_button(
       id = ns("calc_scores"),
       label = "Calculate Relevance Score"
+    ),
+    input_task_button(
+      id = ns("save_assessment"),
+      label = "Save Section",
+      icon = icon("save"),
+      class = "btn-success"
     ),
 
     div(

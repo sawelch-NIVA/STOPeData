@@ -10,23 +10,11 @@ mod_CREED_reliability_ui <- function(id) {
   tagList(
     # Main reliability section ----
 
-    ## Info section ----
-    div(
-      style = "margin-bottom: 10px;",
-      p(
-        "Evaluate the reliability (data quality) of your dataset across 19 criteria. ",
-        class = "text-muted"
-      ),
-      div(
-        class = "alert alert-warning",
-        p(
-          bs_icon("exclamation-triangle"),
-          strong(" Note: "),
-          "Server functionality for auto-population and score calculation is not yet implemented."
-        )
-      )
+    input_task_button(
+      id = ns("populate_from_data"),
+      label = "Populate section from data",
+      icon = bs_icon("arrow-down-circle")
     ),
-
     # Reliability criteria using helper functions ----
 
     # RB1: Media - Sample medium/matrix ----
@@ -247,6 +235,12 @@ mod_CREED_reliability_ui <- function(id) {
       id = ns("calc_scores"),
       label = "Calculate Reliability Score"
     ),
+    input_task_button(
+      id = ns("save_assessment"),
+      label = "Save Section",
+      icon = icon("save"),
+      class = "btn-success"
+    ),
 
     div(
       style = "margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;",
@@ -295,12 +289,34 @@ mod_CREED_reliability_server <- function(id) {
     }) |>
       bindEvent(input$RB8_score, ignoreInit = TRUE)
 
+    ## observe: autopopulate from session$userData ----
+    # upstream: button
+    # downstream: reliability input fields
+    observe({
+      # Get auto-populated data
+      auto_data <- auto_populate_reliability_fields(moduleData())
+
+      # Update relevant_data fields only
+      for (field_name in names(auto_data)) {
+        if (grepl("_relevant_data$", field_name)) {
+          updateTextAreaInput(
+            session,
+            field_name,
+            value = auto_data[[field_name]]
+          )
+        }
+      }
+
+      showNotification("Reliability fields updated from data", type = "message")
+    }) |>
+      bindEvent(input$autopopulate_from_session)
+
     ## observe: Collect reliability scores ----
     # upstream: button
     # downstream: reliability_scores, session$userData
     observe({
       # Define all reliability criteria
-      criteria_ids <- paste0("RB", 1:19) # Will need to expand when we add RB14-RB19
+      criteria_ids <- paste0("RB", 1:19)
 
       # Collect scores for completed criteria
       scores_data <- data.frame(

@@ -10,6 +10,11 @@
 mod_CREED_gateway_ui <- function(id) {
   ns <- NS(id)
   tagList(
+    input_task_button(
+      id = ns("populate_from_data"),
+      label = "Populate section from data",
+      icon = bs_icon("arrow-down-circle")
+    ),
     # Gateway Criterion 1: Sampling Medium/Matrix
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
@@ -18,7 +23,7 @@ mod_CREED_gateway_ui <- function(id) {
         strong("1. Does the study specify which medium/matrix is sampled?"),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_medium_summary"), inline = TRUE)
         )
       ),
@@ -37,7 +42,7 @@ mod_CREED_gateway_ui <- function(id) {
         strong("2. Does the study specify which unique analyte is measured?"),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_analyte_summary"), inline = TRUE)
         )
       ),
@@ -58,7 +63,7 @@ mod_CREED_gateway_ui <- function(id) {
         ),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_location_summary"), inline = TRUE)
         )
       ),
@@ -79,7 +84,7 @@ mod_CREED_gateway_ui <- function(id) {
         ),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_year_summary"), inline = TRUE)
         )
       ),
@@ -98,7 +103,7 @@ mod_CREED_gateway_ui <- function(id) {
         strong("5. Does the study specify units of measurement?"),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_units_summary"), inline = TRUE)
         )
       ),
@@ -119,7 +124,7 @@ mod_CREED_gateway_ui <- function(id) {
         ),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
-          strong("Data found: "),
+          strong("Relevant data: "),
           textOutput(ns("gateway_citation_summary"), inline = TRUE)
         )
       ),
@@ -128,6 +133,12 @@ mod_CREED_gateway_ui <- function(id) {
         label = "Yes",
         value = FALSE
       )
+    ),
+    input_task_button(
+      id = ns("save_assessment"),
+      label = "Save Section",
+      icon = icon("save"),
+      class = "btn-success"
     )
   )
 }
