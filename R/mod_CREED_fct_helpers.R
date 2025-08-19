@@ -401,9 +401,9 @@ create_criterion_section <- function(
   description
 ) {
   icon_class <- if (type == "required") {
-    "relevance-required"
+    "CREED-required"
   } else {
-    "relevance-recommended"
+    "CREED-recommended"
   }
   type_text <- if (type == "required") "Required" else "Recommended"
 
@@ -417,7 +417,7 @@ create_criterion_section <- function(
         style = "flex-grow: 1; margin-right: 20px;",
         h4(
           HTML(paste(
-            bs_icon("geo-alt-fill", class = icon_class),
+            bs_icon("award-fill", class = icon_class),
             paste0(
               criterion_id,
               ": ",

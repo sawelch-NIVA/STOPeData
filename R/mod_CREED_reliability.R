@@ -15,12 +15,6 @@ mod_CREED_reliability_ui <- function(id) {
       style = "margin-bottom: 10px;",
       p(
         "Evaluate the reliability (data quality) of your dataset across 19 criteria. ",
-        "Required criteria (",
-        bs_icon("award-fill", class = "CREED-required"),
-        ") are needed for Silver level scoring. ",
-        "Recommended criteria (",
-        bs_icon("award-fill", class = "CREED-recommended"),
-        ") are additional requirements for Gold level scoring.",
         class = "text-muted"
       ),
       div(

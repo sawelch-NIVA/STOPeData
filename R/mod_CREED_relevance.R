@@ -16,30 +16,11 @@ mod_CREED_relevance_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Custom CSS for required/recommended styling ----
-    tags$head(
-      tags$style(HTML(
-        "
-        .relevance-required { fill: #dc3545 !important;}
-        .relevance-recommended { fill: #28a745 !important; }
-      "
-      ))
-    ),
-
-    # Main relevance section ----
-
     ## Info section ----
     div(
       style = "margin-bottom: 10px;",
       p(
-        "Evaluate the relevance of your dataset for its intended purpose across 11 criteria. ",
-        "Required criteria (",
-        bs_icon("geo-alt-fill", class = "relevance-required"),
-        ") are essential for determining dataset fitness-for-purpose. ",
-        "Recommended criteria (",
-        bs_icon("geo-alt-fill", class = "relevance-recommended"),
-        ") provide additional assessment depth.",
-        class = "text-muted"
+        "Evaluate the relevance of your dataset for its intended purpose across 11 criteria."
       ),
       div(
         class = "alert alert-warning",
