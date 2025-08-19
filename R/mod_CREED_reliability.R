@@ -99,7 +99,7 @@ mod_CREED_reliability_ui <- function(id) {
         style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
         div(
           style = "flex-grow: 1; margin-right: 20px;",
-          h2(
+          h6(
             HTML(paste(
               bs_icon("award-fill", class = "reliability-required"),
               "RB8: Accreditation/Quality Management System (Required - Shortcut Criterion)"
@@ -188,8 +188,59 @@ mod_CREED_reliability_ui <- function(id) {
     sampling (such as field blanks, spikes, replicates) to demonstrate the method performance for a given field study?"
     ),
 
-    # Note: RB14-RB19 would continue using create_criterion_section()
-    # Stopping here to keep artifact manageable
+    ## RB14: Data Handling - Calculations ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB14",
+      title = "Calculations (if dataset contains calculated values)",
+      type = "recommended",
+      description = "If chemical concentrations were normalised or adjusted (e.g., to represent bioavailability or toxicity), then were the calculations explained and were they appropriate?"
+    ),
+
+    ## RB15: Data Handling - Significant Figures ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB15",
+      title = "Significant Figures (if dataset contains calculated values)",
+      type = "recommended",
+      description = "During calculations, were data reported to the appropriate number of significant figures or decimal places?"
+    ),
+
+    ## RB16: Data Handling - Outliers ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB16",
+      title = "Outliers (if dataset mentions outliers)",
+      type = "recommended",
+      description = "For any outliers deleted from the data set, was evidence provided that these outliers were due to an error in measurement or contamination?"
+    ),
+
+    ## RB17: Data Handling - Censored Data ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB17",
+      title = "Censored Data (if dataset contains censored values)",
+      type = "required",
+      description = "Were censored data reported correctly (e.g., as a numerical value plus a less-than sign or another indicator of a nondetect)? If a substitution method was used for nondetects (e.g., censored data were replaced by zero, or by 1/2 or another fraction of the LOD/LOQ), then can the original censored data be restored by back-calculation using the reported LOD/LOQ?"
+    ),
+
+    ## RB18: Data Handling - Summary Statistics Procedures ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB18",
+      title = "Summary Statistics Procedures (if dataset contains summary statistics)",
+      type = "recommended",
+      description = "Were summary statistics calculated appropriately? If the dataset contained censored data, then were censored data included and were appropriate procedures used to determine summary statistics?"
+    ),
+
+    ## RB19: Supporting Parameters - Supporting Data Quality ----
+    create_criterion_section(
+      ns,
+      criterion_id = "RB19",
+      title = "Supporting Data Quality (if supporting parameters are required for the purpose)",
+      type = "recommended",
+      description = "If any supporting parameters are required for the assessment purpose, then were the supporting parameter data provided, and were their methods and data quality addressed?"
+    ),
 
     ## Action buttons and status ----
     input_task_button(

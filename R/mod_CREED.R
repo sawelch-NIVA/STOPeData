@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText
+#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText markdown
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
 #' @export
@@ -20,7 +20,6 @@ mod_CREED_ui <- function(id) {
     # Main CREED card ----
     card(
       fill = TRUE,
-      card_header("Dataset Quality Assessment (CREED)"),
       card_body(
         ## Info accordion ----
         info_accordion(content_file = "inst/app/www/md/intro_CREED.md"),
@@ -37,27 +36,26 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Purpose Statement ---
-        div(
-          style = "margin: 20px 0;",
-          h5("Dataset Purpose Statement"),
-          p(
-            "Give the purpose of the parent chemical/ecological assessment here. (WIP)",
-            class = "text-muted"
-          )
+        h5("Purpose Statement"),
+        markdown(
+          "- The CREED grading process begins with laying out the purpose of 
+            your overall chemical/ecological impact or risk assessment, which 
+            shapes the criteria used. 
+            - As it is usual to include multiple datasets
+            in such an assessment, we recommend reusing a single Purpose Statement
+            per assessment.
+            "
         ),
         accordion(accordion_panel(
           title = "Purpose Statement",
           mod_CREED_purpose_ui("CREED_purpose"),
         )),
-        ## Dataset Details section ----
-        div(
-          style = "margin: 20px 0;",
-          h5("Dataset Details - Key Attributes"),
-          p(
-            "This section provides basic details on the dataset. 
-            Review the auto-populated fields below and add any missing information.",
-            class = "text-muted"
-          )
+
+        ## Dataset Details  ----
+        h5("Dataset Details - Key Attributes"),
+        markdown(
+          "- This section provides a summary of basic details for the dataset. 
+          - Review the auto-populated fields below and add any missing information."
         ),
         accordion(accordion_panel(
           title = "Dataset Details",
@@ -65,19 +63,16 @@ mod_CREED_ui <- function(id) {
         )),
 
         ## Gateway Criteria ----
-        div(
-          style = "margin: 20px 0;",
-          h5("Gateway Criteria"),
-          p(
-            "CREED's gateway criteria are designed to allow for the easy 
+        h5("Gateway Criteria"),
+        markdown(
+          "- CREED's gateway criteria are designed to allow for the easy 
     rejection of a study without requiring methodical examination.
-    Consequently, most studies processed using this tool can be expected 
-    to pass these criteria without issue. Nevertheless they are included
-    for the sake of completeness.
-    Each criterion is auto-evaluated based on your data, but can be 
-    manually overridden.",
-            class = "text-muted"
-          )
+    - Most studies processed using this tool can be expected 
+    to pass these criteria without issue. 
+    
+    - Nevertheless they are included for the sake of completeness.
+    - Each criterion is auto-evaluated based on your entered data, but can be 
+    manually overridden."
         ),
         accordion(accordion_panel(
           title = "Gateway Criteria",
@@ -85,13 +80,10 @@ mod_CREED_ui <- function(id) {
         )),
 
         ## Reliability Criteria ---
-        div(
-          style = "margin: 20px 0;",
-          h5("Reliability Criteria"),
-          p(
-            "Is the study reliable?",
-            class = "text-muted"
-          )
+        h5("Reliability Criteria"),
+        markdown(
+          "Assess how reliable the dataset is for answering your assessment 
+          questions."
         ),
         accordion(accordion_panel(
           title = "Reliability Criteria",
@@ -99,13 +91,11 @@ mod_CREED_ui <- function(id) {
         )),
 
         ## Relevance Criteria ---
-        div(
-          style = "margin: 20px 0;",
-          h5("Relevance Criteria"),
-          p(
-            "Is the study relevant to your goals? (again, probably yes)",
-            class = "text-muted"
-          )
+
+        h5("Relevance Criteria"),
+        markdown(
+          "Assess how relevant the dataset is to the purpose as described in your
+          Purpose Statement."
         ),
 
         accordion(accordion_panel(
@@ -119,7 +109,7 @@ mod_CREED_ui <- function(id) {
           uiOutput(ns("status_reporter"))
         ),
 
-        ## Future CREED sections placeholder ----
+        ## Final Report ----
         div(
           style = "margin: 20px 0;",
           h5("Generate Final Report"),
