@@ -387,64 +387,64 @@ mod_CREED_purpose_server <- function(id) {
         ignoreNULL = FALSE
       )
 
-    ## observe: Import data ----
+    ## observe: Import data: DISABLED YAMLs ----
     # upstream: input$import_btn, input$import_file
     # downstream: UI field updates
-    observe({
-      req(input$import_file)
+    # observe({
+    #   req(input$import_file)
 
-      tryCatch(
-        {
-          imported_data <- yaml::read_yaml(input$import_file$datapath)
+    #   tryCatch(
+    #     {
+    #       imported_data <- yaml::read_yaml(input$import_file$datapath)
 
-          # Update purpose statement
-          if (!is.null(imported_data$purpose_statement)) {
-            updateTextAreaInput(
-              session,
-              "purpose_statement",
-              value = imported_data$purpose_statement
-            )
-          }
+    #       # Update purpose statement
+    #       if (!is.null(imported_data$purpose_statement)) {
+    #         updateTextAreaInput(
+    #           session,
+    #           "purpose_statement",
+    #           value = imported_data$purpose_statement
+    #         )
+    #       }
 
-          # Update thresholds
-          if (!is.null(imported_data$thresholds)) {
-            for (criterion_id in criterion_ids) {
-              if (!is.null(imported_data$thresholds[[criterion_id]])) {
-                criterion_data <- imported_data$thresholds[[criterion_id]]
+    #       # Update thresholds
+    #       if (!is.null(imported_data$thresholds)) {
+    #         for (criterion_id in criterion_ids) {
+    #           if (!is.null(imported_data$thresholds[[criterion_id]])) {
+    #             criterion_data <- imported_data$thresholds[[criterion_id]]
 
-                if (!is.null(criterion_data$partly_met)) {
-                  updateTextAreaInput(
-                    session,
-                    paste0(criterion_id, "_partly_met"),
-                    value = criterion_data$partly_met
-                  )
-                }
+    #             if (!is.null(criterion_data$partly_met)) {
+    #               updateTextAreaInput(
+    #                 session,
+    #                 paste0(criterion_id, "_partly_met"),
+    #                 value = criterion_data$partly_met
+    #               )
+    #             }
 
-                if (!is.null(criterion_data$fully_met)) {
-                  updateTextAreaInput(
-                    session,
-                    paste0(criterion_id, "_fully_met"),
-                    value = criterion_data$fully_met
-                  )
-                }
-              }
-            }
-          }
+    #             if (!is.null(criterion_data$fully_met)) {
+    #               updateTextAreaInput(
+    #                 session,
+    #                 paste0(criterion_id, "_fully_met"),
+    #                 value = criterion_data$fully_met
+    #               )
+    #             }
+    #           }
+    #         }
+    #       }
 
-          showNotification(
-            "Purpose data imported successfully",
-            type = "success"
-          )
-        },
-        error = function(e) {
-          showNotification(
-            paste("Import failed:", e$message),
-            type = "error"
-          )
-        }
-      )
-    }) |>
-      bindEvent(input$import_btn)
+    #       showNotification(
+    #         "Purpose data imported successfully",
+    #         type = "success"
+    #       )
+    #     },
+    #     error = function(e) {
+    #       showNotification(
+    #         paste("Import failed:", e$message),
+    #         type = "error"
+    #       )
+    #     }
+    #   )
+    # }) |>
+    #   bindEvent(input$import_btn)
 
     ## observe: Clear all fields ----
     # upstream: input$clear_all
@@ -476,19 +476,19 @@ mod_CREED_purpose_server <- function(id) {
 
     # 4. Outputs ----
 
-    ## output: Export handler ----
-    # upstream: collect_purpose_data()
+    ## output: Export handler: DISABLED ----
+    # upstream: collect_purpose_data() Do we actually want to use YAML here?
     # downstream: YAML download
-    output$export_btn <- downloadHandler(
-      filename = function() {
-        paste0("CREED_purpose_", Sys.Date(), ".yaml")
-      },
-      content = function(file) {
-        data <- collect_purpose_data()
-        yaml::write_yaml(data, file)
-      },
-      contentType = "application/x-yaml"
-    )
+    # output$export_btn <- downloadHandler(
+    #   filename = function() {
+    #     paste0("CREED_purpose_", Sys.Date(), ".yaml")
+    #   },
+    #   content = function(file) {
+    #     data <- collect_purpose_data()
+    #     yaml::write_yaml(data, file)
+    #   },
+    #   contentType = "application/x-yaml"
+    # )
 
     ## output: purpose_status ----
     # upstream: purpose_data$current
