@@ -80,17 +80,35 @@ pre,
     font-family: var(--font-code);
 }
 
+.validation-container {
+    flex-grow: 1;
+}
+
 /* Validation Elements */
 .validation-status {
     transition: all 0.3s ease;
-    border-radius: var(--radius-sm);
-    padding: var(--spacing-sm);
+    border-radius: var(--bs-border-radius);
+    /* Use Bootstrap's border radius */
+
+    /* Bootstrap button formatting */
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    position: relative;
+    display: inline-flex !important;
+    vertical-align: middle;
+
+
     margin: var(--spacing-sm) 0;
-    display: flex;
     align-items: center;
     gap: 0.5em;
     opacity: 1 !important;
     width: 100%;
+
+    /* Grow to fill rest of line */
+    flex: 1;
+    flex-direction: row;
 }
 
 /* Nudge icons in line with validation text */
@@ -105,7 +123,7 @@ pre,
     color: var(--bs-white) !important;
 }
 
-.validation-not-started {
+.validation-info {
     background-color: var(--color-neutral) !important;
     color: var(--bs-white) !important;
 }
@@ -137,19 +155,19 @@ rhandsontable
 }
 
 /* Pulldown can break out of handsontable boundary Credit https://stackoverflow.com/questions/32593414/handsontable-dropdowns-hidden-in-overflowauto-div */
-.htColumnHeaders {
+/* .htColumnHeaders {
     overflow-x: visible !important;
     overflow-y: visible !important;
-}
+} */
 
 /* Dropdown menus inherit the whole table width, somehow */
-.handsontableInput,
+/* .handsontableInput,
 .listbox,
 .wtHider,
 .handsontableInputHolder {
     max-width: 550px !important;
     width: fit-content !important;
-}
+} */
 
 /* .ht_master .handsontable {
     margin-right: -200px !important;

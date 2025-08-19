@@ -22,7 +22,7 @@ mod_data_ui <- function(id) {
     # Enable shinyjs
     useShinyjs(),
 
-    # Main data entry card ----
+    # Main content card ----
     card(
       fill = TRUE,
       card_body(
@@ -51,16 +51,11 @@ mod_data_ui <- function(id) {
           )
         ),
 
-        ## Measurement data table ----
-        rHandsontableOutput(
-          ns("measurement_table"),
-          width = "100%",
-          height = "100%"
-        ),
-
         ## Validation status ----
         div(
-          style = "margin-top: 15px;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          ### Validation status ----
           uiOutput(ns("validation_reporter"))
         ),
 
@@ -74,6 +69,19 @@ mod_data_ui <- function(id) {
             verbatimTextOutput(ns("complete_data_preview"))
           )
         )
+      )
+    ),
+
+    ## Measurement data table card ----
+    card(
+      style = "overflow: clip;",
+      div(
+        rHandsontableOutput(
+          ns("measurement_table"),
+          width = "100%",
+          height = "100%"
+        ),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -90,6 +98,7 @@ mod_data_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
+#' @importFrom utils capture.output head
 #' @export
 mod_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -542,10 +551,23 @@ mod_data_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, moduleState$data_entry_ready
+    # upstream: moduleState$is_valid, moduleState$data_entry_ready, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (!moduleState$data_entry_ready) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (!moduleState$data_entry_ready) {
         div(
           bs_icon("info-circle"),
           "Complete all setup modules to enable measurement data entry.",
@@ -568,6 +590,8 @@ mod_data_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: complete_data_preview ----

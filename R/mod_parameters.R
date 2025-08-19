@@ -69,9 +69,11 @@ mod_parameters_ui <- function(id) {
             multiple = FALSE
           )
         ),
-        ## Action buttons ----
+
+        ## Action buttons and validation status ----
         div(
-          style = "margin: 15px 0;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
+
           input_task_button(
             id = ns("add_existing"),
             label = "Add Existing Parameter",
@@ -79,13 +81,17 @@ mod_parameters_ui <- function(id) {
             class = "btn-success",
             width = "200px"
           ),
+
           input_task_button(
             id = ns("add_new"),
             label = "Add New Parameter",
             icon = icon("plus"),
             class = "btn-info",
             width = "200px"
-          )
+          ),
+
+          ### Validation status ----
+          uiOutput(ns("validation_reporter"))
         ),
 
         ## Parameter validation results (in case of LLM data only) ----
@@ -93,22 +99,12 @@ mod_parameters_ui <- function(id) {
           condition = "output.show_validation",
           ns = ns,
           div(
-            style = "margin-top: 15px;",
-            h6("Parameter Database Validation", style = "color: #0066cc;"),
+            h6("Parameter Database Lookup", style = "color: #0066cc;"),
             div(
               style = "background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0066cc;",
               verbatimTextOutput(ns("parameter_validation_results"))
             )
           )
-        ),
-
-        ## Parameters table ----
-        rHandsontableOutput(ns("parameters_table")),
-
-        ## Validation status ----
-        div(
-          style = "margin-top: 15px;",
-          uiOutput(ns("validation_reporter"))
         ),
 
         ## Raw data accordion ----
@@ -121,6 +117,14 @@ mod_parameters_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Parameters table card ----
+    card(
+      div(
+        rHandsontableOutput(ns("parameters_table")),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -139,6 +143,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom arrow read_parquet
 #' @importFrom purrr negate
 #' @importFrom tibble tibble
+#' @importFrom stats setNames
 #' @export
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -695,15 +700,28 @@ mod_parameters_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All parameter data validated successfully.",
-            nrow(moduleState$parameters_data),
+            nrow(moduleState$parameter_data),
             "parameter(s) ready."
           ),
           class = "validation-status validation-complete"
@@ -711,10 +729,12 @@ mod_parameters_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one complete, valid parameter to proceed. Edit fields directly in the table above.",
+          "Add at least one complete, valid parameter to proceed.",
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: checking of llm data ----

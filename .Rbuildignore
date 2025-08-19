@@ -9,3 +9,4 @@ _\.new\.png$
 ^app\.R$
 ^rsconnect$
 ^\.rscignore$
+^LICENSE\.md$

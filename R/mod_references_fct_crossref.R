@@ -295,6 +295,7 @@ lookup_crossref_doi <- function(doi) {
 #'   Values are NA for fields not present in the Crossref data.
 #'
 #' @importFrom stringr str_extract
+#' @importFrom stats na.omit
 #' @details
 #' Maps Crossref fields to reference fields:
 #' - type → REFERENCE_TYPE (journal-article → journal, book → book, etc.)
@@ -425,8 +426,11 @@ map_crossref_to_reference_fields <- function(
   mapped_fields <- list(
     # Always required fields
     REFERENCE_TYPE = ref_type,
-    AUTHOR = if ("author" %in% colnames(entry))
-      format_authors(entry$author) else NA,
+    AUTHOR = if ("author" %in% colnames(entry)) {
+      format_authors(entry$author)
+    } else {
+      NA
+    },
     TITLE = safe_extract("title"),
     YEAR = pub_year,
     ACCESS_DATE = as.Date(access_date),

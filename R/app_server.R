@@ -82,7 +82,7 @@ app_server <- function(input, output, session) {
   ## Track current module position ----
   current_position <- reactive({
     current_tab <- input$`main-page`
-    if (is.null(current_tab)) {
+    if (is.null(current_tab) | current_tab == "info") {
       return(1)
     } # Default to LLM extract (position 1)
     match(current_tab, module_order)
