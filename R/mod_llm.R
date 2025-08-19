@@ -34,50 +34,45 @@ mod_llm_ui <- function(id) {
         ),
 
         ## Upload and API section ----
-        div(
-          style = "margin: 10px 0px 0px 0px;",
-          h5("Upload & Configuration"),
+        layout_column_wrap(
+          width = "400px",
+          fill = FALSE,
+          fillable = FALSE,
 
-          layout_column_wrap(
-            width = "400px",
-            fill = FALSE,
-            fillable = FALSE,
+          ### PDF upload ----
+          fileInput(
+            inputId = ns("pdf_file"),
+            label = tooltip(
+              list("Upload PDF", bs_icon("info-circle-fill")),
+              "Upload a research paper or report (pdf) containing environmental exposure data"
+            ),
+            accept = ".pdf",
+            width = "100%",
+            buttonLabel = "Browse..."
+          ),
 
-            ### PDF upload ----
-            fileInput(
-              inputId = ns("pdf_file"),
-              label = tooltip(
-                list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report (pdf) containing environmental exposure data"
-              ),
-              accept = ".pdf",
-              width = "100%",
-              buttonLabel = "Browse..."
+          ### API key input ----
+          textInput(
+            inputId = ns("api_key"),
+            label = tooltip(
+              list("Anthropic API Key", bs_icon("info-circle-fill")),
+              "Your Anthropic API key for Claude access. Set ANTHROPIC_API_KEY environment variable to avoid entering this each time."
             ),
-
-            ### API key input ----
-            textInput(
-              inputId = ns("api_key"),
-              label = tooltip(
-                list("Anthropic API Key", bs_icon("info-circle-fill")),
-                "Your Anthropic API key for Claude access. Set ANTHROPIC_API_KEY environment variable to avoid entering this each time."
-              ),
-              value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
-              placeholder = "sk-ant-...",
-              width = "100%"
+            value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
+            placeholder = "sk-ant-...",
+            width = "100%"
+          ),
+          ### ENTERED_BY
+          textInput(
+            inputId = ns("ENTERED_BY"),
+            label = tooltip(
+              list("Entered By", bs_icon("info-circle-fill")),
+              "Name/contact details."
             ),
-            ### ENTERED_BY
-            textInput(
-              inputId = ns("ENTERED_BY"),
-              label = tooltip(
-                list("Entered By", bs_icon("info-circle-fill")),
-                "Name/contact details."
-              ),
-              value = Sys.getenv("EDATA_USERNAME", unset = ""),
-              placeholder = "Ole Nordman",
-              width = "100%"
-            ),
-          )
+            value = Sys.getenv("EDATA_USERNAME", unset = ""),
+            placeholder = "Ole Nordman",
+            width = "100%"
+          ),
         ),
 
         ## Prompt and Schema Configuration ----
@@ -88,7 +83,6 @@ mod_llm_ui <- function(id) {
             title = "Modify Prompt and Data Structure (Advanced)",
             icon = bs_icon("gear"),
             div(
-              h6("System Prompt"),
               textAreaInput(
                 inputId = ns("system_prompt"),
                 label = "Extraction Instructions",
@@ -97,7 +91,6 @@ mod_llm_ui <- function(id) {
                 width = "100%"
               ),
 
-              h6("Extraction Schema"),
               textAreaInput(
                 inputId = ns("extraction_schema_display"),
                 label = "Schema Definition",
@@ -119,14 +112,13 @@ mod_llm_ui <- function(id) {
         ),
 
         ## Extract buttons ----
-        div(
-          style = "margin-top: 15px;",
+        layout_columns(
+          fill = FALSE,
           input_task_button(
             id = ns("extract_data"),
             label = "Extract Data from PDF",
             icon = icon("magic"),
-            class = "btn-success",
-            width = "200px"
+            class = "btn-success"
           ) |>
             disabled(),
 
@@ -134,9 +126,7 @@ mod_llm_ui <- function(id) {
             id = ns("load_dummy_data"),
             label = "Load Dummy Data",
             icon = icon("flask"),
-            class = "btn-info",
-            width = "200px",
-            style = "margin-left: 10px;"
+            class = "btn-info"
           )
         ),
 
@@ -153,21 +143,19 @@ mod_llm_ui <- function(id) {
             title = "Extraction Results",
             icon = bs_icon("cpu"),
             div(
-              h6("Raw Extraction Output"),
               verbatimTextOutput(ns("extraction_results"))
             )
           )
         ),
 
-        ## Action buttons for extracted data (moved outside accordion) ----
-        div(
-          style = "margin-top: 15px;",
+        ## Action buttons for extracted data  ----
+        layout_columns(
+          fill = FALSE,
           input_task_button(
             id = ns("populate_forms"),
             label = "Populate Forms with Extracted Data",
             icon = icon("download"),
-            class = "btn-primary",
-            width = "250px"
+            class = "btn-primary"
           ) |>
             disabled(),
 
@@ -175,9 +163,7 @@ mod_llm_ui <- function(id) {
             id = ns("clear_extraction"),
             label = "Clear Extraction",
             icon = icon("trash"),
-            class = "btn-danger",
-            width = "150px",
-            style = "margin-left: 10px;"
+            class = "btn-danger"
           ) |>
             disabled()
         )
