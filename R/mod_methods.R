@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_methods_ui <- function(id) {
   ns <- NS(id)
 
@@ -23,6 +24,7 @@ mod_methods_ui <- function(id) {
 
     # Main content card ----
     card(
+      fill = TRUE,
       card_header("Methods Data Management"),
       card_body(
         ## Info accordion ----
@@ -120,6 +122,7 @@ mod_methods_ui <- function(id) {
 #' @importFrom arrow read_parquet
 #' @importFrom tibble tibble deframe
 #' @importFrom dplyr filter select
+#' @export
 mod_methods_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -341,11 +344,10 @@ mod_methods_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_methods_df(),
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -361,11 +363,11 @@ mod_methods_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$methods_data,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
+          stretchH = "all",
           width = NULL
         ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",

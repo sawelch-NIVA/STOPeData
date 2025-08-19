@@ -13,12 +13,14 @@
 #' @importFrom bslib card card_header card_body layout_column_wrap accordion accordion_panel
 #' @importFrom bsicons bs_icon
 #' @importFrom plotly plotlyOutput
+#' @export
 mod_review_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
     # Main review card ----
     card(
+      fill = TRUE,
       card_header("Data Review & Visualization"),
       card_body(
         ## Info accordion ----
@@ -155,6 +157,7 @@ mod_review_ui <- function(id) {
 #' @importFrom plotly ggplotly
 #' @importFrom glue glue
 #' @importFrom golem print_dev
+#' @export
 mod_review_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

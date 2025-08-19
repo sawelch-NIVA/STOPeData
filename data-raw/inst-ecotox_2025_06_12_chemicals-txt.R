@@ -42,7 +42,9 @@ chemicals <- readr::read_delim(
       gsub(pattern = "'", replacement = "'"),
     CAS_RN = format_cas_number(cas_number),
     .keep = "none"
-  ) |>
+  )
+
+chemicals |>
   arrow::write_parquet(
     sink = "inst/data/clean/ecotox_2025_06_12_chemicals.parquet"
   )

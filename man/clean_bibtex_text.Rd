@@ -21,21 +21,5 @@ non-ASCII characters.
 This function performs the following cleaning operations:
 - Removes double curly braces {{}} used for capitalization preservation
 - Converts common LaTeX accent commands to Unicode characters
-- Normalizes whitespace
-
-Common LaTeX accent conversions include:
-- {\"a} → ä, {\'e} → é, {\`a} → à, etc.
-- {\ss} → ß, {\ae} → æ, {\o} → ø
-}
-\examples{
-\dontrun{
-# Clean title with double braces
-clean_bibtex_text("{{Why Public Health Agencies Cannot Depend}}")
-# Result: "Why Public Health Agencies Cannot Depend"
-
-# Clean LaTeX accents
-clean_bibtex_text("J{\"o}rg and Nicol{\'a}s")
-# Result: "Jörg and Nicolás"
-}
-
+- Normalises whitespace
 }

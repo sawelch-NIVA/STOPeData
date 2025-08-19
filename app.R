@@ -2,6 +2,12 @@
 # To deploy, run: rsconnect::deployApp()
 # Or use the blue button on top of this file
 
-pkgload::load_all(export_all = FALSE,helpers = FALSE,attach_testthat = FALSE)
-options( "golem.app.prod" = TRUE)
+# If we're not on Rstudio, install the app package from Github
+# (otherwise it searches CRAN and crashes...)
+
+# if (commandArgs()[[1L]] != "RStudio") {
+#   devtools::install_github("https://github.com/sawelch-NIVA/STOPeData")
+# }
+pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+options("golem.app.prod" = TRUE)
 STOPeData::run_app() # add parameters here (if any)

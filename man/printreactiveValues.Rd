@@ -16,6 +16,3 @@ a string of variable names and values
 Print a reactiveValues object, with each named variable and its value on a new
 line
 }
-\examples{
-reactiveValues(x = 1, y = 2) |> printreactiveValues()
-}

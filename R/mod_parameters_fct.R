@@ -7,7 +7,11 @@
 #' @return Character vector of parameter names
 #' @importFrom dplyr filter pull
 #' @export
-get_parameters_of_types <- function(param_type, dummy_parameters, session_parameters = NULL) {
+get_parameters_of_types <- function(
+  param_type,
+  dummy_parameters,
+  session_parameters = NULL
+) {
   # Get base parameters from dummy_parameters dataframe
   base_params <- dummy_parameters |>
     filter(PARAMETER_TYPE == param_type) |>
@@ -34,7 +38,12 @@ get_parameters_of_types <- function(param_type, dummy_parameters, session_parame
 #' @return Data.frame with parameter information or NULL if not found
 #' @importFrom dplyr filter slice
 #' @export
-create_existing_parameter <- function(param_type, param_name, dummy_parameters, session_parameters = NULL) {
+create_existing_parameter <- function(
+  param_type,
+  param_name,
+  dummy_parameters,
+  session_parameters = NULL
+) {
   # Check dummy parameters first
   param_row <- dummy_parameters |>
     filter(PARAMETER_NAME == param_name)
@@ -84,4 +93,64 @@ create_new_parameter <- function(param_type) {
     CAS_RN = "",
     stringsAsFactors = FALSE
   )
+}
+
+#' Get parameter names filtered by type and optionally subtype
+#'
+#' @param param_type Character string specifying the parameter type
+#' @param param_subtype Character string specifying the parameter subtype (optional)
+#' @param dummy_parameters Dataframe containing base parameters
+#' @param session_parameters Optional list containing session-specific parameters
+#'
+#' @return Character vector of parameter names
+#' @importFrom dplyr filter pull
+#' @export
+get_parameters_filtered <- function(
+  param_type,
+  param_subtype = "Show all",
+  dummy_parameters,
+  session_parameters = NULL
+) {
+  # Filter base parameters by type
+  base_params_filtered <- dummy_parameters |>
+    filter(PARAMETER_TYPE == param_type)
+
+  # Further filter by subtype if not "Show all"
+  if (param_subtype != "Show all") {
+    base_params_filtered <- base_params_filtered |>
+      filter(PARAMETER_TYPE_SUB == param_subtype)
+  }
+
+  # Handle empty results gracefully
+  base_params <- if (nrow(base_params_filtered) > 0) {
+    base_params_filtered |> pull(PARAMETER_NAME)
+  } else {
+    character(0)
+  }
+
+  # Get session parameters if provided
+  session_params <- if (
+    !is.null(session_parameters) && !is.null(session_parameters[[param_type]])
+  ) {
+    session_type_params <- session_parameters[[param_type]]
+
+    if (param_subtype != "Show all" && length(session_type_params) > 0) {
+      # Filter session parameters by subtype - handle case where list might be empty
+      session_params_filtered <- session_type_params[
+        sapply(session_type_params, function(x) {
+          # Handle case where PARAMETER_TYPE_SUB might not exist
+          subtype <- x$PARAMETER_TYPE_SUB %||% ""
+          subtype == param_subtype
+        })
+      ]
+      names(session_params_filtered %||% list())
+    } else {
+      names(session_type_params %||% list())
+    }
+  } else {
+    character(0)
+  }
+
+  all_params <- c("-- New Parameter --", base_params, session_params)
+  return(all_params)
 }

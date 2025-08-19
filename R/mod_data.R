@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
+#' @export
 mod_data_ui <- function(id) {
   ns <- NS(id)
 
@@ -23,6 +24,7 @@ mod_data_ui <- function(id) {
 
     # Main data entry card ----
     card(
+      fill = TRUE,
       card_header("Measurement Data Entry"),
       card_body(
         ## Info accordion ----
@@ -96,6 +98,7 @@ mod_data_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
+#' @export
 mod_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -278,8 +281,11 @@ mod_data_server <- function(id) {
             "No biota samples"
           }
         } else {
-          status <- if (isTruthy(data) && nrow(data) > 0) "✓ Validated" else
+          status <- if (isTruthy(data) && nrow(data) > 0) {
+            "✓ Validated"
+          } else {
             "⚠ Pending"
+          }
           count <- if (isTruthy(data)) {
             nrow(data)
           } else {
@@ -483,8 +489,11 @@ mod_data_server <- function(id) {
           item$status,
           " (",
           item$count,
-          if (item$module == "Campaign" || item$module == "References")
-            " record" else " records",
+          if (item$module == "Campaign" || item$module == "References") {
+            " record"
+          } else {
+            " records"
+          },
           ")"
         )
       })
@@ -522,31 +531,28 @@ mod_data_server <- function(id) {
       ) {
         rhandsontable(
           init_measurement_df(),
-          stretchH = "all",
-          height = "200px",
-          readOnly = TRUE,
+          selectCallback = TRUE,
           width = NULL
-        )
+        ) |>
+          hot_table(overflow = "visible", stretchH = "all")
       } else {
         rhandsontable(
           moduleState$measurement_combinations,
-          stretchH = "all",
-          height = "inherit",
           selectCallback = TRUE,
           width = NULL
-        )
-        # Make identification columns read-only
-        hot_col(
-          c(
-            "SAMPLE_ID",
-            "SITE_CODE",
-            "PARAMETER_NAME",
-            "SAMPLING_DATE",
-            "COMPARTMENT",
-            "REPLICATE"
-          ),
-          readOnly = TRUE
-        )
+        ) |>
+          hot_table(overflow = "visible", stretchH = "all") |>
+          hot_col(
+            c(
+              "SAMPLE_ID",
+              "SITE_CODE",
+              "PARAMETER_NAME",
+              "SAMPLING_DATE",
+              "COMPARTMENT",
+              "REPLICATE"
+            ),
+            readOnly = TRUE
+          )
         #
         # # Configure measurement fields
         # hot_col(

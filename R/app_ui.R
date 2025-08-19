@@ -104,15 +104,13 @@ app_ui <- function(request) {
           input_task_button(
             id = "previous_section",
             label = HTML('Previous Section'),
-            type = "primary",
-            width = "200px"
+            type = "primary"
           ),
 
           input_task_button(
             id = "next_section",
             label = HTML('Next Section'),
-            type = "primary",
-            width = "200px"
+            type = "primary"
           )
         ),
         div(

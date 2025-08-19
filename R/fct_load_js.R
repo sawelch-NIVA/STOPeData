@@ -1,8 +1,8 @@
-#' Mandatory Column Renderer - Full Highlighting
+#' Mandatory Column Renderer - Full Highlighting - Text
 #'
 #' @description Returns a JavaScript renderer function that highlights mandatory
 #'   columns with full background colors. Missing data gets yellow background,
-#'   valid data gets green background.
+#'   valid data gets green background. TEXT fields only.
 #'
 #' @return A character string containing JavaScript function code for handsontable renderer
 #'
@@ -13,21 +13,65 @@
 #' @examples
 #' \dontrun{
 #' rhandsontable(data) %>%
-#'   hot_col("mandatory_column", renderer = mandatory_highlight_full())
+#'   hot_col("mandatory_column", renderer = mandatory_highlight_text())
 #' }
 #'
 #' @noRd
-mandatory_highlight_full <- function() {
+mandatory_highlight_text <- function() {
   "function(instance, td, row, col, prop, value, cellProperties) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
     const isEmpty = value === null ||
       value === undefined ||
         value === '' ||
           (typeof value === 'string' && value.trim() === '');
+
+    td.style.boxSizing = 'border-box';
+
+    if (isEmpty) {
+      td.className = 'htAutocomplete';
+      td.style.borderBottom = '2px solid #f9b928';
+    } else {
+      td.style.borderBottom = '2px solid #007416';
+      td.className = 'htAutocomplete';
+    }
+    return td;
+  }"
+}
+#' Mandatory Column Renderer - Full Highlighting - Dropdowns
+#'
+#' @description Returns a JavaScript renderer function that highlights mandatory
+#'   columns with full background colors. Missing data gets yellow background,
+#'   valid data gets green background. DROPDOWN fields only.
+#'
+#' @return A character string containing JavaScript function code for handsontable renderer
+#'
+#' @details This renderer applies aggressive highlighting to clearly distinguish
+#'   between missing and valid data in mandatory columns. Use for high-priority
+#'   data validation scenarios.
+#'
+#' @examples
+#' \dontrun{
+#' rhandsontable(data) %>%
+#'   hot_col("mandatory_column", type = "dropdown", renderer = mandatory_highlight_dropdown())
+#' }
+#'
+#' @noRd
+mandatory_highlight_dropdown <- function() {
+  "function(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+    const isEmpty = value === null ||
+      value === undefined ||
+        value === '' ||
+          (typeof value === 'string' && value.trim() === '');
+
+              td.style.boxSizing = 'border-box';
+
         if (isEmpty) {
+          td.className = 'htAutocomplete';
           td.style.borderBottom = '2px solid #f9b928';
         } else {
           td.style.borderBottom = '2px solid #007416';
+          td.className = 'htAutocomplete';
         }
         return td;
   }"
