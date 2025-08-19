@@ -23,6 +23,7 @@ app_server <- function(input, output, session) {
       samplesData = tibble(NULL),
       biotaData = tibble(NULL),
       dataData = tibble(NULL),
+      creedData = tibble(NULL),
 
       # LLM extracted data (new structure)
       campaignDataLLM = NULL,
@@ -66,6 +67,7 @@ app_server <- function(input, output, session) {
   moduleExport <- mod_export_server(
     "export"
   )
+  moduleCREED <- mod_CREED_server("CREED")
 
   # Module navigation ----
   ## Navigation setup ----
@@ -81,7 +83,8 @@ app_server <- function(input, output, session) {
     "08-biota",
     "09-data",
     "10-review",
-    "11-export"
+    "11-export",
+    "12-CREED"
   )
 
   ## Track current module position ----

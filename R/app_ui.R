@@ -115,6 +115,18 @@ app_ui <- function(request) {
         mod_export_ui("export"),
         icon = bs_icon("box-arrow-right")
       ),
+      nav_panel(
+        title = "12. Quality",
+        value = "12-CREED",
+        mod_CREED_ui("CREED"),
+        icon = bs_icon("award-fill")
+      ),
+      nav_panel(
+        title = "",
+        value = "info",
+        mod_information_ui("information"),
+        icon = bs_icon("info-circle")
+      ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
@@ -127,13 +139,15 @@ app_ui <- function(request) {
           input_task_button(
             id = "previous_section",
             label = HTML('Previous Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           ),
 
           input_task_button(
             id = "next_section",
             label = HTML('Next Section'),
-            type = "primary"
+            type = "primary",
+            style = "z-index: 9999;"
           )
         ),
         div(

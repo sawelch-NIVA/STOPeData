@@ -1,1 +1,3 @@
-Filler...
+This module provides a Criteria for Reporting and Evaluating Exposure Datasets (CREED) assessment (version 1), based on [Di Paolo *et al.*, 2024.](https://academic.oup.com/ieam/article/20/4/1019/7821760) The Dataset Details section summarizes key characteristics of your dataset that are relevant for quality evaluation. Fields are auto-populated where possible from your imported data.
+
+The CREED assessment process assumes that exposure data are being assessed in the context of a broader chemical/ecological assessment, and thus not all criteria will necessarily be relevant to you the user's needs. In this case, you are encouraged to record this in the relevant fields.

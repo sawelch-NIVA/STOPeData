@@ -31,183 +31,169 @@ mod_samples_ui <- function(id) {
         info_accordion(content_file = "inst/app/www/md/intro_samples.md"),
 
         ## Sample combination form ----
-        div(
-          style = "padding: 15px; border-radius: 8px; margin: 15px 0;",
-          h5("Create Sample Combinations"),
+        layout_column_wrap(
+          width = "300px",
+          fill = FALSE,
+          fillable = FALSE,
 
-          layout_column_wrap(
-            width = "300px",
-            fill = FALSE,
-            fillable = FALSE,
-
-            ## Sites selection ----
-            div(
-              selectizeInput(
-                inputId = ns("sites_select"),
-                label = tooltip(
-                  list("Sites", bs_icon("info-circle-fill")),
-                  "Select one or more sampling sites"
-                ),
-                choices = NULL,
-                multiple = TRUE,
-                options = list(
-                  placeholder = "No sites available - add sites first"
-                ),
-                width = "100%"
-              ),
-              div(
-                style = "margin-top: 5px;",
-                actionButton(
-                  ns("add_all_sites"),
-                  "Add All",
-                  class = "btn-sm btn-primary",
-                  style = "margin-right: 5px;"
-                ) |>
-                  disabled(), # until sites are available,
-                actionButton(
-                  ns("remove_all_sites"),
-                  "Remove All",
-                  class = "btn-sm btn-danger"
-                )
-              )
-            ),
-
-            ## Parameters selection ----
-            div(
-              selectizeInput(
-                inputId = ns("parameters_select"),
-                label = tooltip(
-                  list("Parameters", bs_icon("info-circle-fill")),
-                  "Select one or more parameters to measure"
-                ),
-                choices = NULL,
-                multiple = TRUE,
-                options = list(
-                  placeholder = "No parameters available - add parameters first"
-                ),
-                width = "100%"
-              ),
-              div(
-                style = "margin-top: 5px;",
-                actionButton(
-                  ns("add_all_parameters"),
-                  "Add All",
-                  class = "btn-sm btn-primary",
-                  style = "margin-right: 5px;"
-                ) |>
-                  disabled(), # until parameters are available,
-                actionButton(
-                  ns("remove_all_parameters"),
-                  "Remove All",
-                  class = "btn-sm btn-danger"
-                )
-              )
-            ),
-
-            ## Compartments selection ----
-            div(
-              selectizeInput(
-                inputId = ns("compartments_select"),
-                label = tooltip(
-                  list("Compartments", bs_icon("info-circle-fill")),
-                  "Select one or more environmental compartment combinations"
-                ),
-                choices = NULL,
-                multiple = TRUE,
-                options = list(
-                  placeholder = "No compartments available - add compartments first"
-                ),
-                width = "100%"
-              ),
-              div(
-                style = "margin-top: 5px;",
-                actionButton(
-                  ns("add_all_compartments"),
-                  "Add All",
-                  class = "btn-sm btn-primary",
-                  style = "margin-right: 5px;"
-                ) |>
-                  disabled(), # until compartments are available,
-                actionButton(
-                  ns("remove_all_compartments"),
-                  "Remove All",
-                  class = "btn-sm btn-danger"
-                )
-              )
-            ),
-
-            ## Sampling dates ----
-            div(
-              airDatepickerInput(
-                inputId = ns("sampling_date"),
-                label = tooltip(
-                  list("Sampling Dates", bs_icon("info-circle-fill")),
-                  "Dates when samples were collected"
-                ),
-                dateFormat = "yyyy-MM-dd",
-                width = "100%",
-                multiple = TRUE,
-                todayButton = TRUE,
-                update_on = "change",
-                addon = "none"
-              ),
-              div(
-                style = "margin-top: 5px;",
-                actionButton(
-                  ns("remove_all_dates"),
-                  "Remove All",
-                  class = "btn-sm btn-danger"
-                ) |>
-                  disabled() # start disabled until dates are selected
-              )
-            ),
-
-            ## Sample replicates ----
-            numericInput(
-              inputId = ns("sample_replicates"),
+          ## Sites selection ----
+          div(
+            selectizeInput(
+              inputId = ns("sites_select"),
               label = tooltip(
-                list("Sample Replicates", bs_icon("info-circle-fill")),
-                "Number of replicate samples for each combination"
+                list("Sites", bs_icon("info-circle-fill")),
+                "Select one or more sampling sites"
               ),
-              value = 1,
-              min = 1,
-              max = 20,
-              step = 1,
+              choices = NULL,
+              multiple = TRUE,
+              options = list(
+                placeholder = "No sites available - add sites first"
+              ),
               width = "100%"
+            ),
+            div(
+              style = "margin-top: 5px;",
+              actionButton(
+                ns("add_all_sites"),
+                "Add All",
+                class = "btn-sm btn-primary",
+                style = "margin-right: 5px;"
+              ) |>
+                disabled(), # until sites are available,
+              actionButton(
+                ns("remove_all_sites"),
+                "Remove All",
+                class = "btn-sm btn-danger"
+              )
             )
           ),
 
-          ## Generate combinations button ----
+          ## Parameters selection ----
           div(
-            style = "margin-top: 15px;",
-            input_task_button(
-              id = ns("generate_combinations"),
-              label = "Generate Sample Combinations",
-              icon = icon("magic"),
-              class = "btn-success",
-              width = "250px"
+            selectizeInput(
+              inputId = ns("parameters_select"),
+              label = tooltip(
+                list("Parameters", bs_icon("info-circle-fill")),
+                "Select one or more parameters to measure"
+              ),
+              choices = NULL,
+              multiple = TRUE,
+              options = list(
+                placeholder = "No parameters available - add parameters first"
+              ),
+              width = "100%"
+            ),
+            div(
+              style = "margin-top: 5px;",
+              actionButton(
+                ns("add_all_parameters"),
+                "Add All",
+                class = "btn-sm btn-primary",
+                style = "margin-right: 5px;"
+              ) |>
+                disabled(), # until parameters are available,
+              actionButton(
+                ns("remove_all_parameters"),
+                "Remove All",
+                class = "btn-sm btn-danger"
+              )
             )
-          ) |>
-            disabled(),
+          ),
 
-          ## Preview info ----
+          ## Compartments selection ----
           div(
-            style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
-            uiOutput(ns("combination_preview"))
+            selectizeInput(
+              inputId = ns("compartments_select"),
+              label = tooltip(
+                list("Compartments", bs_icon("info-circle-fill")),
+                "Select one or more environmental compartment combinations"
+              ),
+              choices = NULL,
+              multiple = TRUE,
+              options = list(
+                placeholder = "No compartments available - add compartments first"
+              ),
+              width = "100%"
+            ),
+            div(
+              style = "margin-top: 5px;",
+              actionButton(
+                ns("add_all_compartments"),
+                "Add All",
+                class = "btn-sm btn-primary",
+                style = "margin-right: 5px;"
+              ) |>
+                disabled(), # until compartments are available,
+              actionButton(
+                ns("remove_all_compartments"),
+                "Remove All",
+                class = "btn-sm btn-danger"
+              )
+            )
+          ),
+
+          ## Sampling dates ----
+          div(
+            airDatepickerInput(
+              inputId = ns("sampling_date"),
+              label = tooltip(
+                list("Sampling Dates", bs_icon("info-circle-fill")),
+                "Dates when samples were collected"
+              ),
+              dateFormat = "yyyy-MM-dd",
+              width = "100%",
+              multiple = TRUE,
+              todayButton = TRUE,
+              update_on = "change",
+              addon = "none"
+            ),
+            div(
+              style = "margin-top: 5px;",
+              actionButton(
+                ns("remove_all_dates"),
+                "Remove All",
+                class = "btn-sm btn-danger"
+              ) |>
+                disabled() # start disabled until dates are selected
+            )
+          ),
+
+          ## Sample replicates ----
+          numericInput(
+            inputId = ns("sample_replicates"),
+            label = tooltip(
+              list("Sample Replicates", bs_icon("info-circle-fill")),
+              "Number of replicate samples for each combination"
+            ),
+            value = 1,
+            min = 1,
+            max = 20,
+            step = 1,
+            width = "100%"
           )
         ),
 
-        ## Samples table ----
-        rHandsontableOutput(
-          ns("samples_table"),
-          width = "100%",
-          height = "100%"
+        ## Generate combinations button and validation status ----
+        div(
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+          input_task_button(
+            id = ns("generate_combinations"),
+            label = "Generate Sample Combinations",
+            icon = icon("magic"),
+            class = "btn-success",
+            width = "250px"
+          ) |>
+            disabled(),
+
+          ### Validation status ----
+          uiOutput(ns("validation_reporter"))
         ),
 
-        ## Validation status ----
+        ## Preview info ----
         div(
-          style = "margin-top: 15px;",
-          uiOutput(ns("validation_reporter"))
+          style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
+          uiOutput(ns("combination_preview"))
         ),
 
         ## Raw data accordion ----
@@ -220,6 +206,18 @@ mod_samples_ui <- function(id) {
             verbatimTextOutput(ns("validated_data_display"))
           )
         )
+      )
+    ),
+
+    ## Samples table card ----
+    card(
+      div(
+        rHandsontableOutput(
+          ns("samples_table"),
+          width = "100%",
+          height = "100%"
+        ),
+        style = "margin-bottom: 10px;"
       )
     )
   )
@@ -505,17 +503,15 @@ mod_samples_server <- function(id) {
     }) |>
       bindEvent(input$remove_all_dates)
 
-    ## observe ~bindEvent(generate_combinations): Enable generate button when options valid ----
+    ## observe ~bindEvent: Enable generate button when options valid ----
     observe({
       if (
         all(
-          isTruthy(c(
-            input$sites_select,
-            input$compartments_select,
-            input$parameters_select,
-            input$sampling_date,
-            input$sample_replicates
-          ))
+          length(input$sites_select) > 0,
+          length(input$compartments_select) > 0,
+          length(input$parameters_select) > 0,
+          length(input$sampling_date) > 0,
+          length(input$sample_replicates) > 0
         )
       ) {
         enable("generate_combinations")
@@ -717,10 +713,23 @@ mod_samples_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      llm_indicator <- if (
+        session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        div(
+          bs_icon("cpu"),
+          "Some data populated from LLM extraction - please review for accuracy",
+          class = "validation-status validation-info",
+          style = "margin-bottom: 10px;"
+        )
+      } else {
+        NULL
+      }
+
+      validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
@@ -737,6 +746,8 @@ mod_samples_server <- function(id) {
           class = "validation-status validation-warning"
         )
       }
+
+      div(llm_indicator, validation_status, class = "validation-container")
     })
 
     ## output: validated_data_display ----

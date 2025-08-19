@@ -1,0 +1,148 @@
+#' CREED_gateway UI Function
+#'
+#' @description A shiny Module.
+#'
+#' @param id,input,output,session Internal parameters for {shiny}.
+#'
+#' @noRd
+#'
+#' @importFrom shiny NS tagList
+mod_CREED_gateway_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    # Gateway Criterion 1: Sampling Medium/Matrix
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong("1. Does the study specify which medium/matrix is sampled?"),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_medium_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_medium_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    ),
+
+    # Gateway Criterion 2: Analyte
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong("2. Does the study specify which unique analyte is measured?"),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_analyte_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_analyte_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    ),
+
+    # Gateway Criterion 3: Spatial Location
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong(
+          "3. Does the study specify where samples were collected? At a minimum, there is enough information for the given purpose (e.g., country)."
+        ),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_location_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_location_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    ),
+
+    # Gateway Criterion 4: Year
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong(
+          "4. Does the study indicate when samples were collected? At a minimum, there is enough information for the given purpose (e.g., sampling year)."
+        ),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_year_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_year_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    ),
+
+    # Gateway Criterion 5: Units
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong("5. Does the study specify units of measurement?"),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_units_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_units_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    ),
+
+    # Gateway Criterion 6: Data Source/Citation
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
+      div(
+        style = "flex-grow: 1; margin-right: 15px;",
+        strong(
+          "6. Does the study cite the source of data and/or is a suitable bibliographic reference available for the study?"
+        ),
+        div(
+          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          strong("Data found: "),
+          textOutput(ns("gateway_citation_summary"), inline = TRUE)
+        )
+      ),
+      checkboxInput(
+        inputId = ns("gateway_citation_answer"),
+        label = "Yes",
+        value = FALSE
+      )
+    )
+  )
+}
+
+#' CREED_gateway Server Functions
+#'
+#' @noRd
+mod_CREED_gateway_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+  })
+}
+
+## To be copied in the UI
+# mod_CREED_gateway_ui("CREED_gateway_1")
+
+## To be copied in the server
+# mod_CREED_gateway_server("CREED_gateway_1")
