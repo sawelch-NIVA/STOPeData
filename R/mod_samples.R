@@ -264,7 +264,7 @@ mod_samples_server <- function(id) {
           "ENVIRON_COMPARTMENT_SUB",
           "MEASURED_CATEGORY", # Added this
           "SAMPLING_DATE",
-          "REPLICATE",
+          "REP",
           "SAMPLE_ID"
         )
 

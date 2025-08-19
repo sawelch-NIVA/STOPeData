@@ -101,13 +101,19 @@ app_ui <- function(request) {
         title = "9. Data",
         value = "09-data",
         mod_data_ui("data"),
-        icon = bs_icon("box-arrow-right")
+        icon = bs_icon("app")
       ),
       nav_panel(
         title = "10. Review",
         value = "10-review",
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
+      ),
+      nav_panel(
+        title = "11. Export",
+        value = "11-export",
+        mod_export_ui("export"),
+        icon = bs_icon("box-arrow-right")
       ),
       nav_panel(
         title = "12. Quality",

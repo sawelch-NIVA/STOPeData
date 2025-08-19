@@ -287,7 +287,7 @@ mod_data_server <- function(id) {
             SAMPLING_DATE,
             ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB,
-            REPLICATE
+            REP
           ),
         parameters_data |> select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE)
       )
@@ -295,7 +295,6 @@ mod_data_server <- function(id) {
       # Add campaign and reference info
       combinations <- combinations |>
         mutate(
-          CAMPAIGN_NAME = campaign_data$CAMPAIGN_NAME,
           REFERENCE_ID = reference_data$REFERENCE_TYPE, # Simplified for now
 
           # Add measurement fields with empty defaults
@@ -328,7 +327,7 @@ mod_data_server <- function(id) {
         SAMPLING_DATE = character(0),
         ENVIRON_COMPARTMENT = character(0),
         ENVIRON_COMPARTMENT_SUB = character(0),
-        REPLICATE = integer(0),
+        REP = integer(0),
         MEASURED_FLAG = character(0),
         MEASURED_VALUE = numeric(0),
         MEASURED_SD = numeric(0),
@@ -517,30 +516,31 @@ mod_data_server <- function(id) {
               "SITE_CODE",
               "PARAMETER_NAME",
               "SAMPLING_DATE",
-              "COMPARTMENT",
-              "REPLICATE"
+              "ENVIRON_COMPARTMENT",
+              "ENVIRON_COMPARTMENT_SUB",
+              "REP"
             ),
             readOnly = TRUE
+          ) |>
+
+          # Configure measurement fields
+          hot_col(
+            "MEASURED_FLAG",
+            type = "dropdown",
+            source = measured_flags,
+            strict = TRUE
+          ) |>
+          hot_col(
+            c("MEASURED_VALUE", "MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
+            type = "numeric",
+            format = "0.0000"
+          ) |>
+          hot_col(
+            c("MEASURED_UNIT", "LOQ_UNIT", "LOD_UNIT"),
+            type = "dropdown",
+            source = measured_units,
+            strict = TRUE
           )
-        #
-        # # Configure measurement fields
-        # hot_col(
-        #   "MEASURED_FLAG",
-        #   type = "dropdown",
-        #   source = measured_flags,
-        #   strict = TRUE
-        # ) |>
-        # hot_col(
-        #   c("MEASURED_VALUE", "MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
-        #   type = "numeric",
-        #   format = "0.0000"
-        # ) |>
-        # hot_col(
-        #   c("MEASURED_UNIT", "LOQ_UNIT", "LOD_UNIT"),
-        #   type = "dropdown",
-        #   source = measured_units,
-        #   strict = TRUE
-        # ) |>
         #
         # hot_context_menu(
         #   allowRowEdit = FALSE, # Disable row operations for measurement data
