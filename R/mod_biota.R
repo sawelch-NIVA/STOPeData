@@ -173,7 +173,13 @@ mod_biota_server <- function(id) {
         SPECIES_KINGDOM = kingdom,
         SPECIES_GROUP = species_group,
         .keep = "none"
-      )
+      ) |>
+      bind_rows(tibble(
+        SPECIES_COMMON_NAME = c("Other", "Ecosystem"),
+        SPECIES_NAME = c("Other", "Ecosystem"),
+        SPECIES_KINGDOM = c("Other", "Ecosystem"),
+        SPECIES_GROUP = c("Other", "Ecosystem")
+      ))
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
