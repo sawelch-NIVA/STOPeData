@@ -143,9 +143,13 @@ mod_landing_server <- function(id, parent_session) {
 
     ## observe: Load dummy data for testing ----
     # Upstream: input$test_dummy button click
-    # Downstream: TBD - load dummy data into reactiveValues
+    # Downstream: Session reactiveValues populated with dummy data, navigate to campaign
     observe({
-      # TODO: Implement dummy data loading logic
+      populate_session_with_dummy_data(
+        session = session,
+        navigate_to = "01-campaign",
+        parent_session = parent_session
+      )
     }) |>
       bindEvent(input$test_dummy)
   })

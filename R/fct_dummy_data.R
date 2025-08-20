@@ -1,0 +1,194 @@
+# Dummy Data Creation Functions ----
+# Functions for creating test/demonstration data
+
+#' Create dummy data for testing and demonstration
+#'
+#' @description Creates a complete set of dummy environmental exposure data
+#' that can be used for testing the application or demonstration purposes.
+#' This includes campaign info, references, sites, parameters, compartments,
+#' biota, and methods data.
+#'
+#' @param uppercase_columns Logical. If TRUE, converts data frame column names
+#'   to uppercase for app data structures. If FALSE, keeps lowercase for LLM extraction.
+#'
+#' @return List containing all dummy data structures
+#' @export
+create_dummy_data <- function(uppercase_columns = FALSE) {
+  dummy_data <- list(
+    campaign = list(
+      campaign_name = "Copepod trace element accumulation study",
+      campaign_start_date = "1997-01-01",
+      campaign_end_date = "1997-03-31",
+      organisation = "State University of New York",
+      campaign_comment = "Laboratory study measuring assimilation efficiencies, uptake rates, and efflux rate constants of five trace elements in marine copepods"
+    ),
+    references = list(
+      author = "Wang, Wen-Xiong; Fisher, Nicholas S.",
+      title = "Accumulation of trace elements in a marine copepod",
+      year = 1998L,
+      periodical_journal = "Limnology and Oceanography",
+      volume = 43L,
+      issue = 2L,
+      publisher = "American Society of Limnology and Oceanography",
+      doi = NULL
+    ),
+    sites = data.frame(
+      site_code = "SBH",
+      site_name = "Stony Brook Harbor",
+      latitude = 40.9,
+      longitude = -73.1,
+      country = "United States",
+      site_geographic_feature = "Coastal fjord",
+      stringsAsFactors = FALSE
+    ),
+    parameters = data.frame(
+      parameter_name = c("Silver", "Cadmium", "Cobalt", "Selenium", "Zinc"),
+      parameter_type = rep("Stressor", 5),
+      cas_rn = c(
+        "7440-22-4",
+        "7440-43-9",
+        "7440-48-4",
+        "7782-49-2",
+        "7440-66-6"
+      ),
+      stringsAsFactors = FALSE
+    ),
+    compartments = data.frame(
+      environ_compartment = c("Aquatic", "Biota"),
+      environ_compartment_sub = c("Marine/Salt Water", "Biota Aquatic"),
+      measured_category = c("External", "Internal"),
+      stringsAsFactors = FALSE
+    ),
+    biota = data.frame(
+      sample_id = NA_character_,
+      species_group = "Crustaceans",
+      sample_species = "Temora longicornis",
+      sample_tissue = "Whole organism",
+      sample_species_lifestage = "Adult",
+      sample_species_gender = "Mixed",
+      stringsAsFactors = FALSE
+    ),
+    methods = data.frame(
+      protocol_category = c(
+        "Sampling Protocol",
+        "Analytical Protocol",
+        "Analytical Protocol"
+      ),
+      protocol_name = c(
+        "Collection from Stony Brook Harbor",
+        "Radiolabeling technique",
+        "Gamma spectrometry"
+      ),
+      protocol_comment = c(
+        "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
+        "Used radioisotopes 110mAg, 109Cd, 57Co, 75Se, and 65Zn to track trace element uptake and efflux",
+        "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  # Convert data frame column names to uppercase if requested
+  if (uppercase_columns) {
+    data_frame_elements <- c(
+      "sites",
+      "parameters",
+      "compartments",
+      "biota",
+      "methods"
+    )
+    for (element in data_frame_elements) {
+      if (
+        !is.null(dummy_data[[element]]) && is.data.frame(dummy_data[[element]])
+      ) {
+        names(dummy_data[[element]]) <- toupper(names(dummy_data[[element]]))
+      }
+    }
+  }
+
+  return(dummy_data)
+}
+
+#' Populate session data directly with dummy data
+#'
+#' @description Stores dummy data directly into session reactiveValues.
+#' This bypasses the LLM extraction process and populates all module
+#' data objects immediately.
+#'
+#' @param session Shiny session object
+#' @param navigate_to Optional tab to navigate to after loading data
+#' @param parent_session Parent session for navigation (if different from session)
+#'
+#' @importFrom shiny showNotification updateNavbarPage
+#' @importFrom golem print_dev
+#' @export
+populate_session_with_dummy_data <- function(
+  session,
+  navigate_to = NULL,
+  parent_session = NULL
+) {
+  # Create dummy data with uppercase columns for app data structures
+  dummy_data <- create_dummy_data(uppercase_columns = TRUE)
+
+  # Store directly in session userData for immediate use
+  # Campaign data
+  if (!is.null(dummy_data$campaign)) {
+    session$userData$reactiveValues$campaignData <- dummy_data$campaign
+    print_dev("Populated campaign data with dummy data")
+  }
+
+  # References data
+  if (!is.null(dummy_data$references)) {
+    session$userData$reactiveValues$referencesData <- dummy_data$references
+    print_dev("Populated references data with dummy data")
+  }
+
+  # Sites data
+  if (!is.null(dummy_data$sites)) {
+    session$userData$reactiveValues$sitesData <- dummy_data$sites
+    print_dev("Populated sites data with dummy data")
+  }
+
+  # Parameters data
+  if (!is.null(dummy_data$parameters)) {
+    session$userData$reactiveValues$parametersData <- dummy_data$parameters
+    print_dev("Populated parameters data with dummy data")
+  }
+
+  # Compartments data
+  if (!is.null(dummy_data$compartments)) {
+    session$userData$reactiveValues$compartmentsData <- dummy_data$compartments
+    print_dev("Populated compartments data with dummy data")
+  }
+
+  # Biota data
+  if (!is.null(dummy_data$biota)) {
+    session$userData$reactiveValues$biotaData <- dummy_data$biota
+    print_dev("Populated biota data with dummy data")
+  }
+
+  # Methods data
+  if (!is.null(dummy_data$methods)) {
+    session$userData$reactiveValues$methodsData <- dummy_data$methods
+    print_dev("Populated methods data with dummy data")
+  }
+
+  # Set status flags
+  session$userData$reactiveValues$dummyDataLoaded <- TRUE
+
+  showNotification(
+    "Dummy data loaded successfully! All modules now contain test data.",
+    type = "default"
+  )
+
+  # Navigate if requested
+  if (!is.null(navigate_to) && !is.null(parent_session)) {
+    updateNavbarPage(
+      session = parent_session,
+      inputId = "main-page",
+      selected = navigate_to
+    )
+  }
+
+  print_dev("Dummy data population complete")
+}

@@ -674,7 +674,7 @@ mod_sites_server <- function(id) {
         div(
           bs_icon("cpu"),
           "Some data populated from LLM extraction - review for accuracy",
-          class = "validation-status validation-info",
+          class = "validation-status validation-llm",
           style = "margin-bottom: 10px;"
         )
       } else {

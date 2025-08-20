@@ -40,15 +40,25 @@ mod_llm_ui <- function(id) {
           fillable = FALSE,
 
           ### PDF upload ----
-          fileInput(
-            inputId = ns("pdf_file"),
-            label = tooltip(
-              list("Upload PDF", bs_icon("info-circle-fill")),
-              "Upload a research paper or report (pdf) containing environmental exposure data"
+          div(
+            style = "display: flex; flex-direction: column;",
+            fileInput(
+              inputId = ns("pdf_file"),
+              label = tooltip(
+                list("Upload PDF", bs_icon("info-circle-fill")),
+                "Upload a research paper or report (pdf) containing environmental exposure data"
+              ),
+              accept = ".pdf",
+              width = "100%",
+              buttonLabel = "Browse...",
             ),
-            accept = ".pdf",
-            width = "100%",
-            buttonLabel = "Browse..."
+            a(
+              "Example PDF URL",
+              href = "https://link.springer.com/content/pdf/10.1007/s10646-024-02740-4.pdf",
+              target = "_blank",
+              class = "text-muted",
+              style = "font-size: 0.8rem; margin-top: -20px;"
+            )
           ),
 
           ### API key input ----
@@ -172,7 +182,7 @@ mod_llm_ui <- function(id) {
           fill = FALSE,
           input_task_button(
             id = ns("populate_forms"),
-            label = "Populate Forms with Extracted Data",
+            label = "Populate Modules",
             icon = icon("download"),
             class = "btn-primary"
           ) |>
@@ -252,17 +262,17 @@ mod_llm_server <- function(id) {
     # upstream: user clicks input$load_dummy_data
     # downstream: moduleState$*, session$userData$reactiveValues$*DataLLM
     observe({
-      # Create dummy data structure
-      dummy_data <- create_dummy_data()
+      # Create dummy data structure using external function (lowercase for LLM)
+      dummy_data <- create_dummy_data(uppercase_columns = FALSE)
 
-      # Store results
+      # Store results in module state (for LLM-specific behavior)
       moduleState$extraction_complete <- TRUE
       moduleState$extraction_successful <- TRUE
       moduleState$structured_data <- dummy_data
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
 
-      # Store in session data with LLM suffix
+      # Store in session data with LLM suffix (for LLM workflow)
       store_llm_data_in_session(session, dummy_data)
 
       showNotification(
@@ -270,7 +280,7 @@ mod_llm_server <- function(id) {
         type = "default"
       )
 
-      # Enable form population button
+      # Enable form population button (LLM-specific workflow)
       enable("populate_forms")
       enable("clear_extraction")
     }) |>
@@ -589,7 +599,12 @@ mod_llm_server <- function(id) {
         # Format the extraction results for display
         if (is.list(moduleState$raw_extraction)) {
           # Pretty print the structured data
-          capture.output(str(moduleState$raw_extraction, max.level = 6)) |>
+          capture.output(str(
+            moduleState$raw_extraction,
+            max.level = 6,
+            vec.len = 10,
+            nchar.max = 200
+          )) |>
             paste(collapse = "\n")
         } else {
           as.character(moduleState$raw_extraction)
@@ -604,84 +619,6 @@ mod_llm_server <- function(id) {
 }
 
 # 4. Helper Functions ----
-
-#' Create dummy data for testing
-#' @noRd
-create_dummy_data <- function() {
-  list(
-    campaign = list(
-      campaign_name = "Copepod trace element accumulation study",
-      campaign_start_date = "1997-01-01",
-      campaign_end_date = "1997-03-31",
-      organisation = "State University of New York",
-      campaign_comment = "Laboratory study measuring assimilation efficiencies, uptake rates, and efflux rate constants of five trace elements in marine copepods"
-    ),
-    references = list(
-      author = "Wang, Wen-Xiong; Fisher, Nicholas S.",
-      title = "Accumulation of trace elements in a marine copepod",
-      year = 1998L,
-      periodical_journal = "Limnology and Oceanography",
-      volume = 43L,
-      issue = 2L,
-      publisher = "American Society of Limnology and Oceanography",
-      doi = NULL
-    ),
-    sites = data.frame(
-      site_code = "SBH",
-      site_name = "Stony Brook Harbor",
-      latitude = 40.9,
-      longitude = -73.1,
-      country = "United States",
-      site_geographic_feature = "Coastal fjord",
-      stringsAsFactors = FALSE
-    ),
-    parameters = data.frame(
-      parameter_name = c("Silver", "Cadmium", "Cobalt", "Selenium", "Zinc"),
-      parameter_type = rep("Stressor", 5),
-      cas_rn = c(
-        "7440-22-4",
-        "7440-43-9",
-        "7440-48-4",
-        "7782-49-2",
-        "7440-66-6"
-      ),
-      stringsAsFactors = FALSE
-    ),
-    compartments = data.frame(
-      environ_compartment = c("Aquatic", "Biota"),
-      environ_compartment_sub = c("Marine/Salt Water", "Biota Aquatic"),
-      measured_category = c("External", "Internal"),
-      stringsAsFactors = FALSE
-    ),
-    biota = data.frame(
-      sample_id = NA_character_,
-      species_group = "Crustaceans",
-      sample_species = "Temora longicornis",
-      sample_tissue = "Whole organism",
-      sample_species_lifestage = "Adult",
-      sample_species_gender = "Mixed",
-      stringsAsFactors = FALSE
-    ),
-    methods = data.frame(
-      protocol_category = c(
-        "Sampling Protocol",
-        "Analytical Protocol",
-        "Analytical Protocol"
-      ),
-      protocol_name = c(
-        "Collection from Stony Brook Harbor",
-        "Radiolabeling technique",
-        "Gamma spectrometry"
-      ),
-      protocol_comment = c(
-        "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
-        "Used radioisotopes 110mAg, 109Cd, 57Co, 75Se, and 65Zn to track trace element uptake and efflux",
-        "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope"
-      ),
-      stringsAsFactors = FALSE
-    )
-  )
-}
 #' Create extraction schema with correct ellmer syntax
 #' @noRd
 create_extraction_schema <- function() {

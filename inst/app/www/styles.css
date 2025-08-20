@@ -138,6 +138,11 @@ pre,
     color: var(--bs-white) !important;
 }
 
+.validation-llm {
+    background-color: var(--bs-blue) !important;
+    color: var(--bs-black) !important;
+}
+
 .navigation-buttons-container {
     border-radius: var(--radius-sm);
     padding: 15px;

@@ -151,7 +151,7 @@ mod_review_server <- function(id) {
     # 2. Observers and Reactives ----
 
     ## Helper: Create dummy data for testing ----
-    create_dummy_data <- function() {
+    create_dummy_review_data <- function() {
       set.seed(42) # For reproducible dummy data
 
       dummy_data <- data.frame(
@@ -280,7 +280,7 @@ mod_review_server <- function(id) {
       } else {
         # Use dummy data for testing/demo
         moduleState$data_available <- TRUE
-        moduleState$review_data <- create_dummy_data()
+        moduleState$review_data <- create_dummy_review_data()
         print_dev("mod_review: Using dummy data for demo purposes")
       }
     }) |>

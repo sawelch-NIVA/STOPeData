@@ -420,8 +420,7 @@ mod_references_ui <- function(id) {
             list("Reference Comment", bs_icon("info-circle-fill")),
             "Additional notes or comments about this reference"
           ),
-          placeholder = "Please add any ddditional notes about the reference that
-          may be relevant or useful for understanding it by later users.",
+          placeholder = "Please add any ddditional notes about the reference that may be relevant or useful to later use.",
           width = "100%",
           rows = 3
         ),
