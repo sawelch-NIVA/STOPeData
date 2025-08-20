@@ -70,10 +70,12 @@ mod_landing_ui <- function(id) {
       card_body(tags$figure(
         class = "centerFigure",
         tags$img(
-          src = "app_mapp.png",
+          src = "www/app_mapp.png",
+          align = "center",
           width = 800,
           alt = "Illustration of STOP eData app workflow."
-        )
+        ),
+        tags$figCaption("Illustration of STOP eData app workflow.")
       ))
     )
   )
