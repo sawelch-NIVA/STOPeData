@@ -303,6 +303,8 @@ mod_campaign_server <- function(id) {
 
     ## observe ~ bindEvent: Set session username from ENTERED_BY ----
     observe({
+      req(input$ENTERED_BY)
+
       # only trigger if a username doesn't already exist in the session
       if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
         # Set the reactive value

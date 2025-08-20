@@ -534,17 +534,22 @@ mod_llm_server <- function(id) {
     }) |>
       bindEvent(input$clear_extraction)
 
-    ## observe ~ bindEvent: Set session user name ----
+    ## observe ~ bindEvent: Set session username from ENTERED_BY ----
     observe({
-      # Set the reactive value
-      session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+      req(input$ENTERED_BY)
 
-      showNotification(
-        glue("Saved your username {input$ENTERED_BY} to session data."),
-        type = "message"
-      )
+      # only trigger if a username doesn't already exist in the session
+      if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
+        # Set the reactive value
+        session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+
+        showNotification(
+          glue("Saved your username {input$ENTERED_BY} to session data."),
+          type = "message"
+        )
+      }
     }) |>
-      bindEvent(input$ENTERED_BY, ignoreInit = FALSE)
+      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
 
     # 3. Outputs ----
 
