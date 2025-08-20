@@ -158,7 +158,7 @@ app_ui <- function(request) {
           style = "margin: 0px 5px 10px 15px;",
           tags$a(
             href = "https://github.com/sawelch-NIVA/STOPeData",
-            "STOP eData Github"
+            "STOP eData"
           ),
           " developed by Sam Welch with assistance from Viviane Giradin and Knut Erik Tollefsen. Funded by",
           tags$a(href = "https://www.niva.no/en/projects/parc", "PARC"),

@@ -16,13 +16,18 @@ mod_landing_ui <- function(id) {
   tagList(
     card(
       fill = TRUE,
+      fillable = TRUE,
       card_body(
+        fill = TRUE,
+        fillable = TRUE,
         ## Info accordion ----
         info_accordion(
           content_file = "inst/app/www/md/intro_landing.md"
         ),
         layout_column_wrap(
           width = "300px",
+          min_height = "200px",
+          fill = FALSE,
           div(
             style = "display: flex; flex-direction: column; align-items: center;",
             h6("Enter data from a paper or dataset manually."),
@@ -30,7 +35,7 @@ mod_landing_ui <- function(id) {
               id = ns("narrative_manual"),
               label = "Enter data manually...",
               icon = icon("keyboard"),
-              wdith = "300px"
+              width = "300px"
             )
           ),
           div(
@@ -40,17 +45,17 @@ mod_landing_ui <- function(id) {
               id = ns("narrative_llm"),
               label = "Import using LLM...",
               icon = icon("brain"),
-              wdith = "300px"
+              width = "300px"
             )
           ),
           div(
             style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Import data from a structured format (planned)"),
+            h6("Import structed data (planned)"),
             input_task_button(
               id = ns("structured"),
               label = "Import structured data",
               icon = icon("table"),
-              wdith = "300px"
+              width = "300px"
             ) |>
               disabled()
           ),
@@ -62,19 +67,24 @@ mod_landing_ui <- function(id) {
               label = "Test with dummy data",
               icon = icon("vial-circle-check"),
               type = "warning",
-              wdith = "300px"
+              width = "300px"
             )
           )
         ),
-        tags$figure(
-          tags$img(
-            style = "display: block; margin: auto;",
-            src = "www/app_mapp.png",
-            align = "center",
-            width = 800,
-            alt = "Illustration of STOP eData app workflow."
-          ),
-          tags$figcaption("Illustration of STOP eData app workflow.")
+        hr(),
+        div(
+          style = "margin-bottom: 10px;",
+          style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
+          tags$figure(
+            tags$figcaption(
+              "Illustration of STOP eData app workflow: Yes, it's a bit complicated."
+            ),
+            tags$img(
+              style = "max-height: 500px;",
+              src = "www/app_mapp.png",
+              alt = "Illustration of STOP eData app workflow."
+            )
+          )
         )
       )
     )

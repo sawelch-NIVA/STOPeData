@@ -10,7 +10,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList fileInput textInput actionButton
-#' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button
+#' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button accordion_panel_open
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
 #' @export
@@ -114,19 +114,37 @@ mod_llm_ui <- function(id) {
         ## Extract buttons ----
         layout_columns(
           fill = FALSE,
-          input_task_button(
-            id = ns("extract_data"),
-            label = "Extract Data from PDF",
-            icon = icon("magic"),
-            class = "btn-success"
-          ) |>
-            disabled(),
+          div(
+            style = "display: flex; flex-direction: column;",
+            input_task_button(
+              id = ns("extract_data"),
+              label = HTML(paste(
+                bsicons::bs_icon("cpu"),
+                "Extract Data from PDF"
+              )),
+              class = "btn-info"
+            ) |>
+              disabled(),
+            span(
+              "Per extraction: ~$0.10, 30 seconds",
+              class = "text-muted",
+              style = "font-size: 0.8rem;"
+            )
+          ),
 
-          input_task_button(
-            id = ns("load_dummy_data"),
-            label = "Load Dummy Data",
-            icon = icon("flask"),
-            class = "btn-info"
+          div(
+            style = "display: flex; flex-direction: column;",
+            input_task_button(
+              id = ns("load_dummy_data"),
+              label = "Load Dummy Data",
+              icon = icon("flask"),
+              class = "btn-info"
+            ),
+            span(
+              "For testing/demonstration purposes.",
+              class = "text-muted",
+              style = "font-size: 0.8rem;"
+            )
           )
         ),
 
@@ -141,6 +159,7 @@ mod_llm_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Extraction Results",
+            value = "extraction_results",
             icon = bs_icon("cpu"),
             div(
               verbatimTextOutput(ns("extraction_results"))
@@ -263,110 +282,139 @@ mod_llm_server <- function(id) {
     observe({
       req(input$pdf_file, input$api_key)
 
-      # Show processing status
-      showNotification("Starting PDF extraction...", type = "message")
+      withProgress(message = "Processing PDF extraction", value = 0, {
+        # Step 1: Validate API key
+        incProgress(0.1, detail = "Validating API key...")
+        if (!grepl("^sk-ant-", input$api_key)) {
+          showNotification(
+            "API key should start with 'sk-ant-'. Please check your key.",
+            type = "warning"
+          )
+          return()
+        }
 
-      # Validate API key format (basic check)
-      if (!grepl("^sk-ant-", input$api_key)) {
-        showNotification(
-          "API key should start with 'sk-ant-'. Please check your key.",
-          type = "warning"
-        )
-        return()
-      }
+        tryCatch(
+          {
+            # Step 2: Set up environment and test connection
+            incProgress(0.01, detail = "Opening API connection...")
+            Sys.setenv(ANTHROPIC_API_KEY = input$api_key)
 
-      tryCatch(
-        {
-          # Set up Claude chat with API key
-          Sys.setenv(ANTHROPIC_API_KEY = input$api_key)
+            # Step 3: Test API connectivity
+            incProgress(0.02, detail = "Testing API connection...")
+            test_chat <- NULL
+            tryCatch(
+              {
+                test_chat <- chat_anthropic(
+                  model = "claude-sonnet-4-20250514",
+                  params = params(max_tokens = 50)
+                )
+                test_response <- test_chat$chat(
+                  "Hello, please respond with 'API connection successful'"
+                )
+                print_dev("API test successful")
+              },
+              error = function(e) {
+                showNotification(
+                  paste("API connection failed:", e$message),
+                  type = "error"
+                )
+                return()
+              }
+            )
 
-          # Test API connectivity first
-          test_chat <- NULL
-          tryCatch(
-            {
-              test_chat <- chat_anthropic(
-                model = "claude-sonnet-4-20250514",
-                params = params(max_tokens = 50)
-              )
-              test_response <- test_chat$chat(
-                "Hello, please respond with 'API connection successful'"
-              )
-              print_dev("API test successful")
-            },
-            error = function(e) {
-              showNotification(
-                paste("API connection failed:", e$message),
-                type = "error"
-              )
+            if (is.null(test_chat)) {
               return()
             }
-          )
 
-          if (is.null(test_chat)) {
-            return()
+            # Step 4: Prepare extraction components
+            incProgress(0.03, detail = "Preparing extraction...")
+            chat <- chat_anthropic(
+              model = "claude-sonnet-4-20250514",
+              params = params(max_tokens = 4000)
+            )
+
+            extraction_schema <- create_extraction_schema()
+            pdf_content <- content_pdf_file(input$pdf_file$datapath)
+
+            # Step 5: Set up prompts
+            incProgress(0.04, detail = "Configuring extraction...")
+            system_prompt <- if (isTruthy(input$system_prompt)) {
+              input$system_prompt
+            } else {
+              create_extraction_prompt()
+            }
+
+            # Step 6: Extract data (this is the longest step)
+            incProgress(0.05, detail = "Extracting data...")
+            result <- chat$chat_structured(
+              system_prompt,
+              pdf_content,
+              type = extraction_schema
+            )
+
+            # Step 7: Get API call metadata
+            incProgress(0.8, detail = "Storing results...")
+
+            # Capture cost information
+            api_metadata <- NULL
+            tryCatch(
+              {
+                cost_info <- chat$get_cost(include = "all")
+                api_metadata <- list(
+                  total_cost = cost_info$total_cost,
+                  total_input_tokens = cost_info$total_input_tokens,
+                  total_output_tokens = cost_info$total_output_tokens,
+                  call_count = nrow(cost_info$calls)
+                )
+              },
+              error = function(e) {
+                print_dev(paste("Could not retrieve cost info:", e$message))
+              }
+            )
+
+            # Store results
+            moduleState$extraction_complete <- TRUE
+            moduleState$extraction_successful <- TRUE
+            moduleState$structured_data <- result
+            moduleState$raw_extraction <- result
+            moduleState$error_message <- NULL
+            moduleState$api_metadata <- api_metadata
+
+            # Step 8: Update session data
+            incProgress(0.9, detail = "Updating data...")
+            store_llm_data_in_session(session, result)
+
+            # Step 9: Enable UI elements
+            incProgress(1.0, detail = "Finalising...")
+            enable("populate_forms")
+            enable("clear_extraction")
+
+            # Final success notification
+            showNotification(
+              "PDF extraction completed successfully!",
+              type = "message"
+            )
+
+            # Open extraction accordion for review
+            accordion_panel_open(
+              id = "results_accordion",
+              values = "extraction_results"
+            )
+          },
+          error = function(e) {
+            moduleState$extraction_complete <- TRUE
+            moduleState$extraction_successful <- FALSE
+            moduleState$error_message <- e$message
+            moduleState$structured_data <- NULL
+            moduleState$api_metadata <- NULL
+
+            showNotification(
+              paste("Extraction failed:", e$message),
+              type = "error"
+            )
           }
-
-          # Create chat instance for extraction
-          chat <- chat_anthropic(
-            model = "claude-sonnet-4-20250514",
-            params = params(max_tokens = 4000)
-          )
-
-          # Define structured data types for extraction
-          extraction_schema <- create_extraction_schema()
-
-          # Create PDF content object
-          pdf_content <- content_pdf_file(input$pdf_file$datapath)
-
-          # Use custom prompt if provided, otherwise default
-          system_prompt <- if (isTruthy(input$system_prompt)) {
-            input$system_prompt
-          } else {
-            create_extraction_prompt()
-          }
-
-          showNotification("Extracting data from PDF...", type = "message")
-
-          # Extract data using structured chat
-          result <- chat$chat_structured(
-            system_prompt,
-            pdf_content,
-            type = extraction_schema
-          )
-
-          # Store results
-          moduleState$extraction_complete <- TRUE
-          moduleState$extraction_successful <- TRUE
-          moduleState$structured_data <- result
-          moduleState$raw_extraction <- result
-          moduleState$error_message <- NULL
-
-          # Store in session data with LLM suffix
-          store_llm_data_in_session(session, result)
-
-          showNotification(
-            "PDF extraction completed successfully!",
-            type = "message"
-          )
-
-          # Enable form population button
-          enable("populate_forms")
-          enable("clear_extraction")
-        },
-        error = function(e) {
-          moduleState$extraction_complete <- TRUE
-          moduleState$extraction_successful <- FALSE
-          moduleState$error_message <- e$message
-          moduleState$structured_data <- NULL
-
-          showNotification(
-            paste("Extraction failed:", e$message),
-            type = "error"
-          )
-
-          print_dev(glue("LLM extraction error: {e$message}"))
-        }
-      )
+        )
+      })
     }) |>
       bindEvent(input$extract_data)
 
@@ -461,6 +509,7 @@ mod_llm_server <- function(id) {
       moduleState$raw_extraction <- NULL
       moduleState$structured_data <- NULL
       moduleState$error_message <- NULL
+      moduleState$api_metadata <- NULL
 
       # Clear session LLM data and status flags
       clear_llm_data_from_session(session)
@@ -500,9 +549,27 @@ mod_llm_server <- function(id) {
           class = "validation-status validation-info"
         )
       } else if (moduleState$extraction_successful) {
+        # Build status message with API metadata
+        status_text <- "Data extraction completed successfully. Review results and populate forms below."
+
+        if (!is.null(moduleState$api_metadata)) {
+          metadata_text <- paste0(
+            " API usage: $",
+            sprintf("%.4f", moduleState$api_metadata$total_cost),
+            " (",
+            moduleState$api_metadata$total_input_tokens,
+            " input + ",
+            moduleState$api_metadata$total_output_tokens,
+            " output tokens, ",
+            moduleState$api_metadata$call_count,
+            " calls)"
+          )
+          status_text <- paste0(status_text, metadata_text)
+        }
+
         div(
           bs_icon("check-circle"),
-          "Data extraction completed successfully. Review results and populate forms below.",
+          status_text,
           class = "validation-status validation-complete"
         )
       } else {
@@ -742,7 +809,7 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         environ_compartment_sub = type_string(
-          description = "Sub-compartment: Freshwater, Marine/Salt Water, Brackish/Transitional Water, Groundwater, Wastewater, Indoor Air, Outdoor Air, Soil A Horizon (Topsoil), Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic",
+          description = "Sub-compartment: Freshwater, Marine/Salt Water, Brackish/Transitional Water, Groundwater, Wastewater, Aquatic Sediment, Indoor Air, Outdoor Air, Soil A Horizon (Topsoil), Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic",
           required = FALSE
         ),
         measured_category = type_string(
@@ -764,7 +831,7 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         sample_species = type_string(
-          description = "Species name (scientific or common)",
+          description = "Species name (scientific if reported otherwise common)",
           required = FALSE
         ),
         sample_tissue = type_string(
@@ -827,43 +894,10 @@ get_schema_display <- function() {
 
 #' Create extraction prompt with controlled vocabulary
 #' @description Creates the system prompt for Claude extraction
+#' @importFrom readr read_file
 #' @noRd
 create_extraction_prompt <- function() {
-  paste0(
-    "You are an expert at extracting environmental exposure study data from scientific documents. ",
-    "Extract the following information from the uploaded PDF, following these strict guidelines:\n\n",
-
-    "CRITICAL RULES:\n",
-    "- Only extract information that is explicitly stated in the document\n",
-    "- Do NOT guess, infer, make assumptions, or use outside knowledge to fill gaps\n",
-    "- Do NOT use your knowledge of places, chemicals, or studies to add information not in the document\n",
-    "- Use 'null' for any field where information is not clearly provided in the text\n",
-    "- For coordinates: ONLY extract if latitude/longitude are explicitly stated as numbers in the document\n",
-    "- For dates, use YYYY-MM-DD format only\n",
-    "- For years, only use values between 1800-2026\n\n",
-
-    "CONTROLLED VOCABULARY (use these exact terms when applicable):\n",
-    "Parameter Types: Stressor, Quality parameter, Normalization, Background\n",
-    "Compartments: Aquatic, Atmospheric, Terrestrial, Biota\n",
-    "Sub-compartments: Freshwater, Marine/Salt Water, Brackish/Transitional Water, ",
-    "Groundwater, Wastewater, Indoor Air, Outdoor Air, Soil A Horizon (Topsoil), ",
-    "Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic\n",
-    "Measurement Categories: External, Internal, Surface\n",
-    "Geographic Features: River stream canal, Lake pond pool reservoir, ",
-    "Ocean sea territorial waters, Coastal fjord, Estuary, Drainage sewer artificial water, ",
-    "Swamp wetland, Groundwater aquifer, WWTP, Artificial Land/Urban Areas, Landfills, ",
-    "Cropland, Woodland forest, Shrubland, Grassland, Bare land and lichen/moss, Other\n\n",
-
-    "Focus on extracting:\n",
-    "1. Study metadata (dates, organization, campaign details)\n",
-    "2. Bibliographic information (authors, title, journal, DOI)\n",
-    "3. Sampling sites (locations ONLY if coordinates are explicitly stated)\n",
-    "4. Measured parameters (chemicals, stressors, quality parameters)\n",
-    "5. Environmental compartments sampled\n\n",
-
-    "Return structured data following the provided schema. Be extremely conservative - ",
-    "it's better to return null than to guess or use external knowledge not in the document."
-  )
+  read_file("inst/app/www/md/extraction_prompt.md")
 }
 
 #' Store LLM extracted data in session reactiveValues
