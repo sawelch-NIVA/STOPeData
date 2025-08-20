@@ -431,7 +431,7 @@ mod_parameters_server <- function(id) {
               paste(
                 "Loaded",
                 nrow(llm_parameters),
-                "parameters - all validated successfully!"
+                "parameters - all validated successfully"
               ),
               type = "message"
             )

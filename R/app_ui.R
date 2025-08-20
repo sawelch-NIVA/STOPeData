@@ -31,8 +31,9 @@ app_ui <- function(request) {
     # Your application UI logic
     page_navbar(
       title = "STOP eData",
+      lang = "en",
       id = "main-page",
-      window_title = "STOP eData",
+      window_title = "eData",
       navbar_options = navbar_options(
         underline = TRUE,
         theme = "auto",
@@ -160,13 +161,14 @@ app_ui <- function(request) {
             href = "https://github.com/sawelch-NIVA/STOPeData",
             "STOP eData"
           ),
-          " developed by Sam Welch with assistance from Viviane Giradin and Knut Erik Tollefsen. Funded by",
+          " is developed by Sam Welch with assistance from Viviane Giradin and Knut Erik Tollefsen. Work on this tool has been funded by",
           tags$a(href = "https://www.niva.no/en/projects/parc", "PARC"),
           ", ",
           tags$a(href = "https://www.niva.no/en/projects/expect", "EXPECT"),
           ", and ",
           tags$a(href = "https://www.niva.no/en/featured-pages/nctp", "NCTP"),
-          "."
+          ".",
+          "This app is currently in development, and no responsibility is accepted for anything going wrong."
         )
       )
     )
