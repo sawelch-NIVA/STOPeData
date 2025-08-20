@@ -30,10 +30,10 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     page_navbar(
-      title = "STOP eData",
+      title = "STOP eData (demo)",
       lang = "en",
       id = "main-page",
-      window_title = "eData",
+      window_title = "eData (demo)",
       navbar_options = navbar_options(
         underline = TRUE,
         theme = "auto",
