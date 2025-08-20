@@ -73,7 +73,7 @@ mod_biota_ui <- function(id) {
               "Select Species for Study:",
               choices = NULL,
               selected = NULL,
-              multiple = TRUE
+              multiple = TRUE,
             )
           ),
 
@@ -146,7 +146,8 @@ mod_biota_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom readr read_csv
-#' @importFrom dplyr pull
+#' @importFrom dplyr pull rename
+#' @importFrom arrow read_parquet
 #' @export
 mod_biota_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -163,10 +164,16 @@ mod_biota_server <- function(id) {
       study_species = character(0)
     )
 
-    moduleState$species_options <- readr::read_csv(
-      "inst/data/clean/dummy_species.csv",
-      show_col_types = FALSE
-    )
+    moduleState$species_options <- read_parquet(
+      "inst/data/clean/ecotox_2025_06_12_species.parquet"
+    ) |>
+      mutate(
+        SPECIES_COMMON_NAME = common_name,
+        SPECIES_NAME = latin_name,
+        SPECIES_KINGDOM = kingdom,
+        SPECIES_GROUP = species_group,
+        .keep = "none"
+      )
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -310,11 +317,17 @@ mod_biota_server <- function(id) {
     # downstream: input$study_species_selector choices
     observe({
       # Filter species by selected group
-      filtered_species <- moduleState$species_options[
-        moduleState$species_options$SPECIES_GROUP == input$species_group_filter,
-        "SPECIES_NAME"
-      ] |>
-        pull(SPECIES_NAME)
+      filtered_species <- moduleState$species_options |>
+        filter(SPECIES_GROUP == input$species_group_filter) |>
+        mutate(
+          pretty_name = paste0(SPECIES_NAME, " (", SPECIES_COMMON_NAME, ")")
+        )
+
+      filtered_species <- filtered_species |>
+        pull(
+          var = SPECIES_NAME,
+          name = pretty_name
+        )
 
       # Update species selector with filtered choices, keeping current selections
       current_selected <- input$study_species_selector %||% character(0)
@@ -323,7 +336,8 @@ mod_biota_server <- function(id) {
         session,
         "study_species_selector",
         choices = sort(filtered_species),
-        selected = intersect(current_selected, filtered_species)
+        selected = intersect(current_selected, filtered_species),
+        server = TRUE
       )
 
       print_dev(glue(

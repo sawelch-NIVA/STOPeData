@@ -12,12 +12,8 @@ mod_information_ui <- function(id) {
   ns <- NS(id)
   tagList(
     card(card_body(
-      h1("Packages and Software"),
-      p(
-        "The following packages and software were used in the development of 
-      this app."
-      ),
-      p("tba")
+      includeMarkdown("inst/app/www/md/citations.md"),
+      includeMarkdown("inst/app/www/md/package_citations.md")
     ))
   )
 }
