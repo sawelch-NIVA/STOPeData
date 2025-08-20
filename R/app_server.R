@@ -49,7 +49,7 @@ app_server <- function(input, output, session) {
   })
 
   # Module servers ----
-  moduleLanding <- mod_landing_server("landing")
+  moduleLanding <- mod_landing_server("landing", parent_session = session) # parent_session = session needed or else updateNavbarPage() doesn't work...
   moduleLLM <- mod_llm_server("llm_extract")
   moduleCampaign <- mod_campaign_server("campaign")
   moduleReference <- mod_references_server("references")
