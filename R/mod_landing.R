@@ -58,18 +58,18 @@ mod_landing_ui <- function(id) {
               width = "300px"
             ) |>
               disabled()
-          ),
-          div(
-            style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Load dummy data for testing purposes."),
-            input_task_button(
-              id = ns("test_dummy"),
-              label = "Test with dummy data",
-              icon = icon("vial-circle-check"),
-              type = "warning",
-              width = "300px"
-            )
           )
+          # div(
+          #   style = "display: flex; flex-direction: column; align-items: center;",
+          #   h6("Load dummy data for testing purposes."),
+          #   input_task_button(
+          #     id = ns("test_dummy"),
+          #     label = "Test with dummy data",
+          #     icon = icon("vial-circle-check"),
+          #     type = "warning",
+          #     width = "300px"
+          #   )
+          # )
         ),
         hr(),
         div(
