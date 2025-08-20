@@ -75,7 +75,7 @@ mod_landing_ui <- function(id) {
           width = 800,
           alt = "Illustration of STOP eData app workflow."
         ),
-        tags$figCaption("Illustration of STOP eData app workflow.")
+        tags$figcaption("Illustration of STOP eData app workflow.")
       ))
     )
   )
