@@ -65,18 +65,18 @@ mod_landing_ui <- function(id) {
               wdith = "300px"
             )
           )
-        )
-      ),
-      card_body(tags$figure(
-        class = "centerFigure",
-        tags$img(
-          src = "www/app_mapp.png",
-          align = "center",
-          width = 800,
-          alt = "Illustration of STOP eData app workflow."
         ),
-        tags$figcaption("Illustration of STOP eData app workflow.")
-      ))
+        tags$figure(
+          tags$img(
+            style = "display: block; margin: auto;",
+            src = "www/app_mapp.png",
+            align = "center",
+            width = 800,
+            alt = "Illustration of STOP eData app workflow."
+          ),
+          tags$figcaption("Illustration of STOP eData app workflow.")
+        )
+      )
     )
   )
 }
