@@ -58,16 +58,16 @@ mod_parameters_ui <- function(id) {
             selected = "Show all",
             width = "100%",
             multiple = FALSE
-          ),
-
-          selectizeInput(
-            inputId = ns("parameter_name_select"),
-            label = "Parameter Name",
-            choices = c("Select parameter type first..."),
-            width = "100%",
-            selected = "Formaldehyde",
-            multiple = FALSE
           )
+        ),
+
+        selectizeInput(
+          inputId = ns("parameter_name_select"),
+          label = "Parameter Name",
+          choices = c("Select parameter type first..."),
+          width = "100%",
+          selected = "Formaldehyde",
+          multiple = FALSE
         ),
 
         ## Action buttons and validation status ----

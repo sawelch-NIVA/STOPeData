@@ -30,7 +30,7 @@ mod_landing_ui <- function(id) {
           fill = FALSE,
           div(
             style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Enter data from a paper or dataset manually."),
+            h6("Enter data manually."),
             input_task_button(
               id = ns("narrative_manual"),
               label = "Enter data manually...",
@@ -40,17 +40,19 @@ mod_landing_ui <- function(id) {
           ),
           div(
             style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Extract data from a pdf using an LLM."),
+            h6("Extract data using an LLM."),
             input_task_button(
               id = ns("narrative_llm"),
-              label = "Import using LLM...",
-              icon = icon("brain"),
+              label = HTML(paste(
+                bsicons::bs_icon("cpu"),
+                "Extract using LLM..."
+              )),
               width = "300px"
             )
           ),
           div(
             style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Import structed data (planned)"),
+            h6("Import structured data (planned feature)"),
             input_task_button(
               id = ns("structured"),
               label = "Import structured data",

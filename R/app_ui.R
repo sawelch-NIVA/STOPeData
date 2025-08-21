@@ -143,14 +143,20 @@ app_ui <- function(request) {
 
           input_task_button(
             id = "previous_section",
-            label = HTML('Previous Section'),
+            label = HTML(paste(
+              bsicons::bs_icon("arrow-left"),
+              "Previous Section"
+            )),
             type = "primary",
             style = "z-index: 9999;"
           ),
 
           input_task_button(
             id = "next_section",
-            label = HTML('Next Section'),
+            label = HTML(paste(
+              "Previous Section",
+              bsicons::bs_icon("arrow-right")
+            )),
             type = "primary",
             style = "z-index: 9999;"
           )
