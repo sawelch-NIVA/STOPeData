@@ -1,0 +1,1 @@
+- Wouldn't it be nice if we could upload data that's already a table?

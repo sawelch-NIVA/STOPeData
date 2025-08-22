@@ -143,6 +143,10 @@ pre,
     color: var(--bs-black) !important;
 }
 
+#data-validation_accordion .accordion-button .collapsed {
+    background-color: var(--color-warning) !important;
+}
+
 .navigation-buttons-container {
     border-radius: var(--radius-sm);
     padding: 15px;

@@ -58,8 +58,7 @@ mod_landing_ui <- function(id) {
               label = "Import structured data",
               icon = icon("table"),
               width = "300px"
-            ) |>
-              disabled()
+            )
           )
           # div(
           #   style = "display: flex; flex-direction: column; align-items: center;",
@@ -135,11 +134,11 @@ mod_landing_server <- function(id, parent_session) {
     # Note: Currently disabled - will need to define target tab when implemented
     observe({
       # TODO: Define target tab for structured data import
-      # updateNavbarPage(
-      #   session = parent_session,
-      #   inputId = "main-page",
-      #   selected = "XX-structured"
-      # )
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "00-structured"
+      )
     }) |>
       bindEvent(input$structured)
 

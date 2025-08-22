@@ -51,6 +51,12 @@ app_ui <- function(request) {
         icon = bs_icon("cpu")
       ),
       nav_panel(
+        title = "0. Structured",
+        value = "00-structured",
+        mod_structured_ui("structured"),
+        icon = bs_icon("cpu")
+      ),
+      nav_panel(
         title = "1. Campaign",
         value = "01-campaign",
         mod_campaign_ui("campaign"),

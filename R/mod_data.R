@@ -33,6 +33,7 @@ mod_data_ui <- function(id) {
         accordion(
           id = ns("validation_accordion"),
           accordion_panel(
+            id = "validation_accordion_panel",
             value = "validation_accordion_panel",
             style = "margin: 20px 0;",
             title = "Module Validation Status",
@@ -93,11 +94,9 @@ mod_data_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
-#' @importFrom shinyjs enable disable
+#' @importFrom shinyjs enable disable toggleClass
 #' @importFrom glue glue
 #' @importFrom golem print_dev
-#' @importFrom dplyr cross_join mutate select rename
-#' @importFrom tibble tibble
 #' @importFrom utils capture.output head
 #' @export
 mod_data_server <- function(id) {
@@ -204,157 +203,26 @@ mod_data_server <- function(id) {
 
     iv$enable()
 
-    # 2. Helper functions ----
-
-    ## Check if all required modules are validated ----
-    check_all_modules_valid <- function() {
-      required_data <- list(
-        campaign = session$userData$reactiveValues$campaignData,
-        references = session$userData$reactiveValues$referencesData,
-        sites = session$userData$reactiveValues$sitesData,
-        parameters = session$userData$reactiveValues$parametersData,
-        compartments = session$userData$reactiveValues$compartmentsData,
-        methods = session$userData$reactiveValues$methodsData,
-        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-          session$userData$reactiveValues$sampleData
-      )
-
-      all(sapply(required_data, function(x) !is.null(x)))
-    }
-
-    ## Get validation status for each module ----
-    get_module_status <- function() {
-      modules <- list(
-        Campaign = session$userData$reactiveValues$campaignData,
-        References = session$userData$reactiveValues$referencesData,
-        Sites = session$userData$reactiveValues$sitesData,
-        Parameters = session$userData$reactiveValues$parametersData,
-        Compartments = session$userData$reactiveValues$compartmentsData,
-        Methods = session$userData$reactiveValues$methodsData,
-        Samples = session$userData$reactiveValues$sampleData,
-        Biota = session$userData$reactiveValues$biotaValidated
-      )
-
-      status_list <- lapply(names(modules), function(name) {
-        data <- modules[[name]]
-        if (name == "Biota") {
-          # Special handling for biota validation flag
-          status <- if (isTruthy(data)) "✓ Validated" else "⚠ No biota samples"
-          count <- if (isTruthy(session$userData$reactiveValues$biotaData)) {
-            nrow(session$userData$reactiveValues$biotaData)
-          } else {
-            "No biota samples"
-          }
-        } else {
-          status <- if (isTruthy(data) && nrow(data) > 0) {
-            "✓ Validated"
-          } else {
-            "⚠ Pending"
-          }
-          count <- if (isTruthy(data)) {
-            nrow(data)
-          } else {
-            0
-          }
-        }
-
-        list(module = name, status = status, count = count)
-      })
-
-      return(status_list)
-    }
-
-    ## Create sample-parameter combinations for measurement entry ----
-    # ! FORMAT-BASED
-    create_measurement_combinations <- function() {
-      # Get all validated data
-      samples_data <- session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-        session$userData$reactiveValues$sampleData
-      parameters_data <- session$userData$reactiveValues$parametersData
-      campaign_data <- session$userData$reactiveValues$campaignData
-      reference_data <- session$userData$reactiveValues$referencesData
-
-      if (is.null(samples_data) || is.null(parameters_data)) {
-        return(data.frame())
-      }
-
-      # Create cartesian product of samples and parameters
-      combinations <- cross_join(
-        samples_data |>
-          select(
-            SAMPLE_ID,
-            SITE_CODE,
-            SAMPLING_DATE,
-            ENVIRON_COMPARTMENT,
-            ENVIRON_COMPARTMENT_SUB,
-            REP
-          ),
-        parameters_data |> select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE)
-      )
-
-      # Add campaign and reference info
-      combinations <- combinations |>
-        mutate(
-          REFERENCE_ID = reference_data$REFERENCE_TYPE, # Simplified for now
-
-          # Add measurement fields with empty defaults
-          MEASURED_FLAG = "",
-          MEASURED_VALUE = NA,
-          MEASURED_SD = NA,
-          MEASURED_UNIT = "mg/L", # Default unit
-          LOQ_VALUE = NA,
-          LOQ_UNIT = "mg/L", # Should match MEASURED_UNIT
-          LOD_VALUE = NA,
-          LOD_UNIT = "mg/L", # Should match MEASURED_UNIT
-
-          # Add method info (simplified)
-          SAMPLING_PROTOCOL = "Not reported",
-          FRACTIONATION_PROTOCOL = "Not reported",
-          EXTRACTION_PROTOCOL = "Not reported",
-          ANALYTICAL_PROTOCOL = "Not reported"
-        )
-
-      return(combinations)
-    }
-
-    ## Initialize measurement combinations data frame ----
-    # ! FORMAT-BASED
-    init_measurement_df <- function() {
-      tibble(
-        SAMPLE_ID = character(0),
-        SITE_CODE = character(0),
-        PARAMETER_NAME = character(0),
-        SAMPLING_DATE = character(0),
-        ENVIRON_COMPARTMENT = character(0),
-        ENVIRON_COMPARTMENT_SUB = character(0),
-        REP = integer(0),
-        MEASURED_FLAG = character(0),
-        MEASURED_VALUE = numeric(0),
-        MEASURED_SD = numeric(0),
-        MEASURED_UNIT = character(0),
-        LOQ_VALUE = numeric(0),
-        LOQ_UNIT = character(0),
-        LOD_VALUE = numeric(0),
-        LOD_UNIT = character(0),
-        SAMPLING_PROTOCOL = character(0),
-        EXTRACTION_PROTOCOL = character(0),
-        FRACTIONATION_PROTOCOL = character(0),
-        ANALYTICAL_PROTOCOL = character(0)
-      )
-    }
-
     # 3. Observers and Reactives ----
 
-    ## observe: Check validation status continuously ----
+    ## observe: Check validation status ----
     # upstream: all session$userData$reactiveValues
     # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
     observe({
-      moduleState$all_modules_valid <- check_all_modules_valid()
+      moduleState$all_modules_valid <- check_all_modules_valid(session)
 
       if (moduleState$all_modules_valid) {
         moduleState$data_entry_ready <- TRUE
         # Create measurement combinations when ready
-        moduleState$measurement_combinations <- create_measurement_combinations()
+        moduleState$measurement_combinations <- create_measurement_combinations(
+          session
+        )
+
+        # make the accordion change colour!
+        toggleClass(
+          id = "validation_accordion_panel",
+          class = "validation-success"
+        )
         print_dev(glue(
           "mod_data: All modules validated, created {nrow(moduleState$measurement_combinations)} measurement combinations"
         ))
@@ -362,6 +230,11 @@ mod_data_server <- function(id) {
         moduleState$data_entry_ready <- FALSE
         moduleState$measurement_combinations <- init_measurement_df()
         print_dev("mod_data: Some modules pending, data entry disabled")
+
+        toggleClass(
+          id = "validation_accordion_panel",
+          class = "validation-warning"
+        )
       }
     }) |>
       bindEvent(
@@ -439,7 +312,7 @@ mod_data_server <- function(id) {
     # upstream: session data
     # downstream: UI validation status display
     output$validation_overview <- renderUI({
-      status_list <- get_module_status()
+      status_list <- get_module_status(session)
 
       status_divs <- lapply(status_list, function(item) {
         status_class <- if (grepl("✓", item$status)) {
