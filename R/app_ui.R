@@ -145,7 +145,7 @@ app_ui <- function(request) {
             id = "previous_section",
             label = HTML(paste(
               bsicons::bs_icon("arrow-left"),
-              "Previous Section"
+              "Previous"
             )),
             type = "primary",
             style = "z-index: 9999;"
@@ -154,7 +154,7 @@ app_ui <- function(request) {
           input_task_button(
             id = "next_section",
             label = HTML(paste(
-              "Previous Section",
+              "Next",
               bsicons::bs_icon("arrow-right")
             )),
             type = "primary",
