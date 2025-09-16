@@ -650,41 +650,79 @@ create_biota_from_llm <- function(llm_biota_data) {
 
 #' Create Methods Data from LLM Data
 #'
-#' @description Creates methods data frame from LLM extracted methods data frame
+#' @description Creates methods data frame from LLM extracted methods data frame.
+#' Ensures all four protocol categories are present, adding "Not reported" entries for missing categories.
 #' @param llm_methods_data Methods data frame extracted by LLM
 #' @return Data frame in methods module format
 #' @noRd
 # ! FORMAT-BASED
 create_methods_from_llm <- function(llm_methods_data) {
-  if (is.null(llm_methods_data) || nrow(llm_methods_data) == 0) {
-    return(data.frame())
-  }
+  # Define all required protocol categories ----
+  required_categories <- c(
+    "Sampling Protocol",
+    "Fractionation Protocol",
+    "Extraction Protocol",
+    "Analytical Protocol"
+  )
 
   methods_df <- data.frame()
 
-  # Process each row of the methods data frame
-  for (i in seq_len(nrow(llm_methods_data))) {
-    method_entry <- llm_methods_data[i, ]
+  # Process LLM extracted methods if available ----
+  if (!is.null(llm_methods_data) && nrow(llm_methods_data) > 0) {
+    for (i in seq_len(nrow(llm_methods_data))) {
+      method_entry <- llm_methods_data[i, ]
 
-    # Create method row with LLM data
-    method_row <- data.frame(
-      PROTOCOL_CATEGORY = map_protocol_category_strict(safe_extract_field(
-        method_entry,
-        "protocol_category",
-        ""
-      )),
-      PROTOCOL_NAME = safe_extract_field(method_entry, "protocol_name", ""),
-      PROTOCOL_COMMENT = safe_extract_field(
-        method_entry,
-        "protocol_comment",
-        ""
-      ),
-      stringsAsFactors = FALSE
-    )
+      # Create method row with LLM data
+      method_row <- data.frame(
+        PROTOCOL_CATEGORY = map_protocol_category_strict(safe_extract_field(
+          method_entry,
+          "protocol_category",
+          ""
+        )),
+        PROTOCOL_NAME = safe_extract_field(method_entry, "protocol_name", ""),
+        PROTOCOL_COMMENT = safe_extract_field(
+          method_entry,
+          "protocol_comment",
+          ""
+        ),
+        stringsAsFactors = FALSE
+      )
 
-    methods_df <- rbind(methods_df, method_row)
+      methods_df <- rbind(methods_df, method_row)
+    }
   }
 
-  print_dev(glue("Created {nrow(methods_df)} methods from LLM data"))
+  # Identify missing protocol categories ----
+  extracted_categories <- unique(methods_df$PROTOCOL_CATEGORY)
+  extracted_categories <- extracted_categories[extracted_categories != ""] # Remove empty strings
+
+  missing_categories <- setdiff(required_categories, extracted_categories)
+
+  # Add "Not reported" entries for missing categories ----
+  if (length(missing_categories) > 0) {
+    for (category in missing_categories) {
+      missing_row <- data.frame(
+        PROTOCOL_CATEGORY = category,
+        PROTOCOL_NAME = "Not reported",
+        PROTOCOL_COMMENT = "",
+        stringsAsFactors = FALSE
+      )
+
+      methods_df <- rbind(methods_df, missing_row)
+    }
+
+    print_dev(glue(
+      "Added 'Not reported' entries for missing categories: {paste(missing_categories, collapse = ', ')}"
+    ))
+  }
+
+  # Sort by protocol category for consistency ----
+  methods_df <- methods_df[
+    order(match(methods_df$PROTOCOL_CATEGORY, required_categories)),
+  ]
+
+  print_dev(glue(
+    "Created {nrow(methods_df)} methods from LLM data (including missing categories)"
+  ))
   return(methods_df)
 }

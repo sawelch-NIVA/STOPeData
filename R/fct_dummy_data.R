@@ -16,73 +16,69 @@
 create_dummy_data <- function(uppercase_columns = FALSE) {
   dummy_data <- list(
     campaign = list(
-      campaign_name = "Copepod trace element accumulation study",
+      campaign_name = "Dummy campaign name",
       campaign_start_date = "1997-01-01",
       campaign_end_date = "1997-03-31",
-      organisation = "State University of New York",
-      campaign_comment = "Laboratory study measuring assimilation efficiencies, uptake rates, and efflux rate constants of five trace elements in marine copepods"
+      organisation = "NIVA",
+      campaign_comment = "A madeup NIVA study."
     ),
     references = list(
-      author = "Wang, Wen-Xiong; Fisher, Nicholas S.",
-      title = "Accumulation of trace elements in a marine copepod",
+      author = "Welch, S.",
+      title = "Study madeup",
       year = 1998L,
-      periodical_journal = "Limnology and Oceanography",
+      periodical_journal = "Journal of NIVA",
       volume = 43L,
       issue = 2L,
-      publisher = "American Society of Limnology and Oceanography",
+      publisher = "NIVA Library",
       doi = NULL
     ),
     sites = data.frame(
-      site_code = "SBH",
-      site_name = "Stony Brook Harbor",
-      latitude = 40.9,
+      site_code = "NIVA-001",
+      site_name = "NIVA Office",
+      latitude = 60,
       longitude = -73.1,
-      country = "United States",
+      country = "Norway",
       site_geographic_feature = "Coastal fjord",
       stringsAsFactors = FALSE
     ),
     parameters = data.frame(
-      parameter_name = c("Silver", "Cadmium", "Cobalt", "Selenium", "Zinc"),
-      parameter_type = rep("Stressor", 5),
+      parameter_name = c("Silver"),
+      parameter_type = rep("Stressor", 1),
       cas_rn = c(
-        "7440-22-4",
-        "7440-43-9",
-        "7440-48-4",
-        "7782-49-2",
-        "7440-66-6"
+        "7440-22-4"
       ),
       stringsAsFactors = FALSE
     ),
     compartments = data.frame(
-      environ_compartment = c("Aquatic", "Biota"),
-      environ_compartment_sub = c("Marine/Salt Water", "Biota Aquatic"),
-      measured_category = c("External", "Internal"),
+      environ_compartment = c("Aquatic"),
+      environ_compartment_sub = c("Marine/Salt Water"),
+      measured_category = c("External"),
       stringsAsFactors = FALSE
     ),
     biota = data.frame(
       sample_id = NA_character_,
-      species_group = "Crustaceans",
-      sample_species = "Temora longicornis",
-      sample_tissue = "Whole organism",
-      sample_species_lifestage = "Adult",
-      sample_species_gender = "Mixed",
+      species_group = NA_character_,
+      sample_species = NA_character_,
+      sample_tissue = NA_character_,
+      sample_species_lifestage = NA_character_,
+      sample_species_gender = NA_character_,
       stringsAsFactors = FALSE
     ),
     methods = data.frame(
       protocol_category = c(
         "Sampling Protocol",
         "Analytical Protocol",
-        "Analytical Protocol"
+        "Extraction Protocol"
       ),
       protocol_name = c(
-        "Collection from Stony Brook Harbor",
-        "Radiolabeling technique",
-        "Gamma spectrometry"
+        "Grab sampling",
+        "Other",
+        "Not reported"
       ),
       protocol_comment = c(
         "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
-        "Used radioisotopes 110mAg, 109Cd, 57Co, 75Se, and 65Zn to track trace element uptake and efflux",
-        "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope"
+        "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope",
+        ""
       ),
       stringsAsFactors = FALSE
     )

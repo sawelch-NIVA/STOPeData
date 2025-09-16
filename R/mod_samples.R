@@ -231,6 +231,7 @@ mod_samples_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu hot_col
 #' @importFrom shinyjs enable disable disabled
 #' @importFrom shinyWidgets updateAirDateInput
+#' @importFrom purrr is_empty
 
 mod_samples_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -256,14 +257,14 @@ mod_samples_server <- function(id) {
       if (nrow(moduleState$samples_data) == 0) {
         "At least one sample combination must be generated"
       } else {
-        # Check required fields - updated for new column structure
+        # Check required fields
         required_fields <- c(
           "SITE_CODE",
           "PARAMETER_NAME",
-          "ENVIRON_COMPARTMENT", # Changed from COMPARTMENT
+          "ENVIRON_COMPARTMENT",
           "ENVIRON_COMPARTMENT_SUB",
-          "MEASURED_CATEGORY", # Added this
-          "SAMPLING_DATE",
+          "MEASURED_CATEGORY",
+          # "SAMPLING_DATE",
           "REP",
           "SAMPLE_ID"
         )
@@ -271,7 +272,7 @@ mod_samples_server <- function(id) {
         for (i in 1:nrow(moduleState$samples_data)) {
           for (field in required_fields) {
             value <- moduleState$samples_data[i, field]
-            if (is.na(value) || value == "") {
+            if (is.na(value) || value == "" || is_empty(value)) {
               return(paste("Row", i, "is missing required field:", field))
             }
           }
@@ -537,6 +538,9 @@ mod_samples_server <- function(id) {
       dates <- input$sampling_date
       replicates <- input$sample_replicates %||% 1
 
+      # TODO: Remove debug printer
+      print_dev(dates)
+
       if (
         length(sites) == 0 ||
           length(parameters) == 0 ||
@@ -683,7 +687,8 @@ mod_samples_server <- function(id) {
           hot_col(
             "SAMPLING_DATE",
             readOnly = TRUE,
-            format = "date"
+            type = "date",
+            dateFormat = "YYYY-MM-DD"
           ) |>
           hot_col(
             "ENVIRON_COMPARTMENT",

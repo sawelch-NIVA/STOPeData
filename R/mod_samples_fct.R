@@ -247,6 +247,7 @@ combination_exists_with_components <- function(
 #' @description
 #' Create all valid combinations of sites, parameters, compartments, dates, and replicates,
 #' except for those already found in existing_data. Now handles separate compartment columns.
+#' Fixed to handle Date objects properly and avoid class-stripping in loops.
 #'
 #' @param sites Vector of site codes
 #' @param parameters Vector of parameter names
@@ -258,6 +259,7 @@ combination_exists_with_components <- function(
 #' @param available_sites Available sites data frame for lookup (optional)
 #' @param available_parameters Available parameters data frame for lookup (optional)
 #' @importFrom stats setNames
+#' @importFrom purrr map_dfr
 #' @noRd
 create_sample_combinations <- function(
   sites,
@@ -289,19 +291,29 @@ create_sample_combinations <- function(
     return(list(combinations = data.frame(), skipped = 0))
   }
 
-  all_combinations <- data.frame()
-  skipped_count <- 0
+  # Process dates using functional approach to avoid class-stripping
+  all_combinations_list <- purrr::map(dates, function(date) {
+    # Ensure we have a proper Date object and convert to character for storage
+    if (inherits(date, "Date")) {
+      date_char <- as.character(date)
+    } else {
+      # Handle case where date might be numeric (from for loop stripping)
+      date_obj <- as.Date(date, origin = "1970-01-01")
+      date_char <- as.character(date_obj)
+    }
 
-  for (date in dates) {
-    # Create base combinations with separate compartment columns
-    base_combinations <- expand.grid(
+    # Create base combinations for this date
+    base_combinations <- tidyr::expand_grid(
       SITE_CODE = sites,
       PARAMETER_NAME = parameters,
-      SAMPLING_DATE = as.character(date),
+      SAMPLING_DATE = date_char, # Always store as character
       stringsAsFactors = FALSE
     )
 
-    # Cross with parsed compartments
+    # Process each base combination with compartments and replicates
+    date_combinations <- data.frame()
+    skipped_for_date <- 0
+
     for (i in 1:nrow(base_combinations)) {
       for (j in 1:nrow(parsed_compartments)) {
         base_combo <- base_combinations[i, ]
@@ -315,7 +327,7 @@ create_sample_combinations <- function(
             ENVIRON_COMPARTMENT = compartment_combo$ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB = compartment_combo$ENVIRON_COMPARTMENT_SUB,
             MEASURED_CATEGORY = compartment_combo$MEASURED_CATEGORY,
-            SAMPLING_DATE = base_combo$SAMPLING_DATE,
+            SAMPLING_DATE = base_combo$SAMPLING_DATE, # Already character
             REP = rep,
             stringsAsFactors = FALSE
           )
@@ -333,14 +345,24 @@ create_sample_combinations <- function(
               rep
             )
           ) {
-            all_combinations <- rbind(all_combinations, combination)
+            date_combinations <- rbind(date_combinations, combination)
           } else {
-            skipped_count <- skipped_count + 1
+            skipped_for_date <- skipped_for_date + 1
           }
         }
       }
     }
-  }
+
+    # Return list with combinations and skipped count for this date
+    return(list(combinations = date_combinations, skipped = skipped_for_date))
+  })
+
+  # Combine results from all dates
+  all_combinations <- do.call(
+    rbind,
+    purrr::map(all_combinations_list, ~ .$combinations)
+  )
+  total_skipped <- sum(purrr::map_dbl(all_combinations_list, ~ .$skipped))
 
   if (nrow(all_combinations) > 0) {
     # Populate SITE_NAME from available_sites if provided
@@ -428,7 +450,7 @@ create_sample_combinations <- function(
     )]
   }
 
-  return(list(combinations = all_combinations, skipped = skipped_count))
+  return(list(combinations = all_combinations, skipped = total_skipped))
 }
 
 #' Update Combination Preview ----

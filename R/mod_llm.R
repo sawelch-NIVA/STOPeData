@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList fileInput textInput actionButton
+#' @importFrom shiny NS tagList fileInput textInput actionButton downloadButton downloadHandler
 #' @importFrom bslib card card_body accordion accordion_panel tooltip layout_column_wrap input_task_button accordion_panel_open
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs disabled
@@ -172,7 +172,18 @@ mod_llm_ui <- function(id) {
             value = "extraction_results",
             icon = bs_icon("cpu"),
             div(
-              verbatimTextOutput(ns("extraction_results"))
+              verbatimTextOutput(ns("extraction_results")),
+              # Add download button ----
+              div(
+                style = "margin-top: 10px;",
+                downloadButton(
+                  outputId = ns("download_extraction"),
+                  label = "Download Results",
+                  class = "btn-secondary btn-sm",
+                  icon = icon("download")
+                ) |>
+                  disabled()
+              )
             )
           )
         ),
@@ -428,6 +439,23 @@ mod_llm_server <- function(id) {
     }) |>
       bindEvent(input$extract_data)
 
+    ## observe: Enable download button when extraction is complete ----
+    # upstream: moduleState$extraction_complete, moduleState$extraction_successful
+    # downstream: download_extraction button state
+    observe({
+      if (
+        moduleState$extraction_complete && moduleState$extraction_successful
+      ) {
+        enable("download_extraction")
+      } else {
+        disable("download_extraction")
+      }
+    }) |>
+      bindEvent(
+        moduleState$extraction_complete,
+        moduleState$extraction_successful
+      )
+
     ## observe: Populate forms with extracted data ----
     # upstream: user clicks input$populate_forms
     # downstream: trigger form population in other modules
@@ -529,6 +557,7 @@ mod_llm_server <- function(id) {
       # Disable buttons
       disable("populate_forms")
       disable("clear_extraction")
+      disable("download_extraction")
 
       showNotification("Extraction cleared", type = "message")
     }) |>
@@ -620,6 +649,77 @@ mod_llm_server <- function(id) {
         "No extraction performed yet."
       }
     })
+
+    ## output: download_extraction ----
+    # upstream: moduleState$raw_extraction
+    # downstream: file download
+    output$download_extraction <- downloadHandler(
+      filename = function() {
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        paste0("llm_extraction_", timestamp, ".txt")
+      },
+      content = function(file) {
+        # Create comprehensive output including metadata
+        output_lines <- c()
+
+        # Header information ----
+        output_lines <- c(
+          output_lines,
+          "=== LLM PDF Data Extraction Results ===",
+          paste("Generated:", Sys.time()),
+          ""
+        )
+
+        # API metadata if available ----
+        if (!is.null(moduleState$api_metadata)) {
+          output_lines <- c(
+            output_lines,
+            "=== API Usage Statistics ===",
+            paste(
+              "Total Cost: $",
+              sprintf("%.4f", moduleState$api_metadata$total_cost)
+            ),
+            paste("Input Tokens:", moduleState$api_metadata$total_input_tokens),
+            paste(
+              "Output Tokens:",
+              moduleState$api_metadata$total_output_tokens
+            ),
+            paste("API Calls:", moduleState$api_metadata$call_count),
+            ""
+          )
+        }
+
+        # Structured data output ----
+        if (!is.null(moduleState$raw_extraction)) {
+          output_lines <- c(
+            output_lines,
+            "=== Extracted Structured Data ===",
+            ""
+          )
+
+          # Convert structured data to readable format
+          if (is.list(moduleState$raw_extraction)) {
+            structured_output <- capture.output(
+              str(
+                moduleState$raw_extraction,
+                max.level = 100,
+                vec.len = 200,
+                nchar.max = 5000
+              )
+            )
+            output_lines <- c(output_lines, structured_output)
+          } else {
+            output_lines <- c(
+              output_lines,
+              as.character(moduleState$raw_extraction)
+            )
+          }
+        }
+
+        # Write to file
+        writeLines(output_lines, file, useBytes = TRUE)
+      }
+    )
   })
 }
 
@@ -701,7 +801,7 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         site_name = type_string(
-          description = "Descriptive site name",
+          description = "Descriptive site name. If many sampling sites are reported without specific coordinates, note in the name.",
           required = FALSE
         ),
         latitude = type_number(
@@ -800,7 +900,11 @@ create_extraction_schema <- function() {
           required = FALSE
         ),
         protocol_name = type_string(
-          description = "Specific method or protocol name",
+          description = "Specific method name - must match exactly one of these options: 
+            Not relevant, Not reported, 
+          Point, Composite, Trawl, Grab, Core, Seine net, Electrofishing, Plankton net, 
+          Pooled, Filtration, Size Fractionation, PLE, MAE, USE, SPE, QuEChERS, LLE, SLE, Classical Extraction, Soxhlet, 
+          SBSE, HS-SPME, SPME, GC-MS, LC-MS, GC-ECD, GC-NPD, GC-FID, LC-UV, LC-FLD, ICP-MS, ICP-AES, AAS, FAAS, GFAAS, HGAAS, CVAAS, XRF, XRD, FTIR, UV-VIS, Enzyme assay, ELISA, RIA, Bioassay, Chemical analysis, Physical analysis, Microscopy, Histology. If technique does not match these options, report as Other",
           required = FALSE
         ),
         protocol_comment = type_string(
