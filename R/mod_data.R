@@ -29,17 +29,8 @@ mod_data_ui <- function(id) {
         ## Info accordion ----
         info_accordion(content_file = "inst/app/www/md/intro_data.md"),
 
-        ## Validation status overview ----
-        accordion(
-          id = ns("validation_accordion"),
-          accordion_panel(
-            value = "validation_accordion_panel",
-            style = "margin: 20px 0;",
-            title = "Module Validation Status",
-            icon = bs_icon("exclamation-triangle"),
-            uiOutput(ns("validation_overview")),
-          )
-        ),
+        ## Dynamic validation status accordion ----
+        uiOutput(ns("validation_accordion_ui")),
 
         ## Data entry controls ----
         div(
@@ -239,7 +230,7 @@ mod_data_server <- function(id) {
         data <- modules[[name]]
         if (name == "Biota") {
           # Special handling for biota validation flag
-          status <- if (isTruthy(data)) "✓ Validated" else "⚠ No biota samples"
+          status <- if (isTruthy(data)) "✅ Validated" else "⚠ No biota samples"
           count <- if (isTruthy(session$userData$reactiveValues$biotaData)) {
             nrow(session$userData$reactiveValues$biotaData)
           } else {
@@ -247,7 +238,7 @@ mod_data_server <- function(id) {
           }
         } else {
           status <- if (isTruthy(data) && nrow(data) > 0) {
-            "✓ Validated"
+            "✅ Validated"
           } else {
             "⚠ Pending"
           }
@@ -355,12 +346,14 @@ mod_data_server <- function(id) {
         moduleState$data_entry_ready <- TRUE
         # Create measurement combinations when ready
         moduleState$measurement_combinations <- create_measurement_combinations()
+
         print_dev(glue(
           "mod_data: All modules validated, created {nrow(moduleState$measurement_combinations)} measurement combinations"
         ))
       } else {
         moduleState$data_entry_ready <- FALSE
         moduleState$measurement_combinations <- init_measurement_df()
+
         print_dev("mod_data: Some modules pending, data entry disabled")
       }
     }) |>
@@ -429,11 +422,75 @@ mod_data_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$complete_dataset <- NULL
         session$userData$reactiveValues$dataData <- NULL
+
         print_dev("mod_data: Data validation failed")
       }
     })
 
     # 4. Outputs ----
+
+    ## output: validation_accordion_ui ----
+    # upstream: moduleState$is_valid, moduleState$data_entry_ready, moduleState$all_modules_valid
+    # downstream: UI validation accordion with dynamic styling
+    output$validation_accordion_ui <- renderUI({
+      # Determine validation state
+      if (moduleState$is_valid) {
+        accordion_class <- "accordion-validation-valid"
+        icon_name <- "check-circle"
+        style_css <- "
+          .accordion-validation-valid .accordion-button {
+            background-color: var(--color-success) !important;
+            color: white !important;
+          }
+          .accordion-validation-valid .accordion-button:not(.collapsed) {
+            background-color: #198754 !important;
+            color: white !important;
+          }
+        "
+      } else {
+        accordion_class <- "accordion-validation-warning"
+        icon_name <- "exclamation-triangle"
+        style_css <- "
+          .accordion-validation-warning .accordion-button {
+            background-color: var(--color-warning) !important;
+            color: var(--text-dark) !important;
+          }
+          .accordion-validation-warning .accordion-button:not(.collapsed) {
+            background-color: #e0a800 !important;
+            color: var(--text-dark) !important;
+          }
+        "
+      }
+
+      tagList(
+        # Dynamic CSS for current state
+        tags$head(
+          tags$style(HTML(paste0(
+            style_css,
+            "
+            .accordion-body {
+              margin: 0px;
+            }
+            "
+          )))
+        ),
+
+        # Dynamic accordion
+        div(
+          class = accordion_class,
+          accordion(
+            id = ns("validation_accordion"),
+            accordion_panel(
+              value = "validation_accordion_panel",
+              style = "margin: 20px 0;",
+              title = "Module Validation Status",
+              icon = bs_icon(icon_name),
+              uiOutput(ns("validation_overview"))
+            )
+          )
+        )
+      )
+    })
 
     ## output: validation_overview ----
     # upstream: session data
@@ -442,7 +499,7 @@ mod_data_server <- function(id) {
       status_list <- get_module_status()
 
       status_divs <- lapply(status_list, function(item) {
-        status_class <- if (grepl("✓", item$status)) {
+        status_class <- if (grepl("✅", item$status)) {
           "validation-status validation-complete"
         } else {
           "validation-status validation-warning"
@@ -467,7 +524,7 @@ mod_data_server <- function(id) {
 
       div(
         do.call(tagList, status_divs),
-        hr(),
+        hr(style = "margin: 0px;"),
         if (moduleState$all_modules_valid) {
           div(
             bs_icon("check-circle"),
