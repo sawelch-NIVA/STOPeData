@@ -15,12 +15,13 @@ app_ui <- function(request) {
         "
           #shiny-notification-panel {
             top: 0;
-            bottom: unset;
+            bottom: unset !important;
             left: unset;
             right: 0;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
+            height: auto !important;
             max-width: 450px;
           }
     "
