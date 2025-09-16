@@ -148,8 +148,7 @@ app_ui <- function(request) {
               bsicons::bs_icon("arrow-left"),
               "Previous"
             )),
-            type = "primary",
-            style = "z-index: 9999;"
+            type = "primary"
           ),
 
           input_task_button(
@@ -158,8 +157,7 @@ app_ui <- function(request) {
               "Next",
               bsicons::bs_icon("arrow-right")
             )),
-            type = "primary",
-            style = "z-index: 9999;"
+            type = "primary"
           )
         ),
         div(

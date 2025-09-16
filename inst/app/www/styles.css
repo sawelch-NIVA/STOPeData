@@ -87,9 +87,8 @@ pre,
 /* Validation Elements */
 .validation-status {
     transition: all 0.3s ease;
-    border-radius: var(--bs-border-radius);
     /* Use Bootstrap's border radius */
-
+    border-radius: var(--bs-border-radius);
     /* Bootstrap button formatting */
     padding: 0.75rem 2rem;
     font-size: 1rem;
