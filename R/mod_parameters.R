@@ -98,10 +98,11 @@ mod_parameters_ui <- function(id) {
         conditionalPanel(
           condition = "output.show_validation",
           ns = ns,
-          div(
-            h6("Parameter Database Lookup", style = "color: #0066cc;"),
-            div(
-              style = "background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0066cc;",
+          accordion(
+            open = TRUE,
+            accordion_panel(
+              title = "LLM extracted data validation",
+              icon = bs_icon("cpu"),
               verbatimTextOutput(ns("parameter_validation_results"))
             )
           )
