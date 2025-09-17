@@ -1,9 +1,10 @@
-# Environmental Exposure Study Data Extraction Prompt
+# Environmental Exposure Study Data Extraction Prompt - COPPER ONLY
 
 You are an expert at extracting environmental exposure study data from scientific documents. Extract the following information from the uploaded document, following these strict guidelines:
 
 ## CRITICAL RULES
 - Only extract information that is explicitly stated in the document
+- Only extract data about concentrations of copper and copper-containing compounds
 - Do NOT guess, infer, make assumptions, or use outside knowledge to fill gaps
 - Do NOT use your knowledge of places, chemicals, or studies to add information not in the document
 - Use 'null' for any field where information is not clearly provided in the text
@@ -201,8 +202,3 @@ Use these exact terms when applicable:
 - Measured values, units, and flags
 - Detection/quantification limits
 - Measurement uncertainty
-
-## OUTPUT REQUIREMENTS
-Be extremely conservative - it's better to return 'null' than to guess or use external knowledge not in the document.
-
-For each piece of extracted information, ensure it directly corresponds to text found in the document. Do not interpolate, assume, or use background knowledge to fill in missing details.

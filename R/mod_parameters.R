@@ -205,7 +205,8 @@ mod_parameters_server <- function(id) {
       select(PARAMETER_TYPE_SUB) |>
       distinct() |>
       arrange(PARAMETER_TYPE_SUB) |>
-      pull(PARAMETER_TYPE_SUB)
+      pull(PARAMETER_TYPE_SUB) |>
+      append(c("Mixture", "Not reported"))
 
     measured_types <- c(
       "Not relevant",
