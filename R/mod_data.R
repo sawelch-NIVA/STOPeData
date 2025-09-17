@@ -513,11 +513,7 @@ mod_data_server <- function(id) {
           item$status,
           " (",
           item$count,
-          if (item$module == "Campaign" || item$module == "References") {
-            " record"
-          } else {
-            " records"
-          },
+            " record(s)"
           ")"
         )
       })
