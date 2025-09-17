@@ -513,7 +513,7 @@ mod_data_server <- function(id) {
           item$status,
           " (",
           item$count,
-            " record(s)"
+          " record(s)",
           ")"
         )
       })

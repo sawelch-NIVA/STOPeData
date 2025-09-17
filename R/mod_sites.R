@@ -103,8 +103,30 @@ mod_sites_ui <- function(id) {
       card(
         height = "30vh",
         full_screen = TRUE,
-        ### Leaflet map ----
-        leafletOutput(ns("sites_map"))
+        card_body(
+          ### Leaflet map ----
+          leafletOutput(ns("sites_map")),
+
+          ### Map controls ----
+          layout_column_wrap(
+            width = 1 / 2,
+
+            # Add point button
+            actionButton(
+              inputId = ns("add_map_point"),
+              label = "Add Point as New Row",
+              icon = icon("map-pin"),
+              class = "btn-primary btn-sm",
+              width = "300px"
+            ),
+
+            # Selected coordinates reporter
+            div(
+              style = "display: flex; align-items: center; font-size: 0.9em; margin-top: 5px; margin-left: 5px;",
+              textOutput(ns("selected_coords"))
+            )
+          )
+        )
       )
     ),
 
@@ -142,11 +164,12 @@ mod_sites_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      sites_data = data.frame(), # Will hold the sites table data
+      sites_data = data.frame(),
       validated_data = NULL,
       is_valid = FALSE,
       selected_rows = NULL,
-      next_site_id = 1
+      next_site_id = 1,
+      clicked_coords = NULL
     )
 
     ## Controlled vocabulary options ----
@@ -369,6 +392,57 @@ mod_sites_server <- function(id) {
         moduleState$sites_data <- hot_to_r(input$sites_table)
       }
     })
+
+    ## observe: Capture map clicks ----
+    # upstream: input$sites_map_click
+    # downstream: moduleState$clicked_coords
+    observe({
+      click <- input$sites_map_click
+      if (!is.null(click)) {
+        moduleState$clicked_coords <- list(
+          lat = click$lat,
+          lng = click$lng
+        )
+      }
+    })
+
+    ## observe: Add point from map ----
+    # upstream: user clicks input$add_map_point
+    # downstream: moduleState$sites_data
+    observe({
+      req(moduleState$clicked_coords)
+
+      # Create new site with map coordinates
+      new_site <- create_new_site(
+        site_number = moduleState$next_site_id,
+        base_code = input$base_site_code
+      )
+
+      # Set coordinates from map click
+      new_site$LATITUDE <- moduleState$clicked_coords$lat
+      new_site$LONGITUDE <- moduleState$clicked_coords$lng
+
+      # Add to existing data
+      moduleState$sites_data <- rbind(moduleState$sites_data, new_site)
+
+      # Increment next site ID
+      moduleState$next_site_id <- moduleState$next_site_id + 1
+
+      # Clear selected coordinates
+      moduleState$clicked_coords <- NULL
+
+      # Show notification
+      showNotification(
+        paste(
+          "New site added from map coordinates:",
+          round(new_site$LATITUDE, 6),
+          ",",
+          round(new_site$LONGITUDE, 6)
+        ),
+        type = "message"
+      )
+    }) |>
+      bindEvent(input$add_map_point)
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$sites_data, iv
@@ -662,6 +736,23 @@ mod_sites_server <- function(id) {
         }
       }
       map
+    })
+
+    ## output: selected_coords ----
+    # upstream: moduleState$clicked_coords
+    # downstream: UI coordinates display
+    output$selected_coords <- renderText({
+      if (is.null(moduleState$clicked_coords)) {
+        "Click map to select coordinates"
+      } else {
+        paste0(
+          "Selected: (",
+          round(moduleState$clicked_coords$lng, 6),
+          ", ",
+          round(moduleState$clicked_coords$lat, 6),
+          ") WGS84"
+        )
+      }
     })
 
     ## output: validation_reporter ----
