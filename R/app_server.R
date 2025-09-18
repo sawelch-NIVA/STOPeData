@@ -62,7 +62,8 @@ app_server <- function(input, output, session) {
   moduleSamples <- mod_samples_server("samples")
   moduleBiota <- mod_biota_server("biota")
   moduleData <- mod_data_server(
-    "data"
+    "data",
+    parent_session = session
   )
   moduleReview <- mod_review_server(
     "review"

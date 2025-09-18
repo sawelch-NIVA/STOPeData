@@ -90,8 +90,9 @@ mod_data_ui <- function(id) {
 #' @importFrom dplyr cross_join mutate select rename
 #' @importFrom tibble tibble
 #' @importFrom utils capture.output head
+#' @importFrom purrr is_empty
 #' @export
-mod_data_server <- function(id) {
+mod_data_server <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -228,25 +229,15 @@ mod_data_server <- function(id) {
 
       status_list <- lapply(names(modules), function(name) {
         data <- modules[[name]]
-        if (name == "Biota") {
-          # Special handling for biota validation flag
-          status <- if (isTruthy(data)) "✅ Validated" else "⚠ No biota samples"
-          count <- if (isTruthy(session$userData$reactiveValues$biotaData)) {
-            nrow(session$userData$reactiveValues$biotaData)
-          } else {
-            "No biota samples"
-          }
+        status <- if (isTruthy(data) && nrow(data) > 0 || !is_empty(data)) {
+          "Validated"
         } else {
-          status <- if (isTruthy(data) && nrow(data) > 0) {
-            "✅ Validated"
-          } else {
-            "⚠ Pending"
-          }
-          count <- if (isTruthy(data)) {
-            nrow(data)
-          } else {
-            0
-          }
+          "Attention required"
+        }
+        count <- if (isTruthy(data)) {
+          nrow(data)
+        } else {
+          0
         }
 
         list(module = name, status = status, count = count)
@@ -427,6 +418,102 @@ mod_data_server <- function(id) {
       }
     })
 
+    ## observe: Navigate to Campaign when go_to_campaign clicked ----
+    # Upstream: input$go_to_campaign button click
+    # Downstream: Updates main navbar to campaign tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "01-campaign"
+      )
+    }) |>
+      bindEvent(input$go_to_campaign)
+
+    ## observe: Navigate to References when go_to_references clicked ----
+    # Upstream: input$go_to_references button click
+    # Downstream: Updates main navbar to references tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "02-references"
+      )
+    }) |>
+      bindEvent(input$go_to_references)
+
+    ## observe: Navigate to Sites when go_to_sites clicked ----
+    # Upstream: input$go_to_sites button click
+    # Downstream: Updates main navbar to sites tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "03-sites"
+      )
+    }) |>
+      bindEvent(input$go_to_sites)
+
+    ## observe: Navigate to Parameters when go_to_parameters clicked ----
+    # Upstream: input$go_to_parameters button click
+    # Downstream: Updates main navbar to parameters tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "04-parameters"
+      )
+    }) |>
+      bindEvent(input$go_to_parameters)
+
+    ## observe: Navigate to Compartments when go_to_compartments clicked ----
+    # Upstream: input$go_to_compartments button click
+    # Downstream: Updates main navbar to compartments tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "05-compartments"
+      )
+    }) |>
+      bindEvent(input$go_to_compartments)
+
+    ## observe: Navigate to Methods when go_to_methods clicked ----
+    # Upstream: input$go_to_methods button click
+    # Downstream: Updates main navbar to methods tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "06-methods"
+      )
+    }) |>
+      bindEvent(input$go_to_methods)
+
+    ## observe: Navigate to Samples when go_to_samples clicked ----
+    # Upstream: input$go_to_samples button click
+    # Downstream: Updates main navbar to samples tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "07-samples"
+      )
+    }) |>
+      bindEvent(input$go_to_samples)
+
+    ## observe: Navigate to Biota when go_to_biota clicked ----
+    # Upstream: input$go_to_biota button click
+    # Downstream: Updates main navbar to biota tab
+    observe({
+      updateNavbarPage(
+        session = parent_session,
+        inputId = "main-page",
+        selected = "08-biota"
+      )
+    }) |>
+      bindEvent(input$go_to_biota)
+
     # 4. Outputs ----
 
     ## output: validation_accordion_ui ----
@@ -498,46 +585,85 @@ mod_data_server <- function(id) {
     output$validation_overview <- renderUI({
       status_list <- get_module_status()
 
-      status_divs <- lapply(status_list, function(item) {
-        status_class <- if (grepl("✅", item$status)) {
+      # Create all module elements ----
+      module_elements <- lapply(1:8, function(i) {
+        item <- status_list[[i]]
+        valid <- grepl("Validated", item$status)
+        icon <- if (valid) "clipboard2-check" else "exclamation-triangle"
+        class <- if (valid) {
           "validation-status validation-complete"
         } else {
           "validation-status validation-warning"
         }
+        button_id <- paste0("go_to_", tolower(item$module))
+        button_id <- NS(id, button_id)
 
-        div(
-          class = status_class,
-          style = "margin: 5px 0; padding: 8px; border-radius: 4px;",
-          strong(item$module),
-          ": ",
-          item$status,
-          " (",
-          item$count,
-          " record(s)",
-          ")"
+        list(
+          # Column 1: Module name
+          span(
+            bs_icon("table"),
+            strong(item$module, ":"),
+            paste(item$count, "record(s)"),
+            style = "align-self: center;"
+          ),
+          # Column 2: Validation status (big column)
+          div(
+            class = class,
+            style = "padding: 8px; border-radius: 4px; margin: 0px;",
+            bs_icon(icon),
+            " ",
+            item$status
+          ),
+          # Column 3: Button
+          input_task_button(
+            id = button_id,
+            label = HTML(paste(
+              "Edit",
+              bsicons::bs_icon("pencil-square")
+            )),
+            class = "btn-sm",
+            style = "align-self: center;"
+          )
         )
       })
 
+      # Flatten the list for layout_column_wrap
+      all_elements <- do.call(c, module_elements)
+
+      # Final summary section ----
+      final_summary <- if (moduleState$all_modules_valid) {
+        div(
+          bs_icon("check-circle"),
+          " All modules validated - ",
+          nrow(moduleState$measurement_combinations),
+          " measurement combinations ready",
+          class = "validation-status validation-complete",
+          style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
+        )
+      } else {
+        div(
+          bs_icon("exclamation-triangle"),
+          " Complete all modules to enable data entry",
+          class = "validation-status validation-warning",
+          style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
+        )
+      }
+
+      # Return complete UI ----
       div(
-        do.call(tagList, status_divs),
+        layout_column_wrap(
+          width = NULL,
+          fill = FALSE,
+          fillable = FALSE,
+          style = css(
+            grid_template_columns = "1fr 8fr 1fr",
+            align_items = "center"
+          ),
+          !!!all_elements,
+          gap = "0.5rem"
+        ),
         hr(style = "margin: 0px;"),
-        if (moduleState$all_modules_valid) {
-          div(
-            bs_icon("check-circle"),
-            " All modules validated - ",
-            nrow(moduleState$measurement_combinations),
-            " measurement combinations ready",
-            class = "validation-status validation-complete",
-            style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
-          )
-        } else {
-          div(
-            bs_icon("exclamation-triangle"),
-            " Complete all modules to enable data entry",
-            class = "validation-status validation-warning",
-            style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
-          )
-        }
+        final_summary
       )
     })
 
