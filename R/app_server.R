@@ -7,6 +7,8 @@
 #' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
 #' @noRd
+options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
+
 app_server <- function(input, output, session) {
   # reactiveValues: initialise reactiveValues in session$userData to store data ----
   if (!is.reactivevalues(session$userData$reactiveValues)) {

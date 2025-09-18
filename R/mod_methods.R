@@ -311,8 +311,10 @@ mod_methods_server <- function(id) {
       if (!is.null(input$methods_table)) {
         updated_data <- hot_to_r(input$methods_table)
         moduleState$methods_data <- updated_data
+        session$userData$reactiveValues$methodsData <- moduleState$methods_data
       }
-    })
+    }) |>
+      bindEvent(input$methods_table)
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$methods_data, iv
