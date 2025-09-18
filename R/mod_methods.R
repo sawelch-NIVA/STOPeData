@@ -66,7 +66,7 @@ mod_methods_ui <- function(id) {
 
         ## Add method button and validation status ----
         div(
-          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
 
           input_task_button(
             id = ns("add_method"),

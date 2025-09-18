@@ -25,7 +25,7 @@ mod_biota_ui <- function(id) {
 
     # Main content card ----
     card(
-      fill = TRUE,
+      fill = FALSE,
       card_body(
         ## Info accordion ----
         info_accordion(

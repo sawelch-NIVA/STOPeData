@@ -34,7 +34,7 @@ mod_data_ui <- function(id) {
 
         ## Data entry controls ----
         div(
-          style = "margin: 20px 0;",
+          style = "margin: 20px 0 0 0;",
           h5("Measurement Data Entry"),
           p(
             "Complete measurement data for all sample-parameter combinations below. All fields marked as required must be filled.",
@@ -521,8 +521,14 @@ mod_data_server <- function(id, parent_session) {
     # downstream: UI validation accordion with dynamic styling
     output$validation_accordion_ui <- renderUI({
       # Determine validation state
-      if (moduleState$is_valid) {
+      if (moduleState$all_modules_valid) {
         accordion_class <- "accordion-validation-valid"
+        accordion_text <-
+          paste0(
+            "All modules validated - ",
+            nrow(moduleState$measurement_combinations),
+            " samples ready for data"
+          )
         icon_name <- "check-circle"
         style_css <- "
           .accordion-validation-valid .accordion-button {
@@ -536,6 +542,7 @@ mod_data_server <- function(id, parent_session) {
         "
       } else {
         accordion_class <- "accordion-validation-warning"
+        accordion_text <- "All modules must be valid to add measurements"
         icon_name <- "exclamation-triangle"
         style_css <- "
           .accordion-validation-warning .accordion-button {
@@ -570,7 +577,7 @@ mod_data_server <- function(id, parent_session) {
             accordion_panel(
               value = "validation_accordion_panel",
               style = "margin: 20px 0;",
-              title = "Module Validation Status",
+              title = accordion_text,
               icon = bs_icon(icon_name),
               uiOutput(ns("validation_overview"))
             )
@@ -630,25 +637,6 @@ mod_data_server <- function(id, parent_session) {
       # Flatten the list for layout_column_wrap
       all_elements <- do.call(c, module_elements)
 
-      # Final summary section ----
-      final_summary <- if (moduleState$all_modules_valid) {
-        div(
-          bs_icon("check-circle"),
-          " All modules validated - ",
-          nrow(moduleState$measurement_combinations),
-          " measurement combinations ready",
-          class = "validation-status validation-complete",
-          style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
-        )
-      } else {
-        div(
-          bs_icon("exclamation-triangle"),
-          " Complete all modules to enable data entry",
-          class = "validation-status validation-warning",
-          style = "margin-top: 10px; padding: 10px; border-radius: 4px;"
-        )
-      }
-
       # Return complete UI ----
       div(
         layout_column_wrap(
@@ -657,13 +645,12 @@ mod_data_server <- function(id, parent_session) {
           fillable = FALSE,
           style = css(
             grid_template_columns = "1fr 8fr 1fr",
-            align_items = "center"
+            align_items = "center",
+            margin = "-10px 0"
           ),
           !!!all_elements,
           gap = "0.5rem"
-        ),
-        hr(style = "margin: 0px;"),
-        final_summary
+        )
       )
     })
 
@@ -752,7 +739,7 @@ mod_data_server <- function(id, parent_session) {
           "Complete all setup modules to enable measurement data entry.",
           class = "validation-status validation-info"
         )
-      } else if (moduleState$is_valid) {
+      } else if (moduleState$all_modules_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
