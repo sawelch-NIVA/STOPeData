@@ -138,6 +138,7 @@ mod_compartments_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
+#' @importFrom purrr is_empty
 #' @export
 mod_compartments_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -258,7 +259,7 @@ mod_compartments_server <- function(id) {
         for (i in 1:nrow(moduleState$compartments_data)) {
           for (field in required_fields) {
             value <- moduleState$compartments_data[i, field]
-            if (is.na(value) || value == "") {
+            if (is.na(value) || value == "" || is_empty(value)) {
               return(paste("Row", i, "is missing required field:", field))
             }
           }
