@@ -469,9 +469,9 @@ mod_compartments_server <- function(id) {
 
         showNotification(
           paste(
-            "Loaded",
+            "Populated",
             nrow(llm_compartments),
-            "compartments from LLM extraction. Verify compartment combinations."
+            "compartments."
           ),
           type = "message"
         )

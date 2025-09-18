@@ -36,6 +36,7 @@ app_server <- function(input, output, session) {
       methodsDataLLM = NULL,
       samplesDataLLM = NULL,
       biotaDataLLM = NULL,
+      samplesDataLLM = NULL,
 
       # LLM extraction status flags
       llmExtractionComplete = FALSE,

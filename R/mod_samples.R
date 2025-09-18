@@ -332,6 +332,32 @@ mod_samples_server <- function(id) {
         ignoreInit = FALSE
       )
 
+    ## observe: Load from LLM data when available ----
+    # upstream: session$userData$reactiveValues$samplesDataLLM
+    # downstream: moduleState$samples_data
+    observe({
+      # just dates rn.
+      llm_samples <- session$userData$reactiveValues$samplesDataLLM
+      if (
+        !is.null(llm_samples) &&
+          length(llm_samples) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        updateAirDateInput(
+          session,
+          inputId = "sampling_date",
+          value = paste0(llm_samples, collapse = " - ")
+        )
+      }
+    }) |>
+      bindEvent(
+        label = "observe~bindEvent: load data from LLM module",
+        session$userData$reactiveValues$sitesDataLLM,
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     ## observe ~bindEvent(add_all_sites): Add all sites ----
     # upstream: user clicks input$add_all_sites
     # downstream: input$sites_select

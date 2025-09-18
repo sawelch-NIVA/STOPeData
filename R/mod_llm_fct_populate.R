@@ -726,3 +726,16 @@ create_methods_from_llm <- function(llm_methods_data) {
   ))
   return(methods_df)
 }
+
+create_samples_from_llm <- function(llm_samples_data) {
+  # Currently we only send SAMPLING_DATE to the samples module
+  if (is.null(llm_samples_data) || length(llm_samples_data) == 0) {
+    return(c())
+  } else {
+    dates_vector <- c()
+
+    for (date in 1:length(llm_samples_data)) {
+      append(dates_vector, date)
+    }
+  }
+}

@@ -515,6 +515,13 @@ mod_llm_server <- function(id) {
             session$userData$reactiveValues$methodsDataLLM <- methods_data
           }
 
+          if (!is.null(moduleState$structured_data$samples)) {
+            samples_data <- create_samples_from_llm(
+              moduleState$structured_data$samples
+            )
+            session$userData$reactiveValues$samplesDataLLM <- samples_data
+          }
+
           # Set extraction status flags
           session$userData$reactiveValues$llmExtractionComplete <- TRUE
           session$userData$reactiveValues$llmExtractionSuccessful <- TRUE
@@ -912,6 +919,14 @@ create_extraction_schema <- function() {
           required = FALSE
         )
       )
+    ),
+    # Samples data
+    samples = type_array(
+      description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
+      type_string(
+        description = "Dates (YYYY-MM-DD) when samples were taken",
+        required = TRUE
+      )
     )
   )
 }
@@ -1007,6 +1022,14 @@ store_llm_data_in_session <- function(session, extracted_data) {
       "Stored {length(extracted_data$methods)} methods from LLM extraction"
     ))
   }
+
+  # Samples data
+  if (!is.null(extracted_data$samples) && length(extracted_data$samples) > 0) {
+    session$userData$reactiveValues$samplesDataLLM <- extracted_data$samples
+    print_dev(glue(
+      "Stored {length(extracted_data$samples)} sampling data points from LLM extraction"
+    ))
+  }
 }
 
 #' Clear LLM data from session reactiveValues
@@ -1020,6 +1043,7 @@ clear_llm_data_from_session <- function(session) {
   session$userData$reactiveValues$compartmentsDataLLM <- NULL
   session$userData$reactiveValues$biotaDataLLM <- NULL
   session$userData$reactiveValues$methodsDataLLM <- NULL
+  session$userData$reactiveValues$samplesDataLLM <- NULL
   showNotification(
     "Cleared all LLM extracted data from session",
     type = "message"

@@ -980,7 +980,7 @@ mod_references_server <- function(id) {
         populate_references_from_llm(session, llm_data)
 
         showNotification(
-          "References form populated from LLM extraction. Please review and correct as needed.",
+          "References form populated.",
           type = "message"
         )
       }

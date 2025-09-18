@@ -488,7 +488,7 @@ mod_sites_server <- function(id) {
           paste(
             "Loaded",
             nrow(llm_sites),
-            "sites from LLM extraction. Review coordinates and details."
+            "sites from LLM extraction."
           ),
           type = "message"
         )

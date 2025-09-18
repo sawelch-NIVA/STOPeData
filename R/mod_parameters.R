@@ -422,18 +422,18 @@ mod_parameters_server <- function(id) {
           if (validation_result$has_warnings) {
             showNotification(
               paste(
-                "Loaded",
+                "Populated",
                 nrow(llm_parameters),
-                "parameters with validation warnings. Check results below."
+                "parameters (validation warning)"
               ),
               type = "warning"
             )
           } else {
             showNotification(
               paste(
-                "Loaded",
+                "Populated",
                 nrow(llm_parameters),
-                "parameters - all validated successfully"
+                "parameters (validated))"
               ),
               type = "message"
             )
@@ -441,9 +441,9 @@ mod_parameters_server <- function(id) {
         } else {
           showNotification(
             paste(
-              "Loaded",
+              "Populated",
               nrow(llm_parameters),
-              "parameters. Chemical database not available for validation."
+              "parameters. (validation not available)"
             ),
             type = "message"
           )
@@ -603,15 +603,6 @@ mod_parameters_server <- function(id) {
         moduleState$parameters_data <- create_parameters_from_llm(
           llm_parameters,
           if (exists("chemical_parameters")) chemical_parameters else NULL
-        )
-
-        showNotification(
-          paste(
-            "Loaded",
-            nrow(llm_parameters),
-            "parameters from LLM extraction. Review and add missing chemical identifiers."
-          ),
-          type = "message"
         )
       }
     }) |>

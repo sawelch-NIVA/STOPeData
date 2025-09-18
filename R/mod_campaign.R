@@ -342,7 +342,7 @@ mod_campaign_server <- function(id) {
         populate_campaign_from_llm(session, llm_data)
 
         showNotification(
-          "Campaign form populated from LLM extraction. Please review and correct as needed.",
+          "Campaign form populated.",
           type = "message"
         )
       }
