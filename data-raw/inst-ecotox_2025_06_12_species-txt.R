@@ -19,6 +19,11 @@ species <- readr::read_delim(
   trim_ws = TRUE,
 ) |>
   dplyr::select(common_name, latin_name, kingdom, ecotox_group) |>
+  # at least one row has an invalid character
+  dplyr::mutate(dplyr::across(
+    dplyr::where(is.character),
+    ~ stringr::str_replace_all(.x, "[^\\x20-\\x7E\\u00A0-\\uFFFF]", "")
+  )) |>
   dplyr::mutate(
     # first element of species_group is most useful for filtering?
     species_group = stringr::str_split_i(ecotox_group, ";", i = 1)

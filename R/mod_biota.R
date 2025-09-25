@@ -34,7 +34,7 @@ mod_biota_ui <- function(id) {
 
         ## Species selection controls ----
         div(
-          style = "margin: 15px 0; padding: 15px;",
+          style = "margin: 0 0; padding: 15px 15px 0 15px;",
           h5("Study Species Selection"),
           p(
             "First select a species group, then choose specific species for your study. Selected species will be available in the sample table below.",
@@ -82,6 +82,7 @@ mod_biota_ui <- function(id) {
             style = "margin-top: 10px;",
             layout_columns(
               col_widths = c(10, 2),
+              style = "margin-bottom: 0px;",
               div(
                 h6("Currently Selected Species:"),
                 verbatimTextOutput(
@@ -108,6 +109,19 @@ mod_biota_ui <- function(id) {
 
           ### Validation status ----
           uiOutput(ns("validation_reporter"))
+        ),
+
+        conditionalPanel(
+          condition = "output.llm_lookup_validation",
+          ns = ns,
+          accordion(
+            open = TRUE,
+            accordion_panel(
+              title = "LLM extracted data validation",
+              icon = bs_icon("cpu"),
+              verbatimTextOutput(ns("parameter_llm_validation_results"))
+            )
+          )
         ),
 
         ## Raw data accordion ----
@@ -141,7 +155,8 @@ mod_biota_ui <- function(id) {
 #'
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectizeInput
+#' @importFrom shiny moduleServer reactive reactiveValues observe
+#' renderText renderUI showNotification updateSelectizeInput isTruthy
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
@@ -160,8 +175,10 @@ mod_biota_server <- function(id) {
       validated_data = NULL,
       is_valid = FALSE,
       has_biota_samples = FALSE,
+      llm_validation_results = NULL,
       species_options = data.frame(),
-      study_species = character(0)
+      study_species = character(0),
+      llm_lookup_validation = FALSE
     )
 
     moduleState$species_options <- read_parquet(
@@ -432,6 +449,70 @@ mod_biota_server <- function(id) {
         ignoreInit = FALSE
       )
 
+    ## observe ~bindEvent(LLM data validates or updates): Load and validate LLM biota ----
+    # upstream: session$userData$reactiveValues$llmExtractionComplete
+    # downstream: moduleState$biota_data, moduleState$llm_lookup_validation, moduleState$llm_validation_results
+    observe({
+      llm_biota <- session$userData$reactiveValues$biotaDataLLM |> na.omit() # LLM returns a column of all NAs if there are no hits
+      if (
+        !is.null(llm_biota) &&
+          nrow(llm_biota) > 0 &&
+          session$userData$reactiveValues$llmExtractionComplete
+      ) {
+        # Load and validate biota
+        moduleState$biota_data <- llm_biota
+
+        # Run validation if moduleState$species_options is available
+        if (
+          isTruthy(moduleState$species_options) &
+            nrow(moduleState$species_options) > 0
+        ) {
+          validation_result <- validate_species_against_database(
+            moduleState$biota_data,
+            moduleState$species_options
+          )
+          moduleState$llm_validation_results <- validation_result
+          moduleState$llm_lookup_validation <- TRUE
+
+          # Show notification based on validation
+          if (validation_result$has_warnings) {
+            showNotification(
+              paste(
+                "Populated",
+                nrow(llm_biota),
+                "biota (validation warning)"
+              ),
+              type = "warning"
+            )
+          } else {
+            showNotification(
+              paste(
+                "Populated",
+                nrow(llm_biota),
+                "biota (validated))"
+              ),
+              type = "message"
+            )
+          }
+        } else {
+          showNotification(
+            paste(
+              "Populated",
+              nrow(llm_biota),
+              "biota. (validation not available)"
+            ),
+            type = "message"
+          )
+          moduleState$llm_lookup_validation <- FALSE
+        }
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$llmExtractionComplete,
+        ignoreInit = TRUE,
+        ignoreNULL = FALSE
+      )
+
     ## observe: Handle table changes ----
     # upstream: input$biota_table changes
     # downstream: moduleState$biota_data
@@ -483,22 +564,6 @@ mod_biota_server <- function(id) {
         print_dev("mod_biota: Validation failed")
       }
     })
-
-    ## observe ~ bindEvent: Load biota data from LLM extraction ----
-    observe({
-      if (!is.null(session$userData$reactiveValues$biotaDataLLM)) {
-        llm_biota_data <- session$userData$reactiveValues$biotaDataLLM
-
-        # replace existing data
-        moduleState$biota_data <-
-          llm_biota_data
-
-        print_dev(glue(
-          "mod_biota loaded {nrow(llm_biota_data)} entries from LLM"
-        ))
-      }
-    }) |>
-      bindEvent(session$userData$reactiveValues$biotaDataLLM, ignoreNULL = TRUE)
 
     # 4. Outputs ----
 
@@ -652,6 +717,22 @@ mod_biota_server <- function(id) {
             allowRowEdit = FALSE, # Don't allow adding/removing rows
             allowColEdit = FALSE
           )
+      }
+    })
+
+    ## output: checking of llm data ----
+    # upstream: moduleState$llm_lookup_validation, moduleState$llm_validation_results
+    # downstream: output$llm_lookup_validation
+    output$llm_lookup_validation <- reactive({
+      moduleState$llm_lookup_validation
+    })
+    outputOptions(output, "llm_lookup_validation", suspendWhenHidden = FALSE)
+
+    output$parameter_llm_validation_results <- renderText({
+      if (!is.null(moduleState$llm_validation_results)) {
+        moduleState$llm_validation_results$validation_text
+      } else {
+        "No validation results available."
       }
     })
 
