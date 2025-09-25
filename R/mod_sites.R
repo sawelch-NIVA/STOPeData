@@ -108,22 +108,37 @@ mod_sites_ui <- function(id) {
           leafletOutput(ns("sites_map")),
 
           ### Map controls ----
-          layout_column_wrap(
-            width = 1 / 2,
 
-            # Add point button
-            actionButton(
-              inputId = ns("add_map_point"),
-              label = "Add Point as New Row",
+          # Add point button
+          div(
+            style = "margin-top: auto;
+                      margin-bottom: auto;
+                      flex: 1 1 auto;
+                      align-content: space-between;",
+            input_task_button(
+              id = ns("add_map_point"),
+              label = "Add",
+              icon = icon("plus"),
+              class = "btn-success btn-sm",
+              style = "width: 100px; height: fit-content;",
+              label_busy = "..."
+            ),
+
+            # Update selected button
+            input_task_button(
+              id = ns("update_selected_coords"),
+              label = "Update",
               icon = icon("map-pin"),
               class = "btn-primary btn-sm",
-              width = "300px"
+              style = "width: 100px; height: fit-content;",
+              label_busy = "..."
             ),
 
             # Selected coordinates reporter
             div(
-              style = "display: flex; align-items: center; font-size: 0.9em; margin-top: 5px; margin-left: 5px;",
-              textOutput(ns("selected_coords"))
+              style = "display: flex; flex-direction: column; font-size: 0.9em; font-family: ",
+              textOutput(ns("selected_coords")),
+              textOutput(ns("selected_rows_reporter"))
             )
           )
         )
@@ -131,18 +146,12 @@ mod_sites_ui <- function(id) {
     ),
 
     ### Bottom card: Sites table ----
-    # card(
-    #   full_screen = TRUE,
-    #   card_body(
-    #     max_height_full_screen = "80vh",
     card(
       div(
         rHandsontableOutput(ns("sites_table")),
         style = "margin-bottom: 10px;"
       )
     )
-    #   )
-    # )
   )
 }
 
@@ -153,7 +162,8 @@ mod_sites_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
-#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers clearMarkers setView leafletProxy
+#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions
+#' clearMarkers setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
 #' @importFrom dplyr pull
 #' @export
@@ -350,6 +360,25 @@ mod_sites_server <- function(id) {
 
     # 3. Observers and Reactives ----
 
+    ## observe: Track table row selection ----
+    # upstream: input$sites_table_select (from selectCallback)
+    # downstream: moduleState$selected_rows
+    observe({
+      selection <- input$sites_table_select
+      if (!is.null(selection)) {
+        # Extract selected row indices (1-based)
+        selected <- selection$select$r
+        if (!is.null(selected) && length(selected) > 0) {
+          # Convert to 1-based indexing if needed
+          moduleState$selected_rows <- selected + 1
+        } else {
+          moduleState$selected_rows <- NULL
+        }
+      } else {
+        moduleState$selected_rows <- NULL
+      }
+    })
+
     ## observe: Add new site(s) ----
     # upstream: user clicks input$add_site
     # downstream: moduleState$sites_data
@@ -403,6 +432,29 @@ mod_sites_server <- function(id) {
           lat = click$lat,
           lng = click$lng
         )
+
+        # Update map with clicked point marker
+        leafletProxy("sites_map") |>
+          clearGroup("clicked_point") |>
+          addCircleMarkers(
+            lng = click$lng,
+            lat = click$lat,
+            radius = 2,
+            color = "black",
+            fillColor = "red",
+            fillOpacity = 0.8,
+            stroke = TRUE,
+            weight = 2,
+            group = "clicked_point",
+            popup = paste0(
+              "<strong>Clicked Point</strong><br/>",
+              "Lat: ",
+              round(click$lat, 6),
+              "<br/>",
+              "Lng: ",
+              round(click$lng, 6)
+            )
+          )
       }
     })
 
@@ -431,18 +483,61 @@ mod_sites_server <- function(id) {
       # Clear selected coordinates
       moduleState$clicked_coords <- NULL
 
+      # Clear clicked point marker
+      leafletProxy("sites_map") |>
+        clearGroup("clicked_point")
+
       # Show notification
       showNotification(
         paste(
-          "New site added from map coordinates:",
+          "New site added, Lat:",
           round(new_site$LATITUDE, 6),
-          ",",
+          ", Lng:",
           round(new_site$LONGITUDE, 6)
         ),
         type = "message"
       )
     }) |>
       bindEvent(input$add_map_point)
+
+    ## observe: Update selected rows with map coordinates ----
+    # upstream: user clicks input$update_selected_coords
+    # downstream: moduleState$sites_data
+    observe({
+      req(moduleState$clicked_coords)
+      req(moduleState$selected_rows)
+      req(nrow(moduleState$sites_data) > 0)
+
+      # Update coordinates for all selected rows
+      for (row_idx in moduleState$selected_rows) {
+        if (row_idx <= nrow(moduleState$sites_data)) {
+          moduleState$sites_data[
+            row_idx,
+            "LATITUDE"
+          ] <- moduleState$clicked_coords$lat
+          moduleState$sites_data[
+            row_idx,
+            "LONGITUDE"
+          ] <- moduleState$clicked_coords$lng
+        }
+      }
+
+      # Clear selected coordinates and marker
+      moduleState$clicked_coords <- NULL
+      leafletProxy("sites_map") |>
+        clearGroup("clicked_point")
+
+      # Show notification
+      showNotification(
+        paste(
+          "Updated coordinates for",
+          length(moduleState$selected_rows),
+          "selected row(s)"
+        ),
+        type = "message"
+      )
+    }) |>
+      bindEvent(input$update_selected_coords)
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$sites_data, iv
@@ -508,15 +603,11 @@ mod_sites_server <- function(id) {
     # upstream: moduleState$sites_data
     # downstream: UI table display
     output$sites_table <- renderRHandsontable({
-      # if (nrow(moduleState$sites_data) == 0) {
-      #   # Show empty table structure
-      #   rhandsontable(create_new_site(), stretchH = "all") |>
-      #     hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
-      # } else {
       rhandsontable(
         moduleState$sites_data,
         overflow = "visible",
-        height = 500
+        height = 500,
+        selectCallback = TRUE # Enable row selection tracking
       ) |>
         hot_table(stretchH = "right") |>
         hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
@@ -677,15 +768,15 @@ mod_sites_server <- function(id) {
             )
           )
         )
-      # }
     })
 
     ## output: sites_map ----
-    # upstream: moduleState$sites_data, input$map_center_country
+    # upstream: moduleState$sites_data
     # downstream: UI map display
     output$sites_map <- renderLeaflet({
       map <- leaflet() |>
-        addTiles()
+        addTiles() |>
+        mapOptions(zoomToLimits = "always") # don't adjust zoom level when we add a point
 
       # Add markers for sites with valid coordinates
       if (nrow(moduleState$sites_data) > 0) {
@@ -713,7 +804,13 @@ mod_sites_server <- function(id) {
           valid_lng <- lng_numeric[valid_coords]
 
           map <- map |>
-            addMarkers(
+            addCircleMarkers(
+              radius = 3,
+              color = "black",
+              fillColor = "blue",
+              fillOpacity = 0.8,
+              stroke = TRUE,
+              weight = 2,
               lng = valid_lng,
               lat = valid_lat,
               popup = paste0(
@@ -743,14 +840,32 @@ mod_sites_server <- function(id) {
     # downstream: UI coordinates display
     output$selected_coords <- renderText({
       if (is.null(moduleState$clicked_coords)) {
-        "Click map to select coordinates"
+        "Click to select coordinates"
+      } else {
+        paste(
+          "Lat:",
+          round(moduleState$clicked_coords$lat, 6),
+          "Lng:",
+          round(moduleState$clicked_coords$lng, 6),
+          "(WGS84, 6 s.f.)"
+        )
+      }
+    })
+
+    ## output: selected_rows_reporter ----
+    # upstream: moduleState$selected_rows
+    # downstream: UI selected rows display
+    output$selected_rows_reporter <- renderText({
+      if (
+        is.null(moduleState$selected_rows) ||
+          length(moduleState$selected_rows) == 0
+      ) {
+        "No rows selected"
       } else {
         paste0(
-          "Selected: (",
-          round(moduleState$clicked_coords$lng, 6),
-          ", ",
-          round(moduleState$clicked_coords$lat, 6),
-          ") WGS84"
+          length(moduleState$selected_rows),
+          " row(s) selected: ",
+          paste(moduleState$selected_rows, collapse = ", ")
         )
       }
     })
