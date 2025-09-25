@@ -261,6 +261,7 @@ create_sites_from_llm <- function(llm_sites_data) {
 #' @param llm_parameters_data Parameters data frame extracted by LLM
 #' @param chemical_parameters Reference database for lookups (optional)
 #' @return Data frame in parameters module format
+#' @importFrom purrr map_dfr
 #' @noRd
 # ! FORMAT-BASED
 create_parameters_from_llm <- function(
@@ -271,40 +272,48 @@ create_parameters_from_llm <- function(
     return(data.frame())
   }
 
-  params_df <- data.frame()
+  # Helper function to find database match ----
+  find_db_match <- function(param_name, cas_rn, chemical_parameters) {
+    if (is.null(chemical_parameters)) {
+      return(NULL)
+    }
 
-  # Process each row of the parameters data frame
-  for (i in seq_len(nrow(llm_parameters_data))) {
+    # Try exact name match first
+    if (param_name != "") {
+      exact_match <- chemical_parameters[
+        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
+      ]
+      if (nrow(exact_match) > 0) {
+        return(exact_match[1, ]) # Take first match
+      }
+    }
+
+    # Try CAS lookup if no name match
+    if (cas_rn != "") {
+      cas_match <- chemical_parameters[
+        !is.na(chemical_parameters$CAS_RN) &
+          chemical_parameters$CAS_RN == cas_rn,
+      ]
+      if (nrow(cas_match) > 0) {
+        return(cas_match[1, ]) # Take first match
+      }
+    }
+
+    return(NULL)
+  }
+
+  # Process each parameter row ----
+  params_df <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
     param <- llm_parameters_data[i, ]
 
     param_name <- safe_extract_field(param, "parameter_name", "")
     cas_rn <- safe_extract_field(param, "cas_rn", "")
 
     # Try to get data from chemical database
-    db_match <- NULL
-    if (!is.null(chemical_parameters) && param_name != "") {
-      # Try exact name match first
-      exact_match <- chemical_parameters[
-        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
-      ]
-      if (nrow(exact_match) > 0) {
-        db_match <- exact_match[1, ] # Take first match
-      }
-    }
-
-    # If no name match but we have a CAS, try CAS lookup
-    if (is.null(db_match) && !is.null(chemical_parameters) && cas_rn != "") {
-      cas_match <- chemical_parameters[
-        !is.na(chemical_parameters$CAS_RN) &
-          chemical_parameters$CAS_RN == cas_rn,
-      ]
-      if (nrow(cas_match) > 0) {
-        db_match <- cas_match[1, ] # Take first match
-      }
-    }
+    db_match <- find_db_match(param_name, cas_rn, chemical_parameters)
 
     # Build parameter row
-    param_row <- data.frame(
+    data.frame(
       PARAMETER_TYPE = if (!is.null(db_match)) {
         db_match$PARAMETER_TYPE
       } else {
@@ -332,9 +341,7 @@ create_parameters_from_llm <- function(
       ENTERED_BY = "",
       stringsAsFactors = FALSE
     )
-
-    params_df <- rbind(params_df, param_row)
-  }
+  })
 
   print_dev(glue("Created {nrow(params_df)} parameters from LLM data"))
   return(params_df)
