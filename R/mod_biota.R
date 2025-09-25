@@ -472,24 +472,27 @@ mod_biota_server <- function(id) {
             moduleState$species_options
           )
           moduleState$llm_validation_results <- validation_result
+          moduleState$study_species <- unique(llm_biota$SAMPLE_SPECIES[
+            !is.na(llm_biota$SAMPLE_SPECIES) & llm_biota$SAMPLE_SPECIES != ""
+          ])
           moduleState$llm_lookup_validation <- TRUE
 
           # Show notification based on validation
           if (validation_result$has_warnings) {
             showNotification(
               paste(
-                "Populated",
+                "Added",
                 nrow(llm_biota),
-                "biota (validation warning)"
+                "biota to options (validation warning)"
               ),
               type = "warning"
             )
           } else {
             showNotification(
               paste(
-                "Populated",
+                "Added",
                 nrow(llm_biota),
-                "biota (validated))"
+                "biota to options (validated))"
               ),
               type = "message"
             )
@@ -497,9 +500,9 @@ mod_biota_server <- function(id) {
         } else {
           showNotification(
             paste(
-              "Populated",
+              "Added",
               nrow(llm_biota),
-              "biota. (validation not available)"
+              "biota to options (validation not available)"
             ),
             type = "message"
           )
