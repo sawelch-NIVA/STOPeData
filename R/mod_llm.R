@@ -932,13 +932,16 @@ create_extraction_schema <- function() {
         )
       )
     ),
-    # Samples data
+    # Samples data - ARRAY OF OBJECTS
     samples = type_array(
-      description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
-      sampling_date = type_string(
-        description = "Dates (YYYY-MM-DD) when samples were taken",
-        required = TRUE
-      )
+      type_object(
+        .description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
+        sampling_date = type_string(
+          description = "Dates (YYYY-MM-DD) when samples were taken",
+          required = TRUE
+        )
+      ),
+      description = "Information on the overall sampling strategy of the paper"
     )
   )
 }
