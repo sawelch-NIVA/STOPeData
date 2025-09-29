@@ -139,11 +139,10 @@ mod_biota_ui <- function(id) {
 
     ## Biota table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(
-          ns("biota_table"),
-          width = "100%",
-          height = "100%"
+          ns("biota_table")
         ),
         style = "margin-bottom: 10px;"
       )
@@ -474,7 +473,9 @@ mod_biota_server <- function(id) {
           moduleState$llm_validation_results <- validation_result
           moduleState$study_species <- unique(llm_biota$SAMPLE_SPECIES[
             !is.na(llm_biota$SAMPLE_SPECIES) & llm_biota$SAMPLE_SPECIES != ""
-          ])
+          ]) |>
+            append(c("Not reported", "Not relevant"), after = 0)
+
           moduleState$llm_lookup_validation <- TRUE
 
           # Show notification based on validation
@@ -577,88 +578,82 @@ mod_biota_server <- function(id) {
       if (length(moduleState$study_species) == 0) {
         "No species selected for study"
       } else {
+        exclude <- c("Not reported", "Not relevant")
         species_count <- length(moduleState$study_species)
-        if (species_count <= 10) {
-          paste(moduleState$study_species, collapse = ", ")
-        } else {
-          paste0(
-            paste(moduleState$study_species[1:8], collapse = ", "),
-            ", ... and ",
-            species_count - 8,
-            " more species"
-          )
-        }
+        paste(moduleState$study_species |> setdiff(exclude), collapse = ", ")
       }
     })
 
     ## output: biota_table ----
     # upstream: moduleState$biota_data, moduleState$study_species
     # downstream: UI table display
+    # ! FORMAT-BASED
+    tissue_types <- c(
+      "Not reported",
+      "Not relevant",
+      "Whole organism",
+      "Muscle",
+      "Liver",
+      "Kidney",
+      "Brain",
+      "Heart",
+      "Lung",
+      "Gill",
+      "Shell",
+      "Carapace",
+      "Blood",
+      "Egg",
+      "Larva",
+      "Leaf",
+      "Root",
+      "Stem",
+      "Fruit",
+      "Seed",
+      "Other"
+    )
+
+    # ! FORMAT-BASED
+    life_stages <- c(
+      "Not reported",
+      "Not relevant",
+      "Adult",
+      "Juvenile",
+      "Larva",
+      "Embryo",
+      "Egg",
+      "Seedling",
+      "Mature",
+      "Young",
+      "Mixed",
+      "Other"
+    )
+
+    # ! FORMAT-BASED
+    genders <- c(
+      "Not reported",
+      "Not relevant",
+      "Male",
+      "Female",
+      "Mixed",
+      "Hermaphrodite",
+      "Other"
+    )
+
     output$biota_table <- renderRHandsontable({
       if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
         # Show message when no biota samples
         rhandsontable(
           init_biota_df(),
-          readOnly = TRUE,
+          selectCallback = TRUE,
+          width = NULL
         )
       } else {
-        # Create controlled vocabulary for biota fields
-
         # Use only study-selected species for the dropdown
         available_species <- if (length(moduleState$study_species) > 0) {
           moduleState$study_species
         } else {
           c("Select species above first")
         }
-
-        # ! FORMAT-BASED
-        tissue_types <- c(
-          "Whole organism",
-          "Muscle",
-          "Liver",
-          "Kidney",
-          "Brain",
-          "Heart",
-          "Lung",
-          "Gill",
-          "Shell",
-          "Carapace",
-          "Blood",
-          "Egg",
-          "Larva",
-          "Leaf",
-          "Root",
-          "Stem",
-          "Fruit",
-          "Seed",
-          "Other"
-        )
-
-        # ! FORMAT-BASED
-        life_stages <- c(
-          "Adult",
-          "Juvenile",
-          "Larva",
-          "Embryo",
-          "Egg",
-          "Seedling",
-          "Mature",
-          "Young",
-          "Mixed",
-          "Not applicable",
-          "Other"
-        )
-
-        # ! FORMAT-BASED
-        genders <- c(
-          "Male",
-          "Female",
-          "Mixed",
-          "Hermaphrodite",
-          "Not applicable",
-          "Not determined",
-          "Other"
-        )
 
         # Get species groups from loaded data
         species_groups <- sort(unique(
@@ -667,8 +662,10 @@ mod_biota_server <- function(id) {
 
         rhandsontable(
           moduleState$biota_data,
+          stretchH = "all",
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
+          height = 500
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
           # Make sample info columns read-only
