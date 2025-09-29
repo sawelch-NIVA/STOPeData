@@ -523,11 +523,14 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$samples)) {
-            print_dev(moduleState$structured_data$samples)
+            print_dev(paste0(
+              "moduleState$structured_data$samples: ",
+              moduleState$structured_data$samples
+            ))
             samples_data <- create_samples_from_llm(
               moduleState$structured_data$samples
             )
-            print_dev(samples_data)
+            print_dev(paste0("samples_data: ", samples_data))
             session$userData$reactiveValues$samplesDataLLM <- samples_data
           }
 

@@ -339,17 +339,24 @@ mod_samples_server <- function(id) {
     observe({
       # just dates rn.
       llm_samples <- session$userData$reactiveValues$samplesDataLLM
-      print_dev(llm_samples)
+      print_dev(paste0("llm_samples: ", llm_samples))
       if (
         !is.null(llm_samples) &&
           length(llm_samples) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
+        print_dev(paste0(
+          "updating AirDateInput with",
+          paste0(llm_samples, collapse = " - ")
+        ))
         updateAirDateInput(
           session,
           inputId = "sampling_date",
-          value = paste0(llm_samples, collapse = " - ")
+          value = llm_samples
+          # value = paste0(llm_samples, collapse = " - ")
         )
+      } else {
+        print_dev("llm_samples null, unable to update")
       }
     }) |>
       bindEvent(

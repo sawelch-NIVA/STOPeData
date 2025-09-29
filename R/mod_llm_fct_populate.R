@@ -903,7 +903,7 @@ create_methods_from_llm <- function(llm_methods_data) {
 }
 
 create_samples_from_llm <- function(llm_samples_data) {
-  # Currently we only send SAMPLING_DATE to the samples module
+  # Currently we only send SAMPLING_DATE to the samples modul
   if (is.null(llm_samples_data) || length(llm_samples_data) == 0) {
     return(c())
   } else {
@@ -914,5 +914,6 @@ create_samples_from_llm <- function(llm_samples_data) {
       print(date)
       dates_vector <- append(dates_vector, date)
     }
+    return(dates_vector)
   }
 }
