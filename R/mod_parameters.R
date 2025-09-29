@@ -123,6 +123,7 @@ mod_parameters_ui <- function(id) {
 
     ## Parameters table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(ns("parameters_table")),
         style = "margin-bottom: 10px;"
@@ -624,8 +625,10 @@ mod_parameters_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_parameters_df(),
+          stretchH = "all",
+          height = 500,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
@@ -643,10 +646,12 @@ mod_parameters_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$parameters_data,
+          stretchH = "all",
+          height = 500,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
         ) |>
-          hot_table(overflow = "visible", stretchH = "right") |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",

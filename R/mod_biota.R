@@ -641,11 +641,13 @@ mod_biota_server <- function(id) {
 
     output$biota_table <- renderRHandsontable({
       if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
-        # Show message when no biota samples
+        # Show empty table structure
         rhandsontable(
           init_biota_df(),
+          stretchH = "all",
+          height = 500,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
         )
       } else {
         # Use only study-selected species for the dropdown

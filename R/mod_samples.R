@@ -211,11 +211,12 @@ mod_samples_ui <- function(id) {
 
     ## Samples table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(
-          ns("samples_table"),
-          width = "100%",
-          height = "100%"
+          ns("samples_table")
+          # width = "100%",
+          # height = "100%"
         ),
         style = "margin-bottom: 10px;"
       )

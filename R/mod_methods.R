@@ -95,6 +95,7 @@ mod_methods_ui <- function(id) {
 
     ## Methods table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(ns("methods_table")),
         style = "margin-bottom: 10px;"
