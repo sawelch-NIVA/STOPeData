@@ -909,8 +909,10 @@ create_samples_from_llm <- function(llm_samples_data) {
   } else {
     dates_vector <- c()
 
-    for (date in 1:length(llm_samples_data)) {
-      append(dates_vector, date)
+    for (row in 1:nrow(llm_samples_data)) {
+      date <- llm_samples_data$sampling_date[row]
+      print(date)
+      dates_vector <- append(dates_vector, date)
     }
   }
 }

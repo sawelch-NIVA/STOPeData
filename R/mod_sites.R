@@ -607,8 +607,9 @@ mod_sites_server <- function(id) {
       rhandsontable(
         moduleState$sites_data,
         stretchH = "all",
+        height = 500,
+        selectCallback = TRUE,
         width = NULL,
-        selectCallback = TRUE # Enable row selection tracking
       ) |>
         hot_table(overflow = "visible", stretchH = "all") |>
         hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>

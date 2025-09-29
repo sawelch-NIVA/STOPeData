@@ -81,6 +81,9 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
         ""
       ),
       stringsAsFactors = FALSE
+    ),
+    samples = data.frame(
+      sampling_date = c("2025-09-29", "2023-02-12")
     )
   )
 
