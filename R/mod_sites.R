@@ -147,6 +147,7 @@ mod_sites_ui <- function(id) {
 
     ### Bottom card: Sites table ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(ns("sites_table")),
         style = "margin-bottom: 10px;"
@@ -605,11 +606,12 @@ mod_sites_server <- function(id) {
     output$sites_table <- renderRHandsontable({
       rhandsontable(
         moduleState$sites_data,
-        overflow = "visible",
+        stretchH = "all",
         height = 500,
-        selectCallback = TRUE # Enable row selection tracking
+        selectCallback = TRUE,
+        width = NULL,
       ) |>
-        hot_table(stretchH = "right") |>
+        hot_table(overflow = "visible", stretchH = "all") |>
         hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
         hot_cell(
           1,

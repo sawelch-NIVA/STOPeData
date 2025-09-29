@@ -35,8 +35,8 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
     sites = data.frame(
       site_code = "NIVA-001",
       site_name = "NIVA Office",
-      latitude = 60,
-      longitude = -73.1,
+      latitude = 59.924634,
+      longitude = 10.792297,
       country = "Norway",
       site_geographic_feature = "Coastal fjord",
       stringsAsFactors = FALSE
@@ -50,18 +50,18 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       stringsAsFactors = FALSE
     ),
     compartments = data.frame(
-      environ_compartment = c("Aquatic"),
-      environ_compartment_sub = c("Marine/Salt Water"),
-      measured_category = c("External"),
+      environ_compartment = c("Aquatic", "Biota"),
+      environ_compartment_sub = c("Marine/Salt Water", "Biota, Aquatic"),
+      measured_category = c("External", "Internal"),
       stringsAsFactors = FALSE
     ),
     biota = data.frame(
       sample_id = NA_character_,
-      species_group = NA_character_,
-      sample_species = NA_character_,
-      sample_tissue = NA_character_,
-      sample_species_lifestage = NA_character_,
-      sample_species_gender = NA_character_,
+      species_group = "Crustaceans",
+      sample_species = "Daphnia magna",
+      sample_tissue = "Whole body",
+      sample_species_lifestage = "Adult",
+      sample_species_gender = "Female",
       stringsAsFactors = FALSE
     ),
     methods = data.frame(
@@ -81,6 +81,9 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
         ""
       ),
       stringsAsFactors = FALSE
+    ),
+    samples = data.frame(
+      sampling_date = c("2025-09-29", "2023-02-12")
     )
   )
 

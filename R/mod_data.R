@@ -65,7 +65,8 @@ mod_data_ui <- function(id) {
 
     ## Measurement data table card ----
     card(
-      style = "overflow: clip;",
+      full_screen = TRUE,
+      # style = "overflow: clip;",
       div(
         rHandsontableOutput(
           ns("measurement_table"),

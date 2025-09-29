@@ -211,11 +211,12 @@ mod_samples_ui <- function(id) {
 
     ## Samples table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(
-          ns("samples_table"),
-          width = "100%",
-          height = "100%"
+          ns("samples_table")
+          # width = "100%",
+          # height = "100%"
         ),
         style = "margin-bottom: 10px;"
       )
@@ -338,6 +339,7 @@ mod_samples_server <- function(id) {
     observe({
       # just dates rn.
       llm_samples <- session$userData$reactiveValues$samplesDataLLM
+      print_dev(llm_samples)
       if (
         !is.null(llm_samples) &&
           length(llm_samples) > 0 &&
@@ -351,9 +353,9 @@ mod_samples_server <- function(id) {
       }
     }) |>
       bindEvent(
-        label = "observe~bindEvent: load data from LLM module",
-        session$userData$reactiveValues$sitesDataLLM,
+        label = "observe~bindEvent: populate mod_samples with from LLM module",
         session$userData$reactiveValues$llmExtractionComplete,
+        session$userData$reactiveValues$llmExtractionSuccessful,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )

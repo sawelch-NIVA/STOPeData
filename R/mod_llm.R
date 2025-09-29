@@ -283,8 +283,10 @@ mod_llm_server <- function(id) {
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
 
-      # Store in session data with LLM suffix (for LLM workflow)
-      store_llm_data_in_session(session, dummy_data)
+      # ! I believe this is redundant due to the Populate Forms
+      # ! observer. Disabling to check.
+      # # Store in session data with LLM suffix (for LLM workflow)
+      # store_llm_data_in_session(session, dummy_data)
 
       showNotification(
         "Dummy data loaded successfully!",
@@ -403,7 +405,9 @@ mod_llm_server <- function(id) {
 
             # Step 8: Update session data
             incProgress(0.9, detail = "Updating data...")
-            store_llm_data_in_session(session, result)
+            # ! I believe this is redundant due to the Populate Forms
+            # ! observer. Disabling to check.
+            # store_llm_data_in_session(session, result)
 
             # Step 9: Enable UI elements
             incProgress(1.0, detail = "Finalising...")
@@ -461,22 +465,25 @@ mod_llm_server <- function(id) {
     # downstream: trigger form population in other modules
     observe({
       req(moduleState$structured_data)
-
       tryCatch(
         {
           # Populate form fields directly
+          # TODO: The code for campaign and references is rather messy
+          # and could perhaps do with some rationalisation.
           if (!is.null(moduleState$structured_data$campaign)) {
-            populate_campaign_from_llm(
-              session,
-              moduleState$structured_data$campaign
-            )
+            # campaign_data <- populate_campaign_from_llm(
+            #   session,
+            #   moduleState$structured_data$campaign
+            # )
+            session$userData$reactiveValues$campaignDataLLM <- moduleState$structured_data$campaign
           }
 
           if (!is.null(moduleState$structured_data$references)) {
-            populate_references_from_llm(
-              session,
-              moduleState$structured_data$references
-            )
+            # reference_data <- populate_references_from_llm(
+            #   session,
+            #   moduleState$structured_data$references
+            # )
+            session$userData$reactiveValues$referencesDataLLM <- moduleState$structured_data$references
           }
 
           # Create structured data for table-based modules and store in session
@@ -516,9 +523,11 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$samples)) {
+            print_dev(moduleState$structured_data$samples)
             samples_data <- create_samples_from_llm(
               moduleState$structured_data$samples
             )
+            print_dev(samples_data)
             session$userData$reactiveValues$samplesDataLLM <- samples_data
           }
 
@@ -923,7 +932,7 @@ create_extraction_schema <- function() {
     # Samples data
     samples = type_array(
       description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
-      type_string(
+      sampling_date = type_string(
         description = "Dates (YYYY-MM-DD) when samples were taken",
         required = TRUE
       )
@@ -959,77 +968,6 @@ get_schema_display <- function() {
 #' @noRd
 create_extraction_prompt <- function() {
   read_file("inst/app/www/md/extraction_prompt.md")
-}
-
-#' Store LLM extracted data in session reactiveValues
-#' @param session Shiny session object
-#' @param extracted_data Structured data from Claude
-#' @noRd
-store_llm_data_in_session <- function(session, extracted_data) {
-  # Campaign data
-  if (!is.null(extracted_data$campaign)) {
-    session$userData$reactiveValues$campaignDataLLM <- extracted_data$campaign
-    print_dev("Stored campaign data from LLM extraction")
-  }
-
-  # References data
-  if (!is.null(extracted_data$references)) {
-    session$userData$reactiveValues$referencesDataLLM <- extracted_data$references
-    print_dev("Stored references data from LLM extraction")
-  }
-
-  # Sites data
-  if (!is.null(extracted_data$sites) && length(extracted_data$sites) > 0) {
-    session$userData$reactiveValues$sitesDataLLM <- extracted_data$sites
-    print_dev(glue(
-      "Stored {length(extracted_data$sites)} sites from LLM extraction"
-    ))
-  }
-
-  # Parameters data
-  if (
-    !is.null(extracted_data$parameters) && length(extracted_data$parameters) > 0
-  ) {
-    session$userData$reactiveValues$parametersDataLLM <- extracted_data$parameters
-    print_dev(glue(
-      "Stored {length(extracted_data$parameters)} parameters from LLM extraction"
-    ))
-  }
-
-  # Compartments data
-  if (
-    !is.null(extracted_data$compartments) &&
-      length(extracted_data$compartments) > 0
-  ) {
-    session$userData$reactiveValues$compartmentsDataLLM <- extracted_data$compartments
-    print_dev(glue(
-      "Stored {length(extracted_data$compartments)} compartments from LLM extraction"
-    ))
-  }
-
-  # Biota data
-  if (!is.null(extracted_data$biota) && length(extracted_data$biota) > 0) {
-    session$userData$reactiveValues$biotaDataLLM <- extracted_data$biota
-    print_dev(glue(
-      "Stored {length(extracted_data$biota)} biota entries from LLM extraction"
-    ))
-  }
-
-  # Methods data
-  if (!is.null(extracted_data$methods) && length(extracted_data$methods) > 0) {
-    session$userData$reactiveValues$methodsDataLLM <- extracted_data$methods
-    print_dev(glue(
-      "Stored {length(extracted_data$methods)} methods from LLM extraction"
-    ))
-  }
-
-  # Samples data
-  if (!is.null(extracted_data$samples) && length(extracted_data$samples) > 0) {
-    session$userData$reactiveValues$samplesDataLLM <- extracted_data$samples
-    print_dev(glue(
-      "Stored {length(extracted_data$samples)} sampling data points from LLM extraction"
-    ))
-  }
 }
 
 #' Clear LLM data from session reactiveValues

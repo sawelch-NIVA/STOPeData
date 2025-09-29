@@ -261,6 +261,7 @@ create_sites_from_llm <- function(llm_sites_data) {
 #' @param llm_parameters_data Parameters data frame extracted by LLM
 #' @param chemical_parameters Reference database for lookups (optional)
 #' @return Data frame in parameters module format
+#' @importFrom purrr map_dfr
 #' @noRd
 # ! FORMAT-BASED
 create_parameters_from_llm <- function(
@@ -271,40 +272,48 @@ create_parameters_from_llm <- function(
     return(data.frame())
   }
 
-  params_df <- data.frame()
+  # Helper function to find database match ----
+  find_db_match <- function(param_name, cas_rn, chemical_parameters) {
+    if (is.null(chemical_parameters)) {
+      return(NULL)
+    }
 
-  # Process each row of the parameters data frame
-  for (i in seq_len(nrow(llm_parameters_data))) {
+    # Try exact name match first
+    if (param_name != "") {
+      exact_match <- chemical_parameters[
+        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
+      ]
+      if (nrow(exact_match) > 0) {
+        return(exact_match[1, ]) # Take first match
+      }
+    }
+
+    # Try CAS lookup if no name match
+    if (cas_rn != "") {
+      cas_match <- chemical_parameters[
+        !is.na(chemical_parameters$CAS_RN) &
+          chemical_parameters$CAS_RN == cas_rn,
+      ]
+      if (nrow(cas_match) > 0) {
+        return(cas_match[1, ]) # Take first match
+      }
+    }
+
+    return(NULL)
+  }
+
+  # Process each parameter row ----
+  params_df <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
     param <- llm_parameters_data[i, ]
 
     param_name <- safe_extract_field(param, "parameter_name", "")
     cas_rn <- safe_extract_field(param, "cas_rn", "")
 
     # Try to get data from chemical database
-    db_match <- NULL
-    if (!is.null(chemical_parameters) && param_name != "") {
-      # Try exact name match first
-      exact_match <- chemical_parameters[
-        tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
-      ]
-      if (nrow(exact_match) > 0) {
-        db_match <- exact_match[1, ] # Take first match
-      }
-    }
-
-    # If no name match but we have a CAS, try CAS lookup
-    if (is.null(db_match) && !is.null(chemical_parameters) && cas_rn != "") {
-      cas_match <- chemical_parameters[
-        !is.na(chemical_parameters$CAS_RN) &
-          chemical_parameters$CAS_RN == cas_rn,
-      ]
-      if (nrow(cas_match) > 0) {
-        db_match <- cas_match[1, ] # Take first match
-      }
-    }
+    db_match <- find_db_match(param_name, cas_rn, chemical_parameters)
 
     # Build parameter row
-    param_row <- data.frame(
+    data.frame(
       PARAMETER_TYPE = if (!is.null(db_match)) {
         db_match$PARAMETER_TYPE
       } else {
@@ -332,9 +341,7 @@ create_parameters_from_llm <- function(
       ENTERED_BY = "",
       stringsAsFactors = FALSE
     )
-
-    params_df <- rbind(params_df, param_row)
-  }
+  })
 
   print_dev(glue("Created {nrow(params_df)} parameters from LLM data"))
   return(params_df)
@@ -646,6 +653,174 @@ create_biota_from_llm <- function(llm_biota_data) {
   return(biota_df)
 }
 
+#' Validate Species Against Database
+#'
+#' @description Validates species names against database with scientific name priority
+#' @param biota_data Biota data frame with SAMPLE_SPECIES column
+#' @param species_database Species reference database with SPECIES_NAME and SPECIES_COMMON_NAME columns
+#' @return List with validation results and formatted text output
+#' @noRd
+# ! FORMAT-BASED
+validate_species_against_database <- function(biota_data, species_database) {
+  if (is.null(biota_data) || nrow(biota_data) == 0) {
+    return(list(
+      validation_text = "No biota samples to validate.",
+      has_warnings = FALSE
+    ))
+  }
+
+  output_lines <- c("Species Database Validation Results:", "")
+  has_warnings <- FALSE
+
+  # Process each unique species name
+  unique_species <- unique(biota_data$SAMPLE_SPECIES)
+  unique_species <- unique_species[
+    !is.na(unique_species) & unique_species != ""
+  ]
+
+  if (length(unique_species) == 0) {
+    return(list(
+      validation_text = "No species names provided for validation.",
+      has_warnings = TRUE
+    ))
+  }
+
+  for (species_name in unique_species) {
+    output_lines <- c(output_lines, paste0("Species: \"", species_name, "\""))
+
+    # Try exact scientific name match first (case insensitive)
+    scientific_matches <- species_database[
+      tolower(species_database$SPECIES_NAME) == tolower(species_name),
+    ]
+
+    if (nrow(scientific_matches) > 0) {
+      output_lines <- c(output_lines, "  ✓ Found as scientific name")
+      if (nrow(scientific_matches) > 1) {
+        output_lines <- c(
+          output_lines,
+          paste0(
+            "    → Multiple entries found (",
+            nrow(scientific_matches),
+            " matches)"
+          )
+        )
+        has_warnings <- TRUE
+      }
+      # Show the canonical scientific name
+      output_lines <- c(
+        output_lines,
+        paste0("    → Canonical: ", scientific_matches$SPECIES_NAME[1])
+      )
+    } else {
+      # Try common name match
+      common_matches <- species_database[
+        tolower(species_database$SPECIES_COMMON_NAME) == tolower(species_name),
+      ]
+
+      if (nrow(common_matches) > 0) {
+        output_lines <- c(output_lines, "  ⚠ Found as common name")
+        has_warnings <- TRUE
+
+        if (nrow(common_matches) > 1) {
+          output_lines <- c(
+            output_lines,
+            paste0(
+              "    → Multiple species match this common name (",
+              nrow(common_matches),
+              " matches)"
+            )
+          )
+          output_lines <- c(output_lines, "    → Manual review required:")
+
+          # List all matching scientific names (limit to first 10)
+          display_count <- min(10, nrow(common_matches))
+          for (i in 1:display_count) {
+            output_lines <- c(
+              output_lines,
+              paste0("       • ", common_matches$SPECIES_NAME[i])
+            )
+          }
+          if (nrow(common_matches) > 10) {
+            output_lines <- c(
+              output_lines,
+              paste0(
+                "       ... and ",
+                nrow(common_matches) - 10,
+                " more matches"
+              )
+            )
+          }
+        } else {
+          output_lines <- c(
+            output_lines,
+            paste0("    → Scientific name: ", common_matches$SPECIES_NAME[1])
+          )
+        }
+      } else {
+        output_lines <- c(output_lines, "  ⚠ Species not found in database")
+        output_lines <- c(output_lines, "    → Manual verification required")
+        has_warnings <- TRUE
+      }
+    }
+
+    output_lines <- c(output_lines, "") # Blank line between species
+  }
+
+  # Summary
+  total_species <- length(unique_species)
+  scientific_found <- sum(sapply(unique_species, function(sp) {
+    nrow(species_database[
+      tolower(species_database$SPECIES_NAME) == tolower(sp),
+    ]) >
+      0
+  }))
+  common_found <- sum(sapply(unique_species, function(sp) {
+    nrow(species_database[
+      tolower(species_database$SPECIES_COMMON_NAME) == tolower(sp),
+    ]) >
+      0 &&
+      nrow(species_database[
+        tolower(species_database$SPECIES_NAME) == tolower(sp),
+      ]) ==
+        0
+  }))
+  not_found <- total_species - scientific_found - common_found
+
+  output_lines <- c(output_lines, "Summary:")
+  output_lines <- c(
+    output_lines,
+    paste0("  Species processed: ", total_species)
+  )
+  output_lines <- c(
+    output_lines,
+    paste0("  Found as scientific names: ", scientific_found)
+  )
+  output_lines <- c(
+    output_lines,
+    paste0("  Found as common names: ", common_found)
+  )
+  output_lines <- c(
+    output_lines,
+    paste0("  Not found in database: ", not_found)
+  )
+
+  if (has_warnings) {
+    output_lines <- c(output_lines, "")
+    output_lines <- c(
+      output_lines,
+      "⚠ Manual review recommended for flagged species."
+    )
+  } else {
+    output_lines <- c(output_lines, "")
+    output_lines <- c(output_lines, "✓ All species found as scientific names!")
+  }
+
+  return(list(
+    validation_text = paste(output_lines, collapse = "\n"),
+    has_warnings = has_warnings
+  ))
+}
+
 # mod_methods ----
 
 #' Create Methods Data from LLM Data
@@ -734,8 +909,10 @@ create_samples_from_llm <- function(llm_samples_data) {
   } else {
     dates_vector <- c()
 
-    for (date in 1:length(llm_samples_data)) {
-      append(dates_vector, date)
+    for (row in 1:nrow(llm_samples_data)) {
+      date <- llm_samples_data$sampling_date[row]
+      print(date)
+      dates_vector <- append(dates_vector, date)
     }
   }
 }

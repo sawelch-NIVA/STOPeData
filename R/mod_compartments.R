@@ -123,6 +123,7 @@ mod_compartments_ui <- function(id) {
 
     ## Compartments table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(ns("compartments_table")),
         style = "margin-bottom: 10px;"

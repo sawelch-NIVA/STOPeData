@@ -94,16 +94,16 @@ mod_parameters_ui <- function(id) {
           uiOutput(ns("validation_reporter"))
         ),
 
-        ## Parameter validation results (in case of LLM data only) ----
+        ## LLM lookup validation ----
         conditionalPanel(
-          condition = "output.show_validation",
+          condition = "output.llm_lookup_validation",
           ns = ns,
           accordion(
             open = TRUE,
             accordion_panel(
               title = "LLM extracted data validation",
               icon = bs_icon("cpu"),
-              verbatimTextOutput(ns("parameter_validation_results"))
+              verbatimTextOutput(ns("parameter_llm_validation_results"))
             )
           )
         ),
@@ -123,6 +123,7 @@ mod_parameters_ui <- function(id) {
 
     ## Parameters table card ----
     card(
+      full_screen = TRUE,
       div(
         rHandsontableOutput(ns("parameters_table")),
         style = "margin-bottom: 10px;"
@@ -160,8 +161,8 @@ mod_parameters_server <- function(id) {
       is_valid = FALSE,
       next_param_id = 1,
       session_parameters = list(),
-      validation_results = NULL,
-      show_validation = FALSE
+      llm_validation_results = NULL,
+      llm_lookup_validation = FALSE
     )
 
     ## Dummy parameter data ----
@@ -396,9 +397,9 @@ mod_parameters_server <- function(id) {
         ignoreInit = FALSE
       )
 
-    ## observe ~bindEvent(LLM data validates or updates): Load and validate parameters ----
+    ## observe ~bindEvent(LLM data validates or updates): Load and validate LLM parameters ----
     # upstream: session$userData$reactiveValues$llmExtractionComplete
-    # downstream: moduleState$parameters_data, moduleState$show_validation, moduleState$validation_results
+    # downstream: moduleState$parameters_data, moduleState$llm_lookup_validation, moduleState$llm_validation_results
     observe({
       llm_parameters <- session$userData$reactiveValues$parametersDataLLM
       if (
@@ -415,8 +416,8 @@ mod_parameters_server <- function(id) {
             moduleState$parameters_data,
             chemical_parameters
           )
-          moduleState$validation_results <- validation_result
-          moduleState$show_validation <- TRUE
+          moduleState$llm_validation_results <- validation_result
+          moduleState$llm_lookup_validation <- TRUE
 
           # Show notification based on validation
           if (validation_result$has_warnings) {
@@ -447,7 +448,7 @@ mod_parameters_server <- function(id) {
             ),
             type = "message"
           )
-          moduleState$show_validation <- FALSE
+          moduleState$llm_lookup_validation <- FALSE
         }
       }
     }) |>
@@ -589,29 +590,30 @@ mod_parameters_server <- function(id) {
       }
     })
 
-    ## observe: Load from LLM data when available ----
+    # TODO: Pretty sure this is extraneous.
+    ## DISABLED: observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$parametersDataLLM
     # downstream: moduleState$parameters_data
-    observe({
-      llm_parameters <- session$userData$reactiveValues$parametersDataLLM
-      if (
-        !is.null(llm_parameters) &&
-          nrow(llm_parameters) > 0 &&
-          session$userData$reactiveValues$llmExtractionComplete
-      ) {
-        # Replace current parameters data with LLM data
-        moduleState$parameters_data <- create_parameters_from_llm(
-          llm_parameters,
-          if (exists("chemical_parameters")) chemical_parameters else NULL
-        )
-      }
-    }) |>
-      bindEvent(
-        session$userData$reactiveValues$parametersDataLLM,
-        session$userData$reactiveValues$llmExtractionComplete,
-        ignoreInit = TRUE,
-        ignoreNULL = FALSE
-      )
+    # observe({
+    #   llm_parameters <- session$userData$reactiveValues$parametersDataLLM
+    #   if (
+    #     !is.null(llm_parameters) &&
+    #       nrow(llm_parameters) > 0 &&
+    #       session$userData$reactiveValues$llmExtractionComplete
+    #   ) {
+    #     # Replace current parameters data with LLM data
+    #     moduleState$parameters_data <- create_parameters_from_llm(
+    #       llm_parameters,
+    #       if (exists("chemical_parameters")) chemical_parameters else NULL
+    #     )
+    #   }
+    # }) |>
+    #   bindEvent(
+    #     session$userData$reactiveValues$parametersDataLLM,
+    #     session$userData$reactiveValues$llmExtractionComplete,
+    #     ignoreInit = TRUE,
+    #     ignoreNULL = FALSE
+    #   )
 
     # 3. Outputs ----
 
@@ -623,8 +625,10 @@ mod_parameters_server <- function(id) {
         # Show empty table structure
         rhandsontable(
           init_parameters_df(),
+          stretchH = "all",
+          height = 500,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
@@ -642,10 +646,12 @@ mod_parameters_server <- function(id) {
       } else {
         rhandsontable(
           moduleState$parameters_data,
+          stretchH = "all",
+          height = 500,
           selectCallback = TRUE,
-          width = NULL
+          width = NULL,
         ) |>
-          hot_table(overflow = "visible", stretchH = "right") |>
+          hot_table(overflow = "visible", stretchH = "all") |>
           hot_col(
             "PARAMETER_NAME",
             type = "text",
@@ -730,17 +736,17 @@ mod_parameters_server <- function(id) {
       div(llm_indicator, validation_status, class = "validation-container")
     })
 
-    ## output: checking of llm data ----
-    # upstream: moduleState$show_validation, moduleState$validation_results
-    # downstream: output$show_validation
-    output$show_validation <- reactive({
-      moduleState$show_validation
+    ## output: llm lookup validation ----
+    # upstream: moduleState$llm_lookup_validation, moduleState$llm_validation_results
+    # downstream: output$llm_lookup_validation
+    output$llm_lookup_validation <- reactive({
+      moduleState$llm_lookup_validation
     })
-    outputOptions(output, "show_validation", suspendWhenHidden = FALSE)
+    outputOptions(output, "llm_lookup_validation", suspendWhenHidden = FALSE)
 
-    output$parameter_validation_results <- renderText({
-      if (!is.null(moduleState$validation_results)) {
-        moduleState$validation_results$validation_text
+    output$parameter_llm_validation_results <- renderText({
+      if (!is.null(moduleState$llm_validation_results)) {
+        moduleState$llm_validation_results$validation_text
       } else {
         "No validation results available."
       }
