@@ -134,6 +134,16 @@ mod_sites_ui <- function(id) {
               label_busy = "..."
             ),
 
+            # Hide labels button
+            input_task_button(
+              id = ns("toggle_labels"),
+              label = "Show/Hide Labels",
+              icon = icon("eye-slash"),
+              class = "btn-warning btn-sm",
+              style = "width: 150px; height: fit-content;",
+              label_busy = "..."
+            ),
+
             # Selected coordinates reporter
             div(
               style = "display: flex; flex-direction: column; font-size: 0.9em; font-family: ",
@@ -163,10 +173,11 @@ mod_sites_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
-#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions
-#' clearMarkers setView leafletProxy addCircleMarkers clearGroup
+#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers
+#' mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
 #' @importFrom dplyr pull
+#' @importFrom bslib update_task_button
 #' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -180,7 +191,8 @@ mod_sites_server <- function(id) {
       is_valid = FALSE,
       selected_rows = NULL,
       next_site_id = 1,
-      clicked_coords = NULL
+      clicked_coords = NULL,
+      show_labels = TRUE # Add this line
     )
 
     ## Controlled vocabulary options ----
@@ -365,13 +377,12 @@ mod_sites_server <- function(id) {
     # upstream: input$sites_table_select (from selectCallback)
     # downstream: moduleState$selected_rows
     observe({
-      selection <- input$sites_table_select
+      selection <- input$sites_table_select$select$rAll
       if (!is.null(selection)) {
         # Extract selected row indices (1-based)
-        selected <- selection$select$r
+        selected <- input$sites_table_select$select$rAll
         if (!is.null(selected) && length(selected) > 0) {
-          # Convert to 1-based indexing if needed
-          moduleState$selected_rows <- selected + 1
+          moduleState$selected_rows <- selected
         } else {
           moduleState$selected_rows <- NULL
         }
@@ -440,7 +451,7 @@ mod_sites_server <- function(id) {
           addCircleMarkers(
             lng = click$lng,
             lat = click$lat,
-            radius = 2,
+            radius = 3,
             color = "black",
             fillColor = "red",
             fillOpacity = 0.8,
@@ -539,6 +550,33 @@ mod_sites_server <- function(id) {
       )
     }) |>
       bindEvent(input$update_selected_coords)
+
+    ## observe: Toggle map text label visibility ----
+    # upstream: input$toggle_labels
+    observe({
+      browser()
+      moduleState$show_labels <- !moduleState$show_labels
+
+      # Update button text and icon - this doesn't actually work!
+      if (moduleState$show_labels) {
+        update_task_button(
+          # session,
+          id = "toggle_labels",
+          # label = "Hide Labels",
+          # icon = icon("eye-slash"),
+          # state = "ready"
+        )
+      } else {
+        update_task_button(
+          # session,
+          id = "toggle_labels",
+          # label = "Show Labels",
+          # icon = icon("eye"),
+          state = "ready"
+        )
+      }
+    }) |>
+      bindEvent(input$toggle_labels)
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$sites_data, iv
@@ -815,21 +853,11 @@ mod_sites_server <- function(id) {
               weight = 2,
               lng = valid_lng,
               lat = valid_lat,
-              popup = paste0(
-                "<strong>",
-                valid_sites$SITE_CODE,
-                "</strong><br/>",
-                valid_sites$SITE_NAME,
-                "<br/>",
-                valid_sites$SITE_GEOGRAPHICAL_FEATURE,
-                ":",
-                valid_sites$SITE_GEOGRAPHICAL_FEATURE_SUB,
-                "<br/>",
-                "Lat: ",
-                round(valid_lat, 6),
-                "<br/>",
-                "Lng: ",
-                round(valid_lng, 6)
+              label = valid_sites$SITE_CODE,
+              labelOptions = labelOptions(
+                noHide = moduleState$show_labels, # Change this line
+                textOnly = FALSE,
+                textsize = "12px"
               )
             )
         }

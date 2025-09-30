@@ -9,3 +9,4 @@ rsconnect/
 *_.new.png
 .Renviron
 cite.r
+.vscode/tasks.json
