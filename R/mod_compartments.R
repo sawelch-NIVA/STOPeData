@@ -150,7 +150,8 @@ mod_compartments_server <- function(id) {
     moduleState <- reactiveValues(
       compartments_data = data.frame(),
       validated_data = NULL,
-      is_valid = FALSE
+      is_valid = FALSE,
+      validation_message = "",
     )
 
     ## Sub-compartment mappings ----
@@ -245,12 +246,19 @@ mod_compartments_server <- function(id) {
     moduleState$compartments_data <- init_compartments_df()
 
     ## InputValidator for table-level validation ----
+    ## Split into separate rules
     iv <- InputValidator$new()
-    iv$add_rule("compartments_table_validation", function(value) {
+    # Rule 1: Check if there are no rows
+    iv$add_rule("compartments_data", function(value) {
       if (nrow(moduleState$compartments_data) == 0) {
-        "At least one compartment combination must be added"
-      } else {
-        # Check required fields
+        moduleState$validation_message <<- "At least one compartment combination must be added."
+        return("At least one compartment combination must be added.")
+      }
+    })
+
+    # Rule 2: Check for missing required fields in any row
+    iv$add_rule("compartments_data", function(value) {
+      if (nrow(moduleState$compartments_data) > 0) {
         required_fields <- c(
           "ENVIRON_COMPARTMENT",
           "ENVIRON_COMPARTMENT_SUB",
@@ -259,38 +267,47 @@ mod_compartments_server <- function(id) {
 
         for (i in 1:nrow(moduleState$compartments_data)) {
           for (field in required_fields) {
-            value <- moduleState$compartments_data[i, field]
-            if (is.na(value) || value == "" || is_empty(value)) {
-              return(paste("Row", i, "is missing required field:", field))
+            field_value <- moduleState$compartments_data[i, field]
+            if (
+              is.na(field_value) || field_value == "" || is_empty(field_value)
+            ) {
+              message <- paste("Row", i, "is missing required field:", field)
+              moduleState$validation_message <<- message
+              return(message)
             }
           }
+        }
+      }
+    })
 
-          # Validate compartment/sub-compartment combinations
+    # Rule 3: Check for invalid compartment/sub-compartment combinations
+    iv$add_rule("compartments_data", function(value) {
+      if (nrow(moduleState$compartments_data) > 0) {
+        for (i in 1:nrow(moduleState$compartments_data)) {
           compartment <- moduleState$compartments_data[i, "ENVIRON_COMPARTMENT"]
           sub_compartment <- moduleState$compartments_data[
             i,
             "ENVIRON_COMPARTMENT_SUB"
           ]
 
-          # Check if sub-compartment is valid for the compartment
           if (compartment %in% names(sub_compartment_options)) {
             valid_subs <- sub_compartment_options[[compartment]]
             if (!sub_compartment %in% valid_subs) {
-              return(paste(
+              message <- paste(
                 "Row",
                 i,
                 "has invalid sub-compartment",
                 sub_compartment,
                 "for compartment",
                 compartment
-              ))
+              )
+              moduleState$validation_message <<- message
+              return(message)
             }
           }
         }
-        NULL # All validations passed
       }
     })
-
     iv$enable()
 
     # 2. Helper functions ----
@@ -575,7 +592,7 @@ mod_compartments_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Add at least one complete, valid compartment to proceed.",
+          moduleState$validation_message,
           class = "validation-status validation-warning"
         )
       }
