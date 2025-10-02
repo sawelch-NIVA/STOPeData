@@ -199,23 +199,27 @@ populate_references_from_llm <- function(session, llm_references_data) {
 #' @return Data frame in sites module format
 #' @noRd
 # ! FORMAT-BASED
-create_sites_from_llm <- function(llm_sites_data) {
+create_sites_from_llm <- function(llm_sites_data, llm_campaign_data) {
   if (is.null(llm_sites_data) || nrow(llm_sites_data) == 0) {
     return(data.frame())
   }
 
   sites_df <- data.frame()
-
   # Process each row of the sites data frame
   for (i in seq_len(nrow(llm_sites_data))) {
     site <- llm_sites_data[i, ]
 
     # Create site row with LLM data, filling in defaults where needed
     site_row <- data.frame(
-      SITE_CODE = safe_extract_field(
-        site,
-        "site_code",
-        paste0("SITE_", sprintf("%03d", i))
+      # add llm_campaign_data$campaign_name to start of site code
+      SITE_CODE = paste0(
+        llm_campaign_data$campaign_name,
+        "_",
+        safe_extract_field(
+          site,
+          "site_code",
+          paste0("SITE_", sprintf("%03d", i))
+        )
       ),
       SITE_NAME = safe_extract_field(site, "site_name", ""),
       SITE_GEOGRAPHIC_FEATURE = map_geographic_feature_strict(safe_extract_field(

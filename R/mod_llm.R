@@ -489,7 +489,8 @@ mod_llm_server <- function(id) {
           # Create structured data for table-based modules and store in session
           if (!is.null(moduleState$structured_data$sites)) {
             sites_data <- create_sites_from_llm(
-              moduleState$structured_data$sites
+              moduleState$structured_data$sites,
+              moduleState$structured_data$campaign
             )
             session$userData$reactiveValues$sitesDataLLM <- sites_data
           }
