@@ -17,6 +17,8 @@ if (devmode) {
   options(shiny.autoreload = TRUE)
 }
 
+
+
 message("Running Golem app")
 message("-----------------")
 message(sprintf('golem::run_dev()\n'))
