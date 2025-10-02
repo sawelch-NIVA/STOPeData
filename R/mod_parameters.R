@@ -626,7 +626,7 @@ mod_parameters_server <- function(id) {
         rhandsontable(
           init_parameters_df(),
           stretchH = "all",
-          height = 500,
+          height = 300,
           selectCallback = TRUE,
           width = NULL,
         ) |>
