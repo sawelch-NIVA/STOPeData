@@ -175,6 +175,7 @@ mod_biota_server <- function(id) {
       is_valid = FALSE,
       has_biota_samples = FALSE,
       llm_validation_results = NULL,
+      validation_message = "",
       species_options = data.frame(),
       study_species = character(0),
       llm_lookup_validation = FALSE
@@ -199,34 +200,48 @@ mod_biota_server <- function(id) {
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
-    iv$add_rule("biota_table_validation", function(value) {
-      if (!moduleState$has_biota_samples) {
-        return(NULL) # No biota samples, validation passes
-      }
 
-      if (nrow(moduleState$biota_data) == 0) {
+    # Rule 1: Check if biota samples expected but no data available
+    iv$add_rule("biota_table_has_data", function(value) {
+      if (moduleState$has_biota_samples && nrow(moduleState$biota_data) == 0) {
+        moduleState$validation_message <<- "Biota samples detected but no biota data available"
         return("Biota samples detected but no biota data available")
       }
+    })
 
-      # Check required biota fields
-      required_biota_fields <- c(
-        "SPECIES_GROUP",
-        "SAMPLE_SPECIES",
-        "SAMPLE_TISSUE",
-        "SAMPLE_SPECIES_LIFESTAGE",
-        "SAMPLE_SPECIES_GENDER"
-      )
+    # Rule 2: Check for missing required fields in any row
+    iv$add_rule("biota_table_data_valid", function(value) {
+      if (moduleState$has_biota_samples && nrow(moduleState$biota_data) > 0) {
+        required_biota_fields <- c(
+          "SPECIES_GROUP",
+          "SAMPLE_SPECIES",
+          "SAMPLE_TISSUE",
+          "SAMPLE_SPECIES_LIFESTAGE",
+          "SAMPLE_SPECIES_GENDER"
+        )
 
-      for (i in 1:nrow(moduleState$biota_data)) {
-        for (field in required_biota_fields) {
-          value <- moduleState$biota_data[i, field]
-          if (is.na(value) || value == "" || value == "Not reported") {
-            return(paste("Row", i, "is missing required biota field:", field))
+        for (i in 1:nrow(moduleState$biota_data)) {
+          for (field in required_biota_fields) {
+            field_value <- moduleState$biota_data[i, field]
+            if (
+              is.na(field_value) ||
+                field_value == "" ||
+                field_value == "Select species above first"
+            ) {
+              message <- paste(
+                "Row",
+                i,
+                "is missing required biota field:",
+                field
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
       }
-      NULL # All validations passed
     })
+
     iv$enable()
 
     # 2. Helper functions ----
@@ -278,7 +293,7 @@ mod_biota_server <- function(id) {
 
       for (col in biota_columns) {
         if (!col %in% names(biota_samples)) {
-          biota_samples[[col]] <- "Not reported"
+          biota_samples[[col]] <- ""
         }
       }
 
@@ -758,7 +773,7 @@ mod_biota_server <- function(id) {
       validation_status <- if (!moduleState$has_biota_samples) {
         div(
           bs_icon("info-circle"),
-          "No biota samples detected. Biota validation not required.",
+          "No biota samples found. Biota validation not required.",
           class = "validation-status validation-complete"
         )
       } else if (moduleState$is_valid) {
@@ -774,7 +789,7 @@ mod_biota_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Complete all required biota fields. All biota samples must have species, tissue, life stage, and gender information.",
+          moduleState$validation_message,
           class = "validation-status validation-warning"
         )
       }
