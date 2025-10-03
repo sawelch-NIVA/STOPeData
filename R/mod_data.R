@@ -108,7 +108,7 @@ mod_data_server <- function(id, parent_session) {
     )
 
     ## Controlled vocabulary options ----
-    measured_flags <- c("", "<LOQ", "<LOD")
+    measured_flags <- c("=", "< LOQ", "< LOD")
 
     measured_units <- parameter_units("MEASURED_UNIT")
 
