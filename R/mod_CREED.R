@@ -158,30 +158,27 @@ mod_CREED_server <- function(id) {
       assessment_saved = FALSE
     )
 
-    ## Reactive: moduleData ----
+    ## Reactive: gateway_summaries ----
     # upstream: session$userData$reactiveValues
-    # downstream: all helper functions
-    moduleData <- reactive({
-      list(
+    # downstream: gateway summary outputs
+    gateway_summaries <- reactive({
+      # Build module_data list from session userData
+      module_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
-        references = session$userData$reactiveValues$referencesData,
+        references = session$userData$reactiveValues$referenceData,
         sites = session$userData$reactiveValues$sitesData,
         parameters = session$userData$reactiveValues$parametersData,
         compartments = session$userData$reactiveValues$compartmentsData,
         samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-          session$userData$reactiveValues$sampleData,
+          session$userData$reactiveValues$samplesData,
         methods = session$userData$reactiveValues$methodsData,
         measurements = session$userData$reactiveValues$dataData
       )
+
+      get_gateway_summaries(module_data)
     })
 
-    ## Reactive: gateway_summaries ----
-    # upstream: moduleData()
-    # downstream: gateway summary outputs
-    gateway_summaries <- reactive({
-      get_gateway_summaries(moduleData())
-    })
-
+    # Call sub-module servers ----
     mod_CREED_purpose_server("CREED_purpose")
     mod_CREED_details_server("CREED_details")
     mod_CREED_gateway_server("CREED_gateway")
@@ -192,8 +189,21 @@ mod_CREED_server <- function(id) {
 
     ## Auto-populate gateway criteria ----
     auto_populate_gateway_criteria <- function() {
+      # Build module_data list from session userData
+      module_data <- list(
+        campaign = session$userData$reactiveValues$campaignData,
+        references = session$userData$reactiveValues$referenceData,
+        sites = session$userData$reactiveValues$sitesData,
+        parameters = session$userData$reactiveValues$parametersData,
+        compartments = session$userData$reactiveValues$compartmentsData,
+        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
+          session$userData$reactiveValues$samplesData,
+        methods = session$userData$reactiveValues$methodsData,
+        measurements = session$userData$reactiveValues$dataData
+      )
+
       # Get gateway availability
-      availability <- check_gateway_availability(moduleData())
+      availability <- check_gateway_availability(module_data)
 
       # Update checkboxes
       updateCheckboxInput(
@@ -244,7 +254,7 @@ mod_CREED_server <- function(id) {
 
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment
-    # downstream: moduleState$dataset_details, session$userData
+    # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
     observe({
       # Collect all dataset details
       dataset_details <- list(
@@ -287,7 +297,7 @@ mod_CREED_server <- function(id) {
       moduleState$assessment_saved <- TRUE
 
       # Save to session userData
-      session$userData$reactiveValues$creedAssessment <- dataset_details
+      session$userData$reactiveValues$creedData <- dataset_details
 
       showNotification(
         "CREED assessment saved successfully",

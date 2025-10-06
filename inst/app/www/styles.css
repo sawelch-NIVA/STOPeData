@@ -165,13 +165,13 @@ rhandsontable
 } */
 
 /* Dropdown menus inherit the whole table width, somehow */
-/* .handsontableInput,
+.handsontableInput,
 .listbox,
 .wtHider,
 .handsontableInputHolder {
     max-width: 550px !important;
     width: fit-content !important;
-} */
+}
 
 /* .ht_master .handsontable {
     margin-right: -200px !important;

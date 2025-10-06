@@ -235,6 +235,7 @@ mod_CREED_details_ui <- function(id) {
 #' CREED_details Server Functions
 #' @import shiny
 #' @importFrom golem print_dev
+#' @importFrom shiny updateTextAreaInput bindEvent
 #'
 #' @noRd
 
@@ -242,15 +243,38 @@ mod_CREED_details_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # observe ~bindEvent(populate_from_data, save_assessment): Auto-populate fields ----
+    # upstream: user clicks populate_from_data or save_assessment buttons
+    # downstream: all auto-populated textAreaInput fields
     observe({
       print_dev(";)")
+      auto_populate_details()
     }) |>
-      bindEvent(input$populate_from_data, input$save_assessment)
+      bindEvent(
+        input$populate_from_data,
+        input$save_assessment,
+        ignoreInit = TRUE
+      )
 
     ## Auto-populate dataset details ----
+    # upstream: session$userData$reactiveValues
+    # downstream: UI input fields
     auto_populate_details <- function() {
+      # Build module_data list from session userData
+      module_data <- list(
+        campaign = session$userData$reactiveValues$campaignData,
+        references = session$userData$reactiveValues$referencesData,
+        sites = session$userData$reactiveValues$sitesData,
+        parameters = session$userData$reactiveValues$parametersData,
+        compartments = session$userData$reactiveValues$compartmentsData,
+        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
+          session$userData$reactiveValues$samplesData,
+        methods = session$userData$reactiveValues$methodsData,
+        measurements = session$userData$reactiveValues$dataData
+      )
+
       # Get dataset summaries
-      summaries <- get_dataset_summaries(moduleData())
+      summaries <- get_dataset_summaries(module_data)
 
       # Update UI fields
       updateTextAreaInput(session, "source_auto", value = summaries$source)
@@ -268,7 +292,7 @@ mod_CREED_details_server <- function(id) {
       )
       updateTextAreaInput(
         session,
-        "site_types_auto",
+        "site_types",
         value = summaries$site_types
       )
       updateTextAreaInput(
@@ -292,9 +316,6 @@ mod_CREED_details_server <- function(id) {
         value = summaries$sampling_methods
       )
       updateTextAreaInput(session, "loq_auto", value = summaries$loq_info)
-
-      # Auto-populate gateway criteria
-      auto_populate_gateway_criteria()
 
       print_dev("CREED Dataset Details auto-populated")
     }

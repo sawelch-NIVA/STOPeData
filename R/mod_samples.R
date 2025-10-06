@@ -285,11 +285,10 @@ mod_samples_server <- function(id) {
 
     # 3. Observers and Reactives ----
 
-    ## observe: Update selectize choices from other modules or dummy data ----
-    # upstream: sites_data(), parameters_data(), compartments_data()
-    # downstream: selectize input choices and moduleState
+    ## observe: Update sites selectize choices ----
+    # upstream: session$userData$reactiveValues$sitesData
+    # downstream: sites selectize input choices and moduleState$available_sites
     observe({
-      # Update sites if data is available
       if (!is.null(session$userData$reactiveValues$sitesData)) {
         update_sites_selectize(
           session,
@@ -300,8 +299,17 @@ mod_samples_server <- function(id) {
         update_sites_selectize(session, dummy_sites)
         moduleState$available_sites <- dummy_sites
       }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$sitesData,
+        ignoreNULL = FALSE,
+        ignoreInit = FALSE
+      )
 
-      # Update parameters if data is available
+    ## observe: Update parameters selectize choices ----
+    # upstream: session$userData$reactiveValues$parametersData
+    # downstream: parameters selectize input choices and moduleState$available_parameters
+    observe({
       if (!is.null(session$userData$reactiveValues$parametersData)) {
         update_parameters_selectize(
           session,
@@ -312,8 +320,17 @@ mod_samples_server <- function(id) {
         update_parameters_selectize(session, dummy_parameters)
         moduleState$available_parameters <- dummy_parameters
       }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$parametersData,
+        ignoreNULL = FALSE,
+        ignoreInit = FALSE
+      )
 
-      # Update compartments if data is available
+    ## observe: Update compartments selectize choices ----
+    # upstream: session$userData$reactiveValues$compartmentsData
+    # downstream: compartments selectize input choices and moduleState$available_compartments
+    observe({
       if (!is.null(session$userData$reactiveValues$compartmentsData)) {
         update_compartments_selectize(
           session,
@@ -326,8 +343,6 @@ mod_samples_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$sitesData,
-        session$userData$reactiveValues$parametersData,
         session$userData$reactiveValues$compartmentsData,
         ignoreNULL = FALSE,
         ignoreInit = FALSE
@@ -378,7 +393,7 @@ mod_samples_server <- function(id) {
         updateSelectizeInput(
           session,
           "sites_select",
-          selected = moduleState$available_sites$SITE_CODE
+          selected = session$userData$reactiveValues$sitesData$SITE_CODE
         )
         enable(id = "add_all_sites")
         enable(id = "sites_select")
@@ -387,7 +402,11 @@ mod_samples_server <- function(id) {
         disable(id = "sites_select")
       }
     }) |>
-      bindEvent(input$add_all_sites, moduleState$available_sites)
+      bindEvent(
+        input$add_all_sites,
+        moduleState$available_sites,
+        ignoreInit = TRUE
+      )
 
     ## observe ~bindEvent(remove_all_sites): Remove all sites ----
     # upstream: user clicks input$remove_all_sites
@@ -401,6 +420,7 @@ mod_samples_server <- function(id) {
     # upstream: user clicks input$add_all_parameters
     # downstream: input$parameters_select
     observe({
+      browser()
       if (
         isTruthy(moduleState$available_parameters) &&
           nrow(moduleState$available_parameters) > 0

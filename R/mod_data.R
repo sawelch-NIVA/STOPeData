@@ -84,7 +84,7 @@ mod_data_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom rhandsontable renderRHandsontable hot_cols rhandsontable hot_to_r hot_col hot_context_menu
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom golem print_dev
@@ -677,18 +677,22 @@ mod_data_server <- function(id, parent_session) {
           width = NULL
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
-          hot_col(
-            c(
-              "SAMPLE_ID",
-              "SITE_CODE",
-              "PARAMETER_NAME",
-              "SAMPLING_DATE",
-              "ENVIRON_COMPARTMENT",
-              "ENVIRON_COMPARTMENT_SUB",
-              "REP"
-            ),
-            readOnly = TRUE
-          ) |>
+          hot_cols(
+            "SAMPLE_ID",
+            readOnly = TRUE,
+          )
+        hot_col(
+          c(
+            "SITE_CODE",
+            "PARAMETER_NAME",
+            "SAMPLING_DATE",
+            "ENVIRON_COMPARTMENT",
+            "ENVIRON_COMPARTMENT_SUB",
+            "REP"
+          ),
+          colWidths = 1,
+          readOnly = TRUE
+        ) |>
 
           # Configure measurement fields
           hot_col(
