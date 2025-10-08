@@ -84,7 +84,7 @@ mod_data_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
-#' @importFrom rhandsontable renderRHandsontable hot_cols rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom rhandsontable renderRHandsontable hot_cols rhandsontable hot_to_r hot_col hot_context_menu hot_cols
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom golem print_dev
@@ -677,23 +677,17 @@ mod_data_server <- function(id, parent_session) {
           width = NULL
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
-          hot_cols(
-            "SAMPLE_ID",
-            readOnly = TRUE,
-          )
-        hot_col(
-          c(
-            "SITE_CODE",
-            "PARAMETER_NAME",
-            "SAMPLING_DATE",
-            "ENVIRON_COMPARTMENT",
-            "ENVIRON_COMPARTMENT_SUB",
-            "REP"
-          ),
-          colWidths = 1,
-          readOnly = TRUE
-        ) |>
-
+          hot_col(
+            c(
+              "SITE_CODE",
+              "PARAMETER_NAME",
+              "SAMPLING_DATE",
+              "ENVIRON_COMPARTMENT",
+              "ENVIRON_COMPARTMENT_SUB",
+              "REP"
+            ),
+            readOnly = TRUE
+          ) |>
           # Configure measurement fields
           hot_col(
             "MEASURED_FLAG",
@@ -702,7 +696,12 @@ mod_data_server <- function(id, parent_session) {
             strict = TRUE
           ) |>
           hot_col(
-            c("MEASURED_VALUE", "MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
+            "MEASURED_VALUE",
+            type = "numeric",
+            format = "0.0000"
+          ) |>
+          hot_col(
+            c("MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
             type = "numeric",
             format = "0.0000"
           ) |>
@@ -711,8 +710,33 @@ mod_data_server <- function(id, parent_session) {
             type = "dropdown",
             source = measured_units,
             strict = TRUE
+          ) |>
+          hot_col(
+            "SAMPLE_ID"
+          ) |>
+          hot_cols(
+            # colWidths = c(
+            #   300,
+            #   0.1,
+            #   0.1,
+            #   0.1,
+            #   0.1,
+            #   0.1,
+            #   0.1,
+            #   100,
+            #   100,
+            #   100,
+            #   100,
+            #   100,
+            #   100,
+            #   100,
+            #   100
+            # )
+            fixedColumnsLeft = 5, # fix the first five columns to be always visible (like freezing in excel)
+            manualColumnMove = TRUE, # does drag & drop column reordering change the roder in the dataset too?
+            manualColumnResize = TRUE,
+            columnSorting = TRUE
           )
-        #
         # hot_context_menu(
         #   allowRowEdit = FALSE, # Disable row operations for measurement data
         #   allowColEdit = FALSE, # Disable column operations

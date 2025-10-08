@@ -47,12 +47,7 @@ mod_export_ui <- function(id) {
         div(
           style = "margin: 20px 0; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;",
           h4("Combined Export (Excel)"),
-          downloadButton(
-            outputId = ns("download_workbook"),
-            label = "Download All as Excel Workbook",
-            class = "btn-primary btn-lg",
-            icon = icon("file-excel")
-          )
+          uiOutput(ns("download_workbook_ui"))
         )
       )
     )
@@ -239,17 +234,49 @@ mod_export_server <- function(id) {
 
     ## output: individual_downloads ----
     # upstream: moduleState$available_datasets, session$userData$reactiveValues
-    # downstream: UI download buttons for each dataset
+    # downstream: UI download buttons for each dataset (always visible, enabled/disabled based on data)
     output$individual_downloads <- renderUI({
-      req(moduleState$export_ready)
-
       rv <- session$userData$reactiveValues
 
-      # Create a card for each available dataset
-      cards <- lapply(moduleState$available_datasets, function(dataset_name) {
+      # Define all possible datasets
+      all_datasets <- c(
+        "sitesData",
+        "parametersData",
+        "compartmentsData",
+        "referencesData",
+        "campaignData",
+        "methodsData",
+        "samplesData",
+        "biotaData",
+        "dataData"
+      )
+
+      # Create a card for each dataset (available or not)
+      cards <- lapply(all_datasets, function(dataset_name) {
         display_name <- get_dataset_display_name(dataset_name)
         data <- rv[[dataset_name]]
-        dimensions <- glue("{nrow(data)} rows × {ncol(data)} columns")
+
+        # Check if dataset has data
+        has_data <- !is.null(data) && nrow(data) > 0
+
+        if (has_data) {
+          dimensions <- glue("{nrow(data)} rows × {ncol(data)} columns")
+          button_element <- downloadButton(
+            outputId = ns(paste0("download_", dataset_name)),
+            label = "Download CSV + JSON",
+            class = "btn-secondary",
+            icon = icon("download")
+          )
+        } else {
+          dimensions <- "No data available"
+          button_element <- tags$button(
+            "Download CSV + JSON",
+            class = "btn btn-secondary",
+            disabled = "disabled",
+            style = "opacity: 0.6; cursor: not-allowed;",
+            icon("download")
+          )
+        }
 
         div(
           style = "border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 10px 0;",
@@ -257,12 +284,7 @@ mod_export_server <- function(id) {
           tags$code(dimensions),
           br(),
           br(),
-          downloadButton(
-            outputId = ns(paste0("download_", dataset_name)),
-            label = "Download CSV + JSON",
-            class = "btn-secondary",
-            icon = icon("download")
-          )
+          button_element
         )
       })
 
@@ -322,7 +344,7 @@ mod_export_server <- function(id) {
             write_json(metadata, json_file, pretty = TRUE, auto_unbox = TRUE)
 
             # Create zip file
-            zip::zip(
+            zip(
               zipfile = file,
               files = c(csv_file, json_file),
               mode = "cherry-pick"
@@ -342,6 +364,28 @@ mod_export_server <- function(id) {
       })
     }) |>
       bindEvent(moduleState$available_datasets)
+
+    ## output: download_workbook_ui ----
+    # upstream: moduleState$export_ready
+    # downstream: UI download button for workbook (enabled/disabled based on data)
+    output$download_workbook_ui <- renderUI({
+      if (moduleState$export_ready) {
+        downloadButton(
+          outputId = ns("download_workbook"),
+          label = "Download All as Excel Workbook",
+          class = "btn-primary btn-lg",
+          icon = icon("file-excel")
+        )
+      } else {
+        tags$button(
+          "Download All as Excel Workbook",
+          class = "btn btn-primary btn-lg",
+          disabled = "disabled",
+          style = "opacity: 0.6; cursor: not-allowed;",
+          icon("file-excel")
+        )
+      }
+    })
 
     ## output: download_workbook ----
     # upstream: session$userData$reactiveValues, moduleState

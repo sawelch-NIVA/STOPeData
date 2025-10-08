@@ -184,21 +184,23 @@ generate_sample_id_with_components <- function(
 ) {
   # Create abbreviated versions for ID (vectorized)
   param_abbrev <- substr(gsub("[^A-Za-z0-9]", "", parameter_name), 1, 8)
-  comp_abbrev <- substr(gsub("[^A-Za-z0-9]", "", environ_compartment), 1, 6)
-  sub_abbrev <- substr(gsub("[^A-Za-z0-9]", "", environ_compartment_sub), 1, 6)
-  date_abbrev <- gsub("-", "", date)
+  comp_abbrev <- substr(
+    gsub("[^A-Za-z0-9]", "", environ_compartment_sub),
+    1,
+    12
+  )
+  date_abbrev <- gsub("-", "-", date)
 
   base_id <- paste(
     site_code,
     param_abbrev,
     comp_abbrev,
-    sub_abbrev,
     date_abbrev,
-    sep = "_"
+    sep = "-"
   )
 
   # Vectorized replicate handling
-  replicate_suffix <- ifelse(replicate > 1, sprintf("_R%02d", replicate), "")
+  replicate_suffix <- ifelse(replicate > 1, sprintf("-R%02d", replicate), "")
   paste0(base_id, replicate_suffix)
 }
 
