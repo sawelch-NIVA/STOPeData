@@ -19,6 +19,7 @@ mod_export_ui <- function(id) {
   tagList(
     # Main export card ----
     card(
+      full_screen = TRUE,
       card_body(
         ## Info accordion ----
         accordion(

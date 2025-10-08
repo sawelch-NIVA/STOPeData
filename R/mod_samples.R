@@ -26,6 +26,7 @@ mod_samples_ui <- function(id) {
     # Main content card ----
     card(
       fill = TRUE,
+      full_screen = TRUE,
       card_body(
         ## Info accordion ----
         info_accordion(content_file = "inst/app/www/md/intro_samples.md"),
