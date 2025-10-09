@@ -25,6 +25,7 @@ mod_biota_ui <- function(id) {
 
     # Main content card ----
     card(
+      full_screen = TRUE,
       fill = FALSE,
       card_body(
         ## Info accordion ----

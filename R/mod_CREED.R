@@ -19,6 +19,7 @@ mod_CREED_ui <- function(id) {
   tagList(
     # Main CREED card ----
     card(
+      full_screen = TRUE,
       fill = TRUE,
       full_screen = TRUE,
       card_body(

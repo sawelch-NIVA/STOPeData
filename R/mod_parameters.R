@@ -26,6 +26,7 @@ mod_parameters_ui <- function(id) {
 
     # Main content card ----
     card(
+      full_screen = TRUE,
       fill = TRUE,
       card_body(
         ## Info accordion ----

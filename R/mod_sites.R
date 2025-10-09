@@ -35,7 +35,7 @@ mod_sites_ui <- function(id) {
 
       ## Left panel: Table and controls ----
       card(
-        full_screen = FALSE,
+        full_screen = TRUE,
         height = "30vh",
         fill = TRUE,
         fillable = TRUE,
