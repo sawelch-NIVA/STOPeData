@@ -554,7 +554,6 @@ mod_sites_server <- function(id) {
     ## observe: Toggle map text label visibility ----
     # upstream: input$toggle_labels
     observe({
-      browser()
       moduleState$show_labels <- !moduleState$show_labels
 
       # Update button text and icon - this doesn't actually work!

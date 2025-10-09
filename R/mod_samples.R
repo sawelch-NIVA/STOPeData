@@ -420,7 +420,6 @@ mod_samples_server <- function(id) {
     # upstream: user clicks input$add_all_parameters
     # downstream: input$parameters_select
     observe({
-      browser()
       if (
         isTruthy(moduleState$available_parameters) &&
           nrow(moduleState$available_parameters) > 0
