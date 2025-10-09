@@ -246,7 +246,6 @@ mod_compartments_server <- function(id) {
     moduleState$compartments_data <- init_compartments_df()
 
     ## InputValidator for table-level validation ----
-    ## Split into separate rules
     iv <- InputValidator$new()
     # Rule 1: Check if there are no rows
     iv$add_rule("compartments_data", function(value) {

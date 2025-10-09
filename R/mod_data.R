@@ -42,14 +42,6 @@ mod_data_ui <- function(id) {
           )
         ),
 
-        ## Validation status ----
-        div(
-          style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
-
-          ### Validation status ----
-          uiOutput(ns("validation_reporter"))
-        ),
-
         ## Raw data accordion ----
         accordion(
           id = ns("data_accordion"),
@@ -63,9 +55,16 @@ mod_data_ui <- function(id) {
       )
     ),
 
-    ## Measurement data table card ----
+    # Measurement data table card ----
     card(
       full_screen = TRUE,
+      ## Measurement Data Validation status ----
+      div(
+        style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+
+        ### Validation status ----
+        uiOutput(ns("validation_reporter"))
+      ),
       # style = "overflow: clip;",
       div(
         rHandsontableOutput(
@@ -104,95 +103,162 @@ mod_data_server <- function(id, parent_session) {
       data_entry_ready = FALSE,
       measurement_combinations = data.frame(),
       complete_dataset = NULL,
-      is_valid = FALSE
+      is_valid = FALSE,
+      validation_message = ""
     )
 
     ## Controlled vocabulary options ----
-    measured_flags <- c("=", "< LOQ", "< LOD")
+    measured_flags <- c("", "< LOQ", "< LOD")
 
     measured_units <- parameter_units("MEASURED_UNIT")
 
     ## InputValidator for measurement data validation ----
-    # ! FORMAT-BASED
     iv <- InputValidator$new()
+
+    # Rule 1: Check if data entry is ready
     iv$add_rule("measurement_table_validation", function(value) {
       if (!moduleState$data_entry_ready) {
+        moduleState$validation_message <<- "Complete all setup modules before entering measurement data"
         return("Complete all setup modules before entering measurement data")
       }
+    })
 
+    # Rule 2: Check if measurement combinations exist
+    iv$add_rule("measurement_table_validation", function(value) {
       if (nrow(moduleState$measurement_combinations) == 0) {
+        moduleState$validation_message <<- "No sample-parameter combinations available"
         return("No sample-parameter combinations available")
       }
+    })
 
-      # Check that all required fields are filled
-      required_fields <- c("MEASURED_UNIT")
+    # Rule 3: Check for missing required fields
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
+        required_fields <- c("MEASURED_UNIT")
 
-      for (i in 1:nrow(moduleState$measurement_combinations)) {
-        # Check required fields
-        for (field in required_fields) {
-          value <- moduleState$measurement_combinations[i, field]
-          if (is.na(value) || value == "") {
-            return(paste("Row", i, "is missing required field:", field))
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          for (field in required_fields) {
+            value <- moduleState$measurement_combinations[i, field]
+            if (is.na(value) || value == "") {
+              message <- paste("Row", i, "is missing required field:", field)
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
+      }
+    })
 
-        # Conditional validation for measurement values and flags
-        measured_flag <- moduleState$measurement_combinations[
-          i,
-          "MEASURED_FLAG"
-        ]
-        measured_value <- moduleState$measurement_combinations[
-          i,
-          "MEASURED_VALUE"
-        ]
-        loq_value <- moduleState$measurement_combinations[i, "LOQ_VALUE"]
-        lod_value <- moduleState$measurement_combinations[i, "LOD_VALUE"]
+    # Rule 4: Check MEASURED_VALUE when no flag is set
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          measured_flag <- moduleState$measurement_combinations[
+            i,
+            "MEASURED_FLAG"
+          ]
+          measured_value <- moduleState$measurement_combinations[
+            i,
+            "MEASURED_VALUE"
+          ]
 
-        # If flag is blank, measured_value is required
-        if (is.na(measured_flag) || measured_flag == "") {
-          if (is.na(measured_value) || measured_value == "") {
-            return(paste(
-              "Row",
-              i,
-              "requires MEASURED_VALUE when no flag is set"
-            ))
+          if (is.na(measured_flag) || measured_flag == "") {
+            if (is.na(measured_value) || measured_value == "") {
+              message <- paste(
+                "Row",
+                i,
+                "requires MEASURED_VALUE when no flag is set"
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
+      }
+    })
 
-        # If flag is <LOQ, LOQ_VALUE is required
-        if (!is.na(measured_flag) && measured_flag == "<LOQ") {
-          if (is.na(loq_value) || loq_value == "") {
-            return(paste("Row", i, "requires LOQ_VALUE when flag is '<LOQ'"))
+    # Rule 5: Check LOQ_VALUE when flag is <LOQ
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          measured_flag <- moduleState$measurement_combinations[
+            i,
+            "MEASURED_FLAG"
+          ]
+          loq_value <- moduleState$measurement_combinations[i, "LOQ_VALUE"]
+
+          if (!is.na(measured_flag) && measured_flag == "< LOQ") {
+            if (is.na(loq_value) || loq_value == "") {
+              message <- paste(
+                "Row",
+                i,
+                "requires LOQ_VALUE when flag is '< LOQ'"
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
+      }
+    })
 
-        # If flag is <LOD, LOD_VALUE is required
-        if (!is.na(measured_flag) && measured_flag == "<LOD") {
-          if (is.na(lod_value) || lod_value == "") {
-            return(paste("Row", i, "requires LOD_VALUE when flag is '<LOD'"))
+    # Rule 6: Check LOD_VALUE when flag is < LOD
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          measured_flag <- moduleState$measurement_combinations[
+            i,
+            "MEASURED_FLAG"
+          ]
+          lod_value <- moduleState$measurement_combinations[i, "LOD_VALUE"]
+
+          if (!is.na(measured_flag) && measured_flag == "< LOD") {
+            if (is.na(lod_value) || lod_value == "") {
+              message <- paste(
+                "Row",
+                i,
+                "requires LOD_VALUE when flag is '< LOD'"
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
+      }
+    })
 
-        # Validate numeric values are positive
+    # Rule 7: Validate numeric values are positive
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
         numeric_fields <- c(
           "MEASURED_VALUE",
           "LOQ_VALUE",
           "LOD_VALUE",
           "MEASURED_SD"
         )
-        for (field in numeric_fields) {
-          field_value <- moduleState$measurement_combinations[i, field]
-          if (
-            !is.na(field_value) &&
-              field_value != "" &&
-              as.numeric(field_value) < 0
-          ) {
-            return(paste("Row", i, "has invalid", field, "(must be positive)"))
+
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          browser()
+          for (field in numeric_fields) {
+            field_value <- moduleState$measurement_combinations[i, field]
+            if (
+              !is.na(field_value) &&
+                field_value != "" &&
+                as.numeric(field_value) < 0
+            ) {
+              message <- paste(
+                "Row",
+                i,
+                "has invalid",
+                field,
+                "(must be positive)"
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
           }
         }
       }
-
-      NULL # All validations passed
     })
 
     iv$enable()
@@ -328,7 +394,7 @@ mod_data_server <- function(id, parent_session) {
 
     # 3. Observers and Reactives ----
 
-    ## observe: Check validation status continuously ----
+    ## observe: Check upstream modules validation status continuously ----
     # upstream: all session$userData$reactiveValues
     # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
     observe({
@@ -407,6 +473,7 @@ mod_data_server <- function(id, parent_session) {
         moduleState$complete_dataset <- complete_data
         session$userData$reactiveValues$dataData <- moduleState$complete_dataset
 
+        browser()
         print_dev(glue(
           "mod_data: Data validated and saved - {nrow(moduleState$complete_dataset)} complete records"
         ))
@@ -768,7 +835,7 @@ mod_data_server <- function(id, parent_session) {
           "Complete all setup modules to enable measurement data entry.",
           class = "validation-status validation-info"
         )
-      } else if (moduleState$all_modules_valid) {
+      } else if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
@@ -781,7 +848,7 @@ mod_data_server <- function(id, parent_session) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Complete all measurement data fields. Check flags, values, and units for consistency.",
+          moduleState$validation_message,
           class = "validation-status validation-warning"
         )
       }
