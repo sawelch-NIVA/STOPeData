@@ -15,7 +15,7 @@ app_server <- function(input, output, session) {
     session$userData$reactiveValues <- reactiveValues(
       ENTERED_BY = character(0),
 
-      # Standard validated data (existing structure)
+      # Standard validated data
       sitesData = tibble(NULL),
       parametersData = tibble(NULL),
       compartmentsData = tibble(NULL),
@@ -25,9 +25,16 @@ app_server <- function(input, output, session) {
       samplesData = tibble(NULL),
       biotaData = tibble(NULL),
       dataData = tibble(NULL),
-      creedData = tibble(NULL),
+      creedData = list(
+        purpose_statement = tibble(NULL),
+        dataset_details = tibble(NULL),
+        gateway_criteria = tibble(NULL),
+        reliability_criteria = tibble(NULL),
+        relevance_criteria = tibble(NULL),
+        CREED_output = tibble(NULL)
+      ),
 
-      # LLM extracted data (new structure)
+      # LLM extracted data
       campaignDataLLM = NULL,
       referencesDataLLM = NULL,
       sitesDataLLM = NULL,

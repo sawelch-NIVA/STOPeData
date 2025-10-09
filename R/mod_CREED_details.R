@@ -5,7 +5,6 @@
 #' @param id,input,output,session Internal parameters for {shiny}.
 #' @importFrom shiny NS tagList textAreaInput
 #' @importFrom bslib input_task_button tooltip
-#' @noRd
 
 mod_CREED_details_ui <- function(id) {
   ns <- NS(id)
@@ -235,7 +234,8 @@ mod_CREED_details_ui <- function(id) {
 #' CREED_details Server Functions
 #' @import shiny
 #' @importFrom golem print_dev
-#' @importFrom shiny updateTextAreaInput bindEvent
+#' @importFrom shiny updateTextAreaInput bindEvent isTruthy
+#' @importFrom tibble tibble
 #'
 #' @noRd
 
@@ -243,81 +243,253 @@ mod_CREED_details_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # observe ~bindEvent(populate_from_data, save_assessment): Auto-populate fields ----
-    # upstream: user clicks populate_from_data or save_assessment buttons
+    # observe ~bindEvent(populate_from_data): Auto-populate fields ----
+    # upstream: user clicks populate_from_data
     # downstream: all auto-populated textAreaInput fields
     observe({
-      print_dev(";)")
-      auto_populate_details()
-    }) |>
-      bindEvent(
-        input$populate_from_data,
-        input$save_assessment,
-        ignoreInit = TRUE
+      session$userData$reactiveValues <- store_dataset_details(
+        session$userData$reactiveValues
       )
-
-    ## Auto-populate dataset details ----
-    # upstream: session$userData$reactiveValues
-    # downstream: UI input fields
-    auto_populate_details <- function() {
-      # Build module_data list from session userData
-      module_data <- list(
-        campaign = session$userData$reactiveValues$campaignData,
-        references = session$userData$reactiveValues$referencesData,
-        sites = session$userData$reactiveValues$sitesData,
-        parameters = session$userData$reactiveValues$parametersData,
-        compartments = session$userData$reactiveValues$compartmentsData,
-        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-          session$userData$reactiveValues$samplesData,
-        methods = session$userData$reactiveValues$methodsData,
-        measurements = session$userData$reactiveValues$dataData
+      print_dev(
+        "writing dataset details to session data, auto-populating relevant inputs)"
       )
-
-      # Get dataset summaries
-      summaries <- get_dataset_summaries(module_data)
 
       # Update UI fields
-      updateTextAreaInput(session, "source_auto", value = summaries$source)
-      updateTextAreaInput(session, "analyte_auto", value = summaries$analytes)
-      updateTextAreaInput(session, "medium_auto", value = summaries$medium)
+      # Avoid writing out the whole layered call every time
+      dataset_details <- session$userData$reactiveValues$creedData$datasetDetails
+      # convert to list for easier access
+      setNames(dataset_details$value, dataset_details$field)
+
+      updateTextAreaInput(
+        session,
+        "source_auto",
+        value = dataset_details$source
+      )
+      updateTextAreaInput(
+        session,
+        "analyte_auto",
+        value = dataset_details$analytes
+      )
+      updateTextAreaInput(
+        session,
+        "medium_auto",
+        value = dataset_details$medium
+      )
       updateTextAreaInput(
         session,
         "study_area_auto",
-        value = summaries$study_area
+        value = dataset_details$study_area
       )
       updateTextAreaInput(
         session,
         "num_sites_auto",
-        value = summaries$num_sites
+        value = dataset_details$num_sites
       )
       updateTextAreaInput(
         session,
         "site_types",
-        value = summaries$site_types
+        value = dataset_details$site_types
       )
       updateTextAreaInput(
         session,
         "num_samples_auto",
-        value = summaries$num_samples
+        value = dataset_details$num_samples
       )
       updateTextAreaInput(
         session,
         "sampling_period_auto",
-        value = summaries$sampling_period
+        value = dataset_details$sampling_period
       )
       updateTextAreaInput(
         session,
         "analytical_methods_auto",
-        value = summaries$analytical_methods
+        value = dataset_details$analytical_methods
       )
       updateTextAreaInput(
         session,
         "sampling_methods_auto",
-        value = summaries$sampling_methods
+        value = dataset_details$sampling_methods
       )
-      updateTextAreaInput(session, "loq_auto", value = summaries$loq_info)
+      updateTextAreaInput(session, "loq_auto", value = dataset_details$loq_info)
 
       print_dev("CREED Dataset Details auto-populated")
+    }) |>
+      bindEvent(
+        input$populate_from_data,
+        ignoreInit = TRUE
+      )
+
+    store_dataset_details <- function(sessionData) {
+      # Helper function to check if a dataset exists and has content
+      dataset_exists <- function(dataset) {
+        isTruthy(dataset) && !all(is.na(dataset))
+      }
+
+      # Check existence of each dataset once
+      has_reference <- dataset_exists(sessionData$referenceData)
+      has_parameters <- dataset_exists(sessionData$parametersData)
+      has_compartments <- dataset_exists(sessionData$compartmentsData)
+      has_sites <- dataset_exists(sessionData$sitesData)
+      has_samples <- dataset_exists(sessionData$samples)
+      has_methods <- dataset_exists(sessionData$methods)
+      has_measurements <- dataset_exists(sessionData$measurements)
+
+      # Return as tibble
+      tibble(
+        field = c(
+          "source",
+          "analytes",
+          "medium",
+          "study_area",
+          "num_sites",
+          "site_types",
+          "num_samples",
+          "sampling_period",
+          "sampling_methods",
+          "analytical_methods",
+          "loq_info"
+        ),
+
+        value = c(
+          # source
+          if (has_reference) {
+            create_bibliography_reference(sessionData$referenceData)
+          } else {
+            "Relevant data not found"
+          },
+
+          # analytes
+          if (has_parameters) {
+            summarize_multiple(
+              sessionData$parametersData$PARAMETER_NAME,
+              "Parameters"
+            )
+          } else {
+            "Relevant data not found"
+          },
+
+          # medium
+          if (has_compartments) {
+            summarize_multiple(
+              sessionData$compartmentsData$ENVIRON_COMPARTMENT,
+              "Compartments"
+            )
+          } else {
+            "Relevant data not found"
+          },
+
+          # study_area
+          if (has_sites) {
+            countries <- summarize_multiple(
+              sessionData$sitesData$COUNTRY,
+              "Countries"
+            )
+            areas <- summarize_multiple(sessionData$sitesData$AREA, "Areas")
+            paste(countries, areas, sep = "; ")
+          } else {
+            "Relevant data not found"
+          },
+
+          # num_sites
+          if (has_sites) {
+            as.character(nrow(sessionData$sitesData))
+          } else {
+            "Relevant data not found"
+          },
+
+          # site_types
+          if (has_sites) {
+            summarize_multiple(
+              sessionData$sitesData$SITE_GEOGRAPHICAL_FEATURE,
+              "Site Types"
+            )
+          } else {
+            "Relevant data not found"
+          },
+
+          # num_samples
+          if (has_samples) {
+            as.character(nrow(sessionData$samples))
+          } else {
+            "Relevant data not found"
+          },
+
+          # sampling_period
+          if (has_samples) {
+            calculate_date_range(sessionData$samples$SAMPLING_DATE)
+          } else {
+            "Relevant data not found"
+          },
+
+          # sampling_methods
+          if (has_methods) {
+            sampling_only <- sessionData$methods[
+              sessionData$methods$PROTOCOL_CATEGORY == "Sampling Protocol",
+            ]
+            if (nrow(sampling_only) > 0) {
+              summarize_multiple(
+                sampling_only$PROTOCOL_NAME,
+                "Sampling Protocols"
+              )
+            } else {
+              "Relevant data not found"
+            }
+          } else {
+            "Relevant data not found"
+          },
+
+          # analytical_methods
+          if (has_methods) {
+            analytical_only <- sessionData$methods[
+              sessionData$methods$PROTOCOL_CATEGORY == "Analytical Protocol",
+            ]
+            if (nrow(analytical_only) > 0) {
+              summarize_multiple(
+                analytical_only$PROTOCOL_NAME,
+                "Analytical Protocols"
+              )
+            } else {
+              "Relevant data not found"
+            }
+          } else {
+            "Relevant data not found"
+          },
+
+          # loq_info
+          if (has_measurements) {
+            loq_values <- sessionData$measurements$LOQ_VALUE[
+              !is.na(sessionData$measurements$LOQ_VALUE)
+            ]
+            lod_values <- sessionData$measurements$LOD_VALUE[
+              !is.na(sessionData$measurements$LOD_VALUE)
+            ]
+
+            info_parts <- c()
+            if (length(loq_values) > 0) {
+              loq_range <- paste(min(loq_values), "to", max(loq_values))
+              loq_unit <- sessionData$measurements$LOQ_UNIT[
+                !is.na(sessionData$measurements$LOQ_UNIT)
+              ][1]
+              info_parts <- c(info_parts, paste("LOQ:", loq_range, loq_unit))
+            }
+            if (length(lod_values) > 0) {
+              lod_range <- paste(min(lod_values), "to", max(lod_values))
+              lod_unit <- sessionData$measurements$LOD_UNIT[
+                !is.na(sessionData$measurements$LOD_UNIT)
+              ][1]
+              info_parts <- c(info_parts, paste("LOD:", lod_range, lod_unit))
+            }
+
+            if (length(info_parts) > 0) {
+              paste(info_parts, collapse = "; ")
+            } else {
+              "Relevant data not found"
+            }
+          } else {
+            "Relevant data not found"
+          }
+        )
+      )
     }
   })
 }

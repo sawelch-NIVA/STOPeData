@@ -149,6 +149,57 @@ mod_CREED_gateway_ui <- function(id) {
 mod_CREED_gateway_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    ## Auto-populate gateway criteria ----
+    auto_populate_gateway_criteria <- function() {
+      # Build module_data list from session userData
+      module_data <- list(
+        campaign = session$userData$reactiveValues$campaignData,
+        references = session$userData$reactiveValues$referenceData,
+        sites = session$userData$reactiveValues$sitesData,
+        parameters = session$userData$reactiveValues$parametersData,
+        compartments = session$userData$reactiveValues$compartmentsData,
+        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
+          session$userData$reactiveValues$samplesData,
+        methods = session$userData$reactiveValues$methodsData,
+        measurements = session$userData$reactiveValues$dataData
+      )
+
+      # Get gateway availability
+      availability <- check_gateway_availability(module_data)
+
+      # Update checkboxes
+      updateCheckboxInput(
+        session,
+        "gateway_medium_answer",
+        value = availability$medium
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_analyte_answer",
+        value = availability$analyte
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_location_answer",
+        value = availability$location
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_year_answer",
+        value = availability$year
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_units_answer",
+        value = availability$units
+      )
+      updateCheckboxInput(
+        session,
+        "gateway_citation_answer",
+        value = availability$citation
+      )
+    }
   })
 }
 
