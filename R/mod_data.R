@@ -88,7 +88,7 @@ mod_data_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom golem print_dev
-#' @importFrom dplyr cross_join mutate select rename
+#' @importFrom dplyr cross_join mutate select rename pull filter
 #' @importFrom tibble tibble
 #' @importFrom utils capture.output head
 #' @importFrom purrr is_empty
@@ -239,7 +239,6 @@ mod_data_server <- function(id, parent_session) {
         )
 
         for (i in 1:nrow(moduleState$measurement_combinations)) {
-          browser()
           for (field in numeric_fields) {
             field_value <- moduleState$measurement_combinations[i, field]
             if (
@@ -253,6 +252,34 @@ mod_data_server <- function(id, parent_session) {
                 "has invalid",
                 field,
                 "(must be positive)"
+              )
+              moduleState$validation_message <<- message
+              return(message)
+            }
+          }
+        }
+      }
+    })
+
+    # Rule 8: Check that all protocol fields are filled
+    iv$add_rule("measurement_table_validation", function(value) {
+      if (nrow(moduleState$measurement_combinations) > 0) {
+        protocol_fields <- c(
+          "SAMPLING_PROTOCOL",
+          "FRACTIONATION_PROTOCOL",
+          "EXTRACTION_PROTOCOL",
+          "ANALYTICAL_PROTOCOL"
+        )
+
+        for (i in 1:nrow(moduleState$measurement_combinations)) {
+          for (field in protocol_fields) {
+            field_value <- moduleState$measurement_combinations[i, field]
+            if (is.na(field_value) || field_value == "") {
+              message <- paste(
+                "Row",
+                i,
+                "is missing required protocol field:",
+                field
               )
               moduleState$validation_message <<- message
               return(message)
@@ -357,11 +384,11 @@ mod_data_server <- function(id, parent_session) {
           LOD_VALUE = NA,
           LOD_UNIT = "mg/L", # Should match MEASURED_UNIT
 
-          # Add method info (simplified)
-          SAMPLING_PROTOCOL = "Not reported",
-          FRACTIONATION_PROTOCOL = "Not reported",
-          EXTRACTION_PROTOCOL = "Not reported",
-          ANALYTICAL_PROTOCOL = "Not reported"
+          # Add method info
+          SAMPLING_PROTOCOL = "",
+          FRACTIONATION_PROTOCOL = "",
+          EXTRACTION_PROTOCOL = "",
+          ANALYTICAL_PROTOCOL = ""
         )
 
       return(combinations)
@@ -486,6 +513,63 @@ mod_data_server <- function(id, parent_session) {
         print_dev("mod_data: Data validation failed")
       }
     })
+
+    ## observe: Update method dropdown options whenever methods change----
+    # Define some methods for the UI to find so it doesn't crash
+    sampling_methods <- analytical_methods <- extraction_methods <- fractionation_methods <- c(
+      ""
+    )
+
+    observe({
+      browser()
+      # Get available methods from mod_methods
+      available_methods <- session$userData$reactiveValues$methodsData
+
+      if (nrow(available_methods) > 0) {
+        analytical_methods <- available_methods |>
+          filter(PROTOCOL_CATEGORY == "Analytical Protocol") |>
+          pull(PROTOCOL_NAME)
+
+        # Return empty string if no protocols of this category
+        if (length(analytical_methods) == 0) {
+          analytical_methods <- ""
+        }
+
+        sampling_methods <- available_methods |>
+          filter(PROTOCOL_CATEGORY == "Sampling Protocol") |>
+          pull(PROTOCOL_NAME)
+
+        if (length(sampling_methods) == 0) {
+          sampling_methods <- ""
+        }
+
+        extraction_methods <- available_methods |>
+          filter(PROTOCOL_CATEGORY == "Extraction Protocol") |>
+          pull(PROTOCOL_NAME)
+
+        if (length(extraction_methods) == 0) {
+          extraction_methods <- ""
+        }
+
+        fractionation_methods <- available_methods |>
+          filter(PROTOCOL_CATEGORY == "Fractionation Protocol") |>
+          pull(PROTOCOL_NAME)
+
+        if (length(fractionation_methods) == 0) {
+          fractionation_methods <- ""
+        }
+      } else {
+        # No methods data available - set all to empty string
+        analytical_methods <- ""
+        sampling_methods <- ""
+        extraction_methods <- ""
+        fractionation_methods <- ""
+      }
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$methodsData,
+        ignoreInit = FALSE
+      )
 
     ## observe: Navigate to Campaign when go_to_campaign clicked ----
     # Upstream: input$go_to_campaign button click
@@ -779,37 +863,40 @@ mod_data_server <- function(id, parent_session) {
             source = measured_units,
             strict = TRUE
           ) |>
+          # Configure protocol fields as dropdowns
+          hot_col(
+            "SAMPLING_PROTOCOL",
+            type = "dropdown",
+            source = c("Cats", "Dogs"),
+            strict = TRUE
+          ) |>
+          hot_col(
+            "FRACTIONATION_PROTOCOL",
+            type = "dropdown",
+            source = fractionation_methods,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "EXTRACTION_PROTOCOL",
+            type = "dropdown",
+            source = extraction_methods,
+            strict = TRUE
+          ) |>
+          hot_col(
+            "ANALYTICAL_PROTOCOL",
+            type = "dropdown",
+            source = analytical_methods,
+            strict = TRUE
+          ) |>
           hot_col(
             "SAMPLE_ID"
           ) |>
           hot_cols(
-            # colWidths = c(
-            #   300,
-            #   0.1,
-            #   0.1,
-            #   0.1,
-            #   0.1,
-            #   0.1,
-            #   0.1,
-            #   100,
-            #   100,
-            #   100,
-            #   100,
-            #   100,
-            #   100,
-            #   100,
-            #   100
-            # )
-            fixedColumnsLeft = 5, # fix the first five columns to be always visible (like freezing in excel)
-            manualColumnMove = TRUE, # does drag & drop column reordering change the roder in the dataset too?
+            fixedColumnsLeft = 5,
+            manualColumnMove = TRUE,
             manualColumnResize = TRUE,
             columnSorting = TRUE
           )
-        # hot_context_menu(
-        #   allowRowEdit = FALSE, # Disable row operations for measurement data
-        #   allowColEdit = FALSE, # Disable column operations
-        #   customOpts = list()
-        # )
       }
     })
 
