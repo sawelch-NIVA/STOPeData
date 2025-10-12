@@ -482,3 +482,42 @@ clean_bibtex_text <- function(text) {
 
   return(text)
 }
+
+#' Generate Reference ID
+#' @param date Date (ACCESS_DATE or current date)
+#' @param author Author string
+#' @param title Title string
+#' @return Character string with format DateAuthorFirstThreeWords
+#' @importFrom stringr str_to_title
+generate_reference_id <- function(date, author, title) {
+  # Format date as YYYYMMDD
+  date_part <- format(as.Date(date), "%Y")
+
+  # Extract first author's last name
+  author_part <- ""
+  if (!is.null(author) && nchar(trimws(author)) > 0) {
+    # Split by semicolon and take first author
+    first_author <- trimws(strsplit(author, ";")[[1]][1])
+    # Extract last name (part before first comma)
+    author_part <- trimws(strsplit(first_author, ",")[[1]][1])
+    # Remove any non-alphanumeric characters and limit length
+    author_part <- gsub("[^A-Za-z0-9]", "", author_part)
+    author_part <- substr(author_part, 1, 10) # Limit author part length
+  }
+
+  # Extract first three words from title
+  title_part <- ""
+  if (!is.null(title) && nchar(trimws(title)) > 0) {
+    # Remove punctuation and split into words
+    words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", title), "\\s+")[[1]]
+    words <- words[nchar(words) > 0] # Remove empty strings
+    # Take first 3 words
+    title_words <- head(words, 3)
+    title_part <- paste(title_words, collapse = "") |> str_to_title()
+  }
+
+  # Combine parts
+  reference_id <- paste0(date_part, author_part, title_part)
+
+  return(reference_id)
+}

@@ -114,7 +114,7 @@ mod_methods_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom arrow read_parquet
 #' @importFrom tibble tibble deframe
-#' @importFrom dplyr filter select
+#' @importFrom dplyr filter select ungroup row_number
 #' @importFrom purrr is_empty
 #' @export
 mod_methods_server <- function(id) {
@@ -149,6 +149,8 @@ mod_methods_server <- function(id) {
     # ! FORMAT-BASED
     init_methods_df <- function() {
       tibble(
+        PROTOCOL_ID = character(0),
+        CAMPAIGN_NAME = character(0),
         PROTOCOL_CATEGORY = character(0),
         PROTOCOL_NAME = character(0),
         PROTOCOL_COMMENT = character(0)
@@ -203,13 +205,69 @@ mod_methods_server <- function(id) {
 
     # 2. Helper functions ----
 
-    ## Create new method entry ----
+    ## function: create_method_entry() ----
     create_method_entry <- function(category, protocol) {
+      # Get campaign name
+      campaign_name <- ""
+      if (!is.null(session$userData$reactiveValues$campaignData)) {
+        campaign_name <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME %||%
+          ""
+      }
+
+      # Generate protocol ID - for now use sequence 1, will be updated later
+      protocol_id <- generate_protocol_id(category, protocol, 1, campaign_name)
+
       tibble(
+        PROTOCOL_ID = protocol_id,
+        CAMPAIGN_NAME = campaign_name,
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = protocol,
         PROTOCOL_COMMENT = NA_character_
       )
+    }
+
+    ## function: generate_protocol_id
+    # Generate a unique protocol ID based on type and name ----
+    generate_protocol_id <- function(
+      protocol_type,
+      protocol_name,
+      sequence_number = 1,
+      campaign_name = ""
+    ) {
+      # Map protocol categories to single letters
+      type_mapping <- c(
+        "Sampling Protocol" = "S",
+        "Fractionation Protocol" = "F",
+        "Extraction Protocol" = "E",
+        "Analytical Protocol" = "A"
+      )
+
+      # Get the letter code
+      type_code <- type_mapping[protocol_type]
+      if (is.na(type_code)) {
+        type_code <- "X" # Default for unknown types
+      }
+
+      # Create abbreviated name (remove spaces and special chars, limit length)
+      abbreviated_name <- ""
+      if (!is.null(protocol_name) && nchar(trimws(protocol_name)) > 0) {
+        abbreviated_name <- gsub("[^A-Za-z0-9]", "", protocol_name)
+        abbreviated_name <- substr(abbreviated_name, 1, 15) # Limit length
+      }
+
+      # Format sequence number
+      seq_formatted <- sprintf("%d", sequence_number)
+
+      # Combine parts
+      protocol_id <- paste0(
+        type_code,
+        "-",
+        abbreviated_name,
+        "-",
+        seq_formatted
+      )
+
+      return(protocol_id)
     }
 
     # 3. Observers and Reactives ----
@@ -351,6 +409,47 @@ mod_methods_server <- function(id) {
         ignoreNULL = TRUE
       )
 
+    ## observe: Update protocol IDs and campaign names ----
+    ## upstream: moduleState$methods_data, session$userData$reactiveValues$campaignData
+    ## downstream: methods HOT table and data objects
+    observe({
+      if (nrow(moduleState$methods_data) > 0) {
+        # Get campaign name
+        campaign_name <- ""
+        if (!is.null(session$userData$reactiveValues$campaignData)) {
+          campaign_name <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME %||%
+            ""
+        }
+
+        # Update data with proper protocol IDs and campaign names
+        updated_data <- moduleState$methods_data |>
+          group_by(PROTOCOL_CATEGORY) |>
+          mutate(
+            sequence = row_number(),
+            PROTOCOL_ID = generate_protocol_id(
+              PROTOCOL_CATEGORY,
+              PROTOCOL_NAME,
+              sequence,
+              campaign_name
+            ),
+            CAMPAIGN_NAME = campaign_name
+          ) |>
+          ungroup() |>
+          select(-sequence)
+
+        # Only update if there are actual changes to avoid infinite loops
+        if (!identical(moduleState$methods_data, updated_data)) {
+          moduleState$methods_data <- updated_data
+          session$userData$reactiveValues$methodsData <- moduleState$methods_data
+        }
+      }
+    }) |>
+      bindEvent(
+        moduleState$methods_data,
+        session$userData$reactiveValues$campaignData,
+        ignoreInit = TRUE
+      )
+
     # 4. Outputs ----
 
     ## output: methods_table ----
@@ -385,6 +484,27 @@ mod_methods_server <- function(id) {
           width = NULL
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
+          hot_col(
+            "PROTOCOL_ID",
+            readOnly = TRUE,
+            renderer = "
+        function(instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+          td.style.backgroundColor = '#f5f5f5';
+          td.style.fontStyle = 'italic';
+        }
+      "
+          ) |>
+          hot_col(
+            "CAMPAIGN_NAME",
+            readOnly = TRUE,
+            renderer = "
+        function(instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+          td.style.backgroundColor = '#f5f5f5';
+        }
+      "
+          ) |>
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",

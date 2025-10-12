@@ -123,6 +123,21 @@ mod_references_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
+          ### REFERENCE_ID_DISPLAY - automatically generated ----
+          textInput(
+            inputId = ns("REFERENCE_ID_DISPLAY"),
+            label = tooltip(
+              list(
+                "Reference ID (Auto-generated)",
+                bs_icon("info-circle-fill")
+              ),
+              "Automatically generated reference identifier"
+            ),
+            value = "",
+            width = "100%"
+          ) |>
+            disabled(),
+
           ### AUTHOR - Always required, 1000 char ----
           textAreaInput(
             inputId = ns("AUTHOR"),
@@ -922,8 +937,16 @@ mod_references_server <- function(id) {
     # downstream: moduleState$validated_data, moduleState$is_valid
     observe({
       if (iv$is_valid()) {
+        # Generate REFERENCE_ID
+        reference_id <- generate_reference_id(
+          date = input$ACCESS_DATE,
+          author = input$AUTHOR,
+          title = input$TITLE
+        )
+
         # Collect validated data
         validated_data <- tibble(
+          REFERENCE_ID = reference_id,
           REFERENCE_TYPE = input$REFERENCE_TYPE,
           DATA_SOURCE = input$DATA_SOURCE,
           AUTHOR = input$AUTHOR,
@@ -954,8 +977,10 @@ mod_references_server <- function(id) {
           REF_COMMENT = input$REF_COMMENT %|truthy|% NA
         )
 
+        # update data and UI elements
         moduleState$validated_data <- validated_data
         moduleState$is_valid <- TRUE
+        updateTextInput(session, "REFERENCE_ID_DISPLAY", value = reference_id)
 
         session$userData$reactiveValues$referencesData <- moduleState$validated_data
         print_dev(glue(
