@@ -501,7 +501,6 @@ mod_data_server <- function(id, parent_session) {
         moduleState$complete_dataset <- complete_data
         session$userData$reactiveValues$dataData <- moduleState$complete_dataset
 
-        browser()
         print_dev(glue(
           "mod_data: Data validated and saved - {nrow(moduleState$complete_dataset)} complete records"
         ))
@@ -521,7 +520,6 @@ mod_data_server <- function(id, parent_session) {
     )
 
     observe({
-      browser()
       # Get available methods from mod_methods
       available_methods <- session$userData$reactiveValues$methodsData
 
@@ -530,9 +528,11 @@ mod_data_server <- function(id, parent_session) {
           filter(PROTOCOL_CATEGORY == "Analytical Protocol") |>
           pull(PROTOCOL_NAME)
 
-        # Return empty string if no protocols of this category
+        # Ensure at least 2 elements
         if (length(analytical_methods) == 0) {
-          analytical_methods <- ""
+          analytical_methods <<- c("", "")
+        } else if (length(analytical_methods) == 1) {
+          analytical_methods <<- c("", analytical_methods)
         }
 
         sampling_methods <- available_methods |>
@@ -540,7 +540,9 @@ mod_data_server <- function(id, parent_session) {
           pull(PROTOCOL_NAME)
 
         if (length(sampling_methods) == 0) {
-          sampling_methods <- ""
+          sampling_methods <<- c("", "")
+        } else if (length(sampling_methods) == 1) {
+          sampling_methods <<- c("", sampling_methods)
         }
 
         extraction_methods <- available_methods |>
@@ -548,7 +550,9 @@ mod_data_server <- function(id, parent_session) {
           pull(PROTOCOL_NAME)
 
         if (length(extraction_methods) == 0) {
-          extraction_methods <- ""
+          extraction_methods <<- c("", "")
+        } else if (length(extraction_methods) == 1) {
+          extraction_methods <<- c("", extraction_methods)
         }
 
         fractionation_methods <- available_methods |>
@@ -556,19 +560,21 @@ mod_data_server <- function(id, parent_session) {
           pull(PROTOCOL_NAME)
 
         if (length(fractionation_methods) == 0) {
-          fractionation_methods <- ""
+          fractionation_methods <<- c("", "")
+        } else if (length(fractionation_methods) == 1) {
+          fractionation_methods <<- c("", fractionation_methods)
         }
       } else {
-        # No methods data available - set all to empty string
-        analytical_methods <- ""
-        sampling_methods <- ""
-        extraction_methods <- ""
-        fractionation_methods <- ""
+        # No methods data available - set all to 2-element vectors
+        analytical_methods <<- c("", "")
+        sampling_methods <<- c("", "")
+        extraction_methods <<- c("", "")
+        fractionation_methods <<- c("", "")
       }
     }) |>
       bindEvent(
         session$userData$reactiveValues$methodsData,
-        ignoreInit = FALSE
+        ignoreInit = TRUE
       )
 
     ## observe: Navigate to Campaign when go_to_campaign clicked ----
@@ -867,7 +873,8 @@ mod_data_server <- function(id, parent_session) {
           hot_col(
             "SAMPLING_PROTOCOL",
             type = "dropdown",
-            source = c("Cats", "Dogs"),
+            # TODO: Why aren't other source vectors working properly? Is it cos they're length 1?
+            source = c("Cats", ""),
             strict = TRUE
           ) |>
           hot_col(
