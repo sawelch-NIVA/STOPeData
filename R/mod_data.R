@@ -88,7 +88,7 @@ mod_data_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom golem print_dev
-#' @importFrom dplyr cross_join mutate select rename pull filter
+#' @importFrom dplyr cross_join mutate select rename pull filter relocate
 #' @importFrom tibble tibble
 #' @importFrom utils capture.output head
 #' @importFrom purrr is_empty
@@ -372,8 +372,6 @@ mod_data_server <- function(id, parent_session) {
       # Add campaign and reference info
       combinations <- combinations |>
         mutate(
-          REFERENCE_ID = reference_data$REFERENCE_TYPE, # Simplified for now
-
           # Add measurement fields with empty defaults
           MEASURED_FLAG = "",
           MEASURED_VALUE = NA,
@@ -388,8 +386,11 @@ mod_data_server <- function(id, parent_session) {
           SAMPLING_PROTOCOL = "",
           FRACTIONATION_PROTOCOL = "",
           EXTRACTION_PROTOCOL = "",
-          ANALYTICAL_PROTOCOL = ""
-        )
+          ANALYTICAL_PROTOCOL = "",
+
+          REFERENCE_ID = reference_data$REFERENCE_ID,
+        ) |>
+        relocate(SAMPLE_ID, ENVIRON_COMPARTMENT, .after = REFERENCE_ID)
 
       return(combinations)
     }
@@ -398,11 +399,9 @@ mod_data_server <- function(id, parent_session) {
     # ! FORMAT-BASED
     init_measurement_df <- function() {
       tibble(
-        SAMPLE_ID = character(0),
         SITE_CODE = character(0),
         PARAMETER_NAME = character(0),
         SAMPLING_DATE = character(0),
-        ENVIRON_COMPARTMENT = character(0),
         ENVIRON_COMPARTMENT_SUB = character(0),
         REP = integer(0),
         MEASURED_FLAG = character(0),
@@ -416,7 +415,10 @@ mod_data_server <- function(id, parent_session) {
         SAMPLING_PROTOCOL = character(0),
         EXTRACTION_PROTOCOL = character(0),
         FRACTIONATION_PROTOCOL = character(0),
-        ANALYTICAL_PROTOCOL = character(0)
+        ANALYTICAL_PROTOCOL = character(0),
+        REFERENCE_ID = character(0),
+        SAMPLE_ID = character(0),
+        ENVIRON_COMPARTMENT = character(0)
       )
     }
 
@@ -840,7 +842,6 @@ mod_data_server <- function(id, parent_session) {
               "SITE_CODE",
               "PARAMETER_NAME",
               "SAMPLING_DATE",
-              "ENVIRON_COMPARTMENT",
               "ENVIRON_COMPARTMENT_SUB",
               "REP"
             ),
@@ -873,8 +874,7 @@ mod_data_server <- function(id, parent_session) {
           hot_col(
             "SAMPLING_PROTOCOL",
             type = "dropdown",
-            # TODO: Why aren't other source vectors working properly? Is it cos they're length 1?
-            source = c("Cats", ""),
+            source = sampling_methods,
             strict = TRUE
           ) |>
           hot_col(
@@ -896,10 +896,11 @@ mod_data_server <- function(id, parent_session) {
             strict = TRUE
           ) |>
           hot_col(
-            "SAMPLE_ID"
+            c("SAMPLE_ID", "REFERENCE_ID", "ENVIRON_COMPARTMENT"),
+            readOnly = TRUE
           ) |>
           hot_cols(
-            fixedColumnsLeft = 5,
+            # fixedColumnsLeft = 5,
             manualColumnMove = TRUE,
             manualColumnResize = TRUE,
             columnSorting = TRUE

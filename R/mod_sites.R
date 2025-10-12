@@ -648,7 +648,7 @@ mod_sites_server <- function(id) {
         selectCallback = TRUE,
         width = NULL,
       ) |>
-        hot_table(overflow = "visible", stretchH = "all") |>
+        hot_table(overflow = "visible", stretchH = "all", width = NULL) |>
         hot_col("SITE_CODE", renderer = mandatory_highlight_text()) |>
         hot_cell(
           1,

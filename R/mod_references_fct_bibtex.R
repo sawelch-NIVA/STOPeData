@@ -512,8 +512,8 @@ generate_reference_id <- function(date, author, title) {
     words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", title), "\\s+")[[1]]
     words <- words[nchar(words) > 0] # Remove empty strings
     # Take first 3 words
-    title_words <- head(words, 3)
-    title_part <- paste(title_words, collapse = "") |> str_to_title()
+    title_words <- head(words, 3) |> str_to_title()
+    title_part <- paste(title_words, collapse = "")
   }
 
   # Combine parts
