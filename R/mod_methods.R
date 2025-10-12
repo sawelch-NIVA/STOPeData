@@ -114,7 +114,7 @@ mod_methods_ui <- function(id) {
 #' @importFrom shinyjs enable disable
 #' @importFrom arrow read_parquet
 #' @importFrom tibble tibble deframe
-#' @importFrom dplyr filter select ungroup row_number
+#' @importFrom dplyr filter select ungroup row_number relocate
 #' @importFrom purrr is_empty
 #' @export
 mod_methods_server <- function(id) {
@@ -435,7 +435,8 @@ mod_methods_server <- function(id) {
             CAMPAIGN_NAME = campaign_name
           ) |>
           ungroup() |>
-          select(-sequence)
+          select(-sequence) |>
+          relocate(PROTOCOL_ID)
 
         # Only update if there are actual changes to avoid infinite loops
         if (!identical(moduleState$methods_data, updated_data)) {

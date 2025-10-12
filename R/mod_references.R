@@ -108,11 +108,11 @@ mod_references_ui <- function(id) {
               "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
             ),
             choices = c(
-              "Primary" = "primary",
-              "Secondary/Review" = "secondary_review",
-              "Other" = "other"
+              "Primary" = "Primary",
+              "Secondary/Review" = "Secondary, Review",
+              "Other" = "Other"
             ),
-            selected = "primary",
+            selected = "Primary",
             width = "300px"
           )
         ),
@@ -1024,7 +1024,7 @@ mod_references_server <- function(id) {
       {
         # Reset all inputs to default values
         updateSelectInput(session, "REFERENCE_TYPE", selected = "journal")
-        updateSelectInput(session, "DATA_SOURCE", selected = "primary")
+        updateSelectInput(session, "DATA_SOURCE", selected = "Primary")
         updateTextAreaInput(session, "AUTHOR", value = "")
         updateTextAreaInput(session, "TITLE", value = "")
         updateNumericInput(

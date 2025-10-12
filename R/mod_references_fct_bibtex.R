@@ -106,24 +106,24 @@ map_bibtex_to_reference_fields <- function(
 
   # Map BibTeX reference types to our reference types ----
   ref_type_mapping <- list(
-    "article" = "journal",
-    "book" = "book",
-    "techreport" = "report",
-    "report" = "report",
-    "manual" = "report",
-    "misc" = "dataset",
+    "article" = "Journal",
+    "book" = "Book",
+    "techreport" = "Report",
+    "report" = "Report",
+    "manual" = "Report",
+    "misc" = "Dataset",
     # Default mappings for unmapped types - TODO: extend definition to cover these types
-    "inproceedings" = "journal", # Conference papers → journal
-    "conference" = "journal",
-    "incollection" = "book", # Book chapters → book
-    "inbook" = "book",
-    "phdthesis" = "report", # Theses → report
-    "mastersthesis" = "report",
-    "unpublished" = "report"
+    "inproceedings" = "Journal", # Conference papers → journal
+    "conference" = "Journal",
+    "incollection" = "Book", # Book chapters → book
+    "inbook" = "Book",
+    "phdthesis" = "Report", # Theses → report
+    "mastersthesis" = "Report",
+    "unpublished" = "Report"
   )
 
   # Get reference type, default to journal if not found
-  ref_type <- ref_type_mapping[[tolower(entry$CATEGORY %||% "")]] %||% "journal"
+  ref_type <- ref_type_mapping[[tolower(entry$CATEGORY %||% "")]] %||% "Journal"
 
   # Helper function to safely extract and convert values
   safe_extract <- function(value, convert_func = identity, clean_text = TRUE) {
