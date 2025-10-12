@@ -399,12 +399,3 @@ mod_campaign_server <- function(id) {
 
 ## To be copied in the server ----
 # campaign_data <- mod_campaign_server("campaign_1")
-#
-# # Access validated data in other parts of your app:
-# observe({
-#   if (isTruthy(campaign_data())) {
-#     # Do something with the validated data
-#     print("Campaign data validated!")
-#     print(campaign_data())
-#   }
-# })

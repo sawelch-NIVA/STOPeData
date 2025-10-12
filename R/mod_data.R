@@ -73,7 +73,7 @@ mod_data_ui <- function(id) {
           width = "100%",
           height = "100%"
         ),
-        style = "margin-bottom: 10px;"
+        style = "margin-bottom: 10px; margin-left: 10px;"
       )
     )
   )

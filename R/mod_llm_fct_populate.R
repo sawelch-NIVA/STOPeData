@@ -196,10 +196,16 @@ populate_references_from_llm <- function(session, llm_references_data) {
 #'
 #' @description Creates sites data frame from LLM extracted sites data frame
 #' @param llm_sites_data Sites data frame extracted by LLM
+#' @param llm_campaign_data Campaign data frame extracted by LLM (used for generating sites codes)
+#' @param session get session object for ENTERED_BY
 #' @return Data frame in sites module format
 #' @noRd
 # ! FORMAT-BASED
-create_sites_from_llm <- function(llm_sites_data, llm_campaign_data) {
+create_sites_from_llm <- function(
+  llm_sites_data,
+  llm_campaign_data,
+  session
+) {
   if (is.null(llm_sites_data) || nrow(llm_sites_data) == 0) {
     return(data.frame())
   }
@@ -243,7 +249,7 @@ create_sites_from_llm <- function(llm_sites_data, llm_campaign_data) {
       AREA = "Not reported", # LLM doesn't typically extract area info
       ALTITUDE_VALUE = 0, # Default altitude, LLM rarely has this
       ALTITUDE_UNIT = "m",
-      ENTERED_BY = "", # Will be filled by module
+      ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
       ENTERED_DATE = as.character(Sys.Date()),
       SITE_COMMENT = "",
       stringsAsFactors = FALSE
@@ -264,13 +270,15 @@ create_sites_from_llm <- function(llm_sites_data, llm_campaign_data) {
 #' @description Creates parameters data frame from LLM extracted parameters with database lookup
 #' @param llm_parameters_data Parameters data frame extracted by LLM
 #' @param chemical_parameters Reference database for lookups (optional)
+#' @param session get session object for ENTERED_BY
 #' @return Data frame in parameters module format
 #' @importFrom purrr map_dfr
 #' @noRd
 # ! FORMAT-BASED
 create_parameters_from_llm <- function(
   llm_parameters_data,
-  chemical_parameters = NULL
+  chemical_parameters = NULL,
+  session
 ) {
   if (is.null(llm_parameters_data) || nrow(llm_parameters_data) == 0) {
     return(data.frame())
@@ -342,7 +350,7 @@ create_parameters_from_llm <- function(
       INCHIKEY_SD = if (!is.null(db_match)) db_match$INCHIKEY_SD else "",
       PUBCHEM_CID = if (!is.null(db_match)) db_match$PUBCHEM_CID else "",
       CAS_RN = cas_rn,
-      ENTERED_BY = "",
+      ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
       stringsAsFactors = FALSE
     )
   })

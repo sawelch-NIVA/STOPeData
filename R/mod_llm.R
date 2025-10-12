@@ -405,9 +405,6 @@ mod_llm_server <- function(id) {
 
             # Step 8: Update session data
             incProgress(0.9, detail = "Updating data...")
-            # ! I believe this is redundant due to the Populate Forms
-            # ! observer. Disabling to check.
-            # store_llm_data_in_session(session, result)
 
             # Step 9: Enable UI elements
             incProgress(1.0, detail = "Finalising...")
@@ -490,14 +487,17 @@ mod_llm_server <- function(id) {
           if (!is.null(moduleState$structured_data$sites)) {
             sites_data <- create_sites_from_llm(
               moduleState$structured_data$sites,
-              moduleState$structured_data$campaign
+              moduleState$structured_data$campaign,
+              session
             )
             session$userData$reactiveValues$sitesDataLLM <- sites_data
           }
 
           if (!is.null(moduleState$structured_data$parameters)) {
+            browser()
             parameters_data <- create_parameters_from_llm(
-              moduleState$structured_data$parameters
+              moduleState$structured_data$parameters,
+              session = session
             )
             session$userData$reactiveValues$parametersDataLLM <- parameters_data
           }
@@ -598,7 +598,7 @@ mod_llm_server <- function(id) {
         )
       }
     }) |>
-      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+      bindEvent(input$ENTERED_BY, ignoreInit = FALSE)
 
     # 3. Outputs ----
 
