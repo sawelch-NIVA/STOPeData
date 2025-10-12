@@ -24,6 +24,14 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
     )
   }
 
+  if (!is.null(llm_campaign_data$campaign_name_short)) {
+    updateTextInput(
+      session,
+      "CAMPAIGN_NAME_SHORT",
+      value = llm_campaign_data$campaign_name_short
+    )
+  }
+
   if (!is.null(llm_campaign_data$campaign_start_date)) {
     # Validate and parse date
     tryCatch(
@@ -219,7 +227,7 @@ create_sites_from_llm <- function(
     site_row <- data.frame(
       # add llm_campaign_data$campaign_name to start of site code
       SITE_CODE = paste0(
-        llm_campaign_data$campaign_name,
+        llm_campaign_data$campaign_name_short,
         "_",
         safe_extract_field(
           site,

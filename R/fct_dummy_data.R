@@ -16,7 +16,8 @@
 create_dummy_data <- function(uppercase_columns = FALSE) {
   dummy_data <- list(
     campaign = list(
-      campaign_name = "Dummy campaign name",
+      campaign_name = "Dummy campaign, 1997",
+      campaign_name_short = "DummyCampaign1997",
       campaign_start_date = "1997-01-01",
       campaign_end_date = "1997-03-31",
       organisation = "NIVA",

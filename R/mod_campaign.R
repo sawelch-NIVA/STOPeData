@@ -37,14 +37,28 @@ mod_campaign_ui <- function(id) {
               list("Campaign Name", bs_icon("info-circle-fill")),
               "Text string used to identify the sampling campaign or project. Ensure a consistent Campaign string is used."
             ),
-            placeholder = "e.g., 'Vm_Tilt'",
+            placeholder = "e.g., 'Vannmiljø Mitigation Monitoring 2025'",
+            width = "100%"
+          ),
+
+          ### CAMPAIGN_NAME_SHORT - Required string, 10 char ----
+          textInput(
+            inputId = ns("CAMPAIGN_NAME_SHORT"),
+            label = tooltip(
+              list("Campaign Name Short", bs_icon("info-circle-fill")),
+              "Abbreviated campaign identifier (max 10 characters). Use for compact displays and references."
+            ),
+            placeholder = "e.g., 'Vm_Tilt_2025'",
             width = "100%"
           ),
 
           ### CAMPAIGN_START_DATE - Required date ----
           dateInput(
             inputId = ns("CAMPAIGN_START_DATE"),
-            label = "Campaign Start Date",
+            label = tooltip(
+              list("Campaign Start Date", bs_icon("info-circle-fill")),
+              "The official or actual data of first sampling."
+            ),
             value = as.Date(NA),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -54,7 +68,10 @@ mod_campaign_ui <- function(id) {
           ### CAMPAIGN_END_DATE - Optional date ----
           dateInput(
             inputId = ns("CAMPAIGN_END_DATE"),
-            label = "Campaign End Date",
+            label = tooltip(
+              list("Campaign End Date", bs_icon("info-circle-fill")),
+              "The latest date of sampling or analysis."
+            ),
             value = as.Date(NA),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -64,7 +81,13 @@ mod_campaign_ui <- function(id) {
           ### RELIABILITY_EVAL_SYS - Optional string, 50 char ----
           selectInput(
             inputId = ns("RELIABILITY_EVAL_SYS"),
-            label = "Reliability Evaluation System",
+            label = tooltip(
+              list(
+                "Reliability Evaluation System",
+                bs_icon("info-circle-fill")
+              ),
+              "The system used to evaluate data quality."
+            ),
             choices = c(
               "Not relevant",
               "Not reported",
@@ -77,7 +100,10 @@ mod_campaign_ui <- function(id) {
           ### RELIABILITY_SCORE - Optional int, 22 char ----
           textInput(
             inputId = ns("RELIABILITY_SCORE"),
-            label = "Reliability Score",
+            label = tooltip(
+              list("Reliability Score", bs_icon("info-circle-fill")),
+              "The score given (numeric or categorical) under the Reliability Evaluation System, if relevant."
+            ),
             value = NA,
             placeholder = "Numeric or categorical",
             width = "100%"
@@ -86,7 +112,10 @@ mod_campaign_ui <- function(id) {
           ### CONFIDENTIALITY_EXPIRY_DATE - Optional date ----
           dateInput(
             inputId = ns("CONFIDENTIALITY_EXPIRY_DATE"),
-            label = "Confidentiality Expiry Date",
+            label = tooltip(
+              list("Confidentiality Expiry Date", bs_icon("info-circle-fill")),
+              "The date at which the data leaves embargo or ceases to be confidential."
+            ),
             value = NA,
             format = "yyyy-mm-dd",
             width = "100%"
@@ -96,7 +125,10 @@ mod_campaign_ui <- function(id) {
           ### ORGANISATION - Required string, 50 char ----
           textInput(
             inputId = ns("ORGANISATION"),
-            label = "Organisation",
+            label = tooltip(
+              list("Organisation", bs_icon("info-circle-fill")),
+              "The principal organisation(s) responsible for collecting or creating the original data: authors' institution, report publishing institution, etc."
+            ),
             placeholder = "Data collection organisation",
             width = "100%"
           ),
@@ -104,15 +136,21 @@ mod_campaign_ui <- function(id) {
           ### ENTERED_BY - Required string, 50 char ----
           textInput(
             inputId = ns("ENTERED_BY"),
-            label = "Entered By",
-            placeholder = "Your initials or name",
+            label = tooltip(
+              list("Entered By", bs_icon("info-circle-fill")),
+              "Your name."
+            ),
+            placeholder = "Your name",
             width = "100%"
           ),
 
           ### ENTERED_DATE - Required date ----
           dateInput(
             inputId = ns("ENTERED_DATE"),
-            label = "Entered Date",
+            label = tooltip(
+              list("Entered Date", bs_icon("info-circle-fill")),
+              "The date you are entering this data into the app."
+            ),
             value = Sys.Date(),
             format = "yyyy-mm-dd",
             width = "100%"
@@ -122,7 +160,10 @@ mod_campaign_ui <- function(id) {
         ### CAMPAIGN_COMMENT - Full width text area ----
         textAreaInput(
           inputId = ns("CAMPAIGN_COMMENT"),
-          label = "Campaign Comment",
+          label = tooltip(
+            list("Campaign Comments", bs_icon("info-circle-fill")),
+            "Use this space to enter any potentially relevant or noteworthy comments or remarks about the overall campaign."
+          ),
           placeholder = "Campaign-level notes (optional)",
           width = "100%",
           rows = 3
@@ -233,6 +274,14 @@ mod_campaign_server <- function(id) {
       }
     })
 
+    # CAMPAIGN_NAME_SHORT is short
+    iv$add_rule("CAMPAIGN_NAME_SHORT", sv_required())
+    iv$add_rule("CAMPAIGN_NAME_SHORT", function(value) {
+      if (isTruthy(value) && nchar(value) > 20) {
+        "Campaign Name Short must be 20 characters or less"
+      }
+    })
+
     ## InputValidator$enable() ----
     iv$enable()
 
@@ -245,6 +294,7 @@ mod_campaign_server <- function(id) {
       if (iv$is_valid()) {
         # Collect validated data
         validated_data <- tibble(
+          CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
           CAMPAIGN_NAME = input$CAMPAIGN_NAME,
           CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
           CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|% as.Date(NA),
@@ -278,6 +328,7 @@ mod_campaign_server <- function(id) {
     observe(
       {
         # Reset all inputs to default values
+        updateTextInput(session, "CAMPAIGN_NAME_SHORT", value = "")
         updateTextInput(session, "CAMPAIGN_NAME", value = "")
         updateDateInput(session, "CAMPAIGN_START_DATE", value = as.Date(NA))
         updateDateInput(session, "CAMPAIGN_END_DATE", value = as.Date(NA))
