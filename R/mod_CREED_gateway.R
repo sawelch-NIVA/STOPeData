@@ -159,7 +159,7 @@ mod_CREED_gateway_server <- function(id) {
         sites = session$userData$reactiveValues$sitesData,
         parameters = session$userData$reactiveValues$parametersData,
         compartments = session$userData$reactiveValues$compartmentsData,
-        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
+        samples = session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
           session$userData$reactiveValues$samplesData,
         methods = session$userData$reactiveValues$methodsData,
         measurements = session$userData$reactiveValues$dataData

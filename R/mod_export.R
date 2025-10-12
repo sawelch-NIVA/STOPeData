@@ -28,12 +28,14 @@ mod_export_ui <- function(id) {
             title = "Export Information",
             icon = bs_icon("info-circle"),
             "Export your campaign data to Excel or CSV format. You can download individual datasets as CSV files (with accompanying metadata JSON), or download all data as a single Excel workbook with each dataset on a separate sheet and a metadata sheet."
-          )
-        ),
+          ),
+          actionButton(
+            inputId = ns("get_data"),
+            label = "Get Data from Modules",
+            icon = icon("refresh"),
+            class = "btn-primary"
+          ),
 
-        ## Export status ----
-        div(
-          style = "margin: 20px 0;",
           uiOutput(ns("export_status"))
         ),
 
@@ -143,7 +145,7 @@ mod_export_server <- function(id) {
     # 3. Observers and Reactives ----
 
     ## observe: Check data availability ----
-    # upstream: session$userData$reactiveValues
+    # upstream: input$get_data (action button)
     # downstream: moduleState$export_ready, moduleState$available_datasets
     observe({
       rv <- session$userData$reactiveValues
@@ -165,6 +167,9 @@ mod_export_server <- function(id) {
       available <- character(0)
 
       for (dataset in dataset_names) {
+        if (dataset == "samplesData") {
+          browser()
+        }
         data <- rv[[dataset]]
         if (!is.null(data) && nrow(data) > 0) {
           available <- c(available, dataset)
@@ -188,112 +193,7 @@ mod_export_server <- function(id) {
         "mod_export: {length(available)} datasets available: {paste(available, collapse = ', ')}"
       ))
     }) |>
-      bindEvent(
-        session$userData$reactiveValues$campaignData,
-        session$userData$reactiveValues$referenceData,
-        session$userData$reactiveValues$sitesData,
-        session$userData$reactiveValues$parametersData,
-        session$userData$reactiveValues$compartmentsData,
-        session$userData$reactiveValues$methodsData,
-        session$userData$reactiveValues$samplesData,
-        session$userData$reactiveValues$biotaData,
-        session$userData$reactiveValues$dataData,
-        ignoreNULL = FALSE,
-        ignoreInit = FALSE
-      )
-
-    # 4. Outputs ----
-
-    ## output: export_status ----
-    # upstream: moduleState$export_ready, moduleState$available_datasets
-    # downstream: UI status display
-    output$export_status <- renderUI({
-      if (moduleState$export_ready) {
-        datasets <- moduleState$available_datasets
-        dataset_list <- paste(
-          sapply(datasets, get_dataset_display_name),
-          collapse = ", "
-        )
-
-        div(
-          bs_icon("check-circle"),
-          glue(" Export ready: {length(datasets)} datasets available"),
-          br(),
-          dataset_list,
-          class = "validation-status validation-complete",
-          style = "padding: 10px; border-radius: 4px;"
-        )
-      } else {
-        div(
-          bs_icon("exclamation-triangle"),
-          " No data available for export. Complete at least one data entry module first.",
-          class = "validation-status validation-warning",
-          style = "padding: 10px; border-radius: 4px;"
-        )
-      }
-    })
-
-    ## output: individual_downloads ----
-    # upstream: moduleState$available_datasets, session$userData$reactiveValues
-    # downstream: UI download buttons for each dataset (always visible, enabled/disabled based on data)
-    output$individual_downloads <- renderUI({
-      rv <- session$userData$reactiveValues
-
-      # Define all possible datasets
-      all_datasets <- c(
-        "sitesData",
-        "parametersData",
-        "compartmentsData",
-        "referencesData",
-        "campaignData",
-        "methodsData",
-        "samplesData",
-        "biotaData",
-        "dataData"
-      )
-
-      # Create a card for each dataset (available or not)
-      cards <- lapply(all_datasets, function(dataset_name) {
-        display_name <- get_dataset_display_name(dataset_name)
-        data <- rv[[dataset_name]]
-
-        # Check if dataset has data
-        has_data <- !is.null(data) && nrow(data) > 0
-
-        if (has_data) {
-          dimensions <- glue("{nrow(data)} rows × {ncol(data)} columns")
-          button_element <- downloadButton(
-            outputId = ns(paste0("download_", dataset_name)),
-            label = "Download CSV + JSON",
-            class = "btn-secondary",
-            icon = icon("download")
-          )
-        } else {
-          dimensions <- "No data available"
-          button_element <- tags$button(
-            "Download CSV + JSON",
-            class = "btn btn-secondary",
-            disabled = "disabled",
-            style = "opacity: 0.6; cursor: not-allowed;",
-            icon("download")
-          )
-        }
-
-        div(
-          style = "border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 10px 0;",
-          h5(display_name),
-          tags$code(dimensions),
-          br(),
-          br(),
-          button_element
-        )
-      })
-
-      layout_column_wrap(
-        width = "250px",
-        !!!cards
-      )
-    })
+      bindEvent(input$get_data)
 
     ## observe: Create individual CSV download handlers ----
     # upstream: moduleState$available_datasets
@@ -366,6 +266,37 @@ mod_export_server <- function(id) {
     }) |>
       bindEvent(moduleState$available_datasets)
 
+    # 4. Outputs ----
+
+    ## output: export_status ----
+    # upstream: moduleState$export_ready, moduleState$available_datasets
+    # downstream: UI status display
+    output$export_status <- renderUI({
+      if (moduleState$export_ready) {
+        datasets <- moduleState$available_datasets
+        dataset_list <- paste(
+          sapply(datasets, get_dataset_display_name),
+          collapse = ", "
+        )
+
+        div(
+          bs_icon("check-circle"),
+          glue(" Export ready: {length(datasets)} datasets available"),
+          br(),
+          dataset_list,
+          class = "validation-status validation-complete",
+          style = "padding: 10px; border-radius: 4px;"
+        )
+      } else {
+        div(
+          bs_icon("exclamation-triangle"),
+          " Click to check data availability.",
+          class = "validation-status validation-warning",
+          style = "padding: 10px; border-radius: 4px;"
+        )
+      }
+    })
+
     ## output: download_workbook_ui ----
     # upstream: moduleState$export_ready
     # downstream: UI download button for workbook (enabled/disabled based on data)
@@ -386,6 +317,68 @@ mod_export_server <- function(id) {
           icon("file-excel")
         )
       }
+    })
+
+    ## output: individual_downloads ----
+    # upstream: moduleState$available_datasets, session$userData$reactiveValues
+    # downstream: UI download buttons for each dataset (always visible, enabled/disabled based on data)
+    output$individual_downloads <- renderUI({
+      rv <- session$userData$reactiveValues
+
+      # Define all possible datasets
+      all_datasets <- c(
+        "sitesData",
+        "parametersData",
+        "compartmentsData",
+        "referencesData",
+        "campaignData",
+        "methodsData",
+        "samplesData",
+        "biotaData",
+        "dataData"
+      )
+
+      # Create a card for each dataset (available or not)
+      cards <- lapply(all_datasets, function(dataset_name) {
+        display_name <- get_dataset_display_name(dataset_name)
+        data <- rv[[dataset_name]]
+
+        # Check if dataset has data
+        has_data <- !is.null(data) && nrow(data) > 0
+
+        if (has_data) {
+          dimensions <- glue("{nrow(data)} rows × {ncol(data)} columns")
+          button_element <- downloadButton(
+            outputId = ns(paste0("download_", dataset_name)),
+            label = "Download CSV + JSON",
+            class = "btn-secondary",
+            icon = icon("download")
+          )
+        } else {
+          dimensions <- "No data available"
+          button_element <- tags$button(
+            "Download CSV + JSON",
+            class = "btn btn-secondary",
+            disabled = "disabled",
+            style = "opacity: 0.6; cursor: not-allowed;",
+            icon("download")
+          )
+        }
+
+        div(
+          style = "border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 10px 0;",
+          h5(display_name),
+          tags$code(dimensions),
+          br(),
+          br(),
+          button_element
+        )
+      })
+
+      layout_column_wrap(
+        width = "250px",
+        !!!cards
+      )
     })
 
     ## output: download_workbook ----

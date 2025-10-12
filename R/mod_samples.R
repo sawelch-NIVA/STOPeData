@@ -668,10 +668,10 @@ mod_samples_server <- function(id) {
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- moduleState$samples_data
 
-        session$userData$reactiveValues$sampleData <- moduleState$validated_data
+        session$userData$reactiveValues$samplesData <- moduleState$validated_data
         print_dev(glue(
           "mod_samples is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$sampleData: {nrow(session$userData$reactiveValues$sampleData)} rows"
+                       session$userData$reactiveValues$samplesData: {nrow(session$userData$reactiveValues$samplesData)} rows"
         ))
       } else {
         moduleState$is_valid <- FALSE

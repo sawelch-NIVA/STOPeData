@@ -428,12 +428,12 @@ mod_biota_server <- function(id) {
     }) |>
       bindEvent(input$clear_species)
 
-    ## observe ~ bindEvent(session$userData$reactiveValues$sampleData): Load biota samples from session data ----
-    # upstream: session$userData$reactiveValues$sampleData
+    ## observe ~ bindEvent(session$userData$reactiveValues$samplesData): Load biota samples from session data ----
+    # upstream: session$userData$reactiveValues$samplesData
     # downstream: moduleState$biota_data, moduleState$has_biota_samples
     observe({
-      if (!is.null(session$userData$reactiveValues$sampleData)) {
-        samples_data <- session$userData$reactiveValues$sampleData
+      if (!is.null(session$userData$reactiveValues$samplesData)) {
+        samples_data <- session$userData$reactiveValues$samplesData
         biota_samples <- extract_biota_samples(samples_data)
 
         moduleState$has_biota_samples <- nrow(biota_samples) > 0
@@ -459,7 +459,7 @@ mod_biota_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$sampleData,
+        session$userData$reactiveValues$samplesData,
         ignoreNULL = FALSE,
         ignoreInit = FALSE
       )
@@ -563,12 +563,12 @@ mod_biota_server <- function(id) {
         moduleState$validated_data <- moduleState$biota_data
 
         # Merge biota data back into main samples data
-        if (!is.null(session$userData$reactiveValues$sampleData)) {
+        if (!is.null(session$userData$reactiveValues$samplesData)) {
           updated_samples <- merge_biota_into_samples(
-            session$userData$reactiveValues$sampleData,
+            session$userData$reactiveValues$samplesData,
             moduleState$validated_data
           )
-          session$userData$reactiveValues$sampleDataWithBiota <- updated_samples
+          session$userData$reactiveValues$samplesDataWithBiota <- updated_samples
           session$userData$reactiveValues$biotaValidated <- TRUE
           session$userData$reactiveValues$biotaData <- moduleState$validated_data
           print_dev(glue(

@@ -293,7 +293,7 @@ mod_data_server <- function(id, parent_session) {
 
     # 2. Helper functions ----
 
-    ## Check if all required modules are validated ----
+    ## Check if all required modules are validated and return data of >1 row ----
     check_all_modules_valid <- function() {
       required_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
@@ -302,11 +302,13 @@ mod_data_server <- function(id, parent_session) {
         parameters = session$userData$reactiveValues$parametersData,
         compartments = session$userData$reactiveValues$compartmentsData,
         methods = session$userData$reactiveValues$methodsData,
-        samples = session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-          session$userData$reactiveValues$sampleData
+        samples = session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
+          session$userData$reactiveValues$samplesData
       )
 
-      all(sapply(required_data, function(x) !is.null(x)))
+      all(sapply(required_data, function(x) {
+        !is.null(x) && nrow(x) > 0
+      }))
     }
 
     ## Get validation status for each module ----
@@ -318,7 +320,7 @@ mod_data_server <- function(id, parent_session) {
         Parameters = session$userData$reactiveValues$parametersData,
         Compartments = session$userData$reactiveValues$compartmentsData,
         Methods = session$userData$reactiveValues$methodsData,
-        Samples = session$userData$reactiveValues$sampleData,
+        Samples = session$userData$reactiveValues$samplesData,
         Biota = session$userData$reactiveValues$biotaValidated
       )
 
@@ -345,8 +347,9 @@ mod_data_server <- function(id, parent_session) {
     # ! FORMAT-BASED
     create_measurement_combinations <- function() {
       # Get all validated data
-      samples_data <- session$userData$reactiveValues$sampleDataWithBiota %|truthy|%
-        session$userData$reactiveValues$sampleData
+      samples_data <- session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
+        session$userData$reactiveValues$samplesData %|truthy|%
+        data.frame()
       parameters_data <- session$userData$reactiveValues$parametersData
       campaign_data <- session$userData$reactiveValues$campaignData
       reference_data <- session$userData$reactiveValues$referencesData
@@ -355,6 +358,7 @@ mod_data_server <- function(id, parent_session) {
         return(data.frame())
       }
 
+      # browser()
       # Create cartesian product of samples and parameters
       combinations <- cross_join(
         samples_data |>
@@ -452,8 +456,10 @@ mod_data_server <- function(id, parent_session) {
         session$userData$reactiveValues$parametersData,
         session$userData$reactiveValues$compartmentsData,
         session$userData$reactiveValues$methodsData,
-        session$userData$reactiveValues$sampleData,
-        session$userData$reactiveValues$biotaValidated
+        session$userData$reactiveValues$samplesData,
+        session$userData$reactiveValues$biotaValidated,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
       )
 
     ## observe: Handle table changes ----
@@ -751,7 +757,7 @@ mod_data_server <- function(id, parent_session) {
     # upstream: session data
     # downstream: UI validation status display
     output$validation_overview <- renderUI({
-      status_list <- get_module_status()
+      status_list <- get_module_status() # when this gets called with sampleS, we get a crash?
 
       # Create all module elements ----
       module_elements <- lapply(1:8, function(i) {
