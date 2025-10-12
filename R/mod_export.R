@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList downloadButton
+#' @importFrom shiny NS tagList downloadButton hr div
 #' @importFrom bslib card card_body accordion accordion_panel layout_column_wrap
 #' @importFrom bsicons bs_icon
 #' @export
@@ -27,30 +27,34 @@ mod_export_ui <- function(id) {
           accordion_panel(
             title = "Export Information",
             icon = bs_icon("info-circle"),
-            "Export your campaign data to Excel or CSV format. You can download individual datasets as CSV files (with accompanying metadata JSON), or download all data as a single Excel workbook with each dataset on a separate sheet and a metadata sheet."
+            "Export your campaign data to Excel or CSV format. You can download individual datasets as CSV files (with accompanying metadata JSON), or download all data as a single Excel workbook with each dataset on a separate sheet and a metadata sheet, or as a ZIP file containing all CSV + JSON files."
           ),
-          actionButton(
-            inputId = ns("get_data"),
-            label = "Get Data from Modules",
-            icon = icon("refresh"),
-            class = "btn-primary"
-          ),
-
-          uiOutput(ns("export_status"))
+          div(
+            style = "margin: 10px 10px 0 10px; display: flex; align-items: center; gap: 15px;",
+            actionButton(
+              inputId = ns("get_data"),
+              label = "Get Data from Modules",
+              icon = icon("refresh"),
+              class = "btn-primary"
+            ),
+            uiOutput(
+              ns("export_status"),
+            )
+          )
         ),
-
+        hr(),
         ## Individual dataset exports ----
         div(
-          style = "margin: 20px 0;",
           h4("Individual Dataset Exports (CSV + JSON)"),
           uiOutput(ns("individual_downloads"))
         ),
-
+        hr(),
         ## Combined workbook export ----
         div(
-          style = "margin: 20px 0; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;",
-          h4("Combined Export (Excel)"),
-          uiOutput(ns("download_workbook_ui"))
+          h4("Combined Export (Excel Workbook or Zipped CSV + JSON)"),
+          uiOutput(ns("workbook_summary"), style = "margin-bottom: 10px;"),
+          br(),
+          uiOutput(ns("download_combined_ui"))
         )
       )
     )
@@ -80,7 +84,8 @@ mod_export_server <- function(id) {
     moduleState <- reactiveValues(
       export_ready = FALSE,
       available_datasets = character(0),
-      campaign_name = "Unknown_Campaign"
+      campaign_name = "Unknown_Campaign",
+      dataset_dimensions = list()
     )
 
     # 2. Helper functions ----
@@ -146,7 +151,7 @@ mod_export_server <- function(id) {
 
     ## observe: Check data availability ----
     # upstream: input$get_data (action button)
-    # downstream: moduleState$export_ready, moduleState$available_datasets
+    # downstream: moduleState$export_ready, moduleState$available_datasets, moduleState$dataset_dimensions
     observe({
       rv <- session$userData$reactiveValues
 
@@ -163,20 +168,23 @@ mod_export_server <- function(id) {
         "dataData"
       )
 
-      # Check which datasets have data
+      # Check which datasets have data and store dimensions
       available <- character(0)
+      dimensions <- list()
 
       for (dataset in dataset_names) {
-        if (dataset == "samplesData") {
-          browser()
-        }
         data <- rv[[dataset]]
         if (!is.null(data) && nrow(data) > 0) {
           available <- c(available, dataset)
+          dimensions[[dataset]] <- list(
+            rows = nrow(data),
+            cols = ncol(data)
+          )
         }
       }
 
       moduleState$available_datasets <- available
+      moduleState$dataset_dimensions <- dimensions
       moduleState$export_ready <- length(available) > 0
 
       # Get campaign name for filename
@@ -274,53 +282,88 @@ mod_export_server <- function(id) {
     output$export_status <- renderUI({
       if (moduleState$export_ready) {
         datasets <- moduleState$available_datasets
-        dataset_list <- paste(
-          sapply(datasets, get_dataset_display_name),
-          collapse = ", "
-        )
 
         div(
           bs_icon("check-circle"),
           glue(" Export ready: {length(datasets)} datasets available"),
-          br(),
-          dataset_list,
           class = "validation-status validation-complete",
-          style = "padding: 10px; border-radius: 4px;"
+          style = "display: inline-block;"
         )
       } else {
         div(
           bs_icon("exclamation-triangle"),
           " Click to check data availability.",
           class = "validation-status validation-warning",
-          style = "padding: 10px; border-radius: 4px;"
+          style = "display: inline-block;"
         )
       }
     })
 
-    ## output: download_workbook_ui ----
+    ## output: workbook_summary ----
+    # upstream: moduleState$available_datasets, moduleState$dataset_dimensions
+    # downstream: UI summary of available worksheets
+    output$workbook_summary <- renderUI({
+      req(moduleState$export_ready)
+
+      # Create summary text for each dataset
+      summaries <- sapply(
+        moduleState$available_datasets,
+        function(dataset_name) {
+          display_name <- get_dataset_display_name(dataset_name)
+          dims <- moduleState$dataset_dimensions[[dataset_name]]
+          glue("{display_name} ({dims$rows} × {dims$cols})")
+        }
+      )
+
+      summary_text <- paste(summaries, collapse = ", ")
+
+      tags$code(summary_text)
+    }) |>
+      bindEvent(input$get_data)
+
+    ## output: download_combined_ui ----
     # upstream: moduleState$export_ready
-    # downstream: UI download button for workbook (enabled/disabled based on data)
-    output$download_workbook_ui <- renderUI({
+    # downstream: UI download buttons for combined exports (enabled/disabled based on data)
+    output$download_combined_ui <- renderUI({
       if (moduleState$export_ready) {
-        downloadButton(
-          outputId = ns("download_workbook"),
-          label = "Download All as Excel Workbook",
-          class = "btn-primary btn-lg",
-          icon = icon("file-excel")
+        div(
+          style = "display: flex; gap: 20px; margin-top: 10px;",
+          downloadButton(
+            outputId = ns("download_workbook"),
+            label = "Download All as Excel Workbook",
+            class = "btn-secondary",
+            icon = icon("file-excel")
+          ),
+          downloadButton(
+            outputId = ns("download_all_csv"),
+            label = "Download All as CSV + JSON (ZIP)",
+            class = "btn-secondary",
+            icon = icon("file-zipper")
+          )
         )
       } else {
-        tags$button(
-          "Download All as Excel Workbook",
-          class = "btn btn-primary btn-lg",
-          disabled = "disabled",
-          style = "opacity: 0.6; cursor: not-allowed;",
-          icon("file-excel")
+        div(
+          style = "display: flex; gap: 20px; margin-top: 10px;",
+          tags$button(
+            "Download All as Excel Workbook",
+            class = "btn btn-secondary",
+            disabled = "disabled",
+            style = "opacity: 0.6; cursor: not-allowed;",
+            icon("file-excel")
+          ),
+          tags$button(
+            "Download All as CSV + JSON (ZIP)",
+            class = "btn btn-secondary",
+            disabled = "disabled",
+            style = "opacity: 0.6; cursor: not-allowed;",
+            icon("file-zipper")
+          )
         )
       }
     })
 
     ## output: individual_downloads ----
-    # upstream: moduleState$available_datasets, session$userData$reactiveValues
+    # upstream: moduleState$available_datasets, moduleState$dataset_dimensions, session$userData$reactiveValues
     # downstream: UI download buttons for each dataset (always visible, enabled/disabled based on data)
     output$individual_downloads <- renderUI({
       rv <- session$userData$reactiveValues
@@ -341,13 +384,18 @@ mod_export_server <- function(id) {
       # Create a card for each dataset (available or not)
       cards <- lapply(all_datasets, function(dataset_name) {
         display_name <- get_dataset_display_name(dataset_name)
-        data <- rv[[dataset_name]]
 
-        # Check if dataset has data
-        has_data <- !is.null(data) && nrow(data) > 0
+        # Check if we have dimension info (only available after "Get Data" is clicked)
+        if (dataset_name %in% names(moduleState$dataset_dimensions)) {
+          dims <- moduleState$dataset_dimensions[[dataset_name]]
+          dimensions <- glue("{dims$rows} rows × {dims$cols} columns")
+          has_data <- TRUE
+        } else {
+          dimensions <- "No data available"
+          has_data <- FALSE
+        }
 
         if (has_data) {
-          dimensions <- glue("{nrow(data)} rows × {ncol(data)} columns")
           button_element <- downloadButton(
             outputId = ns(paste0("download_", dataset_name)),
             label = "Download CSV + JSON",
@@ -355,7 +403,6 @@ mod_export_server <- function(id) {
             icon = icon("download")
           )
         } else {
-          dimensions <- "No data available"
           button_element <- tags$button(
             "Download CSV + JSON",
             class = "btn btn-secondary",
@@ -379,7 +426,8 @@ mod_export_server <- function(id) {
         width = "250px",
         !!!cards
       )
-    })
+    }) |>
+      bindEvent(input$get_data)
 
     ## output: download_workbook ----
     # upstream: session$userData$reactiveValues, moduleState
@@ -445,6 +493,76 @@ mod_export_server <- function(id) {
       },
 
       contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    ## output: download_all_csv ----
+    # upstream: session$userData$reactiveValues, moduleState
+    # downstream: ZIP file containing all CSV + JSON files
+    output$download_all_csv <- downloadHandler(
+      filename = function() {
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+        glue("{campaign}_AllData_{timestamp}.zip")
+      },
+
+      content = function(file) {
+        print_dev("mod_export: Starting combined CSV + JSON export...")
+
+        rv <- session$userData$reactiveValues
+        metadata <- get_export_metadata()
+
+        # Create temporary directory for files
+        temp_dir <- tempdir()
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+
+        all_files <- character(0)
+
+        # Export each dataset as CSV + JSON
+        for (dataset_name in moduleState$available_datasets) {
+          data <- rv[[dataset_name]]
+
+          if (!is.null(data) && nrow(data) > 0) {
+            display_name <- gsub(
+              " ",
+              "_",
+              get_dataset_display_name(dataset_name)
+            )
+            base_name <- glue("{campaign}_{display_name}_{timestamp}")
+
+            csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
+            json_file <- file.path(temp_dir, glue("{base_name}_metadata.json"))
+
+            # Write CSV
+            write.csv(data, file = csv_file, row.names = FALSE)
+
+            # Write metadata JSON
+            write_json(metadata, json_file, pretty = TRUE, auto_unbox = TRUE)
+
+            all_files <- c(all_files, csv_file, json_file)
+
+            print_dev(glue(
+              "mod_export: Added {display_name} to combined export ({nrow(data)} rows)"
+            ))
+          }
+        }
+
+        # Create zip file with all CSVs and JSONs
+        zip(
+          zipfile = file,
+          files = all_files,
+          mode = "cherry-pick"
+        )
+
+        # Clean up temp files
+        unlink(all_files)
+
+        print_dev(glue(
+          "mod_export: Combined ZIP export complete with {length(moduleState$available_datasets)} datasets"
+        ))
+      },
+
+      contentType = "application/zip"
     )
   })
 }
