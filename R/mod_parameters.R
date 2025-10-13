@@ -581,10 +581,10 @@ mod_parameters_server <- function(id) {
         moduleState$validated_data <- moduleState$parameters_data
 
         session$userData$reactiveValues$parametersData <- moduleState$validated_data
-        print_dev(glue(
-          "moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"
-        ))
+        # print_dev(glue(
+        #   "moduleState$is_valid: {moduleState$is_valid},
+        #                session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"
+        # ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL

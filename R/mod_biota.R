@@ -461,7 +461,7 @@ mod_biota_server <- function(id) {
       bindEvent(
         session$userData$reactiveValues$samplesData,
         ignoreNULL = FALSE,
-        ignoreInit = FALSE
+        ignoreInit = TRUE
       )
 
     ## observe ~bindEvent(LLM data validates or updates): Load and validate LLM biota ----
@@ -583,7 +583,8 @@ mod_biota_server <- function(id) {
         session$userData$reactiveValues$biotaData <- NULL
         print_dev("mod_biota: Validation failed")
       }
-    })
+    }) |>
+      bindEvent(moduleState$biota_data, iv, ignoreInit = TRUE)
 
     # 4. Outputs ----
 

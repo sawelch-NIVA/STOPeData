@@ -983,10 +983,10 @@ mod_references_server <- function(id) {
         updateTextInput(session, "REFERENCE_ID_DISPLAY", value = reference_id)
 
         session$userData$reactiveValues$referencesData <- moduleState$validated_data
-        print_dev(glue(
-          "mod_references is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"
-        ))
+        # print_dev(glue(
+        #   "mod_references is valid: {moduleState$is_valid},
+        #                session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"
+        # ))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE

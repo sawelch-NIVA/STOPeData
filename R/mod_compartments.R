@@ -462,10 +462,10 @@ mod_compartments_server <- function(id) {
         moduleState$validated_data <- moduleState$compartments_data
 
         session$userData$reactiveValues$compartmentsData <- moduleState$validated_data
-        print_dev(glue(
-          "moduleState$is_valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$compartmentsData: {session$userData$reactiveValues$sitesData}"
-        ))
+        # print_dev(glue(
+        #   "moduleState$is_valid: {moduleState$is_valid},
+        #                session$userData$reactiveValues$compartmentsData: {session$userData$reactiveValues$sitesData}"
+        # ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL

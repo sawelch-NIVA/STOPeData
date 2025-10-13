@@ -519,7 +519,8 @@ mod_data_server <- function(id, parent_session) {
 
         print_dev("mod_data: Data validation failed")
       }
-    })
+    }) |>
+      bindEvent(iv, input$measurement_table, ignoreInit = TRUE)
 
     ## observe: Update method dropdown options whenever methods change----
     # Define some methods for the UI to find so it doesn't crash

@@ -287,7 +287,7 @@ mod_review_server <- function(id) {
       bindEvent(
         session$userData$reactiveValues$dataData,
         ignoreNULL = FALSE,
-        ignoreInit = FALSE
+        ignoreInit = TRUE
       )
 
     ## reactive: Filter data for plotting ----
