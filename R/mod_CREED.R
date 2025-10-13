@@ -67,7 +67,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Dataset Details",
-            mod_CREED_details_ui("CREED_details")
+            mod_CREED_details_ui(NS(id, "CREED_details"))
           )
         ),
 
