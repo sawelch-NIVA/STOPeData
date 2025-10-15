@@ -53,7 +53,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Purpose Statement",
-            mod_CREED_purpose_ui(NS(id, "CREED_purpose")),
+            mod_CREED_purpose_ui(NS(id, "CREED_purpose"))
           )
         ),
 
@@ -101,7 +101,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Reliability Criteria",
-            mod_CREED_reliability_ui(NS(id,"CREED_reliability"))
+            mod_CREED_reliability_ui(NS(id, "CREED_reliability"))
           )
         ),
 
@@ -117,7 +117,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Relevance Criteria",
-            mod_CREED_relevance_ui(NS(id,"CREED_relevance"))
+            mod_CREED_relevance_ui(NS(id, "CREED_relevance"))
           )
         ),
 
@@ -209,6 +209,7 @@ mod_CREED_server <- function(id) {
         )
       }
     })
+  })
 }
 
 ## To be copied in the UI ----
