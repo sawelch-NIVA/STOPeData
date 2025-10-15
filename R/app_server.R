@@ -24,6 +24,7 @@ app_server <- function(input, output, session) {
       methodsData = tibble(NULL),
       samplesData = tibble(NULL),
       biotaData = tibble(NULL),
+      samplesDataWithBiota = tibble(NULL),
       dataData = tibble(NULL),
       creedData = list(
         purpose_statement = tibble(NULL),
