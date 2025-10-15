@@ -87,7 +87,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Gateway Criteria",
-            mod_CREED_gateway_ui("CREED_gateway")
+            mod_CREED_gateway_ui(NS(id, "CREED_gateway"))
           )
         ),
 

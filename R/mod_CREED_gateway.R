@@ -150,8 +150,14 @@ mod_CREED_gateway_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    observe({
+      auto_populate_gateway_criteria()
+    }) |>
+      bindEvent(input$populate_from_data)
+
     ## Auto-populate gateway criteria ----
     auto_populate_gateway_criteria <- function() {
+      browser()
       # Build module_data list from session userData
       module_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
