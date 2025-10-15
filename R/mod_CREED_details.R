@@ -250,10 +250,10 @@ mod_CREED_details_server <- function(id) {
       session$userData$reactiveValues$creedData$datasetDetails <- summarise_CREED_details(
         session$userData$reactiveValues
       )
-      print_dev(
-        "writing dataset details to session data, auto-populating relevant inputs)"
-      )
-      print_dev(dput(session$userData$reactiveValues$creedData$datasetDetails))
+      # print_dev(
+      #   "writing dataset details to session data, auto-populating relevant inputs)"
+      # )
+      # print_dev(dput(session$userData$reactiveValues$creedData$datasetDetails))
 
       # Update UI fields
       # Avoid writing out the whole layered call every time

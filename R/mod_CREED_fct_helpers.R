@@ -453,7 +453,7 @@ auto_populate_reliability_fields <- function(user_data) {
     measurements = user_data$dataData
   )
 
-  summaries <- get_dataset_summaries(module_data)
+  summaries <- summarise_CREED_details(module_data)
 
   # Map to reliability-specific fields
   list(
@@ -486,7 +486,7 @@ auto_populate_relevance_fields <- function(user_data) {
     measurements = user_data$dataData
   )
 
-  summaries <- get_dataset_summaries(module_data)
+  summaries <- summarise_CREED_details(module_data)
 
   # Map to relevance-specific fields
   list(

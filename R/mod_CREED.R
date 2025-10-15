@@ -53,7 +53,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Purpose Statement",
-            mod_CREED_purpose_ui("CREED_purpose"),
+            mod_CREED_purpose_ui(NS(id, "CREED_purpose")),
           )
         ),
 
@@ -101,7 +101,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Reliability Criteria",
-            mod_CREED_reliability_ui("CREED_reliability")
+            mod_CREED_reliability_ui(NS(id,"CREED_reliability"))
           )
         ),
 
@@ -117,7 +117,7 @@ mod_CREED_ui <- function(id) {
           open = FALSE,
           accordion_panel(
             title = "Relevance Criteria",
-            mod_CREED_relevance_ui("CREED_relevance")
+            mod_CREED_relevance_ui(NS(id,"CREED_relevance"))
           )
         ),
 
@@ -209,39 +209,6 @@ mod_CREED_server <- function(id) {
         )
       }
     })
-
-    ## Gateway Criteria Summary Outputs ----
-
-    # Gateway 1: Medium/Matrix summary
-    output$gateway_medium_summary <- renderText({
-      gateway_summaries()$medium
-    })
-
-    # Gateway 2: Analyte summary
-    output$gateway_analyte_summary <- renderText({
-      gateway_summaries()$analyte
-    })
-
-    # Gateway 3: Location summary
-    output$gateway_location_summary <- renderText({
-      gateway_summaries()$location
-    })
-
-    # Gateway 4: Year summary
-    output$gateway_year_summary <- renderText({
-      gateway_summaries()$year
-    })
-
-    # Gateway 5: Units summary
-    output$gateway_units_summary <- renderText({
-      gateway_summaries()$units
-    })
-
-    # Gateway 6: Citation summary
-    output$gateway_citation_summary <- renderText({
-      gateway_summaries()$citation
-    })
-  })
 }
 
 ## To be copied in the UI ----

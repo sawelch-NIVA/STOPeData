@@ -175,7 +175,7 @@ mod_CREED_gateway_ui <- function(id) {
 #' CREED Gateway Server Functions ----
 #'
 #' @noRd
-#' @importFrom shiny moduleServer observe updateCheckboxInput renderText
+#' @importFrom shiny moduleServer observe updateCheckboxInput renderText bindEvent
 #' @importFrom tibble as_tibble
 #' @export
 mod_CREED_gateway_server <- function(id) {
