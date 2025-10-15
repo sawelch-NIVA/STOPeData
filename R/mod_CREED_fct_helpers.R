@@ -149,7 +149,6 @@ generate_units_summary <- function(measurement_data, parameters_data) {
 }
 
 
-
 #' Get All Gateway Data Summaries
 #'
 #' @description Gets all gateway criteria data summaries

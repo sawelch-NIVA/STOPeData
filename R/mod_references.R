@@ -982,10 +982,10 @@ mod_references_server <- function(id) {
         moduleState$is_valid <- TRUE
         updateTextInput(session, "REFERENCE_ID_DISPLAY", value = reference_id)
 
-        session$userData$reactiveValues$referencesData <- moduleState$validated_data
+        session$userData$reactiveValues$referenceData <- moduleState$validated_data
         # print_dev(glue(
         #   "mod_references is valid: {moduleState$is_valid},
-        #                session$userData$reactiveValues$referencesData: {session$userData$reactiveValues$referencesData}"
+        #                session$userData$reactiveValues$referenceData: {session$userData$reactiveValues$referenceData}"
         # ))
       } else {
         moduleState$validated_data <- NULL
@@ -994,10 +994,10 @@ mod_references_server <- function(id) {
     })
 
     ## observe: Populate from LLM data when available ----
-    # upstream: session$userData$reactiveValues$referencesDataLLM
+    # upstream: session$userData$reactiveValues$referenceDataLLM
     # downstream: input fields
     observe({
-      llm_data <- session$userData$reactiveValues$referencesDataLLM
+      llm_data <- session$userData$reactiveValues$referenceDataLLM
       if (
         !is.null(llm_data) &&
           session$userData$reactiveValues$llmExtractionComplete
@@ -1011,7 +1011,7 @@ mod_references_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$referencesDataLLM,
+        session$userData$reactiveValues$referenceDataLLM,
         session$userData$reactiveValues$llmExtractionComplete,
         ignoreInit = TRUE,
         ignoreNULL = FALSE

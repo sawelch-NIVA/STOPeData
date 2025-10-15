@@ -139,7 +139,7 @@ populate_session_with_dummy_data <- function(
 
   # References data
   if (!is.null(dummy_data$references)) {
-    session$userData$reactiveValues$referencesData <- dummy_data$references
+    session$userData$reactiveValues$referenceData <- dummy_data$references
     print_dev("Populated references data with dummy data")
   }
 

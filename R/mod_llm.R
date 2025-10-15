@@ -480,7 +480,7 @@ mod_llm_server <- function(id) {
             #   session,
             #   moduleState$structured_data$references
             # )
-            session$userData$reactiveValues$referencesDataLLM <- moduleState$structured_data$references
+            session$userData$reactiveValues$referenceDataLLM <- moduleState$structured_data$references
           }
 
           # Create structured data for table-based modules and store in session
@@ -757,7 +757,7 @@ create_extraction_prompt <- function() {
 #' @noRd
 clear_llm_data_from_session <- function(session) {
   session$userData$reactiveValues$campaignDataLLM <- NULL
-  session$userData$reactiveValues$referencesDataLLM <- NULL
+  session$userData$reactiveValues$referenceDataLLM <- NULL
   session$userData$reactiveValues$sitesDataLLM <- NULL
   session$userData$reactiveValues$parametersDataLLM <- NULL
   session$userData$reactiveValues$compartmentsDataLLM <- NULL

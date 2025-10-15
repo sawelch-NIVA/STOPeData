@@ -36,7 +36,7 @@ app_server <- function(input, output, session) {
 
       # LLM extracted data
       campaignDataLLM = NULL,
-      referencesDataLLM = NULL,
+      referenceDataLLM = NULL,
       sitesDataLLM = NULL,
       parametersDataLLM = NULL,
       compartmentsDataLLM = NULL,

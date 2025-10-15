@@ -1,26 +1,36 @@
-#' CREED_gateway UI Function
+# CREED Gateway Module ----
+# A Shiny module for CREED gateway criteria assessment with auto-population from study data
+
+#' CREED Gateway UI Function ----
 #'
-#' @description A shiny Module.
+#' @description A shiny Module for assessing CREED gateway criteria with automatic population from study metadata.
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList
+#' @importFrom shiny NS tagList checkboxInput icon div strong textOutput updateCheckboxInput moduleServer observe renderText
+#' @importFrom bslib input_task_button
+#' @importFrom bsicons bs_icon
+#' @export
 mod_CREED_gateway_ui <- function(id) {
   ns <- NS(id)
   tagList(
+    # Auto-populate button ----
     input_task_button(
       id = ns("populate_from_data"),
       label = "Populate section from data",
       icon = bs_icon("arrow-down-circle")
     ),
-    # Gateway Criterion 1: Sampling Medium/Matrix
+
+    # Gateway Criterion 1: Sampling Medium/Matrix ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
         style = "flex-grow: 1; margin-right: 15px;",
         strong("1. Does the study specify which medium/matrix is sampled?"),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
@@ -34,12 +44,14 @@ mod_CREED_gateway_ui <- function(id) {
       )
     ),
 
-    # Gateway Criterion 2: Analyte
+    # Gateway Criterion 2: Analyte ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
         style = "flex-grow: 1; margin-right: 15px;",
         strong("2. Does the study specify which unique analyte is measured?"),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
@@ -53,13 +65,18 @@ mod_CREED_gateway_ui <- function(id) {
       )
     ),
 
-    # Gateway Criterion 3: Spatial Location
+    # Gateway Criterion 3: Spatial Location ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
         style = "flex-grow: 1; margin-right: 15px;",
         strong(
-          "3. Does the study specify where samples were collected? At a minimum, there is enough information for the given purpose (e.g., country)."
+          "3. Does the study specify where samples were collected?"
+        ),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
+        div(
+          "At a minimum, there is enough information for the given purpose (e.g., country)."
         ),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
@@ -74,13 +91,18 @@ mod_CREED_gateway_ui <- function(id) {
       )
     ),
 
-    # Gateway Criterion 4: Year
+    # Gateway Criterion 4: Year ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
         style = "flex-grow: 1; margin-right: 15px;",
         strong(
-          "4. Does the study indicate when samples were collected? At a minimum, there is enough information for the given purpose (e.g., sampling year)."
+          "4. Does the study indicate when samples were collected?"
+        ),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
+        div(
+          "At a minimum, there is enough information for the given purpose (e.g., sampling year)."
         ),
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
@@ -95,12 +117,14 @@ mod_CREED_gateway_ui <- function(id) {
       )
     ),
 
-    # Gateway Criterion 5: Units
+    # Gateway Criterion 5: Units ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
         style = "flex-grow: 1; margin-right: 15px;",
         strong("5. Does the study specify units of measurement?"),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
@@ -114,7 +138,7 @@ mod_CREED_gateway_ui <- function(id) {
       )
     ),
 
-    # Gateway Criterion 6: Data Source/Citation
+    # Gateway Criterion 6: Data Source/Citation ----
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
@@ -122,6 +146,8 @@ mod_CREED_gateway_ui <- function(id) {
         strong(
           "6. Does the study cite the source of data and/or is a suitable bibliographic reference available for the study?"
         ),
+        bs_icon("arrow-down-circle-fill", class = "text-primary"),
+
         div(
           style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
@@ -134,30 +160,42 @@ mod_CREED_gateway_ui <- function(id) {
         value = FALSE
       )
     ),
+
+    # Save button ----
     input_task_button(
       id = ns("save_assessment"),
       label = "Save Section",
       icon = icon("save"),
       class = "btn-success"
-    )
+    ) |>
+      shinyjs::disabled() # TODO: Remove save button?
   )
 }
 
-#' CREED_gateway Server Functions
+#' CREED Gateway Server Functions ----
 #'
 #' @noRd
+#' @importFrom shiny moduleServer observe updateCheckboxInput renderText
+#' @importFrom tibble as_tibble
+#' @export
 mod_CREED_gateway_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # 1. Event handlers ----
+
+    ## observe: Populate gateway criteria from existing data ----
+    # upstream: input$populate_from_data (button click)
+    # downstream: session$userData$reactiveValues$creedData$gateway_criteria, checkbox inputs
     observe({
       auto_populate_gateway_criteria()
     }) |>
       bindEvent(input$populate_from_data)
 
+    # 2. Helper functions ----
+
     ## Auto-populate gateway criteria ----
     auto_populate_gateway_criteria <- function() {
-      browser()
       # Build module_data list from session userData
       module_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
@@ -171,8 +209,11 @@ mod_CREED_gateway_server <- function(id) {
         measurements = session$userData$reactiveValues$dataData
       )
 
-      # Get gateway availability
+      # Get gateway availability (TRUE/FALSE)
       availability <- check_gateway_availability(module_data)
+
+      # Get gateway summaries (text data)
+      summaries <- get_gateway_summaries(module_data)
 
       # Update checkboxes
       updateCheckboxInput(
@@ -205,12 +246,66 @@ mod_CREED_gateway_server <- function(id) {
         "gateway_citation_answer",
         value = availability$citation
       )
+
+      # Store gateway data in session userData (it expects a tibble format)
+      session$userData$reactiveValues$creedData$gateway_criteria <- summaries |>
+        as_tibble()
     }
+
+    # 3. Outputs ----
+
+    ## output: gateway_medium_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_medium_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$medium %||%
+        "Relevant data not found"
+    })
+
+    ## output: gateway_analyte_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_analyte_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$analyte %||%
+        "Relevant data not found"
+    })
+
+    ## output: gateway_location_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_location_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$location %||%
+        "Relevant data not found"
+    })
+
+    ## output: gateway_year_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_year_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$year %||%
+        "Relevant data not found"
+    })
+
+    ## output: gateway_units_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_units_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$units %||%
+        "Relevant data not found"
+    })
+
+    ## output: gateway_citation_summary ----
+    # upstream: session$userData$reactiveValues$creedData$gateway_criteria
+    # downstream: UI summary display
+    output$gateway_citation_summary <- renderText({
+      session$userData$reactiveValues$creedData$gateway_criteria$citation %||%
+        "Relevant data not found"
+    })
   })
 }
 
-## To be copied in the UI
+## To be copied in the UI ----
 # mod_CREED_gateway_ui("CREED_gateway_1")
 
-## To be copied in the server
+## To be copied in the server ----
 # mod_CREED_gateway_server("CREED_gateway_1")

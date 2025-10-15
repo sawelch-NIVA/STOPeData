@@ -297,7 +297,7 @@ mod_data_server <- function(id, parent_session) {
     check_all_modules_valid <- function() {
       required_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
-        references = session$userData$reactiveValues$referencesData,
+        references = session$userData$reactiveValues$referenceData,
         sites = session$userData$reactiveValues$sitesData,
         parameters = session$userData$reactiveValues$parametersData,
         compartments = session$userData$reactiveValues$compartmentsData,
@@ -315,7 +315,7 @@ mod_data_server <- function(id, parent_session) {
     get_module_status <- function() {
       modules <- list(
         Campaign = session$userData$reactiveValues$campaignData,
-        References = session$userData$reactiveValues$referencesData,
+        References = session$userData$reactiveValues$referenceData,
         Sites = session$userData$reactiveValues$sitesData,
         Parameters = session$userData$reactiveValues$parametersData,
         Compartments = session$userData$reactiveValues$compartmentsData,
@@ -352,7 +352,7 @@ mod_data_server <- function(id, parent_session) {
         data.frame()
       parameters_data <- session$userData$reactiveValues$parametersData
       campaign_data <- session$userData$reactiveValues$campaignData
-      reference_data <- session$userData$reactiveValues$referencesData
+      reference_data <- session$userData$reactiveValues$referenceData
 
       if (is.null(samples_data) || is.null(parameters_data)) {
         return(data.frame())
@@ -451,7 +451,7 @@ mod_data_server <- function(id, parent_session) {
     }) |>
       bindEvent(
         session$userData$reactiveValues$campaignData,
-        session$userData$reactiveValues$referencesData,
+        session$userData$reactiveValues$referenceData,
         session$userData$reactiveValues$sitesData,
         session$userData$reactiveValues$parametersData,
         session$userData$reactiveValues$compartmentsData,
