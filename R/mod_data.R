@@ -293,25 +293,9 @@ mod_data_server <- function(id, parent_session) {
 
     # 2. Helper functions ----
 
-    ## Check if all required modules are validated and return data of >1 row ----
-    check_all_modules_valid <- function() {
-      required_data <- list(
-        campaign = session$userData$reactiveValues$campaignData,
-        references = session$userData$reactiveValues$referenceData,
-        sites = session$userData$reactiveValues$sitesData,
-        parameters = session$userData$reactiveValues$parametersData,
-        compartments = session$userData$reactiveValues$compartmentsData,
-        methods = session$userData$reactiveValues$methodsData,
-        samples = session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
-          session$userData$reactiveValues$samplesData
-      )
-
-      all(sapply(required_data, function(x) {
-        !is.null(x) && nrow(x) > 0
-      }))
-    }
-
     ## Get validation status for each module ----
+    # specifically, check if each data object is either a tibble with rows or at least
+    # a non-empty object
     get_module_status <- function() {
       modules <- list(
         Campaign = session$userData$reactiveValues$campaignData,
@@ -346,19 +330,31 @@ mod_data_server <- function(id, parent_session) {
     ## Create sample-parameter combinations for measurement entry ----
     # ! FORMAT-BASED
     create_measurement_combinations <- function() {
-      # Get all validated data
-      samples_data <- session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
-        session$userData$reactiveValues$samplesData %|truthy|%
-        data.frame()
+      # Get all validated data and abbreviate
+      samplesDataWithBiota <- session$userData$reactiveValues$samplesDataWithBiota
+      samplesData <- session$userData$reactiveValues$samplesData
       parameters_data <- session$userData$reactiveValues$parametersData
       campaign_data <- session$userData$reactiveValues$campaignData
       reference_data <- session$userData$reactiveValues$referenceData
+
+      # check to see if either samplesData or samplesDataWithBiota actualy exist
+      samples_data <- if (
+        isTruthy(samplesDataWithBiota) & nrow(samplesDataWithBiota) > 1
+      ) {
+        samplesDataWithBiota
+      } else if (isTruthy(samplesData) & nrow(samplesData)) {
+        samplesData
+      } else {
+        data.frame()
+        print_dev(
+          "create_measurement_combinations(): samplesDataWithBiota & samplesData empty, returning data.frame()"
+        )
+      }
 
       if (is.null(samples_data) || is.null(parameters_data)) {
         return(data.frame())
       }
 
-      # browser()
       # Create cartesian product of samples and parameters
       combinations <- cross_join(
         samples_data |>
@@ -432,9 +428,14 @@ mod_data_server <- function(id, parent_session) {
     # upstream: all session$userData$reactiveValues
     # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
     observe({
-      moduleState$all_modules_valid <- check_all_modules_valid()
+      status <- get_module_status()
 
-      if (moduleState$all_modules_valid) {
+      # Check if all required modules are valid
+      all_valid <- all(sapply(status, function(x) x$status == "Validated"))
+
+      moduleState$all_modules_valid <- all_valid
+
+      if (all_valid) {
         moduleState$data_entry_ready <- TRUE
         # Create measurement combinations when ready
         moduleState$measurement_combinations <- create_measurement_combinations()
@@ -459,7 +460,7 @@ mod_data_server <- function(id, parent_session) {
         session$userData$reactiveValues$samplesData,
         session$userData$reactiveValues$biotaValidated,
         ignoreInit = TRUE,
-        ignoreNULL = TRUE
+        ignoreNULL = FALSE
       )
 
     ## observe: Handle table changes ----

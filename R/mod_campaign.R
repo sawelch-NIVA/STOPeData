@@ -312,10 +312,10 @@ mod_campaign_server <- function(id) {
         moduleState$is_valid <- TRUE
 
         session$userData$reactiveValues$campaignData <- moduleState$validated_data
-        print_dev(glue(
-          "mod_campaign is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"
-        ))
+        # print_dev(glue(
+        #   "mod_campaign is valid: {moduleState$is_valid},
+        #                session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"
+        # ))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE
