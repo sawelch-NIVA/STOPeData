@@ -117,15 +117,21 @@ calculate_date_range <- function(dates) {
 #' @return Character string with units grouped by parameter
 #' @noRd
 generate_units_summary <- function(measurement_data, parameters_data) {
-  if (is.null(measurement_data) || is.null(parameters_data)) {
+  if (
+    is.null(measurement_data) ||
+      is.null(parameters_data) ||
+      nrow(measurement_data < 0) ||
+      nrow(parameters_data < 0)
+  ) {
     return("Relevant data not found")
   }
+  browser()
 
   # Join measurement data with parameter names
   merged_data <- merge(
     measurement_data,
     parameters_data,
-    by = "PARAMETER_ID",
+    by = "PARAMETER_NAME",
     all.x = TRUE
   )
 

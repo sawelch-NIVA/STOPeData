@@ -221,13 +221,13 @@ mod_CREED_details_ui <- function(id) {
     ),
 
     ## Action buttons ----
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ) |>
-      shinyjs::disabled() # TODO: Necessary?
+    # input_task_button(
+    #   id = ns("save_assessment"),
+    #   label = "Save Section",
+    #   icon = icon("save"),
+    #   class = "btn-success"
+    # ) |>
+    #   shinyjs::disabled() # TODO: Necessary?
   )
 }
 

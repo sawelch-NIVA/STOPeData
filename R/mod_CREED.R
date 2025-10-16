@@ -12,6 +12,7 @@
 #' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText markdown
 #' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
+#' @importFrom shinyjs disabled
 #' @export
 mod_CREED_ui <- function(id) {
   ns <- NS(id)
@@ -26,20 +27,34 @@ mod_CREED_ui <- function(id) {
         info_accordion(
           content_file = "inst/app/www/md/intro_CREED.md"
         ),
+
         div(
-          class = "alert alert-primary",
-          p(
-            bs_icon("arrow-down-circle-fill", class = "text-primary"),
-            strong(" Auto-population: "),
-            "Fields marked with this icon are auto-populated from data entered in 
+          div(
+            style = "margin: 10px 10px 0 10px; display: flex; align-items: center; gap: 15px;",
+            actionButton(
+              inputId = ns("get_data"),
+              label = "Get Data from Modules",
+              icon = icon("refresh"),
+              class = "btn-primary"
+            ),
+            uiOutput(ns("validation_reporter")),
+          ),
+          br(),
+          div(
+            class = "alert alert-primary",
+            p(
+              bs_icon("arrow-down-circle-fill", class = "text-primary"),
+              strong(" Auto-population: "),
+              "Fields marked with this icon are auto-populated from data entered in 
           earlier modules. This data can be overwritten as needed, but note that
           if you populate fields from data again, your changes will not be 
           saved."
+            )
           )
         ),
 
         ## Purpose Statement ---
-        h5("Purpose Statement"),
+        h5("1. Purpose Statement"),
         markdown(
           "- The CREED grading process begins with laying out the purpose of 
             your overall chemical/ecological impact or risk assessment, which 
@@ -58,7 +73,7 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Dataset Details  ----
-        h5("Dataset Details - Key Attributes"),
+        h5("2. Dataset Details - Key Attributes"),
         markdown(
           "- This section provides a summary of basic details for the dataset. 
           - Review the auto-populated fields below and add any missing information."
@@ -72,7 +87,7 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Gateway Criteria ----
-        h5("Gateway Criteria"),
+        h5("3. Gateway Criteria"),
         markdown(
           "- CREED's gateway criteria are designed to allow for the easy 
           rejection of a study without requiring methodical examination.
@@ -92,7 +107,7 @@ mod_CREED_ui <- function(id) {
         ),
 
         ## Reliability Criteria ---
-        h5("Reliability Criteria"),
+        h5("4. Reliability Criteria"),
         markdown(
           "Assess how reliable the dataset is for answering your assessment 
           questions."
@@ -107,7 +122,7 @@ mod_CREED_ui <- function(id) {
 
         ## Relevance Criteria ---
 
-        h5("Relevance Criteria"),
+        h5("5. Relevance Criteria"),
         markdown(
           "Assess how relevant the dataset is to the purpose as described in your
           Purpose Statement."
@@ -130,9 +145,9 @@ mod_CREED_ui <- function(id) {
         ## Final Report ----
         div(
           style = "margin: 20px 0;",
-          h5("Generate Final Report"),
+          h5("6. Generate Final Report"),
           p(
-            "This part is complicated...",
+            "Work in progress.",
             class = "text-muted"
           )
         )
@@ -147,6 +162,8 @@ mod_CREED_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderUI showNotification updateTextAreaInput updateCheckboxInput bindEvent
 #' @importFrom glue glue
 #' @importFrom golem print_dev
+#' @importFrom shinyjs enable disable
+
 #' @export
 mod_CREED_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -155,6 +172,7 @@ mod_CREED_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
+      ready_for_assessment = FALSE,
       assessment_saved = FALSE
     )
 
@@ -168,28 +186,55 @@ mod_CREED_server <- function(id) {
     # 2. Helper functions ----
 
     # 3. Observers and Reactives ----
-
-    ## observe ~bindEvent(update_details): Update auto-populated fields ----
-    # upstream: user clicks input$update_details
-    # downstream: auto-populated input fields
+    ## observe: enable CREED assessment only when all previous modules have been filled out ----
+    # upstream: nrow(dataData) > 0
+    # downstream: pretty much everything in the module
     observe({
-      auto_populate_details()
-      showNotification(
-        "Dataset details updated from current data",
-        type = "message"
-      )
+      if (nrow(session$userData$reactiveValues$dataData) > 0) {
+        moduleState$ready_for_assessment <- TRUE
+        enable(id = "input$get_data")
+      } else {
+        moduleState$ready_for_assessment <- FALSE
+        disable(id = "input$get_data")
+      }
     }) |>
-      bindEvent(input$update_details)
+      bindEvent(
+        session$userData$reactiveValues$dataData
+      )
 
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment
     # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
-    observe({
-      print_dev("asssessement saved (not really ;)")
-    }) |>
-      bindEvent(input$save_assessment)
+    observe(
+      {
+        print_dev("autopop all triggered")
+        # individual submodule functions go here.
+      }
+    ) |>
+      bindEvent(input$get_data)
 
     # 4. Outputs ----
+
+    ## output: validation_reporter ----
+    # upstream: moduleState$is_valid, mod_llm output
+    # downstream: UI validation status
+    output$validation_reporter <- renderUI({
+      validation_status <- if (moduleState$ready_for_assessment) {
+        div(
+          bs_icon("clipboard2-check"),
+          "Data module validated successfully.",
+          class = "validation-status validation-complete"
+        )
+      } else {
+        div(
+          bs_icon("exclamation-triangle"),
+          "Please complete the data module before starting CREED assessment..",
+          class = "validation-status validation-warning"
+        )
+      }
+
+      div(validation_status, class = "validation-container")
+    })
 
     ## output: status_reporter ----
     # upstream: moduleState$assessment_saved

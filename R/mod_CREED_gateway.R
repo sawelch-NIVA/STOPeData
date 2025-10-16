@@ -190,12 +190,33 @@ mod_CREED_gateway_server <- function(id) {
     observe({
       auto_populate_gateway_criteria()
     }) |>
-      bindEvent(input$populate_from_data)
+      bindEvent(input$populate_from_data, ignoreInit = TRUE)
 
     # 2. Helper functions ----
 
     ## Auto-populate gateway criteria ----
     auto_populate_gateway_criteria <- function() {
+      # check to see if either samplesData or samplesDataWithBiota actualy exist
+      samplesData <- session$userData$reactiveValues$samplesData
+      samplesDataWithBiota <- session$userData$reactiveValues$samplesDataWithBiota
+
+      samples_data <- if (
+        exists("samplesDataWithBiota") &
+          isTruthy(samplesDataWithBiota) &
+          nrow(samplesDataWithBiota) > 1
+      ) {
+        samplesDataWithBiota
+      } else if (
+        exists("samplesData") & isTruthy(samplesData) & nrow(samplesData)
+      ) {
+        samplesData
+      } else {
+        data.frame()
+        print_dev(
+          "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning data.frame()"
+        )
+      }
+
       # Build module_data list from session userData
       module_data <- list(
         campaign = session$userData$reactiveValues$campaignData,
@@ -203,8 +224,7 @@ mod_CREED_gateway_server <- function(id) {
         sites = session$userData$reactiveValues$sitesData,
         parameters = session$userData$reactiveValues$parametersData,
         compartments = session$userData$reactiveValues$compartmentsData,
-        samples = session$userData$reactiveValues$samplesDataWithBiota %|truthy|%
-          session$userData$reactiveValues$samplesData,
+        samples = samples_data,
         methods = session$userData$reactiveValues$methodsData,
         measurements = session$userData$reactiveValues$dataData
       )
