@@ -215,7 +215,12 @@ mod_methods_server <- function(id) {
       }
 
       # Generate protocol ID - for now use sequence 1, will be updated later
-      protocol_id <- generate_protocol_id(category, protocol, 1, campaign_name)
+      protocol_id <- generate_protocol_id(
+        "temp category", # TODO: #55 Fix me!!!
+        protocol,
+        1,
+        campaign_name
+      )
 
       tibble(
         PROTOCOL_ID = protocol_id,
