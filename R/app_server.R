@@ -59,6 +59,49 @@ app_server <- function(input, output, session) {
     FALSE
   })
 
+  # Bookmark name for the current session ---
+  bookmark_name <- reactiveVal(NULL)
+
+  # onBookmark: save server reactiveValues and input values as bookmark
+  onBookmark(function(state) {
+    # Save reactiveValues
+    state$values$reactiveValuesData <- reactiveValuesToList(
+      session$userData$reactiveValues
+    )
+
+    # Save input
+    state$values$input <- reactiveValuesToList(
+      input
+    )
+
+    # Save bookmark metadata from session userData (set by bookmark manager)
+    state$values$bookmarkName <- session$userData$bookmarkName %||%
+      paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
+
+    state$values$bookmarkUsername <- session$userData$bookmarkUsername %||%
+      session$userData$reactiveValues$ENTERED_BY %||%
+      "Unknown"
+
+    state$values$bookmarkTimestamp <- session$userData$bookmarkTimestamp %||%
+      Sys.time()
+
+    state$values$bookmarkCampaign <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME_SHORT %||%
+      "Unknown Campaign"
+
+    state$values$bookmarkReference <- session$userData$reactiveValues$referenceData$REFERENCE_ID %||%
+      Sys.time()
+  })
+
+  onRestore(function(state) {
+    if (!is.null(state$values$reactiveValuesData)) {
+      for (name in names(state$values$reactiveValuesData)) {
+        session$userData$reactiveValues[[
+          name
+        ]] <- state$values$reactiveValuesData[[name]]
+      }
+    }
+  })
+
   # Module servers ----
   moduleLanding <- mod_landing_server("landing", parent_session = session) # parent_session = session needed or else updateNavbarPage() doesn't work...
   moduleLLM <- mod_llm_server("llm_extract")
@@ -81,6 +124,7 @@ app_server <- function(input, output, session) {
     "export"
   )
   moduleCREED <- mod_CREED_server("CREED")
+  moduleBookmarkManager <- mod_bookmark_manager_server("session_manager")
 
   # Module navigation ----
   ## Navigation setup ----
@@ -99,12 +143,16 @@ app_server <- function(input, output, session) {
     "10-review",
     "11-export",
     "12-CREED",
-    "info"
+    "info",
+    "save"
   )
 
   ## Track current module position ----
   current_position <- reactive({
     current_tab <- input$`main-page`
+
+    stopifnot(current_tab %in% module_order)
+
     if (is.null(current_tab)) {
       return(1)
     } # Default to LLM extract (position 1)

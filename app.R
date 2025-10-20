@@ -9,6 +9,6 @@
 #   devtools::install_github("https://github.com/sawelch-NIVA/STOPeData")
 # }
 pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
-options("golem.app.prod" = TRUE)
+options(golem.app.prod = TRUE)
 options(bslib.color_contrast_warnings = FALSE)
 STOPeData::run_app() # add parameters here (if any)
