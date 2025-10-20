@@ -87,21 +87,86 @@ mod_bookmark_manager_ui <- function(id) {
   )
 }
 
-#' Bookmark Manager Server Functions ----
+#' Bookmark Manager Server Functions ----#' Bookmark Manager Server Module
 #'
-#' @noRd
+#' @description
+#' Server-side logic for managing Shiny application bookmarks stored in Google Drive.
+#' This module handles bookmark creation, loading, deletion, and metadata management
+#' through Google Drive integration.
+#'
+#' @param id Character string. The module's namespace identifier.
+#'
+#' @return
+#' A Shiny module server function that manages bookmark operations and returns
+#' reactive values for testing via \code{exportTestValues}.
+#'
+#' @details
+#' This module requires the following environment variables to be set for Google Drive authentication:
+#' \itemize{
+#'   \item \code{GOOGLE_PROJECT_ID} - Google Cloud project ID
+#'   \item \code{GOOGLE_PRIVATE_KEY_ID} - Service account private key ID
+#'   \item \code{GOOGLE_PRIVATE_KEY} - Service account private key (with \\n escaped as \\\\n)
+#'   \item \code{GOOGLE_CLIENT_EMAIL} - Service account email
+#'   \item \code{GOOGLE_CLIENT_ID} - Service account client ID
+#' }
+#'
+#' The module creates and manages a "Saved Sessions" folder in Google Drive to store
+#' bookmark data and metadata. Each bookmark is stored as a separate folder containing
+#' the session state files.
+#'
+#' @section Reactive Values:
+#' The module uses \code{session$userData$reactiveValues$bookmarkedSessions} to store
+#' the current bookmark metadata, which includes:
+#' \itemize{
+#'   \item \code{state_id} - Unique identifier for the bookmark
+#'   \item \code{name} - User-friendly name for the session
+#'   \item \code{campaign_name_short} - Associated campaign name
+#'   \item \code{reference_id} - Reference identifier
+#'   \item \code{username} - User who created the bookmark
+#'   \item \code{created_date} - When the bookmark was created
+#'   \item \code{last_accessed} - When the bookmark was last accessed
+#'   \item \code{total_size_mb} - Size of bookmark data in MB
+#'   \item \code{description} - Optional description
+#' }
+#'
+#' @section Server Inputs:
+#' \itemize{
+#'   \item \code{input$save_bookmark} - Trigger to save current session as bookmark
+#'   \item \code{input$load_selected} - Trigger to load selected bookmark
+#'   \item \code{input$bookmarks_table_rows_selected} - Selected rows in bookmarks table
+#' }
+#'
+#' @section Server Outputs:
+#' \itemize{
+#'   \item \code{output$bookmarks_table} - DT datatable displaying bookmark metadata
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # In server.R
+#' bookmark_manager_data <- mod_bookmark_manager_server("bookmark_manager_1")
+#'
+#' # In ui.R
+#' mod_bookmark_manager_ui("bookmark_manager_1")
+#' }
+#'
+#' @seealso
+#' \code{\link{mod_bookmark_manager_ui}} for the corresponding UI module
+#'
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderUI observeEvent updateTextInput updateQueryString showNotification req isolate
 #' @importFrom DT renderDT datatable formatDate
 #' @importFrom tibble tibble
-#' @importFrom dplyr arrange desc filter
+#' @importFrom dplyr arrange desc filter select
 #' @importFrom glue glue
-#' @importFrom jsonlite write_json read_json
+#' @importFrom jsonlite write_json read_json toJSON
+#' @importFrom googledrive drive_auth drive_get drive_mkdir drive_ls drive_download drive_upload drive_update as_id
+#'
 #' @export
 mod_bookmark_manager_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Environment variables in Posit Connect Cloud
+    # Environment variables in Posit Connect Cloud ----
     google_creds <- list(
       type = "service_account",
       project_id = Sys.getenv("GOOGLE_PROJECT_ID"),
@@ -141,9 +206,28 @@ mod_bookmark_manager_server <- function(id) {
     metadata_file <- file.path(bookmark_dir, "bookmark_metadata.json") # Changed to .json
 
     # 2. Helper functions ----
-    # In mod_bookmark_manager.R
 
-    ## get_bookmark_metadata: load or create metadata from Google Drive ----
+    #' Get Bookmark Metadata from Google Drive
+    #'
+    #' @description
+    #' Loads bookmark metadata from Google Drive, creating empty structure if none exists.
+    #' Synchronizes metadata with actual bookmark folders and updates missing information.
+    #'
+    #' @return
+    #' A tibble containing bookmark metadata with columns: state_id, name, campaign_name_short,
+    #' reference_id, username, created_date, last_accessed, total_size_mb, description
+    #'
+    #' @details
+    #' This function:
+    #' \itemize{
+    #'   \item Downloads metadata.json from Google Drive bookmarks folder
+    #'   \item Creates metadata for new bookmark folders without metadata
+    #'   \item Removes metadata for deleted bookmark folders
+    #'   \item Calculates folder sizes and updates metadata
+    #'   \item Saves updated metadata back to Google Drive
+    #' }
+    #'
+    #' @keywords internal
     get_bookmark_metadata <- function() {
       metadata_file_name <- "bookmark_metadata.json"
 
@@ -273,7 +357,22 @@ mod_bookmark_manager_server <- function(id) {
         arrange(desc(created_date))
     }
 
-    ## save_bookmark_metadata: save metadata to Google Drive ----
+    #' Save Bookmark Metadata to Google Drive
+    #'
+    #' @description
+    #' Saves bookmark metadata to Google Drive and updates the session's reactive values.
+    #'
+    #' @param metadata A tibble containing bookmark metadata to save
+    #'
+    #' @return
+    #' Invisible NULL. Function called for side effects.
+    #'
+    #' @details
+    #' This function writes metadata to a temporary JSON file, uploads it to Google Drive
+    #' (updating existing metadata file or creating new one), and updates the session's
+    #' reactive values for immediate UI updates.
+    #'
+    #' @keywords internal
     save_bookmark_metadata <- function(metadata) {
       metadata_file_name <- "bookmark_metadata.json"
 
@@ -309,22 +408,21 @@ mod_bookmark_manager_server <- function(id) {
       session$userData$reactiveValues$bookmarkedSessions <- metadata
     }
 
-    ## save_bookmark_metadata: save metadata to JSON file ----
-    save_bookmark_metadata <- function(metadata) {
-      metadata_file_json <- file.path(bookmark_dir, "bookmark_metadata.json")
-
-      write_json(
-        metadata,
-        metadata_file_json,
-        pretty = TRUE,
-        auto_unbox = TRUE,
-        POSIXt = "ISO8601"
-      )
-
-      session$userData$reactiveValues$bookmarkedSessions <- metadata
-    }
-
-    ## update_last_accessed: update last accessed time for a bookmark ----
+    #' Update Last Accessed Time for Bookmark
+    #'
+    #' @description
+    #' Updates the last_accessed timestamp for a specific bookmark and saves metadata.
+    #'
+    #' @param state_id Character string. The unique identifier of the bookmark to update.
+    #'
+    #' @return
+    #' Invisible NULL. Function called for side effects.
+    #'
+    #' @details
+    #' This function finds the bookmark with the specified state_id, updates its
+    #' last_accessed timestamp to the current time, and saves the updated metadata.
+    #'
+    #' @keywords internal
     update_last_accessed <- function(state_id) {
       metadata <- session$userData$reactiveValues$bookmarkedSessions
       if (!is.null(metadata) && state_id %in% metadata$state_id) {
@@ -334,7 +432,6 @@ mod_bookmark_manager_server <- function(id) {
     }
 
     # 3. Observers and Reactives ----
-    # In mod_bookmark_manager.R
 
     ## observe: update moduleState with current bookmarks ----
     # upstream: get_bookmark_metadata()
@@ -414,55 +511,12 @@ mod_bookmark_manager_server <- function(id) {
     }) |>
       bindEvent(input$load_selected)
 
-    # ## observe ~ bindEvent: delete selected bookmarks ----
-    # observe({
-    #   req(input$bookmarks_table_rows_selected)
-
-    #   selected_rows <- input$bookmarks_table_rows_selected
-    #   metadata <- session$userData$reactiveValues$bookmarkedSessions
-    #   selected_bookmarks <- metadata[selected_rows, ]
-
-    #   if (nrow(selected_bookmarks) == 0) {
-    #     showNotification("No sessions selected for deletion.", type = "warning")
-    #     return()
-    #   }
-
-    #   # Delete bookmark folders from Google Drive
-    #   deleted_names <- character(0)
-    #   remaining_metadata <- metadata[-selected_rows, ]
-
-    #   bookmark_folders <- drive_ls(path = BOOKMARKS_FOLDER_ID, type = "folder")
-
-    #   for (i in seq_len(nrow(selected_bookmarks))) {
-    #     bookmark <- selected_bookmarks[i, ]
-
-    #     # Find and delete the folder
-    #     folder_to_delete <- bookmark_folders |>
-    #       filter(name == bookmark$state_id)
-
-    #     if (nrow(folder_to_delete) > 0) {
-    #       drive_trash(as_id(folder_to_delete$id[1]))
-    #       deleted_names <- c(deleted_names, bookmark$name)
-    #     }
-    #   }
-
-    #   # Save updated metadata
-    #   save_bookmark_metadata(remaining_metadata)
-
-    #   if (length(deleted_names) > 0) {
-    #     showNotification(
-    #       glue("Deleted sessions: {paste(deleted_names, collapse = ', ')}"),
-    #       type = "message"
-    #     )
-    #   }
-    # }) |>
-    #   bindEvent(input$delete_selected)
-
     # 4. Outputs ----
 
-    # In mod_bookmark_manager.R
-
     ## output: bookmarks_table ----
+    #' @description
+    #' Renders a DT datatable displaying bookmark metadata with formatting for dates
+    #' and proper column alignment. Shows a message when no bookmarks exist.
     output$bookmarks_table <- renderDT({
       metadata <- session$userData$reactiveValues$bookmarkedSessions
 
@@ -529,8 +583,11 @@ mod_bookmark_manager_server <- function(id) {
   })
 }
 
-## To be copied in the UI ----
-# mod_bookmark_manager_ui("bookmark_manager_1")
-
-## To be copied in the server ----
-# bookmark_manager_data <- mod_bookmark_manager_server("bookmark_manager_1")
+#' @rdname mod_bookmark_manager_server
+#' @section UI Function:
+#' To use this module, include the following in your UI:
+#' @eval "mod_bookmark_manager_ui('bookmark_manager_1')"
+#'
+#' @section Server Function:
+#' To use this module, include the following in your server:
+#' @eval "bookmark_manager_data <- mod_bookmark_manager_server('bookmark_manager_1')"
