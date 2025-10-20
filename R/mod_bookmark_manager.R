@@ -93,96 +93,21 @@ mod_bookmark_manager_ui <- function(id) {
 #' Server-side logic for managing Shiny application bookmarks stored in Google Drive.
 #' This module handles bookmark creation, loading, deletion, and metadata management
 #' through Google Drive integration.
-#'
-#' @param id Character string. The module's namespace identifier.
-#'
-#' @return
-#' A Shiny module server function that manages bookmark operations and returns
-#' reactive values for testing via \code{exportTestValues}.
-#'
-#' @details
-#' This module requires the following environment variables to be set for Google Drive authentication:
-#' \itemize{
-#'   \item \code{GOOGLE_PROJECT_ID} - Google Cloud project ID
-#'   \item \code{GOOGLE_PRIVATE_KEY_ID} - Service account private key ID
-#'   \item \code{GOOGLE_PRIVATE_KEY} - Service account private key (with \\n escaped as \\\\n)
-#'   \item \code{GOOGLE_CLIENT_EMAIL} - Service account email
-#'   \item \code{GOOGLE_CLIENT_ID} - Service account client ID
-#' }
-#'
-#' The module creates and manages a "Saved Sessions" folder in Google Drive to store
-#' bookmark data and metadata. Each bookmark is stored as a separate folder containing
-#' the session state files.
-#'
-#' @section Reactive Values:
-#' The module uses \code{session$userData$reactiveValues$bookmarkedSessions} to store
-#' the current bookmark metadata, which includes:
-#' \itemize{
-#'   \item \code{state_id} - Unique identifier for the bookmark
-#'   \item \code{name} - User-friendly name for the session
-#'   \item \code{campaign_name_short} - Associated campaign name
-#'   \item \code{reference_id} - Reference identifier
-#'   \item \code{username} - User who created the bookmark
-#'   \item \code{created_date} - When the bookmark was created
-#'   \item \code{last_accessed} - When the bookmark was last accessed
-#'   \item \code{total_size_mb} - Size of bookmark data in MB
-#'   \item \code{description} - Optional description
-#' }
-#'
-#' @section Server Inputs:
-#' \itemize{
-#'   \item \code{input$save_bookmark} - Trigger to save current session as bookmark
-#'   \item \code{input$load_selected} - Trigger to load selected bookmark
-#'   \item \code{input$bookmarks_table_rows_selected} - Selected rows in bookmarks table
-#' }
-#'
-#' @section Server Outputs:
-#' \itemize{
-#'   \item \code{output$bookmarks_table} - DT datatable displaying bookmark metadata
-#' }
-#'
-#' @examples
-#' \dontrun{
-#' # In server.R
-#' bookmark_manager_data <- mod_bookmark_manager_server("bookmark_manager_1")
-#'
-#' # In ui.R
-#' mod_bookmark_manager_ui("bookmark_manager_1")
-#' }
-#'
-#' @seealso
-#' \code{\link{mod_bookmark_manager_ui}} for the corresponding UI module
-#'
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderUI observeEvent updateTextInput updateQueryString showNotification req isolate
 #' @importFrom DT renderDT datatable formatDate
 #' @importFrom tibble tibble
 #' @importFrom dplyr arrange desc filter select
 #' @importFrom glue glue
 #' @importFrom jsonlite write_json read_json toJSON
-#' @importFrom googledrive drive_auth drive_get drive_mkdir drive_ls drive_download drive_upload drive_update as_id
+#' @importFrom googledrive drive_api_key drive_get drive_mkdir drive_ls drive_download drive_upload drive_update as_id
 #'
 #' @export
 mod_bookmark_manager_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Environment variables in Posit Connect Cloud ----
-    google_creds <- list(
-      type = "service_account",
-      project_id = Sys.getenv("GOOGLE_PROJECT_ID"),
-      private_key_id = Sys.getenv("GOOGLE_PRIVATE_KEY_ID"),
-      private_key = gsub("\\\\n", "\n", Sys.getenv("GOOGLE_PRIVATE_KEY")),
-      client_email = Sys.getenv("GOOGLE_CLIENT_EMAIL"),
-      client_id = Sys.getenv("GOOGLE_CLIENT_ID"),
-      auth_uri = "https://accounts.google.com/o/oauth2/auth",
-      token_uri = "https://oauth2.googleapis.com/token"
-    )
-
-    # Convert to JSON for googlesheets4/googledrive
-    creds_json <- toJSON(google_creds, auto_unbox = TRUE)
-
     # Authenticate
-    drive_auth(path = creds_json)
+    drive_api_key(Sys.getenv("GOOGLE_DRIVE_API_KEY"))
 
     # Locate bookmark folder
     bookmarks_folder_name <- "Saved Sessions"
@@ -205,29 +130,6 @@ mod_bookmark_manager_server <- function(id) {
     bookmark_dir <- "shiny_bookmarks"
     metadata_file <- file.path(bookmark_dir, "bookmark_metadata.json") # Changed to .json
 
-    # 2. Helper functions ----
-
-    #' Get Bookmark Metadata from Google Drive
-    #'
-    #' @description
-    #' Loads bookmark metadata from Google Drive, creating empty structure if none exists.
-    #' Synchronizes metadata with actual bookmark folders and updates missing information.
-    #'
-    #' @return
-    #' A tibble containing bookmark metadata with columns: state_id, name, campaign_name_short,
-    #' reference_id, username, created_date, last_accessed, total_size_mb, description
-    #'
-    #' @details
-    #' This function:
-    #' \itemize{
-    #'   \item Downloads metadata.json from Google Drive bookmarks folder
-    #'   \item Creates metadata for new bookmark folders without metadata
-    #'   \item Removes metadata for deleted bookmark folders
-    #'   \item Calculates folder sizes and updates metadata
-    #'   \item Saves updated metadata back to Google Drive
-    #' }
-    #'
-    #' @keywords internal
     get_bookmark_metadata <- function() {
       metadata_file_name <- "bookmark_metadata.json"
 
@@ -357,22 +259,6 @@ mod_bookmark_manager_server <- function(id) {
         arrange(desc(created_date))
     }
 
-    #' Save Bookmark Metadata to Google Drive
-    #'
-    #' @description
-    #' Saves bookmark metadata to Google Drive and updates the session's reactive values.
-    #'
-    #' @param metadata A tibble containing bookmark metadata to save
-    #'
-    #' @return
-    #' Invisible NULL. Function called for side effects.
-    #'
-    #' @details
-    #' This function writes metadata to a temporary JSON file, uploads it to Google Drive
-    #' (updating existing metadata file or creating new one), and updates the session's
-    #' reactive values for immediate UI updates.
-    #'
-    #' @keywords internal
     save_bookmark_metadata <- function(metadata) {
       metadata_file_name <- "bookmark_metadata.json"
 
@@ -408,21 +294,6 @@ mod_bookmark_manager_server <- function(id) {
       session$userData$reactiveValues$bookmarkedSessions <- metadata
     }
 
-    #' Update Last Accessed Time for Bookmark
-    #'
-    #' @description
-    #' Updates the last_accessed timestamp for a specific bookmark and saves metadata.
-    #'
-    #' @param state_id Character string. The unique identifier of the bookmark to update.
-    #'
-    #' @return
-    #' Invisible NULL. Function called for side effects.
-    #'
-    #' @details
-    #' This function finds the bookmark with the specified state_id, updates its
-    #' last_accessed timestamp to the current time, and saves the updated metadata.
-    #'
-    #' @keywords internal
     update_last_accessed <- function(state_id) {
       metadata <- session$userData$reactiveValues$bookmarkedSessions
       if (!is.null(metadata) && state_id %in% metadata$state_id) {
@@ -576,10 +447,10 @@ mod_bookmark_manager_server <- function(id) {
     })
 
     ## export: export variables for testing ----
-    exportTestValues(
-      module_metadata = session$userData$reactiveValues$bookmarkedSessions,
-      selected_rows = input$bookmarks_table_rows_selected
-    )
+    # exportTestValues(
+    #   module_metadata = session$userData$reactiveValues$bookmarkedSessions,
+    #   selected_rows = input$bookmarks_table_rows_selected
+    # )
   })
 }
 
