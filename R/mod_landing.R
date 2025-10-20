@@ -89,7 +89,7 @@ mod_landing_ui <- function(id) {
                 "Illustration of STOP eData app workflow:"
               ),
               tags$img(
-                style = "max-widfth: 100%",
+                style = "max-width: 100%",
                 src = "www/app_mapp.png",
                 alt = "Illustration of STOP eData app workflow."
               )

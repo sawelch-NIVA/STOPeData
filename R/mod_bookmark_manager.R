@@ -71,15 +71,15 @@ mod_bookmark_manager_ui <- function(id) {
           ),
 
           ### Delete selected button ----
-          input_task_button(
-            id = ns("delete_selected"),
-            label = HTML(paste(
-              bsicons::bs_icon("trash"),
-              "Delete Selected"
-            )),
-            class = "btn-danger",
-            width = "100%"
-          )
+          # input_task_button(
+          #   id = ns("delete_selected"),
+          #   label = HTML(paste(
+          #     bsicons::bs_icon("trash"),
+          #     "Delete Selected"
+          #   )),
+          #   class = "btn-danger",
+          #   width = "100%"
+          # )
         ),
         DTOutput(ns("bookmarks_table"))
       )
@@ -95,35 +95,83 @@ mod_bookmark_manager_ui <- function(id) {
 #' @importFrom tibble tibble
 #' @importFrom dplyr arrange desc filter
 #' @importFrom glue glue
+#' @importFrom jsonlite write_json read_json
 #' @export
 mod_bookmark_manager_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # Environment variables in Posit Connect Cloud
+    google_creds <- list(
+      type = "service_account",
+      project_id = Sys.getenv("GOOGLE_PROJECT_ID"),
+      private_key_id = Sys.getenv("GOOGLE_PRIVATE_KEY_ID"),
+      private_key = gsub("\\\\n", "\n", Sys.getenv("GOOGLE_PRIVATE_KEY")),
+      client_email = Sys.getenv("GOOGLE_CLIENT_EMAIL"),
+      client_id = Sys.getenv("GOOGLE_CLIENT_ID"),
+      auth_uri = "https://accounts.google.com/o/oauth2/auth",
+      token_uri = "https://oauth2.googleapis.com/token"
+    )
+
+    # Convert to JSON for googlesheets4/googledrive
+    creds_json <- jsonlite::toJSON(google_creds, auto_unbox = TRUE)
+
+    # Authenticate
+    googledrive::drive_auth(path = creds_json)
+
+    # Locate bookmark folder
+    bookmarks_folder_name <- "Saved Sessions"
+    bookmarks_folder <- drive_get(bookmarks_folder_name)
+
+    if (nrow(bookmarks_folder) == 0) {
+      # Create folder if it doesn't exist
+      bookmarks_folder <- drive_mkdir(bookmarks_folder_name)
+    }
+
+    BOOKMARKS_FOLDER_ID <- as_id(bookmarks_folder$id)
+
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      bookmarks_metadata = NULL,
       selected_rows = integer(0)
     )
 
     ## Constants ----
     bookmark_dir <- "shiny_bookmarks"
-    metadata_file <- file.path(bookmark_dir, "bookmark_metadata.rds")
+    metadata_file <- file.path(bookmark_dir, "bookmark_metadata.json") # Changed to .json
 
     # 2. Helper functions ----
-    ## get_bookmark_metadata: load or create metadata file ----
-    get_bookmark_metadata <- reactive({
-      # Create bookmark directory if it doesn't exist
-      if (!dir.exists(bookmark_dir)) {
-        dir.create(bookmark_dir, recursive = TRUE)
-      }
+    # In mod_bookmark_manager.R
 
-      browser()
-      # Load existing metadata or create new
-      if (file.exists(metadata_file)) {
-        metadata <- readRDS(metadata_file)
+    ## get_bookmark_metadata: load or create metadata from Google Drive ----
+    get_bookmark_metadata <- function() {
+      metadata_file_name <- "bookmark_metadata.json"
+
+      # Try to find the metadata file in the bookmarks folder
+      metadata_file <- drive_ls(
+        path = BOOKMARKS_FOLDER_ID,
+        pattern = metadata_file_name
+      )
+
+      if (nrow(metadata_file) > 0) {
+        # Download and read the metadata file
+        temp_file <- tempfile(fileext = ".json")
+        drive_download(
+          as_id(metadata_file$id[1]),
+          path = temp_file,
+          overwrite = TRUE
+        )
+
+        metadata <- read_json(temp_file, simplifyVector = TRUE) |>
+          tibble::as_tibble()
+
+        # Convert date columns back to POSIXct
+        metadata$created_date <- as.POSIXct(metadata$created_date)
+        metadata$last_accessed <- as.POSIXct(metadata$last_accessed)
+
+        unlink(temp_file)
       } else {
+        # Create empty metadata structure
         metadata <- tibble(
           state_id = character(0),
           name = character(0),
@@ -132,42 +180,61 @@ mod_bookmark_manager_server <- function(id) {
           username = character(0),
           created_date = as.POSIXct(character(0)),
           last_accessed = as.POSIXct(character(0)),
+          total_size_mb = numeric(0),
           description = character(0)
         )
       }
 
-      # Sync with actual bookmark directories
-      existing_dirs <- list.dirs(
-        bookmark_dir,
-        full.names = FALSE,
-        recursive = FALSE
-      )
-      existing_dirs <- existing_dirs[existing_dirs != ""] # Remove empty string
+      # Get list of bookmark folders in Google Drive
+      bookmark_folders <- drive_ls(path = BOOKMARKS_FOLDER_ID, type = "folder")
+      existing_state_ids <- bookmark_folders$name
 
-      # Remove metadata for non-existent directories
+      # Remove metadata for non-existent folders
       metadata <- metadata |>
-        filter(state_id %in% existing_dirs)
+        filter(state_id %in% existing_state_ids)
 
-      # Add metadata for new directories without metadata
-      new_dirs <- setdiff(existing_dirs, metadata$state_id)
-      if (length(new_dirs) > 0) {
-        for (dir_name in new_dirs) {
-          dir_path <- file.path(bookmark_dir, dir_name)
-          values_file <- file.path(dir_path, "values.rds")
+      # Add metadata for new folders without metadata
+      new_state_ids <- setdiff(existing_state_ids, metadata$state_id)
 
-          if (file.exists(values_file)) {
-            values <- readRDS(values_file)
+      if (length(new_state_ids) > 0) {
+        for (state_id in new_state_ids) {
+          # Find the folder
+          state_folder <- bookmark_folders |>
+            filter(name == state_id)
+
+          # Look for values.rds in this folder
+          folder_files <- drive_ls(path = as_id(state_folder$id))
+          values_file <- folder_files |> filter(name == "values.rds")
+
+          if (nrow(values_file) > 0) {
+            # Download and read values.rds
+            temp_values <- tempfile(fileext = ".rds")
+            drive_download(
+              as_id(values_file$id[1]),
+              path = temp_values,
+              overwrite = TRUE
+            )
+            values <- readRDS(temp_values)
+            unlink(temp_values)
+
+            # Calculate total size from Drive
+            total_size_bytes <- sum(
+              folder_files$drive_resource |>
+                lapply(function(x) as.numeric(x$size %||% 0)) |>
+                unlist()
+            )
+            total_size_mb <- round(total_size_bytes / (1024^2), 2)
 
             new_row <- tibble(
-              state_id = dir_name,
+              state_id = state_id,
               name = values$bookmarkName %||% "Unnamed Session",
-              campaign_name_short = values$bookmarkName %||% "Unknown Campaign",
-              reference_id = values$bookmarkName %||% "Unnamed Reference",
+              campaign_name_short = values$bookmarkCampaign %||%
+                "Unknown Campaign",
+              reference_id = values$bookmarkReference %||% "Unknown Reference",
               username = values$bookmarkUsername %||% "Unknown",
-              created_date = values$bookmarkTimestamp %||%
-                file.info(dir_path)$mtime,
-              last_accessed = values$bookmarkTimestamp %||%
-                file.info(dir_path)$mtime,
+              created_date = values$bookmarkTimestamp %||% Sys.time(),
+              last_accessed = values$bookmarkTimestamp %||% Sys.time(),
+              total_size_mb = total_size_mb,
               description = ""
             )
 
@@ -176,23 +243,90 @@ mod_bookmark_manager_server <- function(id) {
         }
       }
 
-      # Save updated metadata
-      saveRDS(metadata, metadata_file)
+      # Save updated metadata back to Google Drive
+      if (nrow(metadata) > 0) {
+        temp_metadata <- tempfile(fileext = ".json")
+        write_json(
+          metadata,
+          temp_metadata,
+          pretty = TRUE,
+          auto_unbox = TRUE,
+          POSIXt = "ISO8601"
+        )
+
+        # Check if metadata file exists, update or create
+        if (nrow(metadata_file) > 0) {
+          drive_update(as_id(metadata_file$id[1]), media = temp_metadata)
+        } else {
+          drive_upload(
+            temp_metadata,
+            path = BOOKMARKS_FOLDER_ID,
+            name = metadata_file_name
+          )
+        }
+
+        unlink(temp_metadata)
+      }
 
       # Sort by creation date (most recent first)
       metadata |>
         arrange(desc(created_date))
-    })
+    }
 
-    ## save_bookmark_metadata: save metadata to file ----
+    ## save_bookmark_metadata: save metadata to Google Drive ----
     save_bookmark_metadata <- function(metadata) {
-      saveRDS(metadata, metadata_file)
-      moduleState$bookmarks_metadata <- metadata
+      metadata_file_name <- "bookmark_metadata.json"
+
+      # Write to temporary file
+      temp_metadata <- tempfile(fileext = ".json")
+      write_json(
+        metadata,
+        temp_metadata,
+        pretty = TRUE,
+        auto_unbox = TRUE,
+        POSIXt = "ISO8601"
+      )
+
+      # Find existing metadata file
+      metadata_file <- drive_ls(
+        path = BOOKMARKS_FOLDER_ID,
+        pattern = metadata_file_name
+      )
+
+      # Update or create
+      if (nrow(metadata_file) > 0) {
+        drive_update(as_id(metadata_file$id[1]), media = temp_metadata)
+      } else {
+        drive_upload(
+          temp_metadata,
+          path = BOOKMARKS_FOLDER_ID,
+          name = metadata_file_name
+        )
+      }
+
+      unlink(temp_metadata)
+
+      session$userData$reactiveValues$bookmarkedSessions <- metadata
+    }
+
+    ## save_bookmark_metadata: save metadata to JSON file ----
+    save_bookmark_metadata <- function(metadata) {
+      metadata_file_json <- file.path(bookmark_dir, "bookmark_metadata.json")
+
+      write_json(
+        metadata,
+        metadata_file_json,
+        pretty = TRUE,
+        auto_unbox = TRUE,
+        POSIXt = "ISO8601"
+      )
+
+      session$userData$reactiveValues$bookmarkedSessions <- metadata
     }
 
     ## update_last_accessed: update last accessed time for a bookmark ----
     update_last_accessed <- function(state_id) {
-      metadata <- moduleState$bookmarks_metadata
+      metadata <- session$userData$reactiveValues$bookmarkedSessions
       if (!is.null(metadata) && state_id %in% metadata$state_id) {
         metadata$last_accessed[metadata$state_id == state_id] <- Sys.time()
         save_bookmark_metadata(metadata)
@@ -200,14 +334,15 @@ mod_bookmark_manager_server <- function(id) {
     }
 
     # 3. Observers and Reactives ----
+    # In mod_bookmark_manager.R
 
     ## observe: update moduleState with current bookmarks ----
     # upstream: get_bookmark_metadata()
-    # downstream: moduleState$bookmarks_metadata
+    # downstream: session$userData$reactiveValues$bookmarkedSessions
     observe({
-      moduleState$bookmarks_metadata <- get_bookmark_metadata()
+      session$userData$reactiveValues$bookmarkedSessions <- get_bookmark_metadata()
     }) |>
-      bindEvent(input$save_bookmark)
+      bindEvent()
 
     ## observe ~ bindEvent: save bookmark with custom name ----
     # upstream: user clicks input$save_bookmark
@@ -250,7 +385,7 @@ mod_bookmark_manager_server <- function(id) {
         return()
       }
 
-      metadata <- moduleState$bookmarks_metadata
+      metadata <- session$userData$reactiveValues$bookmarkedSessions
       selected_bookmark <- metadata[selected_rows, ]
 
       # Update last accessed time
@@ -279,58 +414,57 @@ mod_bookmark_manager_server <- function(id) {
     }) |>
       bindEvent(input$load_selected)
 
-    ## observe ~ bindEvent: delete selected bookmarks ----
-    # upstream: user clicks input$delete_selected
-    # downstream: bookmark file deletion
-    observe({
-      req(input$bookmarks_table_rows_selected)
+    # ## observe ~ bindEvent: delete selected bookmarks ----
+    # observe({
+    #   req(input$bookmarks_table_rows_selected)
 
-      selected_rows <- input$bookmarks_table_rows_selected
-      metadata <- moduleState$bookmarks_metadata
-      selected_bookmarks <- metadata[selected_rows, ]
+    #   selected_rows <- input$bookmarks_table_rows_selected
+    #   metadata <- session$userData$reactiveValues$bookmarkedSessions
+    #   selected_bookmarks <- metadata[selected_rows, ]
 
-      if (nrow(selected_bookmarks) == 0) {
-        showNotification(
-          "No sessions selected for deletion.",
-          type = "warning"
-        )
-        return()
-      }
+    #   if (nrow(selected_bookmarks) == 0) {
+    #     showNotification("No sessions selected for deletion.", type = "warning")
+    #     return()
+    #   }
 
-      # Delete bookmark directories and update metadata
-      deleted_names <- character(0)
-      remaining_metadata <- metadata[-selected_rows, ]
+    #   # Delete bookmark folders from Google Drive
+    #   deleted_names <- character(0)
+    #   remaining_metadata <- metadata[-selected_rows, ]
 
-      for (i in seq_len(nrow(selected_bookmarks))) {
-        bookmark <- selected_bookmarks[i, ]
-        bookmark_path <- file.path(bookmark_dir, bookmark$state_id)
+    #   bookmark_folders <- drive_ls(path = BOOKMARKS_FOLDER_ID, type = "folder")
 
-        if (dir.exists(bookmark_path)) {
-          unlink(bookmark_path, recursive = TRUE)
-          deleted_names <- c(deleted_names, bookmark$name)
-        }
-      }
+    #   for (i in seq_len(nrow(selected_bookmarks))) {
+    #     bookmark <- selected_bookmarks[i, ]
 
-      # Save updated metadata
-      save_bookmark_metadata(remaining_metadata)
+    #     # Find and delete the folder
+    #     folder_to_delete <- bookmark_folders |>
+    #       filter(name == bookmark$state_id)
 
-      # Show success notification
-      if (length(deleted_names) > 0) {
-        showNotification(
-          glue("Deleted sessions: {paste(deleted_names, collapse = ', ')}"),
-          type = "message"
-        )
-      }
-    }) |>
-      bindEvent(input$delete_selected)
+    #     if (nrow(folder_to_delete) > 0) {
+    #       drive_trash(as_id(folder_to_delete$id[1]))
+    #       deleted_names <- c(deleted_names, bookmark$name)
+    #     }
+    #   }
+
+    #   # Save updated metadata
+    #   save_bookmark_metadata(remaining_metadata)
+
+    #   if (length(deleted_names) > 0) {
+    #     showNotification(
+    #       glue("Deleted sessions: {paste(deleted_names, collapse = ', ')}"),
+    #       type = "message"
+    #     )
+    #   }
+    # }) |>
+    #   bindEvent(input$delete_selected)
 
     # 4. Outputs ----
 
+    # In mod_bookmark_manager.R
+
     ## output: bookmarks_table ----
-    # upstream: moduleState$bookmarks_metadata
-    # downstream: DT table display
     output$bookmarks_table <- renderDT({
-      metadata <- moduleState$bookmarks_metadata
+      metadata <- session$userData$reactiveValues$bookmarkedSessions
 
       # Handle empty bookmark list
       if (is.null(metadata) || nrow(metadata) == 0) {
@@ -350,12 +484,15 @@ mod_bookmark_manager_server <- function(id) {
         )
       }
 
-      # Prepare display data
+      # Prepare display data with new columns
       display_data <- metadata |>
         select(
           UID = state_id,
           Name = name,
+          Campaign = campaign_name_short,
+          Reference = reference_id,
           Username = username,
+          `Size (MB)` = total_size_mb,
           Created = created_date,
           `Last Accessed` = last_accessed
         )
@@ -370,7 +507,8 @@ mod_bookmark_manager_server <- function(id) {
           searching = TRUE,
           select = list(style = "multi"),
           columnDefs = list(
-            list(className = "dt-center", targets = c(1, 2, 3))
+            list(className = "dt-center", targets = c(1, 2, 3, 4, 5, 6)),
+            list(className = "dt-right", targets = 5) # Right-align size column
           )
         ),
         selection = "multiple",
@@ -385,7 +523,7 @@ mod_bookmark_manager_server <- function(id) {
 
     ## export: export variables for testing ----
     exportTestValues(
-      module_metadata = moduleState$bookmarks_metadata,
+      module_metadata = session$userData$reactiveValues$bookmarkedSessions,
       selected_rows = input$bookmarks_table_rows_selected
     )
   })

@@ -146,7 +146,7 @@ app_ui <- function(request) {
         ## Navigation buttons ----
         div(
           class = "navigation-buttons-container",
-          style = "display: flex; justify-content: space-between; margin: 20px;",
+          style = "display: flex; justify-content: space-between; align-items: center; margin: 20px;",
 
           input_task_button(
             id = "previous_section",
@@ -155,6 +155,16 @@ app_ui <- function(request) {
               "Previous"
             )),
             type = "primary"
+          ),
+
+          # Save Session button
+          input_task_button(
+            id = "cats",
+            label = HTML(paste(
+              bsicons::bs_icon("floppy"),
+              "Save Session"
+            )),
+            type = "success"
           ),
 
           input_task_button(

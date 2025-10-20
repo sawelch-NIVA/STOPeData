@@ -21,6 +21,7 @@ Imports:
     ggplot2,
     glue,
     golem,
+    googledrive,
     htmltools,
     httr,
     ISOcodes,

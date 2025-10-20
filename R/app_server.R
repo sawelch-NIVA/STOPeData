@@ -48,7 +48,9 @@ app_server <- function(input, output, session) {
 
       # LLM extraction status flags
       llmExtractionComplete = FALSE,
-      llmExtractionSuccessful = FALSE
+      llmExtractionSuccessful = FALSE,
+
+      bookmarkedSessions = NULL
     )
   }
 
@@ -219,4 +221,30 @@ app_server <- function(input, output, session) {
       )
     }
   })
+
+  ## observe: save session from navigation bar
+  # upstream: get_bookmark_metadata()
+  # downstream: session$userData$reactiveValues$bookmarkedSessions
+  observe({
+    # Get bookmark name or create default
+    name <- paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
+
+    # Get username from session
+    username <- session$userData$reactiveValues$ENTERED_BY %||% "Unknown User"
+
+    # Store bookmark metadata for onBookmark callback
+    session$userData$bookmarkName <- name
+    session$userData$bookmarkUsername <- username
+    session$userData$bookmarkTimestamp <- Sys.time()
+
+    # Trigger bookmark creation
+    session$doBookmark()
+
+    # Show success notification
+    showNotification(
+      glue("Session '{name}' saved successfully."),
+      type = "message"
+    )
+  }) |>
+    bindEvent(input$save_bookmark, ignoreInit = TRUE)
 }
