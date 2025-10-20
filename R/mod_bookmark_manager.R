@@ -179,14 +179,14 @@ mod_bookmark_manager_server <- function(id) {
     )
 
     # Convert to JSON for googlesheets4/googledrive
-    creds_json <- jsonlite::toJSON(google_creds, auto_unbox = TRUE)
+    creds_json <- toJSON(google_creds, auto_unbox = TRUE)
 
     # Authenticate
-    googledrive::drive_auth(path = creds_json)
+    drive_auth(path = creds_json)
 
     # Locate bookmark folder
     bookmarks_folder_name <- "Saved Sessions"
-    bookmarks_folder <- drive_get(bookmarks_folder_name)
+    bookmarks_folder <- googledrive::drive_get(bookmarks_folder_name)
 
     if (nrow(bookmarks_folder) == 0) {
       # Create folder if it doesn't exist
