@@ -79,7 +79,7 @@ mod_landing_ui <- function(id) {
           style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
           tags$figure(
             tags$figcaption(
-              "Illustration of STOP eData app workflow: Yes, it's a bit complicated."
+              "Illustration of STOP eData app workflow."
             ),
             tags$img(
               style = "max-height: 500px;",
