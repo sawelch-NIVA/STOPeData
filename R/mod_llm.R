@@ -62,7 +62,7 @@ mod_llm_ui <- function(id) {
           ),
 
           ### API key input ----
-          textInput(
+          passwordInput(
             inputId = ns("api_key"),
             label = tooltip(
               list("Anthropic API Key", bs_icon("info-circle-fill")),
