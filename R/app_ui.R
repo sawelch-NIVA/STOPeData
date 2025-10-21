@@ -133,12 +133,12 @@ app_ui <- function(request) {
         mod_information_ui("information"),
         icon = bs_icon("info-circle")
       ),
-      nav_panel(
-        title = "Saved Data",
-        value = "save",
-        mod_bookmark_manager_ui("session_manager"),
-        icon = bs_icon("floppy")
-      ),
+      # nav_panel(
+      #   title = "Saved Data",
+      #   value = "save",
+      #   mod_bookmark_manager_ui("session_manager"),
+      #   icon = bs_icon("floppy")
+      # ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
@@ -159,7 +159,7 @@ app_ui <- function(request) {
 
           # Save Session button
           input_task_button(
-            id = "cats",
+            id = "save_bookmark",
             label = HTML(paste(
               bsicons::bs_icon("floppy"),
               "Save Session"

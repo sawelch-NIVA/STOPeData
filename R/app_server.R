@@ -6,6 +6,7 @@
 #' @importFrom bslib toggle_dark_mode
 #' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
+#' @import googledrive
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
 
@@ -126,7 +127,7 @@ app_server <- function(input, output, session) {
     "export"
   )
   moduleCREED <- mod_CREED_server("CREED")
-  moduleBookmarkManager <- mod_bookmark_manager_server("session_manager")
+  # moduleBookmarkManager <- mod_bookmark_manager_server("session_manager")
 
   # Module navigation ----
   ## Navigation setup ----
@@ -148,6 +149,27 @@ app_server <- function(input, output, session) {
     "info",
     "save"
   )
+
+  ## Gdrive setup
+  # Authenticate
+  drive_auth_configure(api_key = Sys.getenv("GOOGLE_DRIVE_API_KEY"))
+  drive_auth(email = "sawelch1994@gmail.com")
+
+  # Locate bookmark folder
+  bookmarks_folder_name <- "Saved Sessions"
+  bookmarks_folder <- drive_get(bookmarks_folder_name)
+
+  observe({
+    if (nrow(bookmarks_folder) == 0) {
+      showNotification(
+        ui = "Connection to Google Drive Failed. Sessions cannot be saved.",
+        type = "warning"
+      )
+    } else {
+      showNotification(ui = "Connected to Google Drive", type = "message")
+    }
+  }) |>
+    bindEvent(bookmarks_folder)
 
   ## Track current module position ----
   current_position <- reactive({
@@ -222,8 +244,10 @@ app_server <- function(input, output, session) {
     }
   })
 
-  ## observe: save session from navigation bar
-  # upstream: get_bookmark_metadata()
+  # can we enable reconnect on crashes?
+  session$allowReconnect(TRUE)
+
+  ## observe: save session from navigation ba
   # downstream: session$userData$reactiveValues$bookmarkedSessions
   observe({
     # Get bookmark name or create default
@@ -237,8 +261,10 @@ app_server <- function(input, output, session) {
     session$userData$bookmarkUsername <- username
     session$userData$bookmarkTimestamp <- Sys.time()
 
-    # Trigger bookmark creation
-    session$doBookmark()
+    input <- input
+    userData <- session$userData$reactiveValues
+
+    saveRDS(userData, file = "test.rds")
 
     # Show success notification
     showNotification(

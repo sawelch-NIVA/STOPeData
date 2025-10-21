@@ -129,6 +129,7 @@ mod_bookmark_manager_server <- function(id) {
 
     get_bookmark_metadata <- function() {
       metadata_file_name <- "bookmark_metadata.json"
+      browser()
 
       # Try to find the metadata file in the bookmarks folder
       metadata_file <- tryCatch(
