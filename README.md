@@ -112,6 +112,21 @@ I haven't tested setting the app up to run locally on systems other than my home
 
 This version of the app demo is hosted on Posit Connect Cloud on my personal account: https://sawelch-niva-stopedata.share.connect.posit.cloud/. This will be migrated to NIVA's standard severs when practical.
 
+### Screenshots and Diagrams
+
+
+![complicated_workflow]
+An overview of the manual/LLM assisted workflow.
+
+![sites]
+Entering data on sampling sites.
+
+![biota]
+Entering data about sampled organisms.
+
+![creed]
+Assisted assessment of data quality using the CREED framework.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -157,3 +172,7 @@ Project Link: [https://github.com/sawelch-NIVA/STOPeData](https://github.com/saw
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [workflow]: images/efve.png
+[sites]: images/mod_sites_screenshot.png
+[creed]: images/mod_creed_screenshot.png
+[biota]: images/mod_biota_screenshot.png
+[complicated_workflow]: inst/app/www/app_mapp.png
