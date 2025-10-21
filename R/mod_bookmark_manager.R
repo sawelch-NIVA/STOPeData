@@ -99,7 +99,7 @@ mod_bookmark_manager_ui <- function(id) {
 #' @importFrom dplyr arrange desc filter select
 #' @importFrom glue glue
 #' @importFrom jsonlite write_json read_json toJSON
-#' @importFrom googledrive drive_api_key drive_get drive_mkdir drive_ls drive_download drive_upload drive_update as_id
+#' @importFrom googledrive drive_api_key drive_auth_configure drive_auth drive_get drive_mkdir drive_ls drive_download drive_upload drive_update as_id
 #'
 #' @export
 mod_bookmark_manager_server <- function(id) {
@@ -107,7 +107,8 @@ mod_bookmark_manager_server <- function(id) {
     ns <- session$ns
 
     # Authenticate
-    drive_api_key(Sys.getenv("GOOGLE_DRIVE_API_KEY"))
+    drive_auth_configure(api_key = Sys.getenv("GOOGLE_DRIVE_API_KEY"))
+    drive_auth(email = "sawelch1994@gmail.com")
 
     # Locate bookmark folder
     bookmarks_folder_name <- "Saved Sessions"
@@ -126,17 +127,16 @@ mod_bookmark_manager_server <- function(id) {
       selected_rows = integer(0)
     )
 
-    ## Constants ----
-    bookmark_dir <- "shiny_bookmarks"
-    metadata_file <- file.path(bookmark_dir, "bookmark_metadata.json") # Changed to .json
-
     get_bookmark_metadata <- function() {
       metadata_file_name <- "bookmark_metadata.json"
 
       # Try to find the metadata file in the bookmarks folder
-      metadata_file <- drive_ls(
-        path = BOOKMARKS_FOLDER_ID,
-        pattern = metadata_file_name
+      metadata_file <- tryCatch(
+        drive_ls(
+          path = BOOKMARKS_FOLDER_ID,
+          pattern = metadata_file_name
+        ),
+        finally = data.frame()
       )
 
       if (nrow(metadata_file) > 0) {
