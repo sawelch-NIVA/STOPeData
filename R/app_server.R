@@ -152,12 +152,12 @@ app_server <- function(input, output, session) {
 
   ## Gdrive setup
   # Authenticate
-  drive_auth_configure(api_key = Sys.getenv("GOOGLE_DRIVE_API_KEY"))
-  drive_auth(email = "sawelch1994@gmail.com")
+  # drive_auth_configure(api_key = Sys.getenv("GOOGLE_DRIVE_API_KEY"))
+  # drive_auth(email = "sawelch1994@gmail.com")
 
-  # Locate bookmark folder
-  bookmarks_folder_name <- "Saved Sessions"
-  bookmarks_folder <- drive_get(bookmarks_folder_name)
+  # # Locate bookmark folder
+  # bookmarks_folder_name <- "Saved Sessions"
+  # bookmarks_folder <- drive_get(bookmarks_folder_name)
 
   observe({
     if (nrow(bookmarks_folder) == 0) {
