@@ -8,7 +8,7 @@
     <img src="images/stopsquarecropped.png" alt="Logo" width="80" height="80">
   </a>
 
-<h3 align="center">project_title</h3>
+<h3 align="center">STOP Exposure Data App</h3>
 
   <p align="center">
     STOPeData is a data entry and formatting Shiny app in the Source to Outcome Pathway/Risk assessment database family, designed to make extracting data on chemical concentrations in the environment from papers and reports easier. 
