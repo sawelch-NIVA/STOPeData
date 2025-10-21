@@ -429,8 +429,10 @@ mod_methods_server <- function(id) {
         # Update data with proper protocol IDs and campaign names
         updated_data <- moduleState$methods_data |>
           group_by(PROTOCOL_CATEGORY) |>
+          mutate(sequence = row_number()) |>
+          ungroup() |>
+          dplyr::rowwise() |>
           mutate(
-            sequence = row_number(),
             PROTOCOL_ID = generate_protocol_id(
               PROTOCOL_CATEGORY,
               PROTOCOL_NAME,
