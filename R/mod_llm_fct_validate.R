@@ -93,17 +93,6 @@ map_compartment_strict <- function(compartment) {
   )
 }
 
-#' Map compartment sub to strict controlled vocabulary
-#' @description Maps to the exact controlled vocabulary used in compartments module
-#' @noRd
-# ! FORMAT-BASED
-map_compartment_sub_strict <- function(compartment_sub) {
-  map_to_vocabulary(
-    input_value = compartment_sub,
-    variable_name = "compartment_sub",
-    default_value = "Other"
-  )
-}
 
 #' Map LLM geographic feature to strict controlled vocabulary
 #' @description Maps to the exact controlled vocabulary used in sites module

@@ -166,7 +166,8 @@ mod_compartments_server <- function(id) {
         "Liquid Growth Medium" = "Liquid Growth Medium",
         "Rainwater" = "Rainwater",
         "Stormwater" = "Stormwater",
-        "Leachate" = "Leachate"
+        "Leachate" = "Leachate",
+        "Aquatic Sediment" = "Aquatic Sediment"
       ),
       "Atmospheric" = c(
         "Indoor Air" = "Indoor Air",
