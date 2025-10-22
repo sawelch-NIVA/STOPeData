@@ -154,7 +154,7 @@ mod_review_server <- function(id) {
     create_dummy_review_data <- function() {
       set.seed(42) # For reproducible dummy data
 
-      dummy_data <- data.frame(
+      dummy_data <- tibble(
         SAMPLE_ID = paste0("DUMMY_", sprintf("%03d", 1:50)),
         SITE_CODE = rep(
           c("DEMO_SITE_A", "DEMO_SITE_B", "DEMO_SITE_C"),

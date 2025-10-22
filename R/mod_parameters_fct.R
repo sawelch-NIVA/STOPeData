@@ -35,7 +35,7 @@ get_parameters_of_types <- function(
 #' @param dummy_parameters Dataframe containing base parameters
 #' @param session_parameters Optional dataframe containing session-specific parameters
 #'
-#' @return Data.frame with parameter information or NULL if not found
+#' @return tibble with parameter information or NULL if not found
 #' @importFrom dplyr filter slice
 #' @export
 create_existing_parameter <- function(
@@ -62,7 +62,7 @@ create_existing_parameter <- function(
   # Extract first matching row and ensure all required columns exist
   param_data <- param_row |> slice(1)
 
-  data.frame(
+  tibble(
     PARAMETER_TYPE = param_type,
     PARAMETER_TYPE_SUB = param_data$PARAMETER_TYPE_SUB %||% "",
     MEASURED_TYPE = param_data$MEASURED_TYPE %||% "Concentration",
@@ -80,10 +80,10 @@ create_existing_parameter <- function(
 #'
 #' @param param_type Character string specifying the parameter type
 #'
-#' @return Data.frame with blank parameter template
+#' @return tibble with blank parameter template
 #' @export
 create_new_parameter <- function(param_type, entered_by) {
-  data.frame(
+  tibble(
     PARAMETER_TYPE = param_type,
     PARAMETER_TYPE_SUB = "",
     MEASURED_TYPE = "Concentration",

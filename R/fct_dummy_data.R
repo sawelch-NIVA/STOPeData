@@ -35,39 +35,35 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       publisher = "NIVA Library",
       doi = NULL
     ),
-    sites = data.frame(
+    sites = tibble(
       site_code = "NIVA-001",
       site_name = "NIVA Office",
       latitude = 59.924634,
       longitude = 10.792297,
       country = "Norway",
-      site_geographic_feature = "Coastal fjord",
-      stringsAsFactors = FALSE
+      site_geographic_feature = "Coastal fjord"
     ),
-    parameters = data.frame(
+    parameters = tibble(
       parameter_name = c("Silver"),
       parameter_type = rep("Stressor", 1),
       cas_rn = c(
         "7440-22-4"
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    compartments = data.frame(
+    compartments = tibble(
       environ_compartment = c("Aquatic", "Biota"),
       environ_compartment_sub = c("Marine/Salt Water", "Biota, Aquatic"),
-      measured_category = c("External", "Internal"),
-      stringsAsFactors = FALSE
+      measured_category = c("External", "Internal")
     ),
-    biota = data.frame(
+    biota = tibble(
       sample_id = NA_character_,
       species_group = "Crustaceans",
       sample_species = "Daphnia magna",
       sample_tissue = "Whole body",
       sample_species_lifestage = "Adult",
-      sample_species_gender = "Female",
-      stringsAsFactors = FALSE
+      sample_species_gender = "Female"
     ),
-    methods = data.frame(
+    methods = tibble(
       protocol_category = c(
         "Sampling Protocol",
         "Analytical Protocol",
@@ -82,10 +78,9 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
         "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
         "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope",
         ""
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    samples = data.frame(
+    samples = tibble(
       sampling_date = c("2025-09-29", "2023-02-12")
     )
   )
@@ -100,9 +95,7 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       "methods"
     )
     for (element in data_frame_elements) {
-      if (
-        !is.null(dummy_data[[element]]) && is.data.frame(dummy_data[[element]])
-      ) {
+      if (!is.null(dummy_data[[element]]) && is.tibble(dummy_data[[element]])) {
         names(dummy_data[[element]]) <- toupper(names(dummy_data[[element]]))
       }
     }

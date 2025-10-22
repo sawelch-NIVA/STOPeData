@@ -226,7 +226,7 @@ mod_parameters_server <- function(id) {
     )
 
     ## Initialize empty parameters data frame ----
-    init_parameters_df <- function() {
+    init_parameters_tibble <- function() {
       tibble(
         PARAMETER_TYPE = character(0),
         PARAMETER_TYPE_SUB = character(0),
@@ -241,7 +241,7 @@ mod_parameters_server <- function(id) {
     }
 
     ## Set initial empty data frame ----
-    moduleState$parameters_data <- init_parameters_df()
+    moduleState$parameters_data <- init_parameters_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -625,7 +625,7 @@ mod_parameters_server <- function(id) {
       if (nrow(moduleState$parameters_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_parameters_df(),
+          init_parameters_tibble(),
           stretchH = "all",
           height = 300,
           selectCallback = TRUE,

@@ -448,12 +448,12 @@ mod_export_server <- function(id) {
         wb <- wb_workbook()
 
         # Add metadata sheet first
-        metadata_df <- create_metadata_tibble(metadata)
+        metadata_tibble <- create_metadata_tibble(metadata)
         wb <- wb |>
           wb_add_worksheet(sheet = "Metadata") |>
           wb_add_data(
             sheet = "Metadata",
-            x = metadata_df,
+            x = metadata_tibble,
             startRow = 1,
             startCol = 1
           )

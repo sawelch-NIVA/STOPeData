@@ -134,7 +134,7 @@ parse_compartment_selections <- function(
   available_compartments
 ) {
   if (is.null(compartment_selections) || length(compartment_selections) == 0) {
-    return(data.frame(
+    return(tibble(
       ENVIRON_COMPARTMENT = character(0),
       ENVIRON_COMPARTMENT_SUB = character(0),
       MEASURED_CATEGORY = character(0),
@@ -142,7 +142,7 @@ parse_compartment_selections <- function(
     ))
   }
 
-  parsed <- data.frame()
+  parsed <- tibble()
 
   for (selection in compartment_selections) {
     # Parse "Aquatic | Freshwater" format
@@ -291,7 +291,7 @@ create_sample_combinations <- function(
 
   if (nrow(parsed_compartments) == 0) {
     warning("No valid compartment combinations found")
-    return(list(combinations = data.frame(), skipped = 0))
+    return(list(combinations = tibble(), skipped = 0))
   }
 
   # Process dates using functional approach to avoid class-stripping
@@ -314,7 +314,7 @@ create_sample_combinations <- function(
     )
 
     # Process each base combination with compartments and replicates
-    date_combinations <- data.frame()
+    date_combinations <- tibble()
     skipped_for_date <- 0
 
     for (i in 1:nrow(base_combinations)) {
@@ -324,7 +324,7 @@ create_sample_combinations <- function(
 
         # Add replicates for each combination
         for (rep in 1:replicates) {
-          combination <- data.frame(
+          combination <- tibble(
             SITE_CODE = base_combo$SITE_CODE,
             PARAMETER_NAME = base_combo$PARAMETER_NAME,
             ENVIRON_COMPARTMENT = compartment_combo$ENVIRON_COMPARTMENT,
@@ -488,7 +488,7 @@ update_combination_preview <- function(
 }
 
 #' Initialize Empty Samples Tibble ----
-#' @description
+#' @description make a 0 x 10 tibble for sample data
 #' @noRd
 init_samples_tibble <- function() {
   tibble(
@@ -510,7 +510,7 @@ init_samples_tibble <- function() {
 
 #' dummy_sites ----
 #' @noRd
-dummy_sites <- data.frame(
+dummy_sites <- tibble(
   SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
   SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
   stringsAsFactors = FALSE
@@ -518,7 +518,7 @@ dummy_sites <- data.frame(
 
 #' dummy_parameters ----
 #' @noRd
-dummy_parameters <- data.frame(
+dummy_parameters <- tibble(
   PARAMETER_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
   PARAMETER_TYPE = c(
     "Stressor",
@@ -531,7 +531,7 @@ dummy_parameters <- data.frame(
 
 #' dummy_compartments ----
 #' @noRd
-dummy_compartments <- data.frame(
+dummy_compartments <- tibble(
   ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
   ENVIRON_COMPARTMENT_SUB = c(
     "Freshwater",

@@ -397,7 +397,7 @@ mod_data_server <- function(id, parent_session) {
 
     ## Initialize measurement combinations data frame ----
     # ! FORMAT-BASED
-    init_measurement_df <- function() {
+    init_measurement_tibble <- function() {
       tibble(
         SITE_CODE = character(0),
         PARAMETER_NAME = character(0),
@@ -445,7 +445,7 @@ mod_data_server <- function(id, parent_session) {
         ))
       } else {
         moduleState$data_entry_ready <- FALSE
-        moduleState$measurement_combinations <- init_measurement_df()
+        moduleState$measurement_combinations <- init_measurement_tibble()
 
         print_dev("mod_data: Some modules pending, data entry disabled")
       }
@@ -833,7 +833,7 @@ mod_data_server <- function(id, parent_session) {
           nrow(moduleState$measurement_combinations) == 0
       ) {
         rhandsontable(
-          init_measurement_df(),
+          init_measurement_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>
