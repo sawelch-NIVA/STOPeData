@@ -134,12 +134,14 @@ mod_llm_ui <- function(id) {
               )),
               class = "btn-info"
             ) |>
-              disabled(),
-            span(
-              "Per extraction: ~$0.10, 30 seconds",
-              class = "text-muted",
-              style = "font-size: 0.8rem;"
-            )
+              disabled()
+            # todo: this span provides useful information but prevents the button from being disabled
+            # until a pdf is added
+            # span(
+            #   "Per extraction: ~$0.10, 30 seconds",
+            #   class = "text-muted",
+            #   style = "font-size: 0.8rem;"
+            # )
           ),
 
           div(
@@ -273,6 +275,9 @@ mod_llm_server <- function(id) {
     # upstream: user clicks input$load_dummy_data
     # downstream: moduleState$*, session$userData$reactiveValues$*DataLLM
     observe({
+      # disable buttons where simultaneous running could cause problems
+      disable("extract_data")
+
       # Create dummy data structure using external function (lowercase for LLM)
       dummy_data <- create_dummy_data(uppercase_columns = FALSE)
 
@@ -283,19 +288,15 @@ mod_llm_server <- function(id) {
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
 
-      # ! I believe this is redundant due to the Populate Forms
-      # ! observer. Disabling to check.
-      # # Store in session data with LLM suffix (for LLM workflow)
-      # store_llm_data_in_session(session, dummy_data)
-
       showNotification(
         "Dummy data loaded successfully!",
         type = "default"
       )
 
-      # Enable form population button (LLM-specific workflow)
+      # Enable extraction-dependent and extract_data button again
       enable("populate_forms")
       enable("clear_extraction")
+      enable("extract_data")
     }) |>
       bindEvent(input$load_dummy_data)
 
