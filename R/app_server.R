@@ -17,6 +17,8 @@ app_server <- function(input, output, session) {
       ENTERED_BY = character(0),
 
       # Standard validated data
+      # All userData and module_state$data data is stored in a tabular (tibble) format centrally, even for campaign and reference (which currently only have one row)
+      # This means we can use a consistent set of functions to check for presence (nrow(tibble) > 0), and not have any nasty surprises when we expect one and get the other
       sitesData = tibble(NULL),
       parametersData = tibble(NULL),
       compartmentsData = tibble(NULL),
@@ -37,15 +39,15 @@ app_server <- function(input, output, session) {
       ),
 
       # LLM extracted data
-      campaignDataLLM = NULL,
-      referenceDataLLM = NULL,
-      sitesDataLLM = NULL,
-      parametersDataLLM = NULL,
-      compartmentsDataLLM = NULL,
-      methodsDataLLM = NULL,
-      samplesDataLLM = NULL,
-      biotaDataLLM = NULL,
-      samplesDataLLM = NULL,
+      campaignDataLLM = tibble(NULL),
+      referenceDataLLM = tibble(NULL),
+      sitesDataLLM = tibble(NULL),
+      parametersDataLLM = tibble(NULL),
+      compartmentsDataLLM = tibble(NULL),
+      methodsDataLLM = tibble(NULL),
+      samplesDataLLM = tibble(NULL),
+      biotaDataLLM = tibble(NULL),
+      samplesDataLLM = tibble(NULL),
 
       # LLM extraction status flags
       llmExtractionComplete = FALSE,
@@ -266,9 +268,11 @@ app_server <- function(input, output, session) {
     # userInputs <- input$saved_file$userInputs
     # userData <- input$saved_file$userData
     # let's try just doing one simple data thing
+    # tbh, if it's tabular data it should almost certainly be something other than a JSON...
     uploadData <- jsonlite::read_json(input$saved_file$datapath)
 
-    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData
+    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData |>
+      tibble::as_tibble()
     print_dev(paste0(
       "session$userData$reactiveValues$sitesData:",
       print(session$userData$reactiveValues$sitesData)

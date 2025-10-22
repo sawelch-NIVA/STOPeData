@@ -124,8 +124,8 @@ mod_methods_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      methods_data = data.frame(),
-      validated_data = NULL,
+      methods_data = tibble(NULL),
+      validated_data = tibble(NULL),
       is_valid = FALSE
     )
 
@@ -147,7 +147,7 @@ mod_methods_server <- function(id) {
 
     ## Initialize empty methods data frame ----
     # ! FORMAT-BASED
-    init_methods_df <- function() {
+    init_methods_tibble <- function() {
       tibble(
         PROTOCOL_ID = character(0),
         CAMPAIGN_NAME = character(0),
@@ -158,7 +158,7 @@ mod_methods_server <- function(id) {
     }
 
     ## Set initial empty data frame ----
-    moduleState$methods_data <- init_methods_df()
+    moduleState$methods_data <- init_methods_tibble()
 
     ## InputValidator for table-level validation ----
     # ! FORMAT-BASED
@@ -465,7 +465,7 @@ mod_methods_server <- function(id) {
       if (nrow(moduleState$methods_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_methods_df(),
+          init_methods_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>

@@ -211,9 +211,9 @@ mod_CREED_gateway_server <- function(id) {
       ) {
         samplesData
       } else {
-        data.frame()
+        tibble(NULL)
         print_dev(
-          "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning data.frame()"
+          "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning tibble(NULL)"
         )
       }
 

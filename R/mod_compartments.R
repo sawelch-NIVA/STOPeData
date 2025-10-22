@@ -139,6 +139,7 @@ mod_compartments_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
 #' @importFrom purrr is_empty
 #' @export
@@ -149,7 +150,7 @@ mod_compartments_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      compartments_data = data.frame(),
+      compartments_data = tibble(NULL),
       validated_data = NULL,
       is_valid = FALSE,
       validation_message = "",
@@ -234,17 +235,16 @@ mod_compartments_server <- function(id) {
     measured_categories <- c("Not relevant", "External", "Internal", "Surface")
 
     ## Initialize empty compartments data frame ----
-    init_compartments_df <- function() {
-      data.frame(
+    init_compartments_tibble <- function() {
+      tibble(
         ENVIRON_COMPARTMENT = character(0),
         ENVIRON_COMPARTMENT_SUB = character(0),
-        MEASURED_CATEGORY = character(0),
-        stringsAsFactors = FALSE
+        MEASURED_CATEGORY = character(0)
       )
     }
 
     ## Set initial empty data frame ----
-    moduleState$compartments_data <- init_compartments_df()
+    moduleState$compartments_data <- init_compartments_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -332,11 +332,10 @@ mod_compartments_server <- function(id) {
       sub_compartment,
       category
     ) {
-      data.frame(
+      tibble(
         ENVIRON_COMPARTMENT = compartment,
         ENVIRON_COMPARTMENT_SUB = sub_compartment,
-        MEASURED_CATEGORY = category,
-        stringsAsFactors = FALSE
+        MEASURED_CATEGORY = category
       )
     }
 
@@ -511,7 +510,7 @@ mod_compartments_server <- function(id) {
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_compartments_df(),
+          init_compartments_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>

@@ -119,13 +119,12 @@ mod_export_server <- function(id) {
       )
     }
 
-    ## Function: create_metadata_df ----
+    ## Function: create_metadata_tibble ----
     # Create metadata as dataframe for Excel sheets
-    create_metadata_df <- function(metadata_list) {
-      data.frame(
+    create_metadata_tibble <- function(metadata_list) {
+      tibble(
         Property = names(metadata_list),
-        Value = as.character(unlist(metadata_list)),
-        stringsAsFactors = FALSE
+        Value = as.character(unlist(metadata_list))
       )
     }
 
@@ -449,7 +448,7 @@ mod_export_server <- function(id) {
         wb <- wb_workbook()
 
         # Add metadata sheet first
-        metadata_df <- create_metadata_df(metadata)
+        metadata_df <- create_metadata_tibble(metadata)
         wb <- wb |>
           wb_add_worksheet(sheet = "Metadata") |>
           wb_add_data(

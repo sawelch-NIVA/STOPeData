@@ -6,7 +6,9 @@
 #' @description Creates a complete set of dummy environmental exposure data
 #' that can be used for testing the application or demonstration purposes.
 #' This includes campaign info, references, sites, parameters, compartments,
-#' biota, and methods data.
+#' biota, and methods data. This returns a list because that's the format we
+#' expect to get structured data back from the LLM in, even though we prefer
+#' tibbles
 #'
 #' @param uppercase_columns Logical. If TRUE, converts data frame column names
 #'   to uppercase for app data structures. If FALSE, keeps lowercase for LLM extraction.

@@ -102,8 +102,8 @@ mod_data_server <- function(id, parent_session) {
     moduleState <- reactiveValues(
       all_modules_valid = FALSE,
       data_entry_ready = FALSE,
-      measurement_combinations = data.frame(),
-      complete_dataset = NULL,
+      measurement_combinations = tibble(NULL),
+      complete_dataset = tibble(NULL),
       is_valid = FALSE,
       validation_message = ""
     )
@@ -345,14 +345,14 @@ mod_data_server <- function(id, parent_session) {
       } else if (isTruthy(samplesData) & nrow(samplesData)) {
         samplesData
       } else {
-        data.frame()
+        tibble(NULL)
         print_dev(
-          "create_measurement_combinations(): samplesDataWithBiota & samplesData empty, returning data.frame()"
+          "create_measurement_combinations(): samplesDataWithBiota & samplesData empty, returning tibble(NULL)"
         )
       }
 
       if (is.null(samples_data) || is.null(parameters_data)) {
-        return(data.frame())
+        return(tibble(NULL))
       }
 
       # Create cartesian product of samples and parameters

@@ -136,7 +136,7 @@ mod_bookmark_manager_server <- function(id) {
           path = BOOKMARKS_FOLDER_ID,
           pattern = metadata_file_name
         ),
-        finally = data.frame()
+        finally = tibble(NULL)
       )
 
       if (nrow(metadata_file) > 0) {

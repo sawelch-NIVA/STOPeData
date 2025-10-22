@@ -242,8 +242,8 @@ mod_samples_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      samples_data = data.frame(),
-      validated_data = NULL,
+      samples_data = tibble(NULL),
+      validated_data = tibble(NULL),
       is_valid = FALSE,
       available_sites = NULL,
       available_parameters = NULL,
@@ -251,7 +251,7 @@ mod_samples_server <- function(id) {
     )
 
     ## Set initial empty data frame ----
-    moduleState$samples_data <- init_samples_df()
+    moduleState$samples_data <- init_samples_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -707,7 +707,7 @@ mod_samples_server <- function(id) {
       if (nrow(moduleState$samples_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_samples_df(),
+          init_samples_tibble(),
           stretchH = "all",
           height = "inherit",
           selectCallback = TRUE,

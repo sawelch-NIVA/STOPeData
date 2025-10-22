@@ -173,6 +173,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
+#' @importFrom tibble tibble
 #' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers
 #' mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
@@ -186,13 +187,13 @@ mod_sites_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      sites_data = data.frame(),
-      validated_data = NULL,
+      sites_data = tibble(NULL),
+      validated_data = tibble(NULL),
       is_valid = FALSE,
       selected_rows = NULL,
       next_site_id = 1,
       clicked_coords = NULL,
-      show_labels = TRUE # Add this line
+      show_labels = TRUE
     )
 
     ## Controlled vocabulary options ----
@@ -259,8 +260,8 @@ mod_sites_server <- function(id) {
     altitude_units <- c("km", "m", "cm", "mm")
 
     ## Initialize empty sites data frame ----
-    init_sites_df <- function() {
-      data.frame(
+    init_sites_tibble <- function() {
+      tibble(
         SITE_CODE = character(0),
         SITE_NAME = character(0),
         SITE_GEOGRAPHIC_FEATURE = character(0),
@@ -274,13 +275,12 @@ mod_sites_server <- function(id) {
         ALTITUDE_UNIT = character(0),
         ENTERED_BY = character(0),
         ENTERED_DATE = character(0),
-        SITE_COMMENT = character(0),
-        stringsAsFactors = FALSE
+        SITE_COMMENT = character(0)
       )
     }
 
     ## Set initial empty data frame ----
-    moduleState$sites_data <- init_sites_df()
+    moduleState$sites_data <- init_sites_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -352,7 +352,7 @@ mod_sites_server <- function(id) {
         site_code <- paste0(base_code, sprintf("%03d", site_number))
       }
 
-      data.frame(
+      tibble(
         SITE_CODE = site_code,
         SITE_NAME = "",
         SITE_GEOGRAPHIC_FEATURE = "Not reported",
@@ -366,8 +366,7 @@ mod_sites_server <- function(id) {
         ALTITUDE_UNIT = "m",
         ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
         ENTERED_DATE = as.character(Sys.Date()),
-        SITE_COMMENT = "",
-        stringsAsFactors = FALSE
+        SITE_COMMENT = ""
       )
     }
 
