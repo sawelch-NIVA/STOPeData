@@ -158,15 +158,16 @@ app_ui <- function(request) {
           ),
 
           # Save Session button
+          downloadButton(
+            outputId = "save_session",
+            label = "Save Session",
+            class = "primary"
+          ),
           input_task_button(
-            id = "save_bookmark",
-            label = HTML(paste(
-              bsicons::bs_icon("floppy"),
-              "Save Session"
-            )),
+            id = "upload_save",
+            label = "Upload Save",
             type = "success"
           ),
-
           input_task_button(
             id = "next_section",
             label = HTML(paste(

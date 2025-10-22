@@ -125,7 +125,6 @@ generate_units_summary <- function(measurement_data, parameters_data) {
   ) {
     return("Relevant data not found")
   }
-  browser()
 
   # Join measurement data with parameter names
   merged_data <- merge(

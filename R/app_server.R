@@ -62,48 +62,48 @@ app_server <- function(input, output, session) {
     FALSE
   })
 
-  # Bookmark name for the current session ---
-  bookmark_name <- reactiveVal(NULL)
+  # # Bookmark name for the current session ---
+  # bookmark_name <- reactiveVal(NULL)
 
-  # onBookmark: save server reactiveValues and input values as bookmark
-  onBookmark(function(state) {
-    # Save reactiveValues
-    state$values$reactiveValuesData <- reactiveValuesToList(
-      session$userData$reactiveValues
-    )
+  # # onBookmark: save server reactiveValues and input values as bookmark
+  # onBookmark(function(state) {
+  #   # Save reactiveValues
+  #   state$values$reactiveValuesData <- reactiveValuesToList(
+  #     session$userData$reactiveValues
+  #   )
 
-    # Save input
-    state$values$input <- reactiveValuesToList(
-      input
-    )
+  #   # Save input
+  #   state$values$input <- reactiveValuesToList(
+  #     input
+  #   )
 
-    # Save bookmark metadata from session userData (set by bookmark manager)
-    state$values$bookmarkName <- session$userData$bookmarkName %||%
-      paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
+  #   # Save bookmark metadata from session userData (set by bookmark manager)
+  #   state$values$bookmarkName <- session$userData$bookmarkName %||%
+  #     paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
 
-    state$values$bookmarkUsername <- session$userData$bookmarkUsername %||%
-      session$userData$reactiveValues$ENTERED_BY %||%
-      "Unknown"
+  #   state$values$bookmarkUsername <- session$userData$bookmarkUsername %||%
+  #     session$userData$reactiveValues$ENTERED_BY %||%
+  #     "Unknown"
 
-    state$values$bookmarkTimestamp <- session$userData$bookmarkTimestamp %||%
-      Sys.time()
+  #   state$values$bookmarkTimestamp <- session$userData$bookmarkTimestamp %||%
+  #     Sys.time()
 
-    state$values$bookmarkCampaign <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME_SHORT %||%
-      "Unknown Campaign"
+  #   state$values$bookmarkCampaign <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME_SHORT %||%
+  #     "Unknown Campaign"
 
-    state$values$bookmarkReference <- session$userData$reactiveValues$referenceData$REFERENCE_ID %||%
-      Sys.time()
-  })
+  #   state$values$bookmarkReference <- session$userData$reactiveValues$referenceData$REFERENCE_ID %||%
+  #     Sys.time()
+  # })
 
-  onRestore(function(state) {
-    if (!is.null(state$values$reactiveValuesData)) {
-      for (name in names(state$values$reactiveValuesData)) {
-        session$userData$reactiveValues[[
-          name
-        ]] <- state$values$reactiveValuesData[[name]]
-      }
-    }
-  })
+  # onRestore(function(state) {
+  #   if (!is.null(state$values$reactiveValuesData)) {
+  #     for (name in names(state$values$reactiveValuesData)) {
+  #       session$userData$reactiveValues[[
+  #         name
+  #       ]] <- state$values$reactiveValuesData[[name]]
+  #     }
+  #   }
+  # })
 
   # Module servers ----
   moduleLanding <- mod_landing_server("landing", parent_session = session) # parent_session = session needed or else updateNavbarPage() doesn't work...
@@ -159,17 +159,17 @@ app_server <- function(input, output, session) {
   # bookmarks_folder_name <- "Saved Sessions"
   # bookmarks_folder <- drive_get(bookmarks_folder_name)
 
-  observe({
-    if (nrow(bookmarks_folder) == 0) {
-      showNotification(
-        ui = "Connection to Google Drive Failed. Sessions cannot be saved.",
-        type = "warning"
-      )
-    } else {
-      showNotification(ui = "Connected to Google Drive", type = "message")
-    }
-  }) |>
-    bindEvent(bookmarks_folder)
+  # observe({
+  #   if (nrow(bookmarks_folder) == 0) {
+  #     showNotification(
+  #       ui = "Connection to Google Drive Failed. Sessions cannot be saved.",
+  #       type = "warning"
+  #     )
+  #   } else {
+  #     showNotification(ui = "Connected to Google Drive", type = "message")
+  #   }
+  # }) |>
+  #   bindEvent(bookmarks_folder)
 
   ## Track current module position ----
   current_position <- reactive({
@@ -247,30 +247,51 @@ app_server <- function(input, output, session) {
   # can we enable reconnect on crashes?
   session$allowReconnect(TRUE)
 
-  ## observe: save session from navigation ba
-  # downstream: session$userData$reactiveValues$bookmarkedSessions
+  # observer - upload session modak
   observe({
-    # Get bookmark name or create default
-    name <- paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
-
-    # Get username from session
-    username <- session$userData$reactiveValues$ENTERED_BY %||% "Unknown User"
-
-    # Store bookmark metadata for onBookmark callback
-    session$userData$bookmarkName <- name
-    session$userData$bookmarkUsername <- username
-    session$userData$bookmarkTimestamp <- Sys.time()
-
-    input <- input
-    userData <- session$userData$reactiveValues
-
-    saveRDS(userData, file = "test.rds")
-
-    # Show success notification
-    showNotification(
-      glue("Session '{name}' saved successfully."),
-      type = "message"
+    showModal(
+      modalDialog(
+        title = "Upload your saved session here",
+        easy_close = TRUE,
+        fileInput("saved_file", "Choose a File", accept = "json"),
+        actionButton(inputId = "load_rds", label = "Upload file")
+      )
     )
   }) |>
-    bindEvent(input$save_bookmark, ignoreInit = TRUE)
+    bindEvent(input$upload_save, ignoreInit = TRUE)
+
+  # observer - can we actually just write to session?
+  observe({
+    userInputs <- input$saved_file$userInputs
+    userData <- input$saved_file$userData
+
+    session$userData <- userData
+    input <- userInputs
+    showNotification("Saved data sent to session.")
+  }) |>
+    bindEvent(input$load_rds, ignoreInit = TRUE)
+
+  ## output: save session from navigation bar
+  output$save_session <- downloadHandler(
+    filename = function() {
+      paste0("save_", Sys.time(), ".json")
+    }, # TODO: generate a good file name pls
+    content = function(file) {
+      jsonlite::write_json(
+        x = getData(session = session),
+        path = file,
+        pretty = TRUE
+      )
+    }
+  )
+
+  # downstream: session$userData$reactiveValues$bookmarkedSessions
+  getData <- function(session) {
+    userData <- list(
+      userInputs = reactiveValuesToList(input),
+      userData = reactiveValuesToList(session$userData$reactiveValues)
+    )
+
+    return(userData)
+  }
 }
