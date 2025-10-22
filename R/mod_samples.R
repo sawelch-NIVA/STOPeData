@@ -304,7 +304,7 @@ mod_samples_server <- function(id) {
       bindEvent(
         session$userData$reactiveValues$sitesData,
         ignoreNULL = FALSE,
-        ignoreInit = FALSE
+        ignoreInit = TRUE
       )
 
     ## observe: Update parameters selectize choices ----

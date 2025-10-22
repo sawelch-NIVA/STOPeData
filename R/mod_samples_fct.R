@@ -7,6 +7,7 @@
 #' @importFrom stats setNames
 #' @noRd
 update_sites_selectize <- function(session, sites_data) {
+  browser()
   if (is.null(sites_data) || nrow(sites_data) == 0) {
     choices <- character(0)
     placeholder <- "No sites available - add sites first"

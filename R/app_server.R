@@ -247,7 +247,7 @@ app_server <- function(input, output, session) {
   # can we enable reconnect on crashes?
   session$allowReconnect(TRUE)
 
-  # observer - upload session modak
+  # observer - upload session modal
   observe({
     showModal(
       modalDialog(
@@ -262,11 +262,20 @@ app_server <- function(input, output, session) {
 
   # observer - can we actually just write to session?
   observe({
-    userInputs <- input$saved_file$userInputs
-    userData <- input$saved_file$userData
+    # definitely not for inputs.
+    # userInputs <- input$saved_file$userInputs
+    # userData <- input$saved_file$userData
+    # let's try just doing one simple data thing
+    uploadData <- jsonlite::read_json(input$saved_file$datapath)
 
-    session$userData <- userData
-    input <- userInputs
+    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData
+    print_dev(paste0(
+      "session$userData$reactiveValues$sitesData:",
+      print(session$userData$reactiveValues$sitesData)
+    ))
+
+    # session$userData <- userData
+    # input <- userInputs
     showNotification("Saved data sent to session.")
   }) |>
     bindEvent(input$load_rds, ignoreInit = TRUE)
