@@ -137,8 +137,7 @@ parse_compartment_selections <- function(
     return(tibble(
       ENVIRON_COMPARTMENT = character(0),
       ENVIRON_COMPARTMENT_SUB = character(0),
-      MEASURED_CATEGORY = character(0),
-      stringsAsFactors = FALSE
+      MEASURED_CATEGORY = character(0)
     ))
   }
 
@@ -309,8 +308,7 @@ create_sample_combinations <- function(
     base_combinations <- tidyr::expand_grid(
       SITE_CODE = sites,
       PARAMETER_NAME = parameters,
-      SAMPLING_DATE = date_char, # Always store as character
-      stringsAsFactors = FALSE
+      SAMPLING_DATE = date_char
     )
 
     # Process each base combination with compartments and replicates
@@ -330,9 +328,8 @@ create_sample_combinations <- function(
             ENVIRON_COMPARTMENT = compartment_combo$ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB = compartment_combo$ENVIRON_COMPARTMENT_SUB,
             MEASURED_CATEGORY = compartment_combo$MEASURED_CATEGORY,
-            SAMPLING_DATE = base_combo$SAMPLING_DATE, # Already character
-            REP = rep,
-            stringsAsFactors = FALSE
+            SAMPLING_DATE = base_combo$SAMPLING_DATE, #
+            REP = rep
           )
 
           # Check if this exact combination (including replicate) exists

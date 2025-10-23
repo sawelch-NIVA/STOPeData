@@ -1,5 +1,7 @@
 # Initialise tibbles for each "table" of data used across the modules.
 # Doing this in one place makes it easier (but not easy) to keep things consistent.
+# The plan is that eventually all functions that are dependent on table format will
+# be based in some way on these functions. That may prove to be impractical. But it's a start.
 # eData DRF Version - Not Tracked
 # Last Updated 2025.10.23
 
@@ -205,4 +207,117 @@ initialise_sites_tibble <- function() {
     ENTERED_DATE = character(),
     SITE_COMMENT = character()
   )
+}
+
+#' Geographic Features Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for geographic features.
+#'
+#' @return A character vector of geographic feature options
+#' @export
+#' @import ISOcodes
+geographic_features_vocabulary <- function() {
+  c(
+    "Not relevant",
+    "Not reported",
+    "River, stream, canal",
+    "Lake, pond, pool, reservoir",
+    "Ocean, sea, territorial waters",
+    "Coastal, fjord",
+    "Estuary",
+    "Drainage, sewer, artificial water",
+    "Swamp, wetland",
+    "Groundwater, aquifer",
+    "WWTP",
+    "Artificial Land/Urban Areas",
+    "Landfills",
+    "Cropland",
+    "Woodland, forest",
+    "Shrubland",
+    "Grassland",
+    "Bare land and lichen/moss",
+    "Glacier",
+    "Other"
+  )
+}
+
+#' Geographic Features Sub Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for geographic feature subcategories.
+#'
+#' @return A character vector of geographic feature subcategory options
+#' @export
+geographic_features_sub_vocabulary <- function() {
+  c(
+    "Not relevant",
+    "Not reported",
+    "Water surface",
+    "Water column, pelagic zone",
+    "Water benthos",
+    "Other"
+  )
+}
+
+#' Coordinate Systems Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for coordinate systems.
+#'
+#' @return A character vector of coordinate system options
+#' @export
+coordinate_systems_vocabulary <- function() {
+  c(
+    "Not relevant",
+    "Not reported",
+    "WGS 84",
+    "UTM 32",
+    "UTM 33",
+    "UTM 34",
+    "UTM 35",
+    "ETRS89",
+    "Other"
+  )
+}
+
+#' Countries Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for countries.
+#'
+#' @return A character vector of country options
+#' @export
+#' @import ISOcodes
+countries_vocabulary <- function() {
+  c(
+    "Not relevant",
+    "Not reported",
+    "Other/Not a Country",
+    ISOcodes::ISO_3166_1$Name
+  )
+}
+
+#' Areas Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for areas.
+#'
+#' @return A character vector of area options
+#' @export
+#' @importFrom dplyr pull
+areas_vocabulary <- function() {
+  IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
+
+  c(
+    "Not relevant",
+    "Not reported",
+    "Other",
+    IHO_oceans
+  )
+}
+
+#' Altitude Units Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for altitude units.
+#'
+#' @return A character vector of altitude unit options
+#' @export
+altitude_units_vocabulary <- function() {
+  c("km", "m", "cm", "mm")
 }

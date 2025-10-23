@@ -202,6 +202,7 @@ mod_campaign_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput bindEvent
 #' @importFrom glue glue
+#' @importFrom tibble add_row
 #' @export
 mod_campaign_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -210,7 +211,7 @@ mod_campaign_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      validated_data = NULL,
+      validated_data = initialise_campaign_tibble(),
       is_valid = FALSE
     )
 
@@ -288,34 +289,45 @@ mod_campaign_server <- function(id) {
     # 2. Observers and Reactives ----
 
     ## observe: check validation status and send to session$userData ----
+    # imports: fct_formats::initialise_campaign_tibble()
     # upstream: iv
     # downstream: moduleState$validated_data, moduleState$is_valid, session$userData$reactiveValues
     observe({
       if (iv$is_valid()) {
         # Collect validated data
-        validated_data <- tibble(
-          CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
-          CAMPAIGN_NAME = input$CAMPAIGN_NAME,
-          CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
-          CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|% as.Date(NA),
-          RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
-          RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|% NA,
-          CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
-            as.Date(NA),
-          ORGANISATION = input$ORGANISATION,
-          ENTERED_BY = input$ENTERED_BY,
-          ENTERED_DATE = input$ENTERED_DATE,
-          CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
+        validated_data <- tryCatch(
+          {
+            # uses standardised format from fct_formats, will fail if format/data types not respected
+            initialise_campaign_tibble() |>
+              add_row(
+                CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
+                CAMPAIGN_NAME = input$CAMPAIGN_NAME,
+                CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
+                CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
+                  as.Date(NA),
+                RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
+                RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|% NA,
+                CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
+                  as.Date(NA),
+                ORGANISATION = input$ORGANISATION,
+                ENTERED_BY = input$ENTERED_BY,
+                ENTERED_DATE = input$ENTERED_DATE,
+                CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
+              )
+          },
+          error = function(e) {
+            stop(
+              "Column mismatch in campaign data collection: ",
+              e$message,
+              call. = FALSE
+            )
+          }
         )
 
         moduleState$validated_data <- validated_data
         moduleState$is_valid <- TRUE
 
         session$userData$reactiveValues$campaignData <- moduleState$validated_data
-        # print_dev(glue(
-        #   "mod_campaign is valid: {moduleState$is_valid},
-        #                session$userData$reactiveValues$campaignData: {session$userData$reactiveValues$campaignData}"
-        # ))
       } else {
         moduleState$validated_data <- NULL
         moduleState$is_valid <- FALSE
@@ -436,12 +448,6 @@ mod_campaign_server <- function(id) {
         "# Data object will be created when valid data is entered."
       }
     })
-
-    ## export: export variables for testing ----
-    exportTestValues(
-      module_data = moduleState$validated_data,
-      module_valid = moduleState$is_valid
-    )
   })
 }
 

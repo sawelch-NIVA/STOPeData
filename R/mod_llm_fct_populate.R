@@ -428,8 +428,7 @@ create_compartments_from_llm <- function(llm_compartments_data) {
         comp,
         "measured_category",
         ""
-      )),
-      stringsAsFactors = FALSE
+      ))
     )
 
     compartments_tibble <- rbind(compartments_tibble, comp_row)
@@ -878,8 +877,7 @@ create_methods_from_llm <- function(llm_methods_data) {
           method_entry,
           "protocol_comment",
           ""
-        ),
-        stringsAsFactors = FALSE
+        )
       )
 
       methods_tibble <- rbind(methods_tibble, method_row)
@@ -898,8 +896,7 @@ create_methods_from_llm <- function(llm_methods_data) {
       missing_row <- tibble(
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = "Not reported",
-        PROTOCOL_COMMENT = "",
-        stringsAsFactors = FALSE
+        PROTOCOL_COMMENT = ""
       )
 
       methods_tibble <- rbind(methods_tibble, missing_row)

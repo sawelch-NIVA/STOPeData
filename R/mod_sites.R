@@ -187,80 +187,14 @@ mod_sites_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      sites_data = tibble(NULL),
-      validated_data = tibble(NULL),
+      sites_data = initialise_sites_tibble(),
+      validated_data = initialise_sites_tibble(),
       is_valid = FALSE,
       selected_rows = NULL,
       next_site_id = 1,
       clicked_coords = NULL,
       show_labels = TRUE
     )
-
-    ## Controlled vocabulary options ----
-    geographic_features <- c(
-      "Not relevant",
-      "Not reported",
-      "River, stream, canal",
-      "Lake, pond, pool, reservoir",
-      "Ocean, sea, territorial waters",
-      "Coastal, fjord",
-      "Estuary",
-      "Drainage, sewer, artificial water",
-      "Swamp, wetland",
-      "Groundwater, aquifer",
-      "WWTP",
-      "Artificial Land/Urban Areas",
-      "Landfills",
-      "Cropland",
-      "Woodland, forest",
-      "Shrubland",
-      "Grassland",
-      "Bare land and lichen/moss",
-      "Glacier",
-      "Other"
-    )
-
-    geographic_features_sub <- c(
-      "Not relevant",
-      "Not reported",
-      "Water surface",
-      "Water column, pelagic zone",
-      "Water benthos",
-      "Other"
-    )
-
-    coordinate_systems <- c(
-      "Not relevant",
-      "Not reported",
-      "WGS 84",
-      "UTM 32",
-      "UTM 33",
-      "UTM 34",
-      "UTM 35",
-      "ETRS89",
-      "Other"
-    )
-
-    countries <- c(
-      "Not relevant",
-      "Not reported",
-      "Other/Not a Country",
-      ISOcodes::ISO_3166_1$Name
-    )
-
-    IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
-
-    areas <- c(
-      "Not relevant",
-      "Not reported",
-      "Other",
-      IHO_oceans
-    )
-
-    altitude_units <- c("km", "m", "cm", "mm")
-
-    ## Set initial empty data frame ----
-    moduleState$sites_data <- initialise_sites_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -332,22 +266,23 @@ mod_sites_server <- function(id) {
         site_code <- paste0(base_code, sprintf("%03d", site_number))
       }
 
-      tibble(
-        SITE_CODE = site_code,
-        SITE_NAME = "",
-        SITE_GEOGRAPHIC_FEATURE = "Not reported",
-        SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
-        SITE_COORDINATE_SYSTEM = "WGS 84",
-        LATITUDE = NA,
-        LONGITUDE = NA,
-        COUNTRY = "",
-        AREA = "",
-        ALTITUDE_VALUE = NA,
-        ALTITUDE_UNIT = "m",
-        ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
-        ENTERED_DATE = as.character(Sys.Date()),
-        SITE_COMMENT = ""
-      )
+      initialise_sites_tibble() |>
+        add_row(
+          SITE_CODE = site_code,
+          SITE_NAME = "",
+          SITE_GEOGRAPHIC_FEATURE = "Not reported",
+          SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
+          SITE_COORDINATE_SYSTEM = "WGS 84",
+          LATITUDE = NA,
+          LONGITUDE = NA,
+          COUNTRY = "",
+          AREA = "",
+          ALTITUDE_VALUE = NA,
+          ALTITUDE_UNIT = "m",
+          ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
+          ENTERED_DATE = as.character(Sys.Date()),
+          SITE_COMMENT = ""
+        )
     }
 
     # 3. Observers and Reactives ----
@@ -419,6 +354,7 @@ mod_sites_server <- function(id) {
       moduleState$sites_data <- session$userData$reactiveValues$sitesData
       showNotification("Imported saved data to sites.", type = "default")
     }) |>
+      # TODO: this works but is way too sensitive...
       bindEvent(session$userData$reactiveValues$sitesData, ignoreInit = TRUE)
 
     ## observe: Capture map clicks ----
@@ -651,7 +587,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_GEOGRAPHIC_FEATURE",
           type = "dropdown",
-          source = geographic_features,
+          source = geographic_features_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -663,7 +599,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_GEOGRAPHIC_FEATURE_SUB",
           type = "dropdown",
-          source = geographic_features_sub,
+          source = geographic_features_sub_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -675,7 +611,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_COORDINATE_SYSTEM",
           type = "dropdown",
-          source = coordinate_systems,
+          source = coordinate_systems_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -710,7 +646,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "COUNTRY",
           type = "dropdown",
-          source = countries,
+          source = countries_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(
@@ -721,7 +657,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "AREA",
           type = "dropdown",
-          source = areas,
+          source = areas_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(
@@ -743,7 +679,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "ALTITUDE_UNIT",
           type = "dropdown",
-          source = altitude_units,
+          source = altitude_units_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(

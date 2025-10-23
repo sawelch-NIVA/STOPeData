@@ -3,40 +3,36 @@
 # Test data setup ----
 setup_test_data <- function() {
   list(
-    sites = data.frame(
+    sites = tibble(
       SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
-      SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
-      stringsAsFactors = FALSE
+      SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C")
     ),
-    parameters = data.frame(
+    parameters = tibble(
       STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
       STRESSOR_TYPE = c(
         "Stressor",
         "Stressor",
         "Quality parameter",
         "Quality parameter"
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    compartments = data.frame(
+    compartments = tibble(
       ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
       ENVIRON_COMPARTMENT_SUB = c(
         "Freshwater",
         "Marine/Salt Water",
         "Soil A Horizon (Topsoil)"
       ),
-      MEASURED_CATEGORY = c("External", "External", "External"),
-      stringsAsFactors = FALSE
+      MEASURED_CATEGORY = c("External", "External", "External")
     ),
-    existing_samples = data.frame(
+    existing_samples = tibble(
       SITE_CODE = c("SITE_001", "SITE_002"),
       PARAMETER_NAME = c("Copper", "Lead"),
       ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic"),
       ENVIRON_COMPARTMENT_SUB = c("Freshwater", "Marine/Salt Water"),
       MEASURED_CATEGORY = c("External", "External"),
       SAMPLING_DATE = c("2024-01-15", "2024-01-15"),
-      REP = c(1, 1),
-      stringsAsFactors = FALSE
+      REP = c(1, 1)
     )
   )
 }

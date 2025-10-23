@@ -257,9 +257,7 @@ mod_review_server <- function(id) {
         ),
 
         # Campaign info
-        CAMPAIGN_NAME = "DEMO_CAMPAIGN_2024",
-
-        stringsAsFactors = FALSE
+        CAMPAIGN_NAME = "DEMO_CAMPAIGN_2024"
       )
 
       return(dummy_data)

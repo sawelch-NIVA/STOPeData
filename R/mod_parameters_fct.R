@@ -71,7 +71,6 @@ create_existing_parameter <- function(
     INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
     PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
     CAS_RN = param_data$CAS_RN %||% "",
-    stringsAsFactors = FALSE,
     ENTERED_BY = param_data$ENTERED_BY %||% "Not found"
   )
 }
@@ -93,7 +92,6 @@ create_new_parameter <- function(param_type, entered_by) {
     PUBCHEM_CID = "",
     CAS_RN = "",
     ENTERED_BY = entered_by,
-    stringsAsFactors = FALSE
   )
 }
 
