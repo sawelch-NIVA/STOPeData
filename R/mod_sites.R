@@ -259,28 +259,8 @@ mod_sites_server <- function(id) {
 
     altitude_units <- c("km", "m", "cm", "mm")
 
-    ## Initialize empty sites data frame ----
-    init_sites_tibble <- function() {
-      tibble(
-        SITE_CODE = character(0),
-        SITE_NAME = character(0),
-        SITE_GEOGRAPHIC_FEATURE = character(0),
-        SITE_GEOGRAPHIC_FEATURE_SUB = character(0),
-        COUNTRY = character(0),
-        AREA = character(0),
-        LATITUDE = numeric(0),
-        LONGITUDE = numeric(0),
-        SITE_COORDINATE_SYSTEM = character(0),
-        ALTITUDE_VALUE = numeric(0),
-        ALTITUDE_UNIT = character(0),
-        ENTERED_BY = character(0),
-        ENTERED_DATE = character(0),
-        SITE_COMMENT = character(0)
-      )
-    }
-
     ## Set initial empty data frame ----
-    moduleState$sites_data <- init_sites_tibble()
+    moduleState$sites_data <- initialise_sites_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()

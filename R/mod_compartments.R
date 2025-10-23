@@ -234,17 +234,8 @@ mod_compartments_server <- function(id) {
 
     measured_categories <- c("Not relevant", "External", "Internal", "Surface")
 
-    ## Initialize empty compartments data frame ----
-    init_compartments_tibble <- function() {
-      tibble(
-        ENVIRON_COMPARTMENT = character(0),
-        ENVIRON_COMPARTMENT_SUB = character(0),
-        MEASURED_CATEGORY = character(0)
-      )
-    }
-
     ## Set initial empty data frame ----
-    moduleState$compartments_data <- init_compartments_tibble()
+    moduleState$compartments_data <- initialise_compartments_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -513,7 +504,7 @@ mod_compartments_server <- function(id) {
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_compartments_tibble(),
+          initialise_compartments_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>

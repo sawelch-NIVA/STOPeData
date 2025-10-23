@@ -251,7 +251,7 @@ mod_samples_server <- function(id) {
     )
 
     ## Set initial empty data frame ----
-    moduleState$samples_data <- init_samples_tibble()
+    moduleState$samples_data <- initialise_samples_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -707,7 +707,7 @@ mod_samples_server <- function(id) {
       if (nrow(moduleState$samples_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_samples_tibble(),
+          initialise_samples_tibble(),
           stretchH = "all",
           height = "inherit",
           selectCallback = TRUE,

@@ -487,25 +487,6 @@ update_combination_preview <- function(
   )
 }
 
-#' Initialize Empty Samples Tibble ----
-#' @description make a 0 x 10 tibble for sample data
-#' @noRd
-init_samples_tibble <- function() {
-  tibble(
-    SITE_CODE = character(0),
-    SITE_NAME = character(0),
-    PARAMETER_NAME = character(0),
-    PARAMETER_TYPE = character(0),
-    ENVIRON_COMPARTMENT = character(0),
-    ENVIRON_COMPARTMENT_SUB = character(0),
-    MEASURED_CATEGORY = character(0),
-    SAMPLING_DATE = character(0),
-    REP = numeric(0),
-    REPLICATE_ID = character(0),
-    SAMPLE_ID = character(0)
-  )
-}
-
 # Dummy data for standalone testing ----
 
 #' dummy_sites ----

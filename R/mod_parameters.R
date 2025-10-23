@@ -225,23 +225,8 @@ mod_parameters_server <- function(id) {
       "Other"
     )
 
-    ## Initialize empty parameters data frame ----
-    init_parameters_tibble <- function() {
-      tibble(
-        PARAMETER_TYPE = character(0),
-        PARAMETER_TYPE_SUB = character(0),
-        MEASURED_TYPE = character(0),
-        PARAMETER_NAME = character(0),
-        PARAMETER_NAME_SUB = character(0),
-        INCHIKEY_SD = character(0),
-        PUBCHEM_CID = character(0),
-        CAS_RN = NA,
-        ENTERED_BY = character(0)
-      )
-    }
-
     ## Set initial empty data frame ----
-    moduleState$parameters_data <- init_parameters_tibble()
+    moduleState$parameters_data <- initialise_parameters_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -625,7 +610,7 @@ mod_parameters_server <- function(id) {
       if (nrow(moduleState$parameters_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_parameters_tibble(),
+          initialise_parameters_tibble(),
           stretchH = "all",
           height = 300,
           selectCallback = TRUE,

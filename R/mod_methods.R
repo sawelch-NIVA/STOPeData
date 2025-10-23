@@ -145,20 +145,8 @@ mod_methods_server <- function(id) {
 
     all_protocol_names <- unique(protocol_options$Short_Name)
 
-    ## Initialize empty methods data frame ----
-    # ! FORMAT-BASED
-    init_methods_tibble <- function() {
-      tibble(
-        PROTOCOL_ID = character(0),
-        CAMPAIGN_NAME = character(0),
-        PROTOCOL_CATEGORY = character(0),
-        PROTOCOL_NAME = character(0),
-        PROTOCOL_COMMENT = character(0)
-      )
-    }
-
     ## Set initial empty data frame ----
-    moduleState$methods_data <- init_methods_tibble()
+    moduleState$methods_data <- initialise_methods_tibble()
 
     ## InputValidator for table-level validation ----
     # ! FORMAT-BASED
@@ -465,7 +453,7 @@ mod_methods_server <- function(id) {
       if (nrow(moduleState$methods_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_methods_tibble(),
+          initialise_methods_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>

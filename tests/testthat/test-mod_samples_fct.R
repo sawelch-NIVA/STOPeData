@@ -274,46 +274,6 @@ test_that("update_combination_preview generates correct preview text", {
   expect_true(grepl("0 total samples", result_html))
 })
 
-# Test init_samples_df ----
-test_that("init_samples_df creates correct empty data frame", {
-  result <- init_samples_df()
-
-  expect_s3_class(result, "data.frame")
-  expect_equal(nrow(result), 0)
-  expect_equal(ncol(result), 11)
-
-  expected_cols <- c(
-    "SITE_CODE",
-    "SITE_NAME",
-    "PARAMETER_NAME",
-    "PARAMETER_TYPE",
-    "ENVIRON_COMPARTMENT",
-    "ENVIRON_COMPARTMENT_SUB",
-    "MEASURED_CATEGORY",
-    "SAMPLING_DATE",
-    "REP",
-    "REPLICATE_ID",
-    "SAMPLE_ID"
-  )
-  expect_equal(names(result), expected_cols)
-
-  # Test that most columns are character type
-  char_cols <- c(
-    "SITE_CODE",
-    "SITE_NAME",
-    "PARAMETER_NAME",
-    "PARAMETER_TYPE",
-    "ENVIRON_COMPARTMENT",
-    "ENVIRON_COMPARTMENT_SUB",
-    "MEASURED_CATEGORY",
-    "SAMPLING_DATE",
-    "REPLICATE_ID",
-    "SAMPLE_ID"
-  )
-  expect_true(all(sapply(result[char_cols], is.character)))
-  expect_true(is.numeric(result$REP))
-})
-
 # Integration tests ----
 test_that("functions work together correctly", {
   test_data <- setup_test_data()

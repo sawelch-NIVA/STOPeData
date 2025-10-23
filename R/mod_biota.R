@@ -248,29 +248,10 @@ mod_biota_server <- function(id) {
 
     # 2. Helper functions ----
 
-    ## Helper: Initialize biota data frame
-    init_biota_tibble <- function() {
-      tibble(
-        SAMPLE_ID = character(0),
-        SITE_CODE = character(0),
-        PARAMETER_NAME = character(0),
-        ENVIRON_COMPARTMENT = character(0),
-        ENVIRON_COMPARTMENT_SUB = character(0),
-        MEASURED_CATEGORY = character(0),
-        SAMPLING_DATE = character(0),
-        REP = integer(0),
-        SPECIES_GROUP = character(0),
-        SAMPLE_SPECIES = character(0),
-        SAMPLE_TISSUE = character(0),
-        SAMPLE_SPECIES_LIFESTAGE = character(0),
-        SAMPLE_SPECIES_GENDER = character(0),
-      )
-    }
-
     ## Helper: Filter biota samples
     extract_biota_samples <- function(samples_data) {
       if (is.null(samples_data) || nrow(samples_data) == 0) {
-        return(init_biota_tibble())
+        return(initialise_biota_tibble())
       }
 
       # Look for biota samples using the ENVIRON_COMPARTMENT column
@@ -280,7 +261,7 @@ mod_biota_server <- function(id) {
       ]
 
       if (nrow(biota_samples) == 0) {
-        return(init_biota_tibble())
+        return(initialise_biota_tibble())
       }
 
       # Add biota-specific columns if they don't exist
@@ -453,7 +434,7 @@ mod_biota_server <- function(id) {
             ))
           }
         } else {
-          moduleState$biota_data <- init_biota_tibble()
+          moduleState$biota_data <- initialise_biota_tibble()
           print_dev("mod_biota: No biota samples found")
         }
       }
@@ -660,7 +641,7 @@ mod_biota_server <- function(id) {
       if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_biota_tibble(),
+          initialise_biota_tibble(),
           stretchH = "all",
           height = 500,
           selectCallback = TRUE,
