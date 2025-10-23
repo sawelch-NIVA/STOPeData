@@ -13,11 +13,13 @@
 #' @param uppercase_columns Logical. If TRUE, converts data frame column names
 #'   to uppercase for app data structures. If FALSE, keeps lowercase for LLM extraction.
 #'
+#' @importFrom tibble tibble is_tibble
 #' @return List containing all dummy data structures
 #' @export
 create_dummy_data <- function(uppercase_columns = FALSE) {
   dummy_data <- list(
     campaign = list(
+      # TODO: Actually, should this be a tibble? Need to coordinate with other stuff.
       campaign_name = "Dummy campaign, 1997",
       campaign_name_short = "DummyCampaign1997",
       campaign_start_date = "1997-01-01",
@@ -87,15 +89,15 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
 
   # Convert data frame column names to uppercase if requested
   if (uppercase_columns) {
-    data_frame_elements <- c(
+    tibble_elements <- c(
       "sites",
       "parameters",
       "compartments",
       "biota",
       "methods"
     )
-    for (element in data_frame_elements) {
-      if (!is.null(dummy_data[[element]]) && is.tibble(dummy_data[[element]])) {
+    for (element in tibble_elements) {
+      if (!is.null(dummy_data[[element]]) && is_tibble(dummy_data[[element]])) {
         names(dummy_data[[element]]) <- toupper(names(dummy_data[[element]]))
       }
     }

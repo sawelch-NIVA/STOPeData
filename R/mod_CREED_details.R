@@ -237,7 +237,6 @@ mod_CREED_details_ui <- function(id) {
 #' @importFrom shiny updateTextAreaInput bindEvent isTruthy
 #' @importFrom tibble tibble
 #'
-#' @noRd
 
 mod_CREED_details_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -323,6 +322,13 @@ mod_CREED_details_server <- function(id) {
         input$populate_from_data,
         ignoreInit = TRUE
       )
+
+    #' summarise session user data into pretty strings for CREED "Dataset Details" reporting
+    #'
+    #' @description summarise session user data into pretty strings for CREED "Dataset Details" reporting
+    #' @param sessionData session$userData$reactiveValues object
+    #' @return tibble of Dataset Details fields ("field") and pretty strings ("value")
+    #' @export
 
     summarise_CREED_details <- function(sessionData) {
       # Helper function to check if a dataset exists and has content
