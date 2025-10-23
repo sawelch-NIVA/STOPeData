@@ -152,77 +152,16 @@ mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    `%notin%` <- negate(`%in%`)
-
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      parameters_data = tibble(),
-      validated_data = NULL,
+      parameters_data = initialise_parameters_tibble(),
+      validated_data = initialise_parameters_tibble(),
       is_valid = FALSE,
       next_param_id = 1,
       session_parameters = list(),
       llm_validation_results = NULL,
       llm_lookup_validation = FALSE
-    )
-
-    ## Dummy parameter data ----
-    # Read dummy_parameters ----
-    dummy_quality_params <- read_parquet(
-      file = "inst/data/clean/dummy_quality_parameters.parquet"
-    ) |>
-      mutate(ENTERED_BY = "saw@niva.no")
-
-    # Read and prepare chemical_parameters ----
-    chemical_parameters <- read_parquet(
-      file = "inst/data/clean/ClassyFire_Taxonomy_2025_02.parquet"
-    ) |>
-      mutate(
-        MEASURED_TYPE = "Concentration",
-        ENTERED_BY = "saw@niva.no"
-      ) |>
-      arrange(PARAMETER_NAME) |>
-      mutate(
-        PARAMETER_TYPE_SUB = case_when(
-          PARAMETER_NAME == "Carbon" ~ "Carbon",
-          TRUE ~ PARAMETER_TYPE_SUB
-        ),
-        PARAMETER_NAME_SUB = ""
-      )
-
-    # Merge datasets ----
-    dummy_parameters <- bind_rows(dummy_quality_params, chemical_parameters)
-
-    ## Controlled vocabulary options ----
-    parameter_types <- c(
-      "Not relevant",
-      "Stressor",
-      "Quality parameter",
-      "Normalization",
-      "Background",
-      "Other"
-    )
-
-    parameter_types_sub <- dummy_parameters |>
-      select(PARAMETER_TYPE_SUB) |>
-      distinct() |>
-      arrange(PARAMETER_TYPE_SUB) |>
-      pull(PARAMETER_TYPE_SUB) |>
-      append(c("Mixture", "Not reported"))
-
-    measured_types <- c(
-      "Not relevant",
-      "Concentration",
-      "Dose rate",
-      "Dose",
-      "Physical parameter",
-      "Amount",
-      "Volume",
-      "Fraction of total",
-      "Percent",
-      "Irradiance",
-      "Response",
-      "Other"
     )
 
     ## Set initial empty data frame ----
@@ -320,7 +259,7 @@ mod_parameters_server <- function(id) {
 
       if (isTruthy(param_type)) {
         # Get available subtypes for this parameter type
-        type_filtered_data <- dummy_parameters |>
+        type_filtered_data <- dummy_parameters_vocabulary() |>
           filter(PARAMETER_TYPE == param_type)
 
         available_subtypes <- if (nrow(type_filtered_data) > 0) {
@@ -360,7 +299,7 @@ mod_parameters_server <- function(id) {
         available_names <- get_parameters_filtered(
           param_type = param_type,
           param_subtype = param_subtype,
-          dummy_parameters = dummy_parameters,
+          dummy_parameters = dummy_parameters_vocabulary(),
           session_parameters = moduleState$session_parameters
         )
 
@@ -459,7 +398,7 @@ mod_parameters_server <- function(id) {
         new_param <- create_existing_parameter(
           param_type,
           param_name,
-          dummy_parameters = dummy_parameters
+          dummy_parameters = dummy_parameters_vocabulary()
         )
 
         if (!is.null(new_param)) {
@@ -528,8 +467,10 @@ mod_parameters_server <- function(id) {
           param_name <- updated_data[i, "PARAMETER_NAME"]
 
           if (isTruthy(param_type) && isTruthy(param_name)) {
-            # Check if this is a new parameter (not in dummy_parameters)
-            if (is.null(dummy_parameters[[param_type]][[param_name]])) {
+            # Check if this is a new parameter (not in dummy_parameters_vocabulary())
+            if (
+              is.null(dummy_parameters_vocabulary()[[param_type]][[param_name]])
+            ) {
               # Store in session parameters
               if (is.null(moduleState$session_parameters[[param_type]])) {
                 moduleState$session_parameters[[param_type]] <- list()
@@ -566,40 +507,11 @@ mod_parameters_server <- function(id) {
         moduleState$validated_data <- moduleState$parameters_data
 
         session$userData$reactiveValues$parametersData <- moduleState$validated_data
-        # print_dev(glue(
-        #   "moduleState$is_valid: {moduleState$is_valid},
-        #                session$userData$reactiveValues$parametersData: {session$userData$reactiveValues$parametersData}"
-        # ))
       } else {
         moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
+        moduleState$validated_data <- initialise_parameters_tibble()
       }
     })
-
-    # TODO: Pretty sure this is extraneous.
-    ## DISABLED: observe: Load from LLM data when available ----
-    # upstream: session$userData$reactiveValues$parametersDataLLM
-    # downstream: moduleState$parameters_data
-    # observe({
-    #   llm_parameters <- session$userData$reactiveValues$parametersDataLLM
-    #   if (
-    #     !is.null(llm_parameters) &&
-    #       nrow(llm_parameters) > 0 &&
-    #       session$userData$reactiveValues$llmExtractionComplete
-    #   ) {
-    #     # Replace current parameters data with LLM data
-    #     moduleState$parameters_data <- create_parameters_from_llm(
-    #       llm_parameters,
-    #       if (exists("chemical_parameters")) chemical_parameters else NULL
-    #     )
-    #   }
-    # }) |>
-    #   bindEvent(
-    #     session$userData$reactiveValues$parametersDataLLM,
-    #     session$userData$reactiveValues$llmExtractionComplete,
-    #     ignoreInit = TRUE,
-    #     ignoreNULL = FALSE
-    #   )
 
     # 3. Outputs ----
 
@@ -650,20 +562,20 @@ mod_parameters_server <- function(id) {
           hot_col(
             "PARAMETER_TYPE",
             type = "dropdown",
-            source = parameter_types,
+            source = parameter_types_vocabulary(),
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "PARAMETER_TYPE_SUB",
             type = "dropdown",
-            source = parameter_types_sub,
+            source = parameter_types_sub_vocabulary(),
             strict = TRUE
           ) |>
           hot_col(
             "MEASURED_TYPE",
             type = "dropdown",
-            source = measured_types,
+            source = measured_types_vocabulary(),
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>

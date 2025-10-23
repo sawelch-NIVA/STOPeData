@@ -9,6 +9,7 @@
 #' @import googledrive
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
+`%notin%` <- negate(`%in%`)
 
 app_server <- function(input, output, session) {
   # reactiveValues: initialise reactiveValues in session$userData to store data ----

@@ -124,26 +124,15 @@ mod_methods_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      methods_data = tibble(NULL),
+      methods_data = initialise_methods_tibble(),
       validated_data = tibble(NULL),
       is_valid = FALSE
     )
 
     ## Protocol options by category ----
-    protocol_options <- read_parquet(
-      "inst/data/clean/inst-claude-2025-08-05-methods.parquet"
-    )
-
-    ## Controlled vocabulary for validation ----
-    # ! FORMAT-BASED
-    protocol_categories <- c(
-      "Sampling Protocol",
-      "Fractionation Protocol",
-      "Extraction Protocol",
-      "Analytical Protocol"
-    )
-
-    all_protocol_names <- unique(protocol_options$Short_Name)
+    protocol_options <- protocol_options_vocabulary()
+    protocol_categories <- protocol_categories_vocabulary()
+    protocol_names <- unique(protocol_options$Short_Name)
 
     ## Set initial empty data frame ----
     moduleState$methods_data <- initialise_methods_tibble()
@@ -320,6 +309,7 @@ mod_methods_server <- function(id) {
       ) {
         # Use lapply instead of sapply to avoid issues with the assignment
         lapply(protocols, function(protocol) {
+          # TODO: This doesn't properly follow out add_row approach for module tibbles.
           # Add new method (allow duplicates as user might need multiple instances)
           new_method <- create_method_entry(category, protocol)
           moduleState$methods_data <<- rbind(
@@ -386,20 +376,17 @@ mod_methods_server <- function(id) {
 
     ## observe ~ bindEvent: Load methods data from LLM extraction ----
     observe({
-      if (!is.null(session$userData$reactiveValues$methodsDataLLM)) {
+      if (nrow(session$userData$reactiveValues$methodsDataLLM) > 0) {
         llm_methods_data <- session$userData$reactiveValues$methodsDataLLM
 
         # Replace existing data
         moduleState$methods_data <- llm_methods_data
-
-        print_dev(glue(
-          "mod_methods loaded {nrow(llm_methods_data)} entries from LLM"
-        ))
       }
     }) |>
       bindEvent(
         session$userData$reactiveValues$methodsDataLLM,
-        ignoreNULL = TRUE
+        ignoreNULL = TRUE,
+        ignoreInit = TRUE
       )
 
     ## observe: Update protocol IDs and campaign names ----

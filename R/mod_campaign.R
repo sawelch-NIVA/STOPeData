@@ -357,7 +357,7 @@ mod_campaign_server <- function(id) {
         updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
 
         # Clear validation state
-        moduleState$validated_data <- NULL
+        moduleState$validated_data <- initialise_campaign_tibble()
         moduleState$is_valid <- FALSE
       } |>
         suppressWarnings()

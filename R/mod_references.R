@@ -471,6 +471,7 @@ mod_references_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput updateSelectInput bindEvent
 #' @importFrom shinyjs enable disable
 #' @importFrom tibble tibble
+#' @importFrom dplyr add_row
 #' @export
 mod_references_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -479,7 +480,7 @@ mod_references_server <- function(id) {
     # 1. Module setup ----
     ## reactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      validated_data = NULL,
+      validated_data = initialise_references_tibble(),
       is_valid = FALSE
     )
 
@@ -564,31 +565,8 @@ mod_references_server <- function(id) {
     #   }
     # })
 
-    ### Character limit validations for optional fields ----
-    char_limit_fields <- list(
-      # ACCESSION_NUMBER = 200,  # COMMENTED OUT
-      # DB_NAME = 200,           # COMMENTED OUT
-      # DB_PROVIDER = 200,       # COMMENTED OUT
-      DOCUMENT_NUMBER = 200,
-      DOI = 200,
-      EDITION = 200,
-      INSTITUTION = 200,
-      ISBN_ISSN = 200,
-      # NUMBER_OF_PAGES = 50,    # COMMENTED OUT
-      # NUMBER_OF_VOLUMES = 100, # COMMENTED OUT
-      # PAGES = 200,             # COMMENTED OUT
-      PERIODICAL_JOURNAL = 200,
-      # PMCID = 200,             # COMMENTED OUT
-      # PUBLISHED_PLACE = 200,   # COMMENTED OUT
-      PUBLISHER = 200,
-      REF_COMMENT = 1000,
-      # SERIES_EDITOR = 200,     # COMMENTED OUT
-      # SERIES_TITLE = 200,      # COMMENTED OUT
-      URL = 200
-    )
-
-    for (field_name in names(char_limit_fields)) {
-      limit <- char_limit_fields[[field_name]]
+    for (field_name in names(reference_character_limits())) {
+      limit <- reference_character_limits()[[field_name]]
       iv$add_rule(field_name, function(value) {
         if (isTruthy(value) && nchar(value) > limit) {
           paste(field_name, "must be", limit, "characters or less")
@@ -945,37 +923,38 @@ mod_references_server <- function(id) {
         )
 
         # Collect validated data
-        validated_data <- tibble(
-          REFERENCE_ID = reference_id,
-          REFERENCE_TYPE = input$REFERENCE_TYPE,
-          DATA_SOURCE = input$DATA_SOURCE,
-          AUTHOR = input$AUTHOR,
-          TITLE = input$TITLE,
-          YEAR = input$YEAR,
-          ACCESS_DATE = input$ACCESS_DATE,
-          PERIODICAL_JOURNAL = input$PERIODICAL_JOURNAL %|truthy|% NA,
-          VOLUME = input$VOLUME %|truthy|% NA,
-          ISSUE = input$ISSUE %|truthy|% NA,
-          PUBLISHER = input$PUBLISHER %|truthy|% NA,
-          INSTITUTION = input$INSTITUTION %|truthy|% NA,
-          # DB_NAME = input$DB_NAME %|truthy|% NA,
-          # DB_PROVIDER = input$DB_PROVIDER %|truthy|% NA,
-          DOI = input$DOI %|truthy|% NA,
-          URL = input$URL %|truthy|% NA,
-          # PAGES = input$PAGES %|truthy|% NA,
-          ISBN_ISSN = input$ISBN_ISSN %|truthy|% NA,
-          EDITION = input$EDITION %|truthy|% NA,
-          # PUBLISHED_PLACE = input$PUBLISHED_PLACE %|truthy|% NA,
-          DOCUMENT_NUMBER = input$DOCUMENT_NUMBER %|truthy|% NA,
-          # ACCESSION_NUMBER = input$ACCESSION_NUMBER %|truthy|% NA,
-          # PMCID = input$PMCID %|truthy|% NA,
-          # SERIES_TITLE = input$SERIES_TITLE %|truthy|% NA,
-          # SERIES_EDITOR = input$SERIES_EDITOR %|truthy|% NA,
-          # SERIES_VOLUME = input$SERIES_VOLUME %|truthy|% NA,
-          # NUMBER_OF_PAGES = input$NUMBER_OF_PAGES %|truthy|% NA,
-          # NUMBER_OF_VOLUMES = input$NUMBER_OF_VOLUMES %|truthy|% NA,
-          REF_COMMENT = input$REF_COMMENT %|truthy|% NA
-        )
+        validated_data <- initialise_references_tibble() |>
+          add_row(
+            REFERENCE_ID = reference_id,
+            REFERENCE_TYPE = input$REFERENCE_TYPE,
+            DATA_SOURCE = input$DATA_SOURCE,
+            AUTHOR = input$AUTHOR,
+            TITLE = input$TITLE,
+            YEAR = input$YEAR,
+            ACCESS_DATE = input$ACCESS_DATE,
+            PERIODICAL_JOURNAL = input$PERIODICAL_JOURNAL %|truthy|% NA,
+            VOLUME = input$VOLUME %|truthy|% NA,
+            ISSUE = input$ISSUE %|truthy|% NA,
+            PUBLISHER = input$PUBLISHER %|truthy|% NA,
+            INSTITUTION = input$INSTITUTION %|truthy|% NA,
+            # DB_NAME = input$DB_NAME %|truthy|% NA,
+            # DB_PROVIDER = input$DB_PROVIDER %|truthy|% NA,
+            DOI = input$DOI %|truthy|% NA,
+            URL = input$URL %|truthy|% NA,
+            # PAGES = input$PAGES %|truthy|% NA,
+            ISBN_ISSN = input$ISBN_ISSN %|truthy|% NA,
+            EDITION = input$EDITION %|truthy|% NA,
+            # PUBLISHED_PLACE = input$PUBLISHED_PLACE %|truthy|% NA,
+            DOCUMENT_NUMBER = input$DOCUMENT_NUMBER %|truthy|% NA,
+            # ACCESSION_NUMBER = input$ACCESSION_NUMBER %|truthy|% NA,
+            # PMCID = input$PMCID %|truthy|% NA,
+            # SERIES_TITLE = input$SERIES_TITLE %|truthy|% NA,
+            # SERIES_EDITOR = input$SERIES_EDITOR %|truthy|% NA,
+            # SERIES_VOLUME = input$SERIES_VOLUME %|truthy|% NA,
+            # NUMBER_OF_PAGES = input$NUMBER_OF_PAGES %|truthy|% NA,
+            # NUMBER_OF_VOLUMES = input$NUMBER_OF_VOLUMES %|truthy|% NA,
+            REF_COMMENT = input$REF_COMMENT %|truthy|% NA
+          )
 
         # update data and UI elements
         moduleState$validated_data <- validated_data
@@ -1059,7 +1038,7 @@ mod_references_server <- function(id) {
         updateTextAreaInput(session, "bibtex_import", value = "")
 
         # Clear validation state
-        moduleState$validated_data <- NULL
+        moduleState$validated_data <- initialise_references_tibble()
         moduleState$is_valid <- FALSE
       } |>
         suppressWarnings()

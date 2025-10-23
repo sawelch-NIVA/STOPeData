@@ -234,6 +234,7 @@ mod_samples_ui <- function(id) {
 #' @importFrom shinyjs enable disable disabled
 #' @importFrom shinyWidgets updateAirDateInput
 #' @importFrom purrr is_empty
+#' @importFrom glue glue
 
 mod_samples_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -242,16 +243,13 @@ mod_samples_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      samples_data = tibble(NULL),
-      validated_data = tibble(NULL),
+      samples_data = initialise_samples_tibble(),
+      validated_data = initialise_samples_tibble(),
       is_valid = FALSE,
       available_sites = NULL,
       available_parameters = NULL,
       available_compartments = NULL
     )
-
-    ## Set initial empty data frame ----
-    moduleState$samples_data <- initialise_samples_tibble()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -355,25 +353,17 @@ mod_samples_server <- function(id) {
     observe({
       # just dates rn.
       llm_samples <- session$userData$reactiveValues$samplesDataLLM
-      print_dev(paste0("llm_samples: ", llm_samples))
       if (
         !is.null(llm_samples) &&
           length(llm_samples) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
-        print_dev(paste0(
-          "updating AirDateInput with",
-          paste0(llm_samples, collapse = " - ")
-        ))
         updateAirDateInput(
           session,
           inputId = "sampling_date",
           value = llm_samples
-          # value = paste0(llm_samples, collapse = " - ")
         )
-      } else {
-        print_dev("llm_samples null, unable to update")
-      }
+      } else {}
     }) |>
       bindEvent(
         label = "observe~bindEvent: populate mod_samples with from LLM module",
@@ -463,10 +453,8 @@ mod_samples_server <- function(id) {
         isTruthy(moduleState$available_compartments) &&
           nrow(moduleState$available_compartments) > 0
       ) {
-        compartment_values <- paste(
-          moduleState$available_compartments$ENVIRON_COMPARTMENT,
-          moduleState$available_compartments$ENVIRON_COMPARTMENT_SUB,
-          sep = " | "
+        compartment_values <- glue(
+          "{moduleState$available_compartments$ENVIRON_COMPARTMENT} | {moduleState$available_compartments$ENVIRON_COMPARTMENT_SUB}"
         )
         updateSelectizeInput(
           session,
@@ -593,9 +581,6 @@ mod_samples_server <- function(id) {
       dates <- input$sampling_date
       replicates <- input$sample_replicates %||% 1
 
-      # TODO: Remove debug printer
-      print_dev(dates)
-
       if (
         length(sites) == 0 ||
           length(parameters) == 0 ||
@@ -634,15 +619,11 @@ mod_samples_server <- function(id) {
 
       # Show notification with details
       message <- if (skipped_count > 0) {
-        paste(
-          "Generated",
-          nrow(new_combinations),
-          "new sample combinations,",
-          skipped_count,
-          "duplicates skipped"
+        glue(
+          "Generated {nrow(new_combinations)} new sample combinations, {skipped_count} duplicates skipped"
         )
       } else {
-        paste("Generated", nrow(new_combinations), "sample combinations")
+        glue("Generated {nrow(new_combinations)} sample combinations")
       }
       showNotification(message, type = "message")
     }) |>
@@ -669,10 +650,6 @@ mod_samples_server <- function(id) {
         moduleState$validated_data <- moduleState$samples_data
 
         session$userData$reactiveValues$samplesData <- moduleState$validated_data
-        print_dev(glue(
-          "mod_samples is valid: {moduleState$is_valid},
-                       session$userData$reactiveValues$samplesData: {nrow(session$userData$reactiveValues$samplesData)} rows"
-        ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -792,10 +769,8 @@ mod_samples_server <- function(id) {
       validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
-          paste(
-            "All sample data validated successfully.",
-            nrow(moduleState$samples_data),
-            "sample(s) ready."
+          glue(
+            "All sample data validated successfully. {nrow(moduleState$samples_data)} sample(s) ready."
           ),
           class = "validation-status validation-complete"
         )
@@ -849,16 +824,6 @@ mod_samples_server <- function(id) {
         "# Sample combinations will appear here when generated"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

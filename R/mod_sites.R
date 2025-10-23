@@ -174,8 +174,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom tibble tibble
-#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers
-#' mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
+#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
 #' @importFrom dplyr pull
 #' @importFrom bslib update_task_button
