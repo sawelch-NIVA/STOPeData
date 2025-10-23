@@ -231,13 +231,13 @@ mod_CREED_details_ui <- function(id) {
   )
 }
 
+
 #' CREED_details Server Functions
 #' @import shiny
 #' @importFrom golem print_dev
 #' @importFrom shiny updateTextAreaInput bindEvent isTruthy
 #' @importFrom tibble tibble
-#'
-
+#' @export
 mod_CREED_details_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns

@@ -322,7 +322,7 @@ create_parameters_from_llm <- function(
   }
 
   # Process each parameter row ----
-  param_tibble <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
+  params_tibble <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
     param <- llm_parameters_data[i, ]
 
     param_name <- safe_extract_field(param, "parameter_name", "")

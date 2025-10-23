@@ -3,11 +3,11 @@
 
 #' Update Sites Selectize Input ----
 #' @param session Shiny session
-#' @param sites_data Data frame with SITE_CODE and SITE_NAME columns
+#' @param sites_data tibble with SITE_CODE and SITE_NAME columns
 #' @importFrom stats setNames
 #' @noRd
 update_sites_selectize <- function(session, sites_data) {
-  browser()
+  # browser()
   if (is.null(sites_data) || nrow(sites_data) == 0) {
     choices <- character(0)
     placeholder <- "No sites available - add sites first"

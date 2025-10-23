@@ -284,11 +284,14 @@ mod_compartments_server <- function(id) {
     iv$add_rule("compartments_data", function(value) {
       if (nrow(moduleState$compartments_data) > 0) {
         for (i in 1:nrow(moduleState$compartments_data)) {
-          compartment <- moduleState$compartments_data[i, "ENVIRON_COMPARTMENT"]
-          sub_compartment <- moduleState$compartments_data[
+          compartment <- moduleState$compartments_data[[
+            i,
+            "ENVIRON_COMPARTMENT"
+          ]]
+          sub_compartment <- moduleState$compartments_data[[
             i,
             "ENVIRON_COMPARTMENT_SUB"
-          ]
+          ]]
 
           if (compartment %in% names(sub_compartment_options)) {
             valid_subs <- sub_compartment_options[[compartment]]

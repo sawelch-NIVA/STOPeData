@@ -433,6 +433,14 @@ mod_sites_server <- function(id) {
       }
     })
 
+    ## observer: receive data from session$userData$reactiveValues$sitesData (import)
+    ## and update module data
+    observe({
+      moduleState$sites_data <- session$userData$reactiveValues$sitesData
+      showNotification("Imported saved data to sites.", type = "default")
+    }) |>
+      bindEvent(session$userData$reactiveValues$sitesData, ignoreInit = TRUE)
+
     ## observe: Capture map clicks ----
     # upstream: input$sites_map_click
     # downstream: moduleState$clicked_coords

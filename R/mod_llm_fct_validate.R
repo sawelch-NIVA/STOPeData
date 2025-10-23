@@ -218,11 +218,12 @@ validate_parameters_against_database <- function(
 
     # CAS validation
     cas_found <- FALSE
+    browser()
     if (!is.na(cas_rn) && cas_rn != "") {
-      cas_matches <- chemical_parameters[
+      cas_matches <- chemical_parameters[[
         !is.na(chemical_parameters$CAS_RN) &
           chemical_parameters$CAS_RN == cas_rn,
-      ]
+      ]]
 
       if (nrow(cas_matches) > 0) {
         cas_found <- TRUE

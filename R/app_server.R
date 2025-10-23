@@ -271,15 +271,12 @@ app_server <- function(input, output, session) {
     # tbh, if it's tabular data it should almost certainly be something other than a JSON...
     uploadData <- jsonlite::read_json(input$saved_file$datapath)
 
-    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData |>
+    # todo: this [[1]] might break when we have more than one site
+    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData[[
+      1
+    ]] |>
       tibble::as_tibble()
-    print_dev(paste0(
-      "session$userData$reactiveValues$sitesData:",
-      print(session$userData$reactiveValues$sitesData)
-    ))
 
-    # session$userData <- userData
-    # input <- userInputs
     showNotification("Saved data sent to session.")
   }) |>
     bindEvent(input$load_rds, ignoreInit = TRUE)
