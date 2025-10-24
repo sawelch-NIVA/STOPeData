@@ -12,7 +12,7 @@ import_session_from_zip(zip_path, session)
 \item{session}{Shiny session object}
 }
 \value{
-List with success status and any error messages
+List with success status and user-facing message
 }
 \description{
 Import datasets from a ZIP file created by mod_export

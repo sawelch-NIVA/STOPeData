@@ -1,12 +1,77 @@
 # Import Helper Functions ----
 # Functions to handle importing data from ZIP files exported by mod_export
 
+#' Read metadata from ZIP file ----
+#'
+#' @description Extract and read metadata from a ZIP file without importing data
+#' @param zip_path Path to the ZIP file
+#' @return List with metadata information or NULL if not found/readable
+#' @importFrom utils unzip
+#' @importFrom glue glue
+#' @importFrom golem print_dev
+#' @export
+read_zip_metadata <- function(zip_path) {
+  # Validate inputs ----
+  if (!file.exists(zip_path)) {
+    return(NULL)
+  }
+
+  # Extract ZIP contents ----
+  temp_dir <- tempdir()
+  extract_dir <- file.path(temp_dir, "metadata_extract")
+
+  tryCatch(
+    {
+      # Clean up any previous extractions
+      if (dir.exists(extract_dir)) {
+        unlink(extract_dir, recursive = TRUE)
+      }
+      dir.create(extract_dir, recursive = TRUE)
+
+      # Extract ZIP
+      extracted_files <- unzip(zip_path, exdir = extract_dir)
+
+      # Find metadata file
+      txt_files <- extracted_files[grepl(
+        "\\.txt$",
+        extracted_files,
+        ignore.case = TRUE
+      )]
+      metadata_file <- txt_files[grepl(
+        "metadata",
+        txt_files,
+        ignore.case = TRUE
+      )][1]
+
+      if (is.na(metadata_file)) {
+        unlink(extract_dir, recursive = TRUE)
+        return(NULL)
+      }
+
+      # Read metadata
+      metadata <- read_metadata_txt(metadata_file)
+
+      # Clean up
+      unlink(extract_dir, recursive = TRUE)
+
+      return(metadata)
+    },
+    error = function(e) {
+      if (dir.exists(extract_dir)) {
+        unlink(extract_dir, recursive = TRUE)
+      }
+      print_dev(glue("Failed to read metadata: {e$message}"))
+      return(NULL)
+    }
+  )
+}
+
 #' Import data from exported ZIP file ----
 #'
 #' @description Import datasets from a ZIP file created by mod_export
 #' @param zip_path Path to the ZIP file
 #' @param session Shiny session object
-#' @return List with success status and any error messages
+#' @return List with success status and user-facing message
 #' @importFrom utils unzip read.csv
 #' @importFrom jsonlite fromJSON
 #' @importFrom tibble as_tibble
@@ -36,7 +101,7 @@ import_session_from_zip <- function(zip_path, session) {
 
       # Extract ZIP
       extracted_files <- unzip(zip_path, exdir = extract_dir)
-      print_dev(glue("import: Extracted {length(extracted_files)} files"))
+      print_dev(glue("Extracted {length(extracted_files)} files"))
     },
     error = function(e) {
       return(list(
@@ -52,85 +117,68 @@ import_session_from_zip <- function(zip_path, session) {
     extracted_files,
     ignore.case = TRUE
   )]
-  txt_files <- extracted_files[grepl(
-    "\\.txt$",
-    extracted_files,
-    ignore.case = TRUE
-  )]
 
   if (length(csv_files) == 0) {
+    unlink(extract_dir, recursive = TRUE)
     return(list(
       success = FALSE,
       message = "No CSV files found in ZIP"
     ))
   }
 
-  # Look for metadata file
-  metadata_file <- txt_files[grepl("metadata", txt_files, ignore.case = TRUE)][
-    1
-  ]
-  metadata <- NULL
-  if (!is.na(metadata_file)) {
-    metadata <- read_metadata_txt(metadata_file)
-    if (!is.null(metadata)) {
-      print_dev(glue(
-        "import: Found metadata - Campaign: {metadata$campaign_name %||% 'Unknown'}"
-      ))
-    }
-  }
-
-  print_dev(glue(
-    "import: Found {length(csv_files)} CSV files and {length(txt_files)} TXT files"
-  ))
+  print_dev(glue("Found {length(csv_files)} CSV files to process"))
 
   # Process each CSV file ----
-  results <- list()
-  successful_imports <- 0
+  import_summaries <- character(0)
   failed_imports <- character(0)
 
   for (csv_file in csv_files) {
     result <- import_module_table(csv_file, session)
 
     if (result$success) {
-      successful_imports <- successful_imports + 1
-      print_dev(glue("import: Successfully imported {result$dataset_type}"))
-    } else {
-      failed_imports <- c(
-        failed_imports,
-        result$dataset_type %||% basename(csv_file)
-      )
-      print_dev(glue(
-        "import: Failed to import {result$dataset_type %||% basename(csv_file)}: {result$message}"
-      ))
-    }
+      # Count rows imported (assuming result has row count info)
+      row_count <- result$rows_imported %||% "unknown"
+      dataset_name <- result$dataset_type %||% basename(csv_file)
 
-    results[[basename(csv_file)]] <- result
+      import_summaries <- c(
+        import_summaries,
+        glue("Imported {row_count} {dataset_name} rows from CSV<br>")
+      )
+
+      print_dev(glue("Successfully imported {dataset_name}"))
+    } else {
+      failed_dataset <- result$dataset_type %||% basename(csv_file)
+      failed_imports <- c(failed_imports, failed_dataset)
+      print_dev(glue("Failed to import {failed_dataset}: {result$message}"))
+    }
   }
 
   # Clean up ----
   unlink(extract_dir, recursive = TRUE)
 
-  # Return summary ----
-  if (successful_imports == 0) {
+  # Create user-facing message ----
+  if (length(import_summaries) == 0) {
     return(list(
       success = FALSE,
-      message = "No datasets could be imported successfully",
-      details = results
+      message = "No datasets could be imported successfully"
     ))
   } else if (length(failed_imports) == 0) {
+    # All successful
+    message <- paste(import_summaries, collapse = "\n")
     return(list(
       success = TRUE,
-      message = glue("Successfully imported all {successful_imports} datasets"),
-      details = results
+      message = message
     ))
   } else {
+    # Mixed results
+    success_msg <- paste(import_summaries, collapse = "\n")
+    failure_msg <- glue(
+      "Failed to import: {paste(failed_imports, collapse = ', ')}"
+    )
+
     return(list(
       success = TRUE,
-      message = glue(
-        "Successfully imported {successful_imports} datasets. ",
-        "Failed to import: {paste(failed_imports, collapse = ', ')}"
-      ),
-      details = results
+      message = glue("{success_msg}\n\n{failure_msg}")
     ))
   }
 }

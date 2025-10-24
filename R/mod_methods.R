@@ -389,16 +389,18 @@ mod_methods_server <- function(id) {
     ## upstream: moduleState$methods_data, session$userData$reactiveValues$campaignData
     ## downstream: methods HOT table and data objects
     observe({
-      # shorted reactive name
-
       if (nrow(moduleState$methods_data) > 0) {
-        campaignData <- session$userData$reactiveValues$campaignData
-        # set blank campaign name
-
         campaign_name <- get_session_data_safe(
           session,
           "campaignData",
           "CAMPAIGN_NAME",
+          "UnknownCampaign"
+        )
+
+        campaign_name_short <- get_session_data_safe(
+          session,
+          "campaignData",
+          "CAMPAIGN_NAME_SHORT",
           "UnknownCampaign"
         )
 

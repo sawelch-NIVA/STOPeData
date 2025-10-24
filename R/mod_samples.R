@@ -235,6 +235,7 @@ mod_samples_ui <- function(id) {
 #' @importFrom shinyWidgets updateAirDateInput
 #' @importFrom purrr is_empty
 #' @importFrom glue glue
+#' @importFrom tibble as_tibble add_row
 
 mod_samples_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -628,16 +629,6 @@ mod_samples_server <- function(id) {
       showNotification(message, type = "message")
     }) |>
       bindEvent(input$generate_combinations)
-
-    ## observe: Handle table changes ----
-    # upstream: input$samples_table changes
-    # downstream: moduleState$samples_data
-    observe({
-      if (!is.null(input$samples_table)) {
-        updated_data <- hot_to_r(input$samples_table)
-        moduleState$samples_data <- updated_data
-      }
-    })
 
     ## observe: Check overall validation, send data to session$userData ----
     # upstream: moduleState$samples_data, iv

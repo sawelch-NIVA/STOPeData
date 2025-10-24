@@ -271,12 +271,12 @@ app_server <- function(input, output, session) {
       )
 
       # Small delay to show success message, then close modal and navigate
-      Sys.sleep(1)
+      Sys.sleep(0.1)
       removeModal()
 
       # Show notification
       showNotification(
-        ui = result$message,
+        ui = HTML(result$message),
         type = "message",
         duration = 5
       )
