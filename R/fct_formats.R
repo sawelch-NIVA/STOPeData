@@ -61,7 +61,8 @@ initialise_biota_tibble <- function() {
     SAMPLE_SPECIES = character(),
     SAMPLE_TISSUE = character(),
     SAMPLE_SPECIES_LIFESTAGE = character(),
-    SAMPLE_SPECIES_GENDER = character()
+    SAMPLE_SPECIES_GENDER = character(),
+    BIOTA_COMMENT = character()
   )
 }
 
@@ -419,6 +420,7 @@ parameter_types_vocabulary <- function() {
     "Quality parameter",
     "Normalization",
     "Background",
+    "Ecological Indicator",
     "Other"
   )
 }
@@ -450,7 +452,6 @@ parameter_types_sub_vocabulary <- function() {
 #' @export
 measured_types_vocabulary <- function() {
   c(
-    "Not relevant",
     "Concentration",
     "Dose rate",
     "Dose",
@@ -461,6 +462,8 @@ measured_types_vocabulary <- function() {
     "Percent",
     "Irradiance",
     "Response",
+    "Ecological Indicator",
+    "Not relevant",
     "Other"
   )
 }

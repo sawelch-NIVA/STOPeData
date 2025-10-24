@@ -115,33 +115,50 @@ mod_sites_ui <- function(id) {
                       margin-bottom: auto;
                       flex: 1 1 auto;
                       align-content: space-between;",
-            input_task_button(
-              id = ns("add_map_point"),
-              label = "Add",
-              icon = icon("plus"),
-              class = "btn-success btn-sm",
-              style = "width: 100px; height: fit-content;",
-              label_busy = "..."
+
+            tooltip(
+              input_task_button(
+                id = ns("add_map_point"),
+                label = "Add",
+                icon = icon("plus"),
+                class = "btn-success btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Add a new table with the current coordinates",
+              id = "add_map_point_tooltip",
+              placement = "bottom"
             ),
 
             # Update selected button
-            input_task_button(
-              id = ns("update_selected_coords"),
-              label = "Update",
-              icon = icon("map-pin"),
-              class = "btn-primary btn-sm",
-              style = "width: 100px; height: fit-content;",
-              label_busy = "..."
+            tooltip(
+              input_task_button(
+                id = ns("update_selected_coords"),
+                label = "Update",
+                icon = icon("map-pin"),
+                class = "btn-primary btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Update the selected table row(s) with the current coordinates",
+
+              id = "update_selected_coords_tooltip",
+              placement = "bottom"
             ),
 
             # Hide labels button
-            input_task_button(
-              id = ns("toggle_labels"),
-              label = "Show/Hide Labels",
-              icon = icon("eye-slash"),
-              class = "btn-warning btn-sm",
-              style = "width: 150px; height: fit-content;",
-              label_busy = "..."
+            tooltip(
+              input_task_button(
+                id = ns("toggle_labels"),
+                label = "Labels",
+                icon = icon("tag"),
+                class = "btn-warning btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Click to show/hide site labels on the map",
+              id = "toggle_labels_tooltip",
+              placement = "bottom",
             ),
 
             # Selected coordinates reporter
@@ -351,10 +368,14 @@ mod_sites_server <- function(id) {
     ## and update module data
     observe({
       moduleState$sites_data <- session$userData$reactiveValues$sitesData
-      showNotification("Imported saved data to sites.", type = "default")
+      print_dev("Assigned saved data to sites moduleData.")
     }) |>
-      # TODO: this works but is way too sensitive...
-      bindEvent(session$userData$reactiveValues$sitesData, ignoreInit = TRUE)
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
 
     ## observe: Capture map clicks ----
     # upstream: input$sites_map_click

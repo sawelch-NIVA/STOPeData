@@ -54,6 +54,10 @@ app_server <- function(input, output, session) {
       llmExtractionComplete = FALSE,
       llmExtractionSuccessful = FALSE,
 
+      # Import data from save status flags
+      saveExtractionComplete = FALSE,
+      saveExtractionSuccessful = FALSE,
+
       bookmarkedSessions = NULL
     )
   }
@@ -87,7 +91,6 @@ app_server <- function(input, output, session) {
     "export"
   )
   moduleCREED <- mod_CREED_server("CREED")
-  # moduleBookmarkManager <- mod_bookmark_manager_server("session_manager")
 
   # Module navigation ----
   ## Navigation setup ----
@@ -262,6 +265,8 @@ app_server <- function(input, output, session) {
 
     # Update status and handle result
     if (result$success) {
+      session$userData$reactiveValues$saveExtractionComplete <- TRUE
+      session$userData$reactiveValues$saveExtractionSuccessful <- TRUE
       # Success - show success message and close modal
       HTML(
         "import_status",
@@ -282,6 +287,8 @@ app_server <- function(input, output, session) {
       )
     } else {
       # Error - show error message but keep modal open
+      session$userData$reactiveValues$saveExtractionComplete <- FALSE
+      session$userData$reactiveValues$saveExtractionSuccessful <- FALSE
       HTML(
         "import_status",
         glue(

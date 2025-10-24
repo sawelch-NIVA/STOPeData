@@ -329,7 +329,6 @@ mod_CREED_details_server <- function(id) {
     #' @param sessionData session$userData$reactiveValues object
     #' @return tibble of Dataset Details fields ("field") and pretty strings ("value")
     #' @export
-
     summarise_CREED_details <- function(sessionData) {
       # Helper function to check if a dataset exists and has content
       dataset_exists <- function(dataset) {

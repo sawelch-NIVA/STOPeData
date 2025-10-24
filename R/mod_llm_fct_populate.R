@@ -11,6 +11,8 @@
 #' @noRd
 #' @importFrom shiny updateTextInput updateDateInput updateSelectInput updateTextAreaInput
 # ! FORMAT-BASED
+# TODO: Rewrite to account for the fact that it now is used for save imports as well as the LLM
+# Should probably accept tibbles as an input too
 populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (is.null(llm_campaign_data)) {
     return()

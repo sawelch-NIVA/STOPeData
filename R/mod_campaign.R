@@ -417,6 +417,23 @@ mod_campaign_server <- function(id) {
         ignoreNULL = FALSE
       )
 
+    ## observer: receive data from session$userData$reactiveValues$campaignData (import)
+    ## and update module data
+    observe({
+      moduleState$validated_data <- session$userData$reactiveValues$campaignData
+      populate_campaign_from_llm(
+        session,
+        moduleState$validated_data |> as.list()
+      )
+      print_dev("Assigned saved data to campaign moduleData, updated inputs")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 3. Outputs ----
 
     ## output: validation_reporter ----

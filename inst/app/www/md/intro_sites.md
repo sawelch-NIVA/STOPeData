@@ -1,8 +1,8 @@
-- Enter sampling site information.
-- Add sites by clicking 'Add Site(s)' which creates editable rows in the table.
+- Enter sampling site information. The 'Area' field is ideal for sites in international waters.
+- Add blank sites by clicking 'Add Site(s)' below, or selecting a point on the map (right) and clicking 'Add'.
 - Edit fields directly in the table. Use the map to verify coordinates are
   correct.
-- Add missing coordinates as new or to existing sites using the controls below the map.
+- Sites added via the table will appear on the map, and the inverse.
 - Delete uneeded rows with the right-click menu, and use the blue handle in the
   bottom right of a selected cell to copy its contents to another cell (just
   like Excel!)

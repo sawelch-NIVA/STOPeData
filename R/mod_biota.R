@@ -270,7 +270,8 @@ mod_biota_server <- function(id) {
         "SAMPLE_SPECIES",
         "SAMPLE_TISSUE",
         "SAMPLE_SPECIES_LIFESTAGE",
-        "SAMPLE_SPECIES_GENDER"
+        "SAMPLE_SPECIES_GENDER",
+        "BIOTA_COMMENT"
       )
 
       for (col in biota_columns) {
@@ -305,7 +306,8 @@ mod_biota_server <- function(id) {
         "SAMPLE_SPECIES",
         "SAMPLE_TISSUE",
         "SAMPLE_SPECIES_LIFESTAGE",
-        "SAMPLE_SPECIES_GENDER"
+        "SAMPLE_SPECIES_GENDER",
+        "BIOTA COMMENT"
       )
 
       for (col in biota_columns) {
@@ -713,6 +715,10 @@ mod_biota_server <- function(id) {
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>
+          hot_col(
+            "BIOTA_COMMENT",
+            type = "text"
+          ) |>
           hot_context_menu(
             allowRowEdit = FALSE, # Don't allow adding/removing rows
             allowColEdit = FALSE
@@ -798,7 +804,8 @@ mod_biota_server <- function(id) {
             "SAMPLE_SPECIES",
             "SAMPLE_TISSUE",
             "SAMPLE_SPECIES_LIFESTAGE",
-            "SAMPLE_SPECIES_GENDER"
+            "SAMPLE_SPECIES_GENDER",
+            "BIOTA_COMMENT"
           )
           sample_lines <- sapply(biota_fields, function(name) {
             if (name %in% names(sample)) {
