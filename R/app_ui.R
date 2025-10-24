@@ -185,7 +185,9 @@ app_ui <- function(request) {
             '<a href="https://www.niva.no/en/projects/parc">PARC</a>,',
             ' <a href="https://www.niva.no/en/projects/expect">EXPECT</a>,',
             ' and <a href="https://www.niva.no/en/featured-pages/nctp">NCTP</a>.',
-            " This app is currently in development and no responsibility is accepted for crashes or data loss."
+            " This app is currently in development and no responsibility is accepted for crashes or data loss. ",
+            "App Version: ",
+            golem::get_golem_version()
           ))
         )
       )

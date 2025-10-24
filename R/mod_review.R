@@ -264,10 +264,10 @@ mod_review_server <- function(id) {
     }
 
     ## observe: Check for available data ----
-    # upstream: session$userData$reactiveValues$dataData
+    # upstream: session$userData$reactiveValues$measurementsData
     # downstream: moduleState$data_available, moduleState$review_data
     observe({
-      data <- session$userData$reactiveValues$dataData
+      data <- session$userData$reactiveValues$measurementsData
 
       if (!is.null(data) && nrow(data) > 0) {
         moduleState$data_available <- TRUE
@@ -283,7 +283,7 @@ mod_review_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$dataData,
+        session$userData$reactiveValues$measurementsData,
         ignoreNULL = FALSE,
         ignoreInit = TRUE
       )

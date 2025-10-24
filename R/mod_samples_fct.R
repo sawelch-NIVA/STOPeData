@@ -7,8 +7,7 @@
 #' @importFrom stats setNames
 #' @noRd
 update_sites_selectize <- function(session, sites_data) {
-  # browser()
-  if (is.null(sites_data) || nrow(sites_data) == 0) {
+  if (nrow(sites_data) == 0) {
     choices <- character(0)
     placeholder <- "No sites available - add sites first"
   } else {
@@ -40,7 +39,7 @@ update_sites_selectize <- function(session, sites_data) {
 #' @importFrom stats setNames
 #' @noRd
 update_parameters_selectize <- function(session, parameters_data) {
-  if (is.null(parameters_data) || nrow(parameters_data) == 0) {
+  if (nrow(parameters_data) == 0) {
     choices <- character(0)
     placeholder <- "No parameters available - add parameters first"
   } else {
@@ -79,7 +78,7 @@ update_parameters_selectize <- function(session, parameters_data) {
 #' @importFrom stats setNames
 #' @noRd
 update_compartments_selectize <- function(session, compartments_data) {
-  if (is.null(compartments_data) || nrow(compartments_data) == 0) {
+  if (nrow(compartments_data) == 0) {
     choices <- character(0)
     placeholder <- "No compartments available - add compartments first"
   } else {
@@ -191,13 +190,7 @@ generate_sample_id_with_components <- function(
   )
   date_abbrev <- gsub("-", "-", date)
 
-  base_id <- paste(
-    site_code,
-    param_abbrev,
-    comp_abbrev,
-    date_abbrev,
-    sep = "-"
-  )
+  base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
   # Vectorized replicate handling
   replicate_suffix <- ifelse(replicate > 1, sprintf("-R%02d", replicate), "")
@@ -261,7 +254,8 @@ combination_exists_with_components <- function(
 #' @param available_sites Available sites data frame for lookup (optional)
 #' @param available_parameters Available parameters data frame for lookup (optional)
 #' @importFrom stats setNames
-#' @importFrom purrr map_dfr
+#' @importFrom purrr map_dfr map map_dbl
+#' @importFrom tidyr expand_grid
 #' @noRd
 create_sample_combinations <- function(
   sites,
@@ -305,7 +299,7 @@ create_sample_combinations <- function(
     }
 
     # Create base combinations for this date
-    base_combinations <- tidyr::expand_grid(
+    base_combinations <- expand_grid(
       SITE_CODE = sites,
       PARAMETER_NAME = parameters,
       SAMPLING_DATE = date_char
@@ -360,9 +354,9 @@ create_sample_combinations <- function(
   # Combine results from all dates
   all_combinations <- do.call(
     rbind,
-    purrr::map(all_combinations_list, ~ .$combinations)
+    map(all_combinations_list, ~ .$combinations)
   )
-  total_skipped <- sum(purrr::map_dbl(all_combinations_list, ~ .$skipped))
+  total_skipped <- sum(map_dbl(all_combinations_list, ~ .$skipped))
 
   if (nrow(all_combinations) > 0) {
     # Populate SITE_NAME from available_sites if provided
@@ -399,29 +393,19 @@ create_sample_combinations <- function(
     }
 
     # Create replicate ID
-    all_combinations$REPLICATE_ID <- paste0(
-      all_combinations$SITE_CODE,
-      "_",
-      substr(gsub("[^A-Za-z0-9]", "", all_combinations$PARAMETER_NAME), 1, 8),
-      "_",
-      substr(
-        gsub("[^A-Za-z0-9]", "", all_combinations$ENVIRON_COMPARTMENT),
-        1,
-        6
-      ),
-      "_",
-      substr(
-        gsub("[^A-Za-z0-9]", "", all_combinations$ENVIRON_COMPARTMENT_SUB),
-        1,
-        6
-      ),
-      "_",
-      gsub("-", "", all_combinations$SAMPLING_DATE),
-      ifelse(
-        all_combinations$REP > 1,
-        sprintf("_R%02d", all_combinations$REP),
-        ""
-      )
+    # Helper function to create clean abbreviations ----
+    create_abbrev <- function(text, max_length) {
+      substr(gsub("[^A-Za-z0-9]", "", text), 1, max_length)
+    }
+
+    # Create REPLICATE_ID using glue ----
+    all_combinations$REPLICATE_ID <- glue(
+      "{all_combinations$SITE_CODE}",
+      "_{create_abbrev(all_combinations$PARAMETER_NAME, 8)}",
+      "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT, 6)}",
+      "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT_SUB, 6)}",
+      "_{gsub('-', '', all_combinations$SAMPLING_DATE)}",
+      "{ifelse(all_combinations$REP > 1, glue('_R{sprintf(\"%02d\", all_combinations$REP)}'), '')}"
     )
 
     # Generate sample IDs using vectorized function

@@ -337,21 +337,17 @@ mod_data_server <- function(id, parent_session) {
       reference_data <- session$userData$reactiveValues$referenceData
 
       # check to see if either samplesData or samplesDataWithBiota actualy exist
-      samples_data <- if (
-        isTruthy(samplesDataWithBiota) & nrow(samplesDataWithBiota) > 1
-      ) {
+      samples_data <- if (nrow(samplesDataWithBiota) > 0) {
         samplesDataWithBiota
-      } else if (isTruthy(samplesData) & nrow(samplesData)) {
+      } else if (nrow(samplesData)) {
         samplesData
       } else {
-        tibble(NULL)
-        print_dev(
-          "create_measurement_combinations(): samplesDataWithBiota & samplesData empty, returning tibble(NULL)"
-        )
+        initialise_measurements_tibble()
       }
 
-      if (is.null(samples_data) || is.null(parameters_data)) {
-        return(tibble(NULL))
+      # and check to see if parameters_data is an empty tibble
+      if (nrow(samples_data) < 1 || nrow(parameters_data) < 1) {
+        return(initialise_measurements_tibble())
       }
 
       # Create cartesian product of samples and parameters
@@ -369,6 +365,7 @@ mod_data_server <- function(id, parent_session) {
       )
 
       # Add campaign and reference info
+      # TODO: This should probably use initialise_samples_tibble(), but since the logic's a bit special I won't rush into it
       combinations <- combinations |>
         mutate(
           # Add measurement fields with empty defaults
@@ -400,7 +397,6 @@ mod_data_server <- function(id, parent_session) {
     # upstream: all session$userData$reactiveValues
     # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
     observe({
-      browser()
       status <- get_module_status()
 
       # Check if all required modules are valid
@@ -481,7 +477,7 @@ mod_data_server <- function(id, parent_session) {
         }
 
         moduleState$complete_dataset <- complete_data
-        session$userData$reactiveValues$dataData <- moduleState$complete_dataset
+        session$userData$reactiveValues$measurementsData <- moduleState$complete_dataset
 
         print_dev(glue(
           "mod_data: Data validated and saved - {nrow(moduleState$complete_dataset)} complete records"
@@ -489,7 +485,7 @@ mod_data_server <- function(id, parent_session) {
       } else {
         moduleState$is_valid <- FALSE
         moduleState$complete_dataset <- NULL
-        session$userData$reactiveValues$dataData <- NULL
+        session$userData$reactiveValues$measurementsData <- NULL
 
         print_dev("mod_data: Data validation failed")
       }

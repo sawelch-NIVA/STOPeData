@@ -27,7 +27,7 @@ mod_export_ui <- function(id) {
           accordion_panel(
             title = "Export Information",
             icon = bs_icon("info-circle"),
-            "Export your campaign data to Excel or CSV format. You can download individual datasets as CSV files (with accompanying metadata JSON), or download all data as a single Excel workbook with each dataset on a separate sheet and a metadata sheet, or as a ZIP file containing all CSV + JSON files."
+            "Export your campaign data to Excel or CSV format. You can download individual datasets as CSV files (with accompanying metadata .txt), or download all data as a single Excel workbook with each dataset on a separate sheet and a metadata sheet, or as a ZIP file containing all CSV + .txt files."
           ),
           div(
             style = "margin: 10px 10px 0 10px; display: flex; align-items: center; gap: 15px;",
@@ -45,13 +45,13 @@ mod_export_ui <- function(id) {
         hr(),
         ## Individual dataset exports ----
         div(
-          h4("Individual Dataset Exports (CSV + JSON)"),
+          h4("Individual Dataset Exports (CSV + .txt)"),
           uiOutput(ns("individual_downloads"))
         ),
         hr(),
         ## Combined workbook export ----
         div(
-          h4("Combined Export (Excel Workbook or Zipped CSV + JSON)"),
+          h4("Combined Export (Excel Workbook or Zipped CSV + .txt)"),
           uiOutput(ns("workbook_summary"), style = "margin-bottom: 10px;"),
           br(),
           uiOutput(ns("download_combined_ui"))
@@ -72,7 +72,6 @@ mod_export_ui <- function(id) {
 #' @importFrom bslib layout_column_wrap
 #' @importFrom golem get_golem_version print_dev
 #' @importFrom utils write.csv
-#' @importFrom jsonlite toJSON write_json
 #' @importFrom zip zip
 #' @export
 mod_export_server <- function(id) {
@@ -140,7 +139,7 @@ mod_export_server <- function(id) {
         methodsData = "Methods",
         samplesData = "Samples",
         biotaData = "Biota",
-        dataData = "Measurements"
+        measurementsData = "Measurements"
       )
 
       display_names[[dataset_name]] %||% dataset_name
@@ -164,7 +163,7 @@ mod_export_server <- function(id) {
         "methodsData",
         "samplesData",
         "biotaData",
-        "dataData"
+        "measurementsData"
       )
 
       # Check which datasets have data and store dimensions
@@ -224,7 +223,7 @@ mod_export_server <- function(id) {
 
           content = function(file) {
             print_dev(glue(
-              "mod_export: Exporting {dataset_name} as CSV + JSON..."
+              "mod_export: Exporting {dataset_name} as CSV + TXT..."
             ))
 
             rv <- session$userData$reactiveValues
@@ -243,24 +242,24 @@ mod_export_server <- function(id) {
             base_name <- glue("{campaign}_{display_name}_{timestamp}")
 
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
-            json_file <- file.path(temp_dir, glue("{base_name}_metadata.json"))
+            txt_file <- file.path(temp_dir, glue("{base_name}_metadata.txt"))
 
             # Write CSV
             write.csv(data, file = csv_file, row.names = FALSE)
 
-            # Write metadata JSON
-            write_json(metadata, json_file, pretty = TRUE, auto_unbox = TRUE)
+            # Write metadata TXT
+            write_metadata_txt(metadata, txt_file)
 
             # Create zip file
             zip(
               zipfile = file,
-              files = c(csv_file, json_file),
+              files = c(csv_file, txt_file),
               mode = "cherry-pick"
             )
 
             # Clean up temp files
             unlink(csv_file)
-            unlink(json_file)
+            unlink(txt_file)
 
             print_dev(glue(
               "mod_export: ZIP export complete for {dataset_name} ({nrow(data)} rows)"
@@ -377,7 +376,7 @@ mod_export_server <- function(id) {
         "methodsData",
         "samplesData",
         "biotaData",
-        "dataData"
+        "measurementsData"
       )
 
       # Create a card for each dataset (available or not)
@@ -505,7 +504,7 @@ mod_export_server <- function(id) {
       },
 
       content = function(file) {
-        print_dev("mod_export: Starting combined CSV + JSON export...")
+        print_dev("mod_export: Starting combined CSV + TXT export...")
 
         rv <- session$userData$reactiveValues
         metadata <- get_export_metadata()
@@ -517,7 +516,7 @@ mod_export_server <- function(id) {
 
         all_files <- character(0)
 
-        # Export each dataset as CSV + JSON
+        # Export each dataset as CSV + individual metadata TXT
         for (dataset_name in moduleState$available_datasets) {
           data <- rv[[dataset_name]]
 
@@ -530,15 +529,11 @@ mod_export_server <- function(id) {
             base_name <- glue("{campaign}_{display_name}_{timestamp}")
 
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
-            json_file <- file.path(temp_dir, glue("{base_name}_metadata.json"))
 
             # Write CSV
             write.csv(data, file = csv_file, row.names = FALSE)
 
-            # Write metadata JSON
-            write_json(metadata, json_file, pretty = TRUE, auto_unbox = TRUE)
-
-            all_files <- c(all_files, csv_file, json_file)
+            all_files <- c(all_files, csv_file)
 
             print_dev(glue(
               "mod_export: Added {display_name} to combined export ({nrow(data)} rows)"
@@ -546,7 +541,15 @@ mod_export_server <- function(id) {
           }
         }
 
-        # Create zip file with all CSVs and JSONs
+        # Write one metadata file for the entire export
+        combined_metadata_file <- file.path(
+          temp_dir,
+          glue("{campaign}_export_metadata_{timestamp}.txt")
+        )
+        write_metadata_txt(metadata, combined_metadata_file)
+        all_files <- c(all_files, combined_metadata_file)
+
+        # Create zip file with all CSVs and one metadata TXT
         zip(
           zipfile = file,
           files = all_files,

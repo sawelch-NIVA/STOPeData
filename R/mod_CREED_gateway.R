@@ -226,7 +226,7 @@ mod_CREED_gateway_server <- function(id) {
         compartments = session$userData$reactiveValues$compartmentsData,
         samples = samples_data,
         methods = session$userData$reactiveValues$methodsData,
-        measurements = session$userData$reactiveValues$dataData
+        measurements = session$userData$reactiveValues$measurementsData
       )
 
       # Get gateway availability (TRUE/FALSE)

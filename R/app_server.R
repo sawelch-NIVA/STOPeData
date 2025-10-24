@@ -6,7 +6,7 @@
 #' @importFrom bslib toggle_dark_mode
 #' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
-#' @import googledrive
+#' @importFrom htmltools HTML
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
 `%notin%` <- negate(`%in%`)
@@ -20,16 +20,16 @@ app_server <- function(input, output, session) {
       # Standard validated data
       # All userData and module_state$data data is stored in a tabular (tibble) format centrally, even for campaign and reference (which currently only have one row)
       # This means we can use a consistent set of functions to check for presence (nrow(tibble) > 0), and not have any nasty surprises when we expect one and get the other
-      sitesData = tibble(NULL),
-      parametersData = tibble(NULL),
-      compartmentsData = tibble(NULL),
-      referenceData = tibble(NULL),
-      campaignData = tibble(NULL),
-      methodsData = tibble(NULL),
-      samplesData = tibble(NULL),
-      biotaData = tibble(NULL),
+      sitesData = initialise_sites_tibble(),
+      parametersData = initialise_parameters_tibble(),
+      compartmentsData = initialise_compartments_tibble(),
+      referenceData = initialise_references_tibble(),
+      campaignData = initialise_campaign_tibble(),
+      methodsData = initialise_methods_tibble(),
+      samplesData = initialise_samples_tibble(),
+      biotaData = initialise_biota_tibble(),
       samplesDataWithBiota = tibble(NULL),
-      dataData = tibble(NULL),
+      measurementsData = initialise_measurements_tibble(),
       creedData = list(
         purpose_statement = tibble(NULL),
         dataset_details = tibble(NULL),
@@ -64,49 +64,6 @@ app_server <- function(input, output, session) {
     # invalidateLater(5000)
     FALSE
   })
-
-  # # Bookmark name for the current session ---
-  # bookmark_name <- reactiveVal(NULL)
-
-  # # onBookmark: save server reactiveValues and input values as bookmark
-  # onBookmark(function(state) {
-  #   # Save reactiveValues
-  #   state$values$reactiveValuesData <- reactiveValuesToList(
-  #     session$userData$reactiveValues
-  #   )
-
-  #   # Save input
-  #   state$values$input <- reactiveValuesToList(
-  #     input
-  #   )
-
-  #   # Save bookmark metadata from session userData (set by bookmark manager)
-  #   state$values$bookmarkName <- session$userData$bookmarkName %||%
-  #     paste("Session", format(Sys.time(), "%Y-%m-%d %H:%M"))
-
-  #   state$values$bookmarkUsername <- session$userData$bookmarkUsername %||%
-  #     session$userData$reactiveValues$ENTERED_BY %||%
-  #     "Unknown"
-
-  #   state$values$bookmarkTimestamp <- session$userData$bookmarkTimestamp %||%
-  #     Sys.time()
-
-  #   state$values$bookmarkCampaign <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME_SHORT %||%
-  #     "Unknown Campaign"
-
-  #   state$values$bookmarkReference <- session$userData$reactiveValues$referenceData$REFERENCE_ID %||%
-  #     Sys.time()
-  # })
-
-  # onRestore(function(state) {
-  #   if (!is.null(state$values$reactiveValuesData)) {
-  #     for (name in names(state$values$reactiveValuesData)) {
-  #       session$userData$reactiveValues[[
-  #         name
-  #       ]] <- state$values$reactiveValuesData[[name]]
-  #     }
-  #   }
-  # })
 
   # Module servers ----
   moduleLanding <- mod_landing_server("landing", parent_session = session) # parent_session = session needed or else updateNavbarPage() doesn't work...
@@ -149,30 +106,8 @@ app_server <- function(input, output, session) {
     "10-review",
     "11-export",
     "12-CREED",
-    "info",
-    "save"
+    "info"
   )
-
-  ## Gdrive setup
-  # Authenticate
-  # drive_auth_configure(api_key = Sys.getenv("GOOGLE_DRIVE_API_KEY"))
-  # drive_auth(email = "sawelch1994@gmail.com")
-
-  # # Locate bookmark folder
-  # bookmarks_folder_name <- "Saved Sessions"
-  # bookmarks_folder <- drive_get(bookmarks_folder_name)
-
-  # observe({
-  #   if (nrow(bookmarks_folder) == 0) {
-  #     showNotification(
-  #       ui = "Connection to Google Drive Failed. Sessions cannot be saved.",
-  #       type = "warning"
-  #     )
-  #   } else {
-  #     showNotification(ui = "Connected to Google Drive", type = "message")
-  #   }
-  # }) |>
-  #   bindEvent(bookmarks_folder)
 
   ## Track current module position ----
   current_position <- reactive({
@@ -250,59 +185,125 @@ app_server <- function(input, output, session) {
   # can we enable reconnect on crashes?
   session$allowReconnect(TRUE)
 
-  # observer - upload session modal
+  # Import Observer Code ----
+  # Add these observers directly to app_server.R
+
+  # Observer: Show import modal when upload_zip button clicked ----
+  # upstream: input$`landing-upload_zip` (button click from landing module)
+  # downstream: modal dialog with file input
   observe({
     showModal(
       modalDialog(
-        title = "Upload your saved session here",
-        easy_close = TRUE,
-        fileInput("saved_file", "Choose a File", accept = "json"),
-        actionButton(inputId = "load_rds", label = "Upload file")
+        title = div(
+          icon("upload"),
+          "Upload Session Data"
+        ),
+        size = "m",
+        easyClose = TRUE,
+        footer = div(
+          actionButton(
+            inputId = "import_cancel",
+            label = "Cancel",
+            class = "btn-secondary"
+          ),
+          actionButton(
+            inputId = "import_confirm",
+            label = "Import Data",
+            class = "btn-primary",
+            icon = icon("download")
+          )
+        ),
+
+        # Modal content ----
+        card(
+          card_body(
+            h4("Import Previously Exported Session Data"),
+            p(
+              "Select a ZIP file that was previously exported from this application. The ZIP should contain CSV files and metadata text files."
+            ),
+
+            fileInput(
+              inputId = "import_zip_file",
+              label = "Choose ZIP File",
+              accept = c(".zip"),
+              multiple = FALSE
+            ),
+
+            div(
+              id = "import_status",
+              style = "margin-top: 15px; display: none;",
+              # Status messages will be shown here
+            )
+          )
+        )
       )
     )
   }) |>
-    bindEvent(input$upload_save, ignoreInit = TRUE)
+    bindEvent(input$`landing-upload_zip`, ignoreInit = TRUE)
 
-  # observer - can we actually just write to session?
+  # Observer: Handle ZIP file import when confirm button clicked ----
+  # upstream: input$import_confirm (button click from modal)
+  # downstream: session$userData$reactiveValues updated with imported data
   observe({
-    # definitely not for inputs.
-    # userInputs <- input$saved_file$userInputs
-    # userData <- input$saved_file$userData
-    # let's try just doing one simple data thing
-    # tbh, if it's tabular data it should almost certainly be something other than a JSON...
-    uploadData <- jsonlite::read_json(input$saved_file$datapath)
+    req(input$import_zip_file)
 
-    # todo: this [[1]] might break when we have more than one site
-    session$userData$reactiveValues$sitesData <- uploadData$userData$sitesData[[
-      1
-    ]] |>
-      tibble::as_tibble()
+    # Show loading status
+    show("import_status")
+    HTML(
+      "import_status",
+      '<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Importing data...</div>'
+    )
 
-    showNotification("Saved data sent to session.")
-  }) |>
-    bindEvent(input$load_rds, ignoreInit = TRUE)
+    # Get file path
+    zip_path <- input$import_zip_file$datapath
 
-  ## output: save session from navigation bar
-  output$save_session <- downloadHandler(
-    filename = function() {
-      paste0("save_", Sys.time(), ".json")
-    }, # TODO: generate a good file name pls
-    content = function(file) {
-      jsonlite::write_json(
-        x = getData(session = session),
-        path = file,
-        pretty = TRUE
+    # Import data using helper function
+    result <- import_session_from_zip(zip_path, session)
+
+    # Update status and handle result
+    if (result$success) {
+      # Success - show success message and close modal
+      HTML(
+        "import_status",
+        glue(
+          '<div class="alert alert-success"><i class="fa fa-check"></i> {result$message}</div>'
+        )
+      )
+
+      # Small delay to show success message, then close modal and navigate
+      Sys.sleep(1)
+      removeModal()
+
+      # Show notification
+      showNotification(
+        ui = result$message,
+        type = "message",
+        duration = 5
+      )
+    } else {
+      # Error - show error message but keep modal open
+      HTML(
+        "import_status",
+        glue(
+          '<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> {result$message}</div>'
+        )
+      )
+
+      # Also show notification
+      showNotification(
+        ui = result$message,
+        type = "error",
+        duration = 10
       )
     }
-  )
+  }) |>
+    bindEvent(input$import_confirm, ignoreInit = TRUE)
 
-  # downstream: session$userData$reactiveValues$bookmarkedSessions
-  getData <- function(session) {
-    userData <- list(
-      userInputs = reactiveValuesToList(input),
-      userData = reactiveValuesToList(session$userData$reactiveValues)
-    )
-
-    return(userData)
-  }
+  # Observer: Handle modal cancel button ----
+  # upstream: input$import_cancel (button click from modal)
+  # downstream: modal closed
+  observe({
+    removeModal()
+  }) |>
+    bindEvent(input$import_cancel, ignoreInit = TRUE)
 }

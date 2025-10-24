@@ -54,14 +54,13 @@ mod_landing_ui <- function(id) {
             ),
             div(
               style = "display: flex; flex-direction: column; align-items: center;",
-              h6("Import structured data (planned feature)"),
+              h6("Upload session data and continue an earlier entry"),
               input_task_button(
-                id = ns("structured"),
-                label = "Import structured data",
+                id = ns("upload_zip"),
+                label = "Upload session data",
                 icon = icon("table"),
                 width = "300px"
-              ) |>
-                disabled()
+              )
             )
             # div(
             #   style = "display: flex; flex-direction: column; align-items: center;",
@@ -84,6 +83,10 @@ mod_landing_ui <- function(id) {
           div(
             style = "margin-bottom: 10px;",
             style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
+            info_accordion(
+              content_file = "inst/app/www/md/whats_new.md"
+            ),
+            br(),
             tags$figure(
               tags$figcaption(
                 "Illustration of STOP eData app workflow:"

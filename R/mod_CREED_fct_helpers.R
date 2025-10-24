@@ -455,7 +455,7 @@ auto_populate_reliability_fields <- function(user_data) {
     compartments = user_data$compartmentsData,
     samples = user_data$samplesData,
     methods = user_data$methodsData,
-    measurements = user_data$dataData
+    measurements = user_data$measurementsData
   )
 
   summaries <- summarise_CREED_details(module_data)
@@ -488,7 +488,7 @@ auto_populate_relevance_fields <- function(user_data) {
     compartments = user_data$compartmentsData,
     samples = user_data$samplesData,
     methods = user_data$methodsData,
-    measurements = user_data$dataData
+    measurements = user_data$measurementsData
   )
 
   summaries <- summarise_CREED_details(module_data)

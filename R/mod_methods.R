@@ -185,23 +185,24 @@ mod_methods_server <- function(id) {
     ## function: create_method_entry() ----
     create_method_entry <- function(category, protocol) {
       # Get campaign name
-      campaign_name <- ""
-      if (!is.null(session$userData$reactiveValues$campaignData)) {
-        campaign_name <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME %||%
-          ""
-      }
+      campaign_name_short <- get_session_data_safe(
+        session,
+        "campaignData",
+        "CAMPAIGN_NAME_SHORT",
+        "UnknownCampaign"
+      )
 
       # Generate protocol ID - for now use sequence 1, will be updated later
       protocol_id <- generate_protocol_id(
         "temp category", # TODO: #55 Fix me!!!
         protocol,
         1,
-        campaign_name
+        campaign_name_short
       )
 
       tibble(
         PROTOCOL_ID = protocol_id,
-        CAMPAIGN_NAME = campaign_name,
+        CAMPAIGN_NAME = campaign_name_short,
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = protocol,
         PROTOCOL_COMMENT = NA_character_
@@ -328,13 +329,8 @@ mod_methods_server <- function(id) {
         )
 
         showNotification(
-          paste(
-            "Added",
-            length(protocols),
-            "method(s):",
-            category,
-            "→",
-            paste(protocols, collapse = ", ")
+          glue(
+            "Added {length(protocols)} method(s): {category} → {paste(protocols, collapse = ', ')}"
           ),
           type = "message"
         )
@@ -376,11 +372,11 @@ mod_methods_server <- function(id) {
 
     ## observe ~ bindEvent: Load methods data from LLM extraction ----
     observe({
-      if (nrow(session$userData$reactiveValues$methodsDataLLM) > 0) {
-        llm_methods_data <- session$userData$reactiveValues$methodsDataLLM
+      methodsDataLLM <- session$userData$reactiveValues$methodsDataLLM
 
-        # Replace existing data
-        moduleState$methods_data <- llm_methods_data
+      # If methodsDataLLM has rows, replace existing data
+      if (nrow(methodsDataLLM) > 0) {
+        moduleState$methods_data <- methodsDataLLM
       }
     }) |>
       bindEvent(
@@ -393,13 +389,18 @@ mod_methods_server <- function(id) {
     ## upstream: moduleState$methods_data, session$userData$reactiveValues$campaignData
     ## downstream: methods HOT table and data objects
     observe({
+      # shorted reactive name
+
       if (nrow(moduleState$methods_data) > 0) {
-        # Get campaign name
-        campaign_name <- ""
-        if (!is.null(session$userData$reactiveValues$campaignData)) {
-          campaign_name <- session$userData$reactiveValues$campaignData$CAMPAIGN_NAME %||%
-            ""
-        }
+        campaignData <- session$userData$reactiveValues$campaignData
+        # set blank campaign name
+
+        campaign_name <- get_session_data_safe(
+          session,
+          "campaignData",
+          "CAMPAIGN_NAME",
+          "UnknownCampaign"
+        )
 
         # Update data with proper protocol IDs and campaign names
         updated_data <- moduleState$methods_data |>
@@ -410,7 +411,7 @@ mod_methods_server <- function(id) {
               PROTOCOL_CATEGORY,
               PROTOCOL_NAME,
               sequence,
-              campaign_name
+              campaign_name_short
             ),
             CAMPAIGN_NAME = campaign_name
           ) |>
