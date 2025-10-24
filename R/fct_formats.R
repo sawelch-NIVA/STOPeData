@@ -197,6 +197,8 @@ initialise_samples_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_sites_tibble <- function() {
+  # TODO: Implemented
+
   tibble(
     SITE_CODE = character(),
     SITE_NAME = character(),
@@ -212,6 +214,41 @@ initialise_sites_tibble <- function() {
     ENTERED_BY = character(),
     ENTERED_DATE = character(),
     SITE_COMMENT = character()
+  )
+}
+
+#' Initialize Measurements Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for measurements data.
+#'
+#' @return A tibble with 0 rows and standardised measurement columns
+#' @importFrom tibble tibble
+#' @export
+## Initialize measurement combinations data frame ----
+# Fix: Not Implemented.
+
+initialise_measurements_tibble <- function() {
+  tibble(
+    SITE_CODE = character(),
+    PARAMETER_NAME = character(),
+    SAMPLING_DATE = character(),
+    ENVIRON_COMPARTMENT_SUB = character(),
+    REP = integer(),
+    MEASURED_FLAG = character(),
+    MEASURED_VALUE = numeric(),
+    MEASURED_SD = numeric(),
+    MEASURED_UNIT = character(),
+    LOQ_VALUE = numeric(),
+    LOQ_UNIT = character(),
+    LOD_VALUE = numeric(),
+    LOD_UNIT = character(),
+    SAMPLING_PROTOCOL = character(),
+    EXTRACTION_PROTOCOL = character(),
+    FRACTIONATION_PROTOCOL = character(),
+    ANALYTICAL_PROTOCOL = character(),
+    REFERENCE_ID = character(),
+    SAMPLE_ID = character(),
+    ENVIRON_COMPARTMENT = character()
   )
 }
 
@@ -598,4 +635,36 @@ protocol_categories_vocabulary <- function() {
     "Extraction Protocol",
     "Analytical Protocol"
   )
+}
+
+#' Read in ecotoxicological units and conversion factors from csv
+#'
+#' @param select_column name of column to pull ("MEASURED_UNIT", "BASE_SI_UNIT", "CONVERSION_FACTOR", "UNIT_COMMENTS")
+#'
+#' @returns a dataframe or a character vector
+#'
+#' @export
+#' @importFrom readr read_csv
+parameter_unit_vocabulary <- function(select_column = NULL) {
+  units <- read_csv(
+    file = "inst/data/clean/unit_conversion_factors.csv",
+    col_names = TRUE,
+    show_col_types = FALSE
+  )
+  if (is.null(select_column)) {
+    return(units)
+  }
+  stopifnot(select_column %in% names(units))
+  return(units[[select_column]])
+}
+
+
+#' Measurement Flags Controlled Vocabulary
+#'
+#' Returns measurement flag options.
+#'
+#' @return A character vector of measurement flag options
+#' @export
+measured_flags_vocabulary <- function() {
+  c("", "< LOQ", "< LOD")
 }

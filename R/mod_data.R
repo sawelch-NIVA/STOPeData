@@ -103,15 +103,14 @@ mod_data_server <- function(id, parent_session) {
       all_modules_valid = FALSE,
       data_entry_ready = FALSE,
       measurement_combinations = tibble(NULL),
-      complete_dataset = tibble(NULL),
+      complete_dataset = initialise_measurements_tibble(),
       is_valid = FALSE,
       validation_message = ""
     )
 
     ## Controlled vocabulary options ----
-    measured_flags <- c("", "< LOQ", "< LOD")
 
-    measured_units <- parameter_units("MEASURED_UNIT")
+    measured_units <- parameter_unit_vocabulary("MEASURED_UNIT")
 
     ## InputValidator for measurement data validation ----
     iv <- InputValidator$new()
@@ -395,39 +394,13 @@ mod_data_server <- function(id, parent_session) {
       return(combinations)
     }
 
-    ## Initialize measurement combinations data frame ----
-    # ! FORMAT-BASED
-    init_measurement_tibble <- function() {
-      tibble(
-        SITE_CODE = character(0),
-        PARAMETER_NAME = character(0),
-        SAMPLING_DATE = character(0),
-        ENVIRON_COMPARTMENT_SUB = character(0),
-        REP = integer(0),
-        MEASURED_FLAG = character(0),
-        MEASURED_VALUE = numeric(0),
-        MEASURED_SD = numeric(0),
-        MEASURED_UNIT = character(0),
-        LOQ_VALUE = numeric(0),
-        LOQ_UNIT = character(0),
-        LOD_VALUE = numeric(0),
-        LOD_UNIT = character(0),
-        SAMPLING_PROTOCOL = character(0),
-        EXTRACTION_PROTOCOL = character(0),
-        FRACTIONATION_PROTOCOL = character(0),
-        ANALYTICAL_PROTOCOL = character(0),
-        REFERENCE_ID = character(0),
-        SAMPLE_ID = character(0),
-        ENVIRON_COMPARTMENT = character(0)
-      )
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Check upstream modules validation status continuously ----
     # upstream: all session$userData$reactiveValues
     # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
     observe({
+      browser()
       status <- get_module_status()
 
       # Check if all required modules are valid
@@ -445,7 +418,7 @@ mod_data_server <- function(id, parent_session) {
         ))
       } else {
         moduleState$data_entry_ready <- FALSE
-        moduleState$measurement_combinations <- init_measurement_tibble()
+        moduleState$measurement_combinations <- initialise_measurements_tibble()
 
         print_dev("mod_data: Some modules pending, data entry disabled")
       }
@@ -833,7 +806,7 @@ mod_data_server <- function(id, parent_session) {
           nrow(moduleState$measurement_combinations) == 0
       ) {
         rhandsontable(
-          init_measurement_tibble(),
+          initialise_measurements_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>
@@ -859,7 +832,7 @@ mod_data_server <- function(id, parent_session) {
           hot_col(
             "MEASURED_FLAG",
             type = "dropdown",
-            source = measured_flags,
+            source = measured_flags_vocabulary(),
             strict = TRUE
           ) |>
           hot_col(

@@ -309,7 +309,7 @@ mod_methods_server <- function(id) {
       ) {
         # Use lapply instead of sapply to avoid issues with the assignment
         lapply(protocols, function(protocol) {
-          # TODO: This doesn't properly follow out add_row approach for module tibbles.
+          # TODO: This doesn't properly follow our add_row approach for module tibbles.
           # Add new method (allow duplicates as user might need multiple instances)
           new_method <- create_method_entry(category, protocol)
           moduleState$methods_data <<- rbind(
@@ -489,13 +489,13 @@ mod_methods_server <- function(id) {
           hot_col(
             "PROTOCOL_CATEGORY",
             type = "dropdown",
-            source = protocol_categories,
+            source = protocol_categories_vocabulary(),
             strict = TRUE
           ) |>
           hot_col(
             "PROTOCOL_NAME",
             type = "dropdown",
-            source = all_protocol_names,
+            source = protocol_options_vocabulary(),
             strict = TRUE
           ) |>
           hot_col(
