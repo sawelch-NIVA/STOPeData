@@ -435,7 +435,7 @@ mod_references_ui <- function(id) {
             list("Reference Comment", bs_icon("info-circle-fill")),
             "Additional notes or comments about this reference"
           ),
-          placeholder = "Please add any ddditional notes about the reference that may be relevant or useful to later use.",
+          placeholder = "Please add any additional notes about the reference that may be relevant or useful to later use.",
           width = "100%",
           rows = 3
         ),
@@ -994,6 +994,31 @@ mod_references_server <- function(id) {
         session$userData$reactiveValues$llmExtractionComplete,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
+      )
+
+    ## observer: receive data from session$userData$reactiveValues$referenceData (import) ----
+    ## and update module data
+    observe({
+      extraction_success <- session$userData$reactiveValues$saveExtractionComplete
+      browser()
+      moduleState$validated_data <- session$userData$reactiveValues$referenceData |>
+        as.list()
+      names(moduleState$validated_data) <- tolower(names(
+        moduleState$validated_data
+      ))
+      # import data is SCREAMING_NAME but module expects snake_case, so we need to conver the list names
+
+      populate_references_from_llm(
+        session,
+        moduleState$validated_data
+      )
+      print_dev("Assigned saved data to reference moduleData, updated inputs")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
       )
 
     ## observe ~ bindEvent: Clear fields button ----

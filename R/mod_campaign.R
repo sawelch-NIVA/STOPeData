@@ -397,6 +397,7 @@ mod_campaign_server <- function(id) {
     # upstream: session$userData$reactiveValues$campaignDataLLM
     # downstream: input fields
     observe({
+      browser
       llm_data <- session$userData$reactiveValues$campaignDataLLM
       if (
         !is.null(llm_data) &&
@@ -417,13 +418,21 @@ mod_campaign_server <- function(id) {
         ignoreNULL = FALSE
       )
 
-    ## observer: receive data from session$userData$reactiveValues$campaignData (import)
+    ## observer: receive data from session$userData$reactiveValues$campaignData (import) ----
     ## and update module data
     observe({
-      moduleState$validated_data <- session$userData$reactiveValues$campaignData
+      extraction_success <- session$userData$reactiveValues$saveExtractionComplete
+      browser()
+      moduleState$validated_data <- session$userData$reactiveValues$campaignData |>
+        as.list()
+      names(moduleState$validated_data) <- tolower(names(
+        moduleState$validated_data
+      ))
+      # import data is SCREAMING_NAME but module expects snake_case, so we need to conver the list names
+
       populate_campaign_from_llm(
         session,
-        moduleState$validated_data |> as.list()
+        moduleState$validated_data
       )
       print_dev("Assigned saved data to campaign moduleData, updated inputs")
     }) |>

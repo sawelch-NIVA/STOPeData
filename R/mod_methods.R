@@ -434,6 +434,19 @@ mod_methods_server <- function(id) {
         ignoreInit = TRUE
       )
 
+    ## observer: receive data from session$userData$reactiveValues$methodsData (import) ----
+    ## and update module data
+    observe({
+      moduleState$methods_data <- session$userData$reactiveValues$methodsData
+      print_dev("Assigned saved data to methods moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 4. Outputs ----
 
     ## output: methods_table ----

@@ -364,7 +364,7 @@ mod_sites_server <- function(id) {
       }
     })
 
-    ## observer: receive data from session$userData$reactiveValues$sitesData (import)
+    ## observer: receive data from session$userData$reactiveValues$sitesData (import) ----
     ## and update module data
     observe({
       moduleState$sites_data <- session$userData$reactiveValues$sitesData

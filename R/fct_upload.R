@@ -281,34 +281,38 @@ import_module_table <- function(csv_path, session) {
 #' @description Determine which type of dataset based on filename patterns
 #' @param filename Name of the file
 #' @return Character string of dataset type or NULL if not recognized
+#' @importFrom glue glue
+#' @importFrom golem print_dev
 #' @export
 detect_dataset_type <- function(filename) {
   # Remove timestamp and campaign name patterns to get core name
   # Expected patterns: Campaign_DatasetType_20241024_123456.csv
 
-  # Convert to lowercase for easier matching
-  filename_lower <- tolower(filename)
-
   # Define patterns for each dataset type
-  patterns <- list(
+  patterns <- c(
     # TODO: Needs to be strict rather than speculative
-    "Sites" = c("sites", "site"),
-    "Parameters" = c("parameters", "parameter", "param"),
-    "Compartments" = c("compartments", "compartment", "comp"),
-    "Reference" = c("reference", "ref"),
-    "Campaign" = c("campaign", "camp"),
-    "Methods" = c("methods", "method"),
-    "Samples" = c("samples", "sample"),
-    "Biota" = c("biota", "bio"),
-    "Measurements" = c("measurements", "measurement", "data")
+    "Sites",
+    "Parameters",
+    "Compartments",
+    "Reference",
+    "Campaign",
+    "Methods",
+    "Samples",
+    "Biota",
+    "Measurements"
   )
 
   # Check each pattern
-  for (dataset_type in names(patterns)) {
-    for (pattern in patterns[[dataset_type]]) {
-      if (grepl(pattern, filename_lower)) {
-        return(dataset_type)
-      }
+  for (dataset_type in patterns) {
+    if (grepl(dataset_type, filename)) {
+      # print_dev(glue(
+      #   "dataset {filename} IS of type {dataset_type}"
+      # ))
+      return(dataset_type)
+    } else {
+      # print_dev(glue(
+      #   "dataset {filename} not of type {dataset_type}"
+      # ))
     }
   }
 

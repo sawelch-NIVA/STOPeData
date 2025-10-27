@@ -647,6 +647,19 @@ mod_samples_server <- function(id) {
       }
     })
 
+    ## observer: receive data from session$userData$reactiveValues$samplesData (import) ----
+    ## and update module data
+    observe({
+      moduleState$samples_data <- session$userData$reactiveValues$samplesData
+      print_dev("Assigned saved data to samples moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 4. Outputs ----
 
     ## output: Update combination preview ----

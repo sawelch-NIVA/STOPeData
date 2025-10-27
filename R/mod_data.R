@@ -64,6 +64,11 @@ mod_data_ui <- function(id) {
         style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
 
         ### Validation status ----
+        input_task_button(
+          id = "check_valid",
+          label = "Check measurement validation",
+          type = "primary"
+        ),
         uiOutput(ns("validation_reporter"))
       ),
       # style = "overflow: clip;",
@@ -432,12 +437,26 @@ mod_data_server <- function(id, parent_session) {
         ignoreNULL = FALSE
       )
 
+    ## observer: receive data from session$userData$reactiveValues$measurementsData (import) ----
+    ## and update module data
+    observe({
+      moduleState$complete_dataset <- session$userData$reactiveValues$measurementsData
+      print_dev("Assigned saved data to measurements moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     ## observe: Handle table changes ----
     # upstream: input$measurement_table changes
     # downstream: moduleState$measurement_combinations
     # ! FORMAT-BASED
     observe({
-      browser()
+      # browser()
+      # TODO: This triggers far too often. Is it what's been causing Cam's repeated issues?
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
         moduleState$measurement_combinations <- updated_data
@@ -491,7 +510,7 @@ mod_data_server <- function(id, parent_session) {
         print_dev("mod_data: Data validation failed")
       }
     }) |>
-      bindEvent(iv, input$measurement_table, ignoreInit = TRUE)
+      bindEvent(input$check_valid, ignoreInit = TRUE)
 
     ## observe: Update method dropdown options whenever methods change----
     # Define some methods for the UI to find so it doesn't crash

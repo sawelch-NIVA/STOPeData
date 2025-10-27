@@ -380,6 +380,19 @@ mod_compartments_server <- function(id) {
         ignoreNULL = FALSE
       )
 
+    ## observer: receive data from session$userData$reactiveValues$compartmentsData (import) ----
+    ## and update module data
+    observe({
+      moduleState$compartments_data <- session$userData$reactiveValues$compartmentsData
+      print_dev("Assigned saved data to compartments moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 4. Outputs ----
 
     ## output: compartments_table ----

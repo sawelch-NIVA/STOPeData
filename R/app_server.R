@@ -5,15 +5,19 @@
 #' @import shiny
 #' @importFrom bslib toggle_dark_mode
 #' @importFrom tibble tibble
-#' @importFrom shinyjs enable disable
+#' @importFrom shinyjs enable disable hide show
 #' @importFrom htmltools HTML
 #' @importFrom purrr map_chr
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
-`%notin%` <- negate(`%in%`)
+`%notin%` <- negate(`%in%`) # my belovéd.
 
 app_server <- function(input, output, session) {
-  # reactiveValues: initialise reactiveValues in session$userData to store data ----
+  # 1. Setup ----
+
+  ## ReactiveValues: initialise reactiveValues in session$userData to store data ----
+  # upstream: session start
+  # downstream: session$userData$reactiveValues with initialized data structures
   if (!is.reactivevalues(session$userData$reactiveValues)) {
     session$userData$reactiveValues <- reactiveValues(
       ENTERED_BY = character(0),
@@ -64,6 +68,8 @@ app_server <- function(input, output, session) {
   }
 
   ## ReactiveValues: moduleState ----
+  # upstream: session start
+  # downstream: module state tracking for export functionality
   # todo: again, copied from mod_export. should be removed in time.
   moduleState <- reactiveValues(
     export_ready = FALSE,
@@ -72,14 +78,9 @@ app_server <- function(input, output, session) {
     dataset_dimensions = list()
   )
 
-  # Reactive for DB status (DISABLED) ---
-  db_status <- reactive({
-    # Add invalidateLater if you want periodic checks
-    # invalidateLater(5000)
-    FALSE
-  })
-
-  # Module servers ----
+  ## Module servers ----
+  # upstream: session start
+  # downstream: module server instances
   moduleLanding <- mod_landing_server("landing", parent_session = session) # parent_session = session needed or else updateNavbarPage() doesn't work...
   moduleLLM <- mod_llm_server("llm_extract")
   moduleCampaign <- mod_campaign_server("campaign")
@@ -102,8 +103,9 @@ app_server <- function(input, output, session) {
   )
   moduleCREED <- mod_CREED_server("CREED")
 
-  # Module navigation ----
   ## Navigation setup ----
+  # upstream: session start
+  # downstream: module_order vector for navigation logic
   module_order <- c(
     "00-landing",
     "00-llm-extract",
@@ -122,7 +124,25 @@ app_server <- function(input, output, session) {
     "info"
   )
 
-  ## Track current module position ----
+  ## Session: enable reconnect on crashes ----
+  # upstream: session start
+  # downstream: session reconnection capability
+  session$allowReconnect(TRUE)
+
+  # 2. Helper Functions ----
+
+  ## Reactive: DB status (DISABLED) ----
+  # upstream: session start (with optional invalidateLater)
+  # downstream: db_status value for UI display
+  db_status <- reactive({
+    # Add invalidateLater if you want periodic checks
+    # invalidateLater(5000)
+    FALSE
+  })
+
+  ## Reactive: Track current module position ----
+  # upstream: input$`main-page` (navbar tab selection)
+  # downstream: current position index for navigation logic
   current_position <- reactive({
     current_tab <- input$`main-page`
 
@@ -134,27 +154,33 @@ app_server <- function(input, output, session) {
     match(current_tab, module_order)
   })
 
-  ## observe: Update button states based on current position ----
+  # 3. Observers ----
+
+  ## Observer: Update nav button states based on current position ----
+  # upstream: input$`main-page` (navbar tab selection), current_position()
+  # downstream: enable/disable state of previous_section and next_section buttons
   observe({
     pos <- current_position()
 
     # Disable previous button on first module (LLM extract)
     if (pos <= 1) {
-      disable("previous_section")
+      hide("previous_section")
     } else {
-      enable("previous_section")
+      show("previous_section")
     }
 
     # Disable next button on last module (review)
     if (pos >= length(module_order)) {
-      disable("next_section")
+      hide("next_section")
     } else {
-      enable("next_section")
+      show("next_section")
     }
   }) |>
     bindEvent(input$`main-page`, ignoreInit = FALSE)
 
-  ## observe: Previous section navigation ----
+  ## Observer: Previous section navigation ----
+  # upstream: input$previous_section (button click)
+  # downstream: updateNavbarPage() call to navigate to previous module
   observe({
     pos <- current_position()
     if (pos > 1) {
@@ -165,7 +191,9 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$previous_section)
 
-  ## observe: Next section navigation ----
+  ## Observer: Next section navigation ----
+  # upstream: input$next_section (button click)
+  # downstream: updateNavbarPage() call to navigate to next module
   observe({
     pos <- current_position()
     if (pos < length(module_order)) {
@@ -176,32 +204,7 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$next_section)
 
-  ## output: db connection status (disabled) ----
-  output$db_connection <- renderUI({
-    status <- db_status()
-
-    if (status) {
-      # Connected - green circle
-      div(
-        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #28a745;",
-        title = "Database Connected"
-      )
-    } else {
-      # Disconnected - red circle
-      div(
-        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #dc3545;",
-        title = "Database Disconnected"
-      )
-    }
-  })
-
-  # can we enable reconnect on crashes?
-  session$allowReconnect(TRUE)
-
-  # Import Observer Code ----
-  # Add these observers directly to app_server.R
-
-  # Observer: Show import modal when upload_zip button clicked ----
+  ## Observer: Show import modal when upload_zip button clicked ----
   # upstream: input$`landing-upload_zip` (button click from landing module)
   # downstream: modal dialog with file input
   observe({
@@ -232,7 +235,8 @@ app_server <- function(input, output, session) {
           card_body(
             h4("Import Previously Exported Session Data"),
             p(
-              "Select a ZIP file that was previously exported from this application. The ZIP should contain CSV files and metadata text files."
+              "Select a ZIP file that was previously exported from this application. The ZIP should contain CSV files and metadata text files. 
+              The importer recognises data types by file name, so please don't modify the 'Campaign__Date_Module' formatting."
             ),
 
             fileInput(
@@ -254,8 +258,8 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$`landing-upload_zip`, ignoreInit = TRUE)
 
-  ## observe: Check data availability ----
-  # upstream: input$get_data (action button)
+  ## Observer: Check data availability ----
+  # upstream: input$download_all_modal (action button)
   # downstream: moduleState$export_ready, moduleState$available_datasets, moduleState$dataset_dimensions
   observe({
     rv <- session$userData$reactiveValues
@@ -308,7 +312,7 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$download_all_modal)
 
-  # Observer: Handle ZIP file import when confirm button clicked ----
+  ## Observer: Handle ZIP file import when confirm button clicked ----
   # upstream: input$import_confirm (button click from modal)
   # downstream: session$userData$reactiveValues updated with imported data
   observe({
@@ -370,7 +374,7 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$import_confirm, ignoreInit = TRUE)
 
-  # Observer: Handle modal cancel button ----
+  ## Observer: Handle modal cancel button ----
   # upstream: input$import_cancel (button click from modal)
   # downstream: modal closed
   observe({
@@ -378,18 +382,11 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$import_cancel, ignoreInit = TRUE)
 
-  # plus the actual download handler
-  output$download_all_csv <- download_all_csv(
-    session = session,
-    moduleState = moduleState
-  )
-
   # todo: this is a hacky copy-paste of an observer from mod_export. a more integrated solution should be (eventually) added.
-  # Observer: Show download modal when download_all_modal button clicked ----
+  ## Observer: Show download modal when download_all_modal button clicked ----
   # upstream: input$download_all_modal (button click)
   # downstream: modal dialog with dataset summary and download button
   observe({
-    browser()
     # Use the same moduleState data that was already populated
     available_datasets <- moduleState$available_datasets
     dataset_dimensions <- moduleState$dataset_dimensions
@@ -456,11 +453,42 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$download_all_modal, ignoreInit = TRUE)
 
-  # Observer: Handle download modal cancel button ----
+  ## Observer: Handle download modal cancel button ----
   # upstream: input$download_modal_cancel (button click from modal)
   # downstream: modal closed
   observe({
     removeModal()
   }) |>
     bindEvent(input$download_modal_cancel, ignoreInit = TRUE)
+
+  # 4. Outputs ----
+
+  ## Output: db connection status (disabled) ----
+  # upstream: db_status() reactive
+  # downstream: UI element showing database connection status
+  output$db_connection <- renderUI({
+    status <- db_status()
+
+    if (status) {
+      # Connected - green circle
+      div(
+        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #28a745;",
+        title = "Database Connected"
+      )
+    } else {
+      # Disconnected - red circle
+      div(
+        style = "height: 20px; width: 20px; border-radius: 50%; background-color: #dc3545;",
+        title = "Database Disconnected"
+      )
+    }
+  })
+
+  ## Output: download handler for all CSV files ----
+  # upstream: moduleState reactive values
+  # downstream: ZIP file download containing all data as CSV
+  output$download_all_csv <- download_all_csv(
+    session = session,
+    moduleState = moduleState
+  )
 }

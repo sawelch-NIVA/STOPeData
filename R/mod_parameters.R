@@ -513,6 +513,19 @@ mod_parameters_server <- function(id) {
       }
     })
 
+    ## observer: receive data from session$userData$reactiveValues$parametersData (import) ----
+    ## and update module data
+    observe({
+      moduleState$parameters_data <- session$userData$reactiveValues$parametersData
+      print_dev("Assigned saved data to parameter moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 3. Outputs ----
 
     ## output: parameters_table ----

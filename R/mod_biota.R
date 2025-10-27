@@ -527,6 +527,19 @@ mod_biota_server <- function(id) {
     }) |>
       bindEvent(input$biota_table)
 
+    ## observer: receive data from session$userData$reactiveValues$biotaData (import) ----
+    ## and update module data
+    observe({
+      moduleState$biota_data <- session$userData$reactiveValues$biotaData
+      print_dev("Assigned saved data to biota moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     ## observe: Check validation and update session data ----
     # upstream: moduleState$biota_data, iv
     # downstream: moduleState$is_valid, moduleState$validated_data, session$userData

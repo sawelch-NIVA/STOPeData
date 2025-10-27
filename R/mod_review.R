@@ -132,7 +132,7 @@ mod_review_ui <- function(id) {
 #' @importFrom plotly renderPlotly plot_ly add_markers add_bars layout config
 #' @importFrom dplyr filter group_by summarise count mutate arrange desc case_when n
 #' @importFrom ggplot2 ggplot aes geom_point geom_boxplot geom_bar theme_minimal labs
-#' @importFrom plotly ggplotly
+#' @importFrom plotly ggplotly add_text
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @export
