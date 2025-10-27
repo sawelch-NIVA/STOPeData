@@ -82,8 +82,9 @@ mod_landing_ui <- function(id) {
         card_body(
           div(
             style = "margin-bottom: 10px;",
-            style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
+            # style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
             info_accordion(
+              title = "Update Notes",
               content_file = "inst/app/www/md/whats_new.md"
             ),
             br(),

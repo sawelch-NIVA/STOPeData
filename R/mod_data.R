@@ -437,6 +437,7 @@ mod_data_server <- function(id, parent_session) {
     # downstream: moduleState$measurement_combinations
     # ! FORMAT-BASED
     observe({
+      browser()
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
         moduleState$measurement_combinations <- updated_data

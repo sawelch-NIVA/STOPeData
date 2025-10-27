@@ -7,6 +7,7 @@
 #' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
 #' @importFrom htmltools HTML
+#' @importFrom purrr map_chr
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
 `%notin%` <- negate(`%in%`)
@@ -61,6 +62,15 @@ app_server <- function(input, output, session) {
       bookmarkedSessions = NULL
     )
   }
+
+  ## ReactiveValues: moduleState ----
+  # todo: again, copied from mod_export. should be removed in time.
+  moduleState <- reactiveValues(
+    export_ready = FALSE,
+    available_datasets = character(0),
+    campaign_name = "Unknown_Campaign",
+    dataset_dimensions = list()
+  )
 
   # Reactive for DB status (DISABLED) ---
   db_status <- reactive({
@@ -244,6 +254,60 @@ app_server <- function(input, output, session) {
   }) |>
     bindEvent(input$`landing-upload_zip`, ignoreInit = TRUE)
 
+  ## observe: Check data availability ----
+  # upstream: input$get_data (action button)
+  # downstream: moduleState$export_ready, moduleState$available_datasets, moduleState$dataset_dimensions
+  observe({
+    rv <- session$userData$reactiveValues
+
+    # Define all possible datasets
+    dataset_names <- c(
+      "sitesData",
+      "parametersData",
+      "compartmentsData",
+      "referenceData",
+      "campaignData",
+      "methodsData",
+      "samplesData",
+      "biotaData",
+      "measurementsData"
+    )
+
+    # Check which datasets have data and store dimensions
+    available <- character(0)
+    dimensions <- list()
+
+    for (dataset in dataset_names) {
+      data <- rv[[dataset]]
+      if (!is.null(data) && nrow(data) > 0) {
+        available <- c(available, dataset)
+        dimensions[[dataset]] <- list(
+          rows = nrow(data),
+          cols = ncol(data)
+        )
+      }
+    }
+
+    moduleState$available_datasets <- available
+    moduleState$dataset_dimensions <- dimensions
+    moduleState$export_ready <- length(available) > 0
+
+    # Get campaign name for filename
+    if (!is.null(rv$campaignData) && nrow(rv$campaignData) > 0) {
+      if ("CAMPAIGN_NAME" %in% names(rv$campaignData)) {
+        campaign_name <- rv$campaignData$CAMPAIGN_NAME[1]
+        if (!is.na(campaign_name) && campaign_name != "") {
+          moduleState$campaign_name <- campaign_name
+        }
+      }
+    }
+
+    print_dev(glue(
+      "mod_export: {length(available)} datasets available: {paste(available, collapse = ', ')}"
+    ))
+  }) |>
+    bindEvent(input$download_all_modal)
+
   # Observer: Handle ZIP file import when confirm button clicked ----
   # upstream: input$import_confirm (button click from modal)
   # downstream: session$userData$reactiveValues updated with imported data
@@ -313,4 +377,90 @@ app_server <- function(input, output, session) {
     removeModal()
   }) |>
     bindEvent(input$import_cancel, ignoreInit = TRUE)
+
+  # plus the actual download handler
+  output$download_all_csv <- download_all_csv(
+    session = session,
+    moduleState = moduleState
+  )
+
+  # todo: this is a hacky copy-paste of an observer from mod_export. a more integrated solution should be (eventually) added.
+  # Observer: Show download modal when download_all_modal button clicked ----
+  # upstream: input$download_all_modal (button click)
+  # downstream: modal dialog with dataset summary and download button
+  observe({
+    browser()
+    # Use the same moduleState data that was already populated
+    available_datasets <- moduleState$available_datasets
+    dataset_dimensions <- moduleState$dataset_dimensions
+    export_ready <- moduleState$export_ready
+
+    # Create summary content using the same format as workbook_summary
+    if (export_ready && length(available_datasets) > 0) {
+      summary_content <- map_chr(
+        available_datasets,
+        ~ {
+          dims <- dataset_dimensions[[.x]]
+          glue("• {.x}: {dims$rows} rows × {dims$cols} columns")
+        }
+      ) %>%
+        paste(collapse = "\n")
+
+      footer_content <- div(
+        actionButton(
+          inputId = "download_modal_cancel",
+          label = "Cancel",
+          class = "btn-secondary"
+        ),
+        downloadButton(
+          outputId = "download_all_csv",
+          label = "Download CSV Files",
+          class = "btn-primary",
+          icon = icon("download")
+        )
+      )
+    } else {
+      summary_content <- "No data available for download."
+      footer_content <- div(
+        actionButton(
+          inputId = "download_modal_cancel",
+          label = "Close",
+          class = "btn-secondary"
+        )
+      )
+    }
+
+    showModal(
+      modalDialog(
+        title = div(
+          icon("download"),
+          "Download Session Data"
+        ),
+        size = "m",
+        easyClose = TRUE,
+        footer = footer_content,
+
+        # Modal content ----
+        card(
+          card_body(
+            h4("Available Datasets"),
+            p("The following datasets are available for download:"),
+            pre(
+              summary_content,
+              style = "background-color: #f8f9fa; padding: 10px; border-radius: 4px;"
+            )
+          )
+        )
+      )
+    )
+  }) |>
+    bindEvent(input$download_all_modal, ignoreInit = TRUE)
+
+  # Observer: Handle download modal cancel button ----
+  # upstream: input$download_modal_cancel (button click from modal)
+  # downstream: modal closed
+  observe({
+    removeModal()
+  }) |>
+    bindEvent(input$download_modal_cancel, ignoreInit = TRUE)
 }

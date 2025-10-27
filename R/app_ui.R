@@ -151,28 +151,25 @@ app_ui <- function(request) {
           input_task_button(
             id = "previous_section",
             label = HTML(paste(
-              bsicons::bs_icon("arrow-left"),
+              bs_icon("arrow-left"),
               "Previous"
             )),
             type = "primary"
           ),
 
           # Save Session button
-          downloadButton(
-            outputId = "save_session",
-            label = "Save Session",
-            class = "primary"
-          ),
           input_task_button(
-            id = "upload_save",
-            label = "Upload Save",
-            type = "success"
+            id = "download_all_modal",
+            label = "Download All",
+            class = "btn-success",
+            icon = icon("file-zipper")
           ),
+
           input_task_button(
             id = "next_section",
             label = HTML(paste(
               "Next",
-              bsicons::bs_icon("arrow-right")
+              bs_icon("arrow-right")
             )),
             type = "primary"
           )

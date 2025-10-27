@@ -87,64 +87,6 @@ mod_export_server <- function(id) {
       dataset_dimensions = list()
     )
 
-    # 2. Helper functions ----
-
-    ## Function: get_git_commit ----
-    # Get git commit hash with error handling
-    get_git_commit <- function() {
-      tryCatch(
-        {
-          system("git rev-parse --short HEAD", intern = TRUE)
-        },
-        error = function(e) "Git hash not available"
-      )
-    }
-
-    ## Function: get_export_metadata ----
-    # upstream: session, moduleState
-    # downstream: all export handlers
-    get_export_metadata <- function() {
-      rv <- session$userData$reactiveValues
-
-      list(
-        campaign_name = moduleState$campaign_name,
-        export_datetime = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
-        app_name = "STOPeData",
-        app_url = "https://github.com/sawelch-NIVA/STOPedata",
-        app_version = get_golem_version() %||% "Version not available",
-        git_commit = get_git_commit(),
-        browser = session$clientData$user_agent %||% "Unknown browser",
-        user = rv$ENTERED_BY %||% "Unknown user"
-      )
-    }
-
-    ## Function: create_metadata_tibble ----
-    # Create metadata as dataframe for Excel sheets
-    create_metadata_tibble <- function(metadata_list) {
-      tibble(
-        Property = names(metadata_list),
-        Value = as.character(unlist(metadata_list))
-      )
-    }
-
-    ## Function: get_dataset_display_name ----
-    # Convert internal dataset names to user-friendly names
-    get_dataset_display_name <- function(dataset_name) {
-      display_names <- c(
-        sitesData = "Sites",
-        parametersData = "Parameters",
-        compartmentsData = "Compartments",
-        referenceData = "Reference",
-        campaignData = "Campaign",
-        methodsData = "Methods",
-        samplesData = "Samples",
-        biotaData = "Biota",
-        measurementsData = "Measurements"
-      )
-
-      display_names[[dataset_name]] %||% dataset_name
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Check data availability ----
@@ -228,7 +170,7 @@ mod_export_server <- function(id) {
 
             rv <- session$userData$reactiveValues
             data <- rv[[dataset_name]]
-            metadata <- get_export_metadata()
+            metadata <- get_export_metadata(session = session)
 
             # Create temporary directory for files
             temp_dir <- tempdir()
@@ -333,7 +275,7 @@ mod_export_server <- function(id) {
             icon = icon("file-excel")
           ),
           downloadButton(
-            outputId = ns("download_all_csv"),
+            outputId = ns(""),
             label = "Download All as CSV + JSON (ZIP)",
             class = "btn-secondary",
             icon = icon("file-zipper")
@@ -441,7 +383,7 @@ mod_export_server <- function(id) {
         print_dev("mod_export: Starting Excel workbook export...")
 
         rv <- session$userData$reactiveValues
-        metadata <- get_export_metadata()
+        metadata <- get_export_metadata(session = session)
 
         # Create workbook
         wb <- wb_workbook()
@@ -493,78 +435,10 @@ mod_export_server <- function(id) {
       contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    ## output: download_all_csv ----
-    # upstream: session$userData$reactiveValues, moduleState
-    # downstream: ZIP file containing all CSV + JSON files
-    output$download_all_csv <- downloadHandler(
-      filename = function() {
-        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
-        glue("{campaign}_AllData_{timestamp}.zip")
-      },
-
-      content = function(file) {
-        print_dev("mod_export: Starting combined CSV + TXT export...")
-
-        rv <- session$userData$reactiveValues
-        metadata <- get_export_metadata()
-
-        # Create temporary directory for files
-        temp_dir <- tempdir()
-        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
-
-        all_files <- character(0)
-
-        # Export each dataset as CSV + individual metadata TXT
-        for (dataset_name in moduleState$available_datasets) {
-          data <- rv[[dataset_name]]
-
-          if (!is.null(data) && nrow(data) > 0) {
-            display_name <- gsub(
-              " ",
-              "_",
-              get_dataset_display_name(dataset_name)
-            )
-            base_name <- glue("{campaign}_{display_name}_{timestamp}")
-
-            csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
-
-            # Write CSV
-            write.csv(data, file = csv_file, row.names = FALSE)
-
-            all_files <- c(all_files, csv_file)
-
-            print_dev(glue(
-              "mod_export: Added {display_name} to combined export ({nrow(data)} rows)"
-            ))
-          }
-        }
-
-        # Write one metadata file for the entire export
-        combined_metadata_file <- file.path(
-          temp_dir,
-          glue("{campaign}_export_metadata_{timestamp}.txt")
-        )
-        write_metadata_txt(metadata, combined_metadata_file)
-        all_files <- c(all_files, combined_metadata_file)
-
-        # Create zip file with all CSVs and one metadata TXT
-        zip(
-          zipfile = file,
-          files = all_files,
-          mode = "cherry-pick"
-        )
-
-        # Clean up temp files
-        unlink(all_files)
-
-        print_dev(glue(
-          "mod_export: Combined ZIP export complete with {length(moduleState$available_datasets)} datasets"
-        ))
-      },
-
-      contentType = "application/zip"
+    # download all csv button we turn into a function in fct_download
+    output$download_allcsv <- download_all_csv(
+      session = session,
+      moduleState = moduleState
     )
   })
 }
