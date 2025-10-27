@@ -397,7 +397,6 @@ mod_campaign_server <- function(id) {
     # upstream: session$userData$reactiveValues$campaignDataLLM
     # downstream: input fields
     observe({
-      browser
       llm_data <- session$userData$reactiveValues$campaignDataLLM
       if (
         !is.null(llm_data) &&
@@ -422,7 +421,6 @@ mod_campaign_server <- function(id) {
     ## and update module data
     observe({
       extraction_success <- session$userData$reactiveValues$saveExtractionComplete
-      browser()
       moduleState$validated_data <- session$userData$reactiveValues$campaignData |>
         as.list()
       names(moduleState$validated_data) <- tolower(names(

@@ -1000,7 +1000,6 @@ mod_references_server <- function(id) {
     ## and update module data
     observe({
       extraction_success <- session$userData$reactiveValues$saveExtractionComplete
-      browser()
       moduleState$validated_data <- session$userData$reactiveValues$referenceData |>
         as.list()
       names(moduleState$validated_data) <- tolower(names(
