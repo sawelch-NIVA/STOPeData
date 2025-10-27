@@ -37,7 +37,8 @@ mod_landing_ui <- function(id) {
                 id = ns("narrative_manual"),
                 label = "Enter data manually...",
                 icon = icon("keyboard"),
-                width = "300px"
+                width = "300px",
+                type = "info"
               )
             ),
             div(
@@ -46,10 +47,11 @@ mod_landing_ui <- function(id) {
               input_task_button(
                 id = ns("narrative_llm"),
                 label = HTML(paste(
-                  bsicons::bs_icon("cpu"),
+                  bs_icon("cpu"),
                   "Extract using LLM..."
                 )),
-                width = "300px"
+                width = "300px",
+                type = "primary",
               )
             ),
             div(
@@ -59,7 +61,8 @@ mod_landing_ui <- function(id) {
                 id = ns("upload_zip"),
                 label = "Upload session data",
                 icon = icon("table"),
-                width = "300px"
+                width = "300px",
+                type = "success"
               )
             )
             # div(
@@ -84,7 +87,7 @@ mod_landing_ui <- function(id) {
             style = "margin-bottom: 10px;",
             # style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
             info_accordion(
-              title = "Update Notes",
+              title = "Version 0.0.0.9003",
               content_file = "inst/app/www/md/whats_new.md"
             ),
             br(),
