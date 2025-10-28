@@ -476,6 +476,8 @@ mod_biota_server <- function(id) {
             append(c("Not reported", "Not relevant"), after = 0)
 
           moduleState$llm_lookup_validation <- TRUE
+          #send to module storage if valid
+          session$userData$reactiveValues$biotadata <- llm_biota
 
           # Show notification based on validation
           if (validation_result$has_warnings) {
@@ -550,8 +552,7 @@ mod_biota_server <- function(id) {
         # No biota samples - validation passes by default
         moduleState$is_valid <- TRUE
         moduleState$validated_data <- NULL
-        session$userData$reactiveValues$biotaValidated <- TRUE
-        session$userData$reactiveValues$biotaData <- NULL
+        session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
         print_dev("mod_biota: No biota samples, validation passes")
       } else if (validation_result && nrow(moduleState$biota_data) > 0) {
         # Biota samples exist and are valid
@@ -565,7 +566,6 @@ mod_biota_server <- function(id) {
             moduleState$validated_data
           )
           session$userData$reactiveValues$samplesDataWithBiota <- updated_samples
-          session$userData$reactiveValues$biotaValidated <- TRUE
           session$userData$reactiveValues$biotaData <- moduleState$validated_data
           print_dev(glue(
             "mod_biota validated and merged {nrow(moduleState$validated_data)} biota samples"
@@ -575,8 +575,7 @@ mod_biota_server <- function(id) {
         # Biota samples exist but validation failed
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
-        session$userData$reactiveValues$biotaValidated <- FALSE
-        session$userData$reactiveValues$biotaData <- NULL
+        session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
         print_dev("mod_biota: Validation failed")
       }
     }) |>

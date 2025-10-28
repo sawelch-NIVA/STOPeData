@@ -309,23 +309,38 @@ mod_data_server <- function(id, parent_session) {
         Compartments = session$userData$reactiveValues$compartmentsData,
         Methods = session$userData$reactiveValues$methodsData,
         Samples = session$userData$reactiveValues$samplesData,
-        Biota = session$userData$reactiveValues$biotaValidated
+        Biota = session$userData$reactiveValues$biotadata
       )
 
       status_list <- lapply(names(modules), function(name) {
         data <- modules[[name]]
-        status <- if (isTruthy(data) && nrow(data) > 0 || !is_empty(data)) {
+        nrow <- nrow(data) %||% 0 # should always work as data is always a tibble of 0+ rows
+        # but doesn't - somehow we get nrow == NULL for biota from LLM
+        # TODO: Why?
+
+        status <- if (
+          # for biotaData, we need to check if samplesData contains biota - if not we auto-validate empty biotaData
+          name == "Biota" &
+            "Biota" %notin%
+              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT
+        ) {
+          "No biota samples detected - Auto-validated"
+        } else if (
+          # If samples does contain biota - does biotaData have rows?
+          name == "Biota" &
+            "Biota" %in%
+              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT &
+            nrow == 0
+        ) {
+          "Biota samples detected but no biota data found - Attention required"
+          # all other modules are mandatory, so we can just check number of rows
+        } else if (nrow > 0) {
           "Validated"
         } else {
           "Attention required"
         }
-        count <- if (isTruthy(data)) {
-          nrow(data)
-        } else {
-          0
-        }
 
-        list(module = name, status = status, count = count)
+        list(module = name, status = status, count = nrow)
       })
 
       return(status_list)
@@ -404,8 +419,17 @@ mod_data_server <- function(id, parent_session) {
     observe({
       status <- get_module_status()
 
-      # Check if all required modules are valid
-      all_valid <- all(sapply(status, function(x) x$status == "Validated"))
+      # Check if all required modules are valid - we use a variety of messages
+      # so it's easiest just to look for the word "validated" (though this is potentially Bad Programming)
+      all_valid <- all(sapply(status, function(x) {
+        grepl("validated", x$status, , ignore.case = TRUE)
+        # when x$module == "Biota", the grep call returns false... even though when we call
+        # grepl("validated", "No biota samples detected - Auto-validated", ignore.case = TRUE)
+        # it returns true!?
+        # oh. actually it doesn't.
+        # we mixed up pattern & x?
+        # lmao.
+      }))
 
       moduleState$all_modules_valid <- all_valid
 
@@ -432,9 +456,9 @@ mod_data_server <- function(id, parent_session) {
         session$userData$reactiveValues$compartmentsData,
         session$userData$reactiveValues$methodsData,
         session$userData$reactiveValues$samplesData,
-        session$userData$reactiveValues$biotaValidated,
+        session$userData$reactiveValues$biotaData,
         ignoreInit = TRUE,
-        ignoreNULL = FALSE
+        ignoreNULL = TRUE
       )
 
     ## observer: receive data from session$userData$reactiveValues$measurementsData (import) ----
@@ -457,6 +481,7 @@ mod_data_server <- function(id, parent_session) {
     observe({
       # browser()
       # TODO: This triggers far too often. Is it what's been causing Cam's repeated issues?
+      # In practical terms moduleState$data_entry_ready probably shouldn't be true yet anyway...
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
         moduleState$measurement_combinations <- updated_data
@@ -748,12 +773,12 @@ mod_data_server <- function(id, parent_session) {
     # upstream: session data
     # downstream: UI validation status display
     output$validation_overview <- renderUI({
-      status_list <- get_module_status() # when this gets called with sampleS, we get a crash?
+      status_list <- get_module_status()
 
       # Create all module elements ----
       module_elements <- lapply(1:8, function(i) {
         item <- status_list[[i]]
-        valid <- grepl("Validated", item$status)
+        valid <- grepl("validated", item$status, ignore.case = TRUE)
         icon <- if (valid) "clipboard2-check" else "exclamation-triangle"
         class <- if (valid) {
           "validation-status validation-complete"
@@ -784,7 +809,7 @@ mod_data_server <- function(id, parent_session) {
             id = button_id,
             label = HTML(paste(
               "Edit",
-              bsicons::bs_icon("pencil-square")
+              bs_icon("pencil-square")
             )),
             class = "btn-sm",
             style = "align-self: center;"
