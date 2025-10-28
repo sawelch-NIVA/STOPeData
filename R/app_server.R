@@ -45,6 +45,7 @@ app_server <- function(input, output, session) {
       ),
 
       # LLM extracted data
+      rawLLM = "",
       campaignDataLLM = tibble(NULL),
       referenceDataLLM = tibble(NULL),
       sitesDataLLM = tibble(NULL),
@@ -219,7 +220,7 @@ app_server <- function(input, output, session) {
         footer = div(
           actionButton(
             inputId = "import_cancel",
-            label = "Cancel",
+            label = "Close",
             class = "btn-secondary"
           ),
           actionButton(

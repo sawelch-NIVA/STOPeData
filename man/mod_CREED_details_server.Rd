@@ -6,12 +6,6 @@
 \usage{
 mod_CREED_details_server(id)
 }
-\arguments{
-\item{sessionData}{session$userData$reactiveValues object}
-}
-\value{
-tibble of Dataset Details fields ("field") and pretty strings ("value")
-}
 \description{
-summarise session user data into pretty strings for CREED "Dataset Details" reporting
+CREED_details Server Functions
 }

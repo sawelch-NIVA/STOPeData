@@ -400,6 +400,7 @@ mod_llm_server <- function(id) {
             moduleState$extraction_successful <- TRUE
             moduleState$structured_data <- result
             moduleState$raw_extraction <- result
+            session$userData$reactiveValues$rawLLM <- result
             moduleState$error_message <- NULL
             moduleState$api_metadata <- api_metadata
 
