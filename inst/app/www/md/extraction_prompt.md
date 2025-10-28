@@ -100,17 +100,10 @@ Use these exact terms when applicable:
 
 - See schema
 
-### Sampling Methods
+### Methods/Protocols
 
 - See schema
-
-### Analytical Protocols
-
-- See schema
-
-### Extraction Protocols
-
-- See schema
+- In the case that multiple or diverse protocols are used, report as many as possible from the paper.
 
 ## EXTRACTION FOCUS AREAS
 

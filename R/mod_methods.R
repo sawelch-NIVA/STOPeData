@@ -192,9 +192,9 @@ mod_methods_server <- function(id) {
         "UnknownCampaign"
       )
 
-      # Generate protocol ID - for now use sequence 1, will be updated later
+      # Generate protocol ID
       protocol_id <- generate_protocol_id(
-        "temp category", # TODO: #55 Fix me!!!
+        category,
         protocol,
         1,
         campaign_name_short
@@ -207,50 +207,6 @@ mod_methods_server <- function(id) {
         PROTOCOL_NAME = protocol,
         PROTOCOL_COMMENT = NA_character_
       )
-    }
-
-    ## function: generate_protocol_id
-    # Generate a unique protocol ID based on type and name ----
-    generate_protocol_id <- function(
-      protocol_type,
-      protocol_name,
-      sequence_number = 1,
-      campaign_name = ""
-    ) {
-      # Map protocol categories to single letters
-      type_mapping <- c(
-        "Sampling Protocol" = "S",
-        "Fractionation Protocol" = "F",
-        "Extraction Protocol" = "E",
-        "Analytical Protocol" = "A"
-      )
-
-      # Get the letter code
-      type_code <- type_mapping[protocol_type]
-      if (is.na(type_code)) {
-        type_code <- "X" # Default for unknown types
-      }
-
-      # Create abbreviated name (remove spaces and special chars, limit length)
-      abbreviated_name <- ""
-      if (!is.null(protocol_name) && nchar(trimws(protocol_name)) > 0) {
-        abbreviated_name <- gsub("[^A-Za-z0-9]", "", protocol_name)
-        abbreviated_name <- substr(abbreviated_name, 1, 15) # Limit length
-      }
-
-      # Format sequence number
-      seq_formatted <- sprintf("%d", sequence_number)
-
-      # Combine parts
-      protocol_id <- paste0(
-        type_code,
-        "-",
-        abbreviated_name,
-        "-",
-        seq_formatted
-      )
-
-      return(protocol_id)
     }
 
     # 3. Observers and Reactives ----
@@ -407,8 +363,9 @@ mod_methods_server <- function(id) {
         # Update data with proper protocol IDs and campaign names
         updated_data <- moduleState$methods_data |>
           group_by(PROTOCOL_CATEGORY) |>
+          mutate(sequence = row_number()) |>
+          ungroup() |>
           mutate(
-            sequence = row_number(),
             PROTOCOL_ID = generate_protocol_id(
               PROTOCOL_CATEGORY,
               PROTOCOL_NAME,
@@ -417,7 +374,7 @@ mod_methods_server <- function(id) {
             ),
             CAMPAIGN_NAME = campaign_name
           ) |>
-          ungroup() |>
+
           select(-sequence) |>
           relocate(PROTOCOL_ID)
 

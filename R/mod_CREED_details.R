@@ -5,7 +5,7 @@
 #' @param id,input,output,session Internal parameters for {shiny}.
 #' @importFrom shiny NS tagList textAreaInput
 #' @importFrom bslib input_task_button tooltip
-
+#' @export
 mod_CREED_details_ui <- function(id) {
   ns <- NS(id)
 

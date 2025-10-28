@@ -851,7 +851,7 @@ validate_species_against_database <- function(biota_data, species_database) {
 #' @return Data frame in methods module format
 #' @noRd
 # ! FORMAT-BASED
-create_methods_from_llm <- function(llm_methods_data) {
+create_methods_from_llm <- function(llm_methods_data, llm_campaign_data) {
   # Define all required protocol categories ----
   required_categories <- c(
     "Sampling Protocol",
@@ -860,7 +860,8 @@ create_methods_from_llm <- function(llm_methods_data) {
     "Analytical Protocol"
   )
 
-  methods_tibble <- tibble()
+  browser()
+  methods_tibble <- initialise_methods_tibble()
 
   # Process LLM extracted methods if available ----
   if (!is.null(llm_methods_data) && nrow(llm_methods_data) > 0) {
@@ -869,6 +870,8 @@ create_methods_from_llm <- function(llm_methods_data) {
 
       # Create method row with LLM data
       method_row <- tibble(
+        PROTOCOL_ID = "",
+        CAMPAIGN_NAME = "",
         PROTOCOL_CATEGORY = map_protocol_category_strict(safe_extract_field(
           method_entry,
           "protocol_category",
@@ -882,7 +885,7 @@ create_methods_from_llm <- function(llm_methods_data) {
         )
       )
 
-      methods_tibble <- rbind(methods_tibble, method_row)
+      methods_tibble <- add_row(methods_tibble, method_row)
     }
   }
 
@@ -896,12 +899,14 @@ create_methods_from_llm <- function(llm_methods_data) {
   if (length(missing_categories) > 0) {
     for (category in missing_categories) {
       missing_row <- tibble(
+        PROTOCOL_ID = "",
+        CAMPAIGN_NAME = "",
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = "Not reported",
         PROTOCOL_COMMENT = ""
       )
 
-      methods_tibble <- rbind(methods_tibble, missing_row)
+      methods_tibble <- add_row(methods_tibble, missing_row)
     }
 
     print_dev(glue(
@@ -913,6 +918,23 @@ create_methods_from_llm <- function(llm_methods_data) {
   methods_tibble <- methods_tibble[
     order(match(methods_tibble$PROTOCOL_CATEGORY, required_categories)),
   ]
+
+  # and add IDs
+  methods_tibble <- methods_tibble |>
+    group_by(PROTOCOL_CATEGORY) |>
+    mutate(sequence = row_number()) |>
+    ungroup() |>
+    mutate(
+      PROTOCOL_ID = generate_protocol_id(
+        PROTOCOL_CATEGORY,
+        PROTOCOL_NAME,
+        sequence,
+        llm_campaign_data$campaign_name_short
+      ),
+      CAMPAIGN_NAME = llm_campaign_data$campaign_name
+    ) |>
+    select(-sequence) |>
+    relocate(PROTOCOL_ID)
 
   print_dev(glue(
     "Created {nrow(methods_tibble)} methods from LLM data (including missing categories)"

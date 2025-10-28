@@ -517,7 +517,8 @@ mod_llm_server <- function(id) {
 
           if (!is.null(moduleState$structured_data$methods)) {
             methods_data <- create_methods_from_llm(
-              moduleState$structured_data$methods
+              moduleState$structured_data$methods,
+              moduleState$structured_data$campaign
             )
             session$userData$reactiveValues$methodsDataLLM <- methods_data
           }

@@ -4,7 +4,12 @@ create_campaign_schema <- function() {
   type_object(
     .description = "Basic study/campaign information",
     campaign_name = type_string(
-      description = "Short identifier for the study/campaign (max 100 chars)",
+      description = "Identifier for the study/campaign (max 100 chars)",
+      required = FALSE
+    ),
+    campaign_name_short = type_string(
+      description = "Abbreviated form of the Identifier for the study/campaign (max 20 char, no spaces or underscores). 
+      Should be specific to location, study, and date as much as possible",
       required = FALSE
     ),
     campaign_start_date = type_string(
