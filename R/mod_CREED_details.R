@@ -323,8 +323,6 @@ mod_CREED_details_server <- function(id) {
         ignoreInit = TRUE
       )
 
-    #' summarise session user data into pretty strings for CREED "Dataset Details" reporting
-    #'
     #' @description summarise session user data into pretty strings for CREED "Dataset Details" reporting
     #' @param sessionData session$userData$reactiveValues object
     #' @return tibble of Dataset Details fields ("field") and pretty strings ("value")
