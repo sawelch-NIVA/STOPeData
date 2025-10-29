@@ -78,14 +78,14 @@ mod_data_ui <- function(id) {
         style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0; justify-content: center;",
 
         ### Auto-validation toggle ----
-        tooltip(
-          input_switch(
-            ns("auto_validate"),
-            "Auto-validation",
-            value = TRUE
-          ),
-          "Turn on to enable real-time validation of table data. This may reduce performance."
-        ),
+        # tooltip(
+        #   input_switch(
+        #     ns("auto_validate"),
+        #     "Auto-validation",
+        #     value = TRUE
+        #   ),
+        #   "Turn on to enable real-time validation of table data. This may reduce performance."
+        # ),
         input_task_button(
           id = ns("save_table_data"),
           label = "Save Table Data"
@@ -97,13 +97,13 @@ mod_data_ui <- function(id) {
             "Some data populated from LLM extraction - please review for accuracy",
             class = "validation-status validation-llm ",
             style = "margin-bottom: 10px;"
-          )),
-          div(
-            id = "validation_measurement-reporter",
-            bs_icon("info-circle"),
-            "Complete all setup modules to enable measurement data entry.",
-            class = "validation-status validation-info"
-          ),
+          ))
+          # div(
+          #   id = "validation_measurement-reporter",
+          #   bs_icon("info-circle"),
+          #   "Complete all setup modules to enable measurement data entry.",
+          #   class = "validation-status validation-info"
+          # ),
           class = "validation-container"
         )
       ),
