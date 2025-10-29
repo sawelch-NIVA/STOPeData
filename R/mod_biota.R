@@ -84,7 +84,7 @@ mod_biota_ui <- function(id) {
               div(
                 style = "display: block;",
                 tooltip(
-                  style = "display: flex; gap: 1em;",
+                  style = "display: flex; gap: 0.5em;",
                   list(
                     h6("Species sampled in dataset"),
                     bs_icon("info-circle-fill")
@@ -97,7 +97,6 @@ mod_biota_ui <- function(id) {
                   placeholder = TRUE
                 )
               ),
-              "",
               div(
                 style = "display: flex; align-items: end; margin-top: calc(1em + 10px);",
                 actionButton(
@@ -314,7 +313,7 @@ mod_biota_server <- function(id) {
         "SAMPLE_TISSUE",
         "SAMPLE_SPECIES_LIFESTAGE",
         "SAMPLE_SPECIES_GENDER",
-        "BIOTA COMMENT"
+        "BIOTA_COMMENT"
       )
 
       for (col in biota_columns) {

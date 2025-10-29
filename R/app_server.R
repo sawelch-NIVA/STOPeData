@@ -44,7 +44,9 @@ app_server <- function(input, output, session) {
         CREED_output = tibble(NULL)
       ),
 
-      # LLM extracted data
+      # LLM extracted data and metadata
+      schemaLLM = "",
+      promptLLM = "",
       rawLLM = "",
       campaignDataLLM = tibble(NULL),
       referenceDataLLM = tibble(NULL),
@@ -215,7 +217,7 @@ app_server <- function(input, output, session) {
           icon("upload"),
           "Upload Session Data"
         ),
-        size = "m",
+        size = "l",
         easyClose = TRUE,
         footer = div(
           actionButton(
@@ -244,7 +246,8 @@ app_server <- function(input, output, session) {
               inputId = "import_zip_file",
               label = "Choose ZIP File",
               accept = c(".zip"),
-              multiple = FALSE
+              multiple = FALSE,
+              width = "100%"
             ),
 
             div(

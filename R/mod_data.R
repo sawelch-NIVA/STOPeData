@@ -31,7 +31,21 @@ mod_data_ui <- function(id) {
         info_accordion(content_file = "inst/app/www/md/intro_data.md"),
 
         ## Dynamic validation status accordion ----
-        uiOutput(ns("validation_accordion_ui")),
+        # Dynamic accordion
+        div(
+          class = "accordion_class",
+          accordion(
+            id = ns("validation_accordion"),
+            accordion_panel(
+              value = "validation_accordion_panel",
+              style = "margin: 20px 0;",
+              title = "Check Module Validation",
+              icon = bs_icon("exclamation-triangle"),
+              uiOutput(ns("validation_overview"))
+            )
+          )
+        ),
+        # uiOutput(ns("validation_accordion_ui")),
 
         ## Data entry controls ----
         div(
@@ -61,13 +75,16 @@ mod_data_ui <- function(id) {
       full_screen = TRUE,
       ## Measurement Data Validation status ----
       div(
-        style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0;",
+        style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0; justify-content: center;",
 
         ### Auto-validation toggle ----
-        input_switch(
-          ns("auto_validate"),
-          "Automatic validation of table",
-          value = TRUE
+        tooltip(
+          input_switch(
+            ns("auto_validate"),
+            "Auto-validation",
+            value = TRUE
+          ),
+          "Turn on to enable real-time validation of table data. This may reduce performance."
         ),
         input_task_button(
           id = ns("save_table_data"),
@@ -82,6 +99,7 @@ mod_data_ui <- function(id) {
             style = "margin-bottom: 10px;"
           )),
           div(
+            id = "validation_measurement-reporter",
             bs_icon("info-circle"),
             "Complete all setup modules to enable measurement data entry.",
             class = "validation-status validation-info"
@@ -106,7 +124,7 @@ mod_data_ui <- function(id) {
 #'
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification isolate
 #' @importFrom rhandsontable renderRHandsontable hot_cols rhandsontable hot_to_r hot_col hot_context_menu hot_cols
 #' @importFrom shinyjs enable disable show hide
 #' @importFrom glue glue
@@ -125,7 +143,7 @@ mod_data_server <- function(id, parent_session) {
     moduleState <- reactiveValues(
       all_modules_valid = FALSE,
       data_entry_ready = FALSE,
-      measurement_combinations = tibble(NULL),
+      measurement_combinations = initialise_measurements_tibble(),
       complete_dataset = initialise_measurements_tibble(),
       is_valid = FALSE,
       validation_message = ""
@@ -398,7 +416,7 @@ mod_data_server <- function(id, parent_session) {
         return(initialise_measurements_tibble())
       }
 
-      # Create cartesian product of samples and parameters
+      # rejoin extended parameter data to samples
       combinations <- left_join(
         samples_data |>
           select(
@@ -417,6 +435,16 @@ mod_data_server <- function(id, parent_session) {
           filter(PARAMETER_NAME %in% samplesData$PARAMETER_NAME |> unique()),
         by = "PARAMETER_NAME"
       )
+
+      # Fixme: if the user makes it all the way to samples without
+      # entering a a username, our attempt to get a reference id will
+      # fail. But this is a very unlikely chain of events, so we can
+      # probably just slap a temporary patch on it.
+      reference_id <- if (nrow(reference_data == 0)) {
+        "UnknownReference"
+      } else {
+        reference_data$REFERENCE_ID
+      }
 
       # Add campaign and reference info
       # TODO: This should probably use initialise_samples_tibble(), but since the logic's a bit special I won't rush into it
@@ -438,7 +466,7 @@ mod_data_server <- function(id, parent_session) {
           EXTRACTION_PROTOCOL = "",
           ANALYTICAL_PROTOCOL = "",
 
-          REFERENCE_ID = reference_data$REFERENCE_ID %||% "UnknownReference",
+          REFERENCE_ID = reference_id,
         ) |>
         relocate(SAMPLE_ID, ENVIRON_COMPARTMENT, .after = REFERENCE_ID)
 
@@ -480,7 +508,11 @@ mod_data_server <- function(id, parent_session) {
       if (modulesStatus()) {
         moduleState$data_entry_ready <- TRUE
         # Create measurement combinations when ready
-        moduleState$measurement_combinations <- create_measurement_combinations()
+        # FIXME: We need to use add_row() rather than recreate the object from scratch, or we lose already entered data
+        moduleState$measurement_combinations <- moduleState$measurement_combinations |>
+          add_row(create_measurement_combinations()) |>
+          distinct(.keep_all = FALSE) # this should ensure that only the first "copy" of
+        # each row is kept, but it's a bit hacky.
 
         print_dev(glue(
           "mod_data: All modules validated, created {nrow(moduleState$measurement_combinations)} measurement combinations"
@@ -513,29 +545,30 @@ mod_data_server <- function(id, parent_session) {
       )
 
     ## observe: Handle table changes ----
-    # upstream: input$measurement_table changes
+    # upstream: input$save_table_data (previously
+    # input$measurement_table, but that caused too many issues)
     # downstream: moduleState$measurement_combinations
     # ! FORMAT-BASED
     observe({
-      # browser()
-      # TODO: This triggers far too often. Is it what's been causing Cam's repeated issues?
       # In practical terms moduleState$data_entry_ready probably shouldn't be true yet anyway...
       if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
         updated_data <- hot_to_r(input$measurement_table)
         moduleState$measurement_combinations <- updated_data
 
-        # Update LOQ_UNIT and LOD_UNIT to match MEASURED_UNIT
-        # TODO: Remove or renable. But we hardly need to make the table more complicated right now.
-        # for (i in 1:nrow(moduleState$measurement_combinations)) {
-        #   measured_unit <- moduleState$measurement_combinations[
-        #     i,
-        #     "MEASURED_UNIT"
-        #   ]
-        #   if (!is.na(measured_unit) && measured_unit != "") {
-        #     moduleState$measurement_combinations[i, "LOQ_UNIT"] <- measured_unit
-        #     moduleState$measurement_combinations[i, "LOD_UNIT"] <- measured_unit
-        #   }
-        # }
+        # FIXME: please excuse the utterly insane assignment, I'm
+        # sticking two observers together
+        complete_data <- moduleState$measurement_combinations
+        moduleState$complete_dataset <- complete_data
+
+        # merge in campaign data
+        campaign_data <- isolate(session$userData$reactiveValues$campaignData)
+        for (col in names(campaign_data)) {
+          if (!col %in% names(complete_data)) {
+            complete_data[[col]] <- campaign_data[[col]]
+          }
+        }
+
+        session$userData$reactiveValues$measurementsData <- moduleState$complete_dataset
       }
     }) |>
       bindEvent(input$save_table_data)
@@ -747,69 +780,68 @@ mod_data_server <- function(id, parent_session) {
     # upstream: moduleState$is_valid, moduleState$data_entry_ready, moduleState$all_modules_valid
     # downstream: UI validation accordion with dynamic styling
     output$validation_accordion_ui <- renderUI({
-      "I too am disabled."
       # Determine validation state
-      # if (modulesStatus()) {
-      #   accordion_class <- "accordion-validation-valid"
-      #   accordion_text <-
-      #     paste0(
-      #       "All modules validated - ",
-      #       nrow(moduleState$measurement_combinations),
-      #       " samples ready for data"
-      #     )
-      #   icon_name <- "check-circle"
-      #   style_css <- "
-      #     .accordion-validation-valid .accordion-button {
-      #       background-color: var(--color-success) !important;
-      #       color: white !important;
-      #     }
-      #     .accordion-validation-valid .accordion-button:not(.collapsed) {
-      #       background-color: #198754 !important;
-      #       color: white !important;
-      #     }
-      #   "
-      # } else {
-      #   accordion_class <- "accordion-validation-warning"
-      #   accordion_text <- "All modules must be valid to add measurements"
-      #   icon_name <- "exclamation-triangle"
-      #   style_css <- "
-      #     .accordion-validation-warning .accordion-button {
-      #       background-color: var(--color-warning) !important;
-      #       color: var(--text-dark) !important;
-      #     }
-      #     .accordion-validation-warning .accordion-button:not(.collapsed) {
-      #       background-color: #e0a800 !important;
-      #       color: var(--text-dark) !important;
-      #     }
-      #   "
-      # }
-      # tagList(
-      #   # Dynamic CSS for current state
-      #   tags$head(
-      #     tags$style(HTML(paste0(
-      #       style_css,
-      #       "
-      #       .accordion-body {
-      #         margin: 0px;
-      #       }
-      #       "
-      #     )))
-      #   ),
-      #   # Dynamic accordion
-      #   div(
-      #     class = accordion_class,
-      #     accordion(
-      #       id = ns("validation_accordion"),
-      #       accordion_panel(
-      #         value = "validation_accordion_panel",
-      #         style = "margin: 20px 0;",
-      #         title = accordion_text,
-      #         icon = bs_icon(icon_name),
-      #         uiOutput(ns("validation_overview"))
-      #       )
-      #     )
-      #   )
-      # )
+      if (modulesStatus()) {
+        accordion_class <- "accordion-validation-valid"
+        accordion_text <-
+          paste0(
+            "All modules validated - ",
+            nrow(moduleState$measurement_combinations),
+            " samples ready for data"
+          )
+        icon_name <- "check-circle"
+        style_css <- "
+          .accordion-validation-valid .accordion-button {
+            background-color: var(--color-success) !important;
+            color: white !important;
+          }
+          .accordion-validation-valid .accordion-button:not(.collapsed) {
+            background-color: #198754 !important;
+            color: white !important;
+          }
+        "
+      } else {
+        accordion_class <- "accordion-validation-warning"
+        accordion_text <- "All modules must be valid to add measurements"
+        icon_name <- "exclamation-triangle"
+        style_css <- "
+          .accordion-validation-warning .accordion-button {
+            background-color: var(--color-warning) !important;
+            color: var(--text-dark) !important;
+          }
+          .accordion-validation-warning .accordion-button:not(.collapsed) {
+            background-color: #e0a800 !important;
+            color: var(--text-dark) !important;
+          }
+        "
+      }
+      tagList(
+        # Dynamic CSS for current state
+        tags$head(
+          tags$style(HTML(paste0(
+            style_css,
+            "
+            .accordion-body {
+              margin: 0px;
+            }
+            "
+          )))
+        ),
+        # Dynamic accordion
+        div(
+          class = accordion_class,
+          accordion(
+            id = ns("validation_accordion"),
+            accordion_panel(
+              value = "validation_accordion_panel",
+              style = "margin: 20px 0;",
+              title = accordion_text,
+              icon = bs_icon(icon_name),
+              uiOutput(ns("validation_overview"))
+            )
+          )
+        )
+      )
     })
 
     ## output: validation_overview ----
@@ -820,7 +852,6 @@ mod_data_server <- function(id, parent_session) {
 
       # Create all module elements ----
       module_elements <- lapply(1:8, function(i) {
-        browser()
         item <- status_list[[i]]
         valid <- item$ready
         icon <- if (valid) "clipboard2-check" else "exclamation-triangle"
@@ -837,7 +868,7 @@ mod_data_server <- function(id, parent_session) {
           span(
             bs_icon("table"),
             strong(item$module, ":"),
-            paste(item$count, "record(s)"),
+            paste(item$count, "row(s)"),
             style = "align-self: center;"
           ),
           # Column 2: Validation message (big column)
@@ -879,13 +910,6 @@ mod_data_server <- function(id, parent_session) {
           gap = "0.5rem"
         )
       )
-    })
-
-    ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, moduleState$data_entry_ready, mod_llm output
-    # downstream: UI validation status
-    output$validation_reporter <- renderUI({
-      "I'm disabled!"
     })
 
     ## output: measurement_table ----
@@ -976,7 +1000,7 @@ mod_data_server <- function(id, parent_session) {
             # fixedColumnsLeft = 5,
             manualColumnMove = TRUE,
             manualColumnResize = TRUE,
-            columnSorting = TRUE
+            columnSorting = FALSE # turns out this breaks when we try to convert the table to an R object!
           )
       }
     })

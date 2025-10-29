@@ -251,7 +251,9 @@ initialise_measurements_tibble <- function() {
     ANALYTICAL_PROTOCOL = character(),
     REFERENCE_ID = character(),
     SAMPLE_ID = character(),
-    ENVIRON_COMPARTMENT = character()
+    ENVIRON_COMPARTMENT = character(),
+    PARAMETER_TYPE = character(),
+    MEASURED_TYPE = character()
   )
 }
 

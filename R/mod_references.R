@@ -917,7 +917,7 @@ mod_references_server <- function(id) {
       if (iv$is_valid()) {
         # Generate REFERENCE_ID
         reference_id <- generate_reference_id(
-          date = input$YEAR,
+          date = input$ACCESS_DATE,
           author = input$AUTHOR,
           title = input$TITLE
         )

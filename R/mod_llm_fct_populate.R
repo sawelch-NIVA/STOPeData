@@ -134,6 +134,14 @@ populate_references_from_llm <- function(session, llm_references_data) {
     title = llm_references_data$title
   )
 
+  if (!is.null(reference_id)) {
+    updateTextInput(
+      session,
+      "REFERENCE_ID_DISPLAY",
+      value = reference_id
+    )
+  }
+
   if (!is.null(llm_references_data$author)) {
     updateTextAreaInput(
       session,
