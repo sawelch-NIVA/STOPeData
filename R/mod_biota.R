@@ -44,34 +44,31 @@ mod_biota_ui <- function(id) {
 
           layout_columns(
             col_widths = c(4, 8),
+
             selectizeInput(
               ns("species_group_filter"),
-              "Filter by Species Group:",
-              choices = c(
-                "Worms",
-                "Insects/Spiders",
-                "Molluscs",
-                "Fungi",
-                "Crustaceans",
-                "Mammals",
-                "Amphibians",
-                "Moss/Hornworts",
-                "Birds",
-                "Fish",
-                "Plants",
-                "Algae",
-                "Invertebrates",
-                "Reptiles",
-                "Bacteria",
-                "Ecosystem",
-                "Other"
+              label = tooltip(
+                list(
+                  "Filter by species group",
+                  bs_icon("info-circle-fill")
+                ),
+                "Filter the Select species field to a species group or other indicator (e.g. ecosystem)",
               ),
+              ":",
+              choices = species_groups_vocabulary(),
               selected = NULL,
               multiple = FALSE
             ),
+
             selectizeInput(
               ns("study_species_selector"),
-              "Select Species for Study:",
+              label = tooltip(
+                list(
+                  "Select species sampled in dataset",
+                  bs_icon("info-circle-fill")
+                ),
+                "Choose all species that were sampled in your study. These will be available as options in the sample table below.",
+              ),
               choices = NULL,
               selected = NULL,
               multiple = TRUE,
@@ -85,12 +82,22 @@ mod_biota_ui <- function(id) {
               col_widths = c(10, 2),
               style = "margin-bottom: 0px;",
               div(
-                h6("Currently Selected Species:"),
+                style = "display: block;",
+                tooltip(
+                  style = "display: flex; gap: 1em;",
+                  list(
+                    h6("Species sampled in dataset"),
+                    bs_icon("info-circle-fill")
+                  ),
+                  "This shows the species that will be available in the table dropdown."
+                ),
+
                 verbatimTextOutput(
                   ns("selected_species_display"),
                   placeholder = TRUE
                 )
               ),
+              "",
               div(
                 style = "display: flex; align-items: end; margin-top: calc(1em + 10px);",
                 actionButton(
@@ -337,14 +344,18 @@ mod_biota_server <- function(id) {
     # upstream: input$species_group_filter, moduleState$species_options
     # downstream: input$study_species_selector choices
     observe({
+      filtered_species <- moduleState$species_options
+
       # Filter species by selected group
-      filtered_species <- moduleState$species_options |>
-        filter(SPECIES_GROUP == input$species_group_filter) |>
-        mutate(
-          pretty_name = paste0(SPECIES_NAME, " (", SPECIES_COMMON_NAME, ")")
-        )
+      if (input$species_group_filter != "All") {
+        filtered_species <- moduleState$species_options |>
+          filter(SPECIES_GROUP == input$species_group_filter)
+      }
 
       filtered_species <- filtered_species |>
+        mutate(
+          pretty_name = paste0(SPECIES_NAME, " (", SPECIES_COMMON_NAME, ")")
+        ) |>
         pull(
           var = SPECIES_NAME,
           name = pretty_name
@@ -595,17 +606,6 @@ mod_biota_server <- function(id) {
         paste(moduleState$study_species |> setdiff(exclude), collapse = ", ")
       }
     })
-
-    # ! FORMAT-BASED
-    gender_vocabulary() <- c(
-      "Not reported",
-      "Not relevant",
-      "Male",
-      "Female",
-      "Mixed",
-      "Hermaphrodite",
-      "Other"
-    )
 
     output$biota_table <- renderRHandsontable({
       if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {

@@ -860,7 +860,6 @@ create_methods_from_llm <- function(llm_methods_data, llm_campaign_data) {
     "Analytical Protocol"
   )
 
-  browser()
   methods_tibble <- initialise_methods_tibble()
 
   # Process LLM extracted methods if available ----

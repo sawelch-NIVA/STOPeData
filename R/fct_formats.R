@@ -657,6 +657,35 @@ gender_vocabulary <- function() {
   )
 }
 
+#' Species Groups Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for species groups. Taken from EPA ECOTOX db.
+#'
+#' @return A character vector of species group options
+#' @export
+species_groups_vocabulary <- function() {
+  c(
+    "All",
+    "Algae",
+    "Amphibians",
+    "Bacteria",
+    "Birds",
+    "Crustaceans",
+    "Ecosystem",
+    "Fish",
+    "Fungi",
+    "Insects/Spiders",
+    "Invertebrates",
+    "Mammals",
+    "Molluscs",
+    "Moss/Hornworts",
+    "Plants",
+    "Reptiles",
+    "Worms",
+    "Other"
+  )
+}
+
 # ------------------------
 # --- CHARACTER LIMITS ---
 # ------------------------
