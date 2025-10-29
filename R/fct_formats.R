@@ -580,6 +580,83 @@ measured_categories_vocabulary <- function() {
   )
 }
 
+
+#' Initialize Tissue Types Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for sample tissue types.
+#'
+#' @return A character vector of tissue type options
+#' @export
+tissue_types_vocabulary <- function() {
+  c(
+    "Not reported",
+    "Not relevant",
+    "Whole body",
+    "Muscle",
+    "Liver",
+    "Kidney",
+    "Fat/Adipose",
+    "Skin",
+    "Bone",
+    "Brain",
+    "Heart",
+    "Lung",
+    "Gill",
+    "Shell",
+    "Carapace",
+    "Blood",
+    "Egg",
+    "Larva",
+    "Leaf",
+    "Root",
+    "Stem",
+    "Fruit",
+    "Seed",
+    "Other"
+  )
+}
+
+#' Initialize Life Stages Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for sample species life stages.
+#'
+#' @return A character vector of life stage options
+#' @export
+lifestage_vocabulary <- function() {
+  c(
+    "Not reported",
+    "Not relevant",
+    "Adult",
+    "Juvenile",
+    "Larva",
+    "Embryo",
+    "Egg",
+    "Seedling",
+    "Mature",
+    "Young",
+    "Mixed",
+    "Other"
+  )
+}
+
+#' Initialize Gender Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for sample species gender.
+#'
+#' @return A character vector of gender options
+#' @export
+gender_vocabulary <- function() {
+  c(
+    "Not reported",
+    "Not relevant",
+    "Male",
+    "Female",
+    "Mixed",
+    "Hermaphrodite",
+    "Other"
+  )
+}
+
 # ------------------------
 # --- CHARACTER LIMITS ---
 # ------------------------

@@ -596,52 +596,8 @@ mod_biota_server <- function(id) {
       }
     })
 
-    ## output: biota_table ----
-    # upstream: moduleState$biota_data, moduleState$study_species
-    # downstream: UI table display
     # ! FORMAT-BASED
-    tissue_types <- c(
-      "Not reported",
-      "Not relevant",
-      "Whole organism",
-      "Muscle",
-      "Liver",
-      "Kidney",
-      "Brain",
-      "Heart",
-      "Lung",
-      "Gill",
-      "Shell",
-      "Carapace",
-      "Blood",
-      "Egg",
-      "Larva",
-      "Leaf",
-      "Root",
-      "Stem",
-      "Fruit",
-      "Seed",
-      "Other"
-    )
-
-    # ! FORMAT-BASED
-    life_stages <- c(
-      "Not reported",
-      "Not relevant",
-      "Adult",
-      "Juvenile",
-      "Larva",
-      "Embryo",
-      "Egg",
-      "Seedling",
-      "Mature",
-      "Young",
-      "Mixed",
-      "Other"
-    )
-
-    # ! FORMAT-BASED
-    genders <- c(
+    gender_vocabulary() <- c(
       "Not reported",
       "Not relevant",
       "Male",
@@ -709,21 +665,21 @@ mod_biota_server <- function(id) {
           hot_col(
             "SAMPLE_TISSUE",
             type = "dropdown",
-            source = tissue_types,
+            source = tissue_types_vocabulary(),
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_LIFESTAGE",
             type = "dropdown",
-            source = life_stages,
+            source = lifestage_vocabulary(),
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>
           hot_col(
             "SAMPLE_SPECIES_GENDER",
             type = "dropdown",
-            source = genders,
+            source = gender_vocabulary(),
             strict = TRUE,
             renderer = mandatory_highlight_dropdown()
           ) |>
