@@ -97,7 +97,7 @@ mod_data_ui <- function(id) {
             "Some data populated from LLM extraction - please review for accuracy",
             class = "validation-status validation-llm ",
             style = "margin-bottom: 10px;"
-          ))
+          )),
           # div(
           #   id = "validation_measurement-reporter",
           #   bs_icon("info-circle"),

@@ -278,8 +278,14 @@ app_server <- function(input, output, session) {
       "methodsData",
       "samplesData",
       "biotaData",
-      "measurementsData"
+      "measurementsData",
+      "schemaLLM",
+      "promptLLM",
+      "rawLLM"
     )
+
+    # Define which datasets are text/object files vs tabular
+    text_datasets <- c("schemaLLM", "promptLLM", "rawLLM")
 
     # Check which datasets have data and store dimensions
     available <- character(0)
@@ -287,12 +293,50 @@ app_server <- function(input, output, session) {
 
     for (dataset in dataset_names) {
       data <- rv[[dataset]]
-      if (!is.null(data) && nrow(data) > 0) {
-        available <- c(available, dataset)
-        dimensions[[dataset]] <- list(
-          rows = nrow(data),
-          cols = ncol(data)
-        )
+
+      if (dataset %in% text_datasets) {
+        # Handle text/object data - check if it exists and has content
+        has_content <- FALSE
+        char_count <- 0
+
+        if (!is.null(data)) {
+          if (is.character(data) && length(data) > 0 && nchar(data[1]) > 0) {
+            has_content <- TRUE
+            char_count <- nchar(data[1])
+          } else if (is.list(data) && length(data) > 0) {
+            # For lists (like rawLLM), check if it has any content
+            has_content <- TRUE
+            char_count <- nchar(paste(
+              capture.output(str(data)),
+              collapse = "\n"
+            ))
+          } else if (inherits(data, "ellmer_schema") || is.object(data)) {
+            # For schema objects or other objects
+            has_content <- TRUE
+            char_count <- nchar(paste(
+              capture.output(print(data)),
+              collapse = "\n"
+            ))
+          }
+        }
+
+        if (has_content) {
+          available <- c(available, dataset)
+          dimensions[[dataset]] <- list(
+            type = "text",
+            chars = char_count
+          )
+        }
+      } else {
+        # Handle tabular data
+        if (!is.null(data) && nrow(data) > 0) {
+          available <- c(available, dataset)
+          dimensions[[dataset]] <- list(
+            type = "tabular",
+            rows = nrow(data),
+            cols = ncol(data)
+          )
+        }
       }
     }
 
@@ -402,7 +446,11 @@ app_server <- function(input, output, session) {
         available_datasets,
         ~ {
           dims <- dataset_dimensions[[.x]]
-          glue("• {.x}: {dims$rows} rows × {dims$cols} columns")
+          if (dims$type == "text") {
+            glue("• {.x}: {dims$chars} characters")
+          } else {
+            glue("• {.x}: {dims$rows} rows × {dims$cols} columns")
+          }
         }
       ) %>%
         paste(collapse = "\n")
@@ -415,7 +463,7 @@ app_server <- function(input, output, session) {
         ),
         downloadButton(
           outputId = "download_all_csv",
-          label = "Download CSV Files",
+          label = "Download Data Files", # Changed from "Download CSV Files"
           class = "btn-primary",
           icon = icon("download")
         )
@@ -437,7 +485,7 @@ app_server <- function(input, output, session) {
           icon("download"),
           "Download Session Data"
         ),
-        size = "m",
+        size = "l",
         easyClose = TRUE,
         footer = footer_content,
 

@@ -2,14 +2,17 @@
 % Please edit documentation in R/fct_download.R
 \name{write_metadata_txt}
 \alias{write_metadata_txt}
-\title{Create readable metadata text file ----}
+\title{Create readable metadata text file}
 \usage{
 write_metadata_txt(metadata_list, file_path)
 }
 \arguments{
-\item{metadata_list}{List containing metadata}
+\item{metadata_list}{List containing metadata fields (campaign_name, export_datetime, etc.)}
 
-\item{file_path}{Path where to write the metadata file}
+\item{file_path}{Character. Path where to write the metadata file}
+}
+\value{
+NULL (invisibly). File is written to disk as a side effect.
 }
 \description{
 Create a human-readable text file with export metadata

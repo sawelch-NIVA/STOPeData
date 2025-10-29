@@ -404,6 +404,7 @@ create_justification_input <- function(ns, criterion_id) {
   )
 }
 
+#' @title summarise user-entered data for the CREED dataset details reporting
 #' @description summarise session user data into pretty strings for CREED "Dataset Details" reporting
 #' @param sessionData session$userData$reactiveValues object
 #' @return tibble of Dataset Details fields ("field") and pretty strings ("value")

@@ -1,11 +1,12 @@
 # Metadata Format Helper Functions ----
 # Functions to create and read human-readable metadata files
 
-#' Create readable metadata text file ----
+#' Create readable metadata text file
 #'
 #' @description Create a human-readable text file with export metadata
-#' @param metadata_list List containing metadata
-#' @param file_path Path where to write the metadata file
+#' @param metadata_list List containing metadata fields (campaign_name, export_datetime, etc.)
+#' @param file_path Character. Path where to write the metadata file
+#' @return NULL (invisibly). File is written to disk as a side effect.
 #' @importFrom glue glue
 #' @export
 write_metadata_txt <- function(metadata_list, file_path) {
@@ -17,7 +18,7 @@ write_metadata_txt <- function(metadata_list, file_path) {
   # Create human-readable content
   content <- c(
     "STOPeData Export Metadata",
-    "=" %r% 50, # 50 equals signs
+    "=" %r% 50,
     "",
     glue("Campaign Name: {metadata_list$campaign_name}"),
     glue("Export Date/Time: {metadata_list$export_datetime}"),
@@ -44,8 +45,11 @@ write_metadata_txt <- function(metadata_list, file_path) {
   writeLines(content, file_path)
 }
 
-## Function: get_git_commit ----
-# Get git commit hash with error handling
+#' Get git commit hash
+#'
+#' @description Retrieve the short git commit hash of the current repository state
+#' @return Character. Short git commit hash, or "Git hash not available" if retrieval fails
+#' @export
 get_git_commit <- function() {
   tryCatch(
     {
@@ -55,9 +59,12 @@ get_git_commit <- function() {
   )
 }
 
-## Function: get_export_metadata ----
-# upstream: session, moduleState
-# downstream: all export handlers
+#' Get export metadata
+#'
+#' @description Gather metadata about the current export session
+#' @param session Shiny session object. Required to access user data and client information.
+#' @return List containing export metadata fields (campaign_name, export_datetime, app_name, etc.)
+#' @export
 get_export_metadata <- function(session = NULL) {
   if (is.null(session)) {
     stop("session reactive object must be supplied to create CSVs")
@@ -76,8 +83,13 @@ get_export_metadata <- function(session = NULL) {
   )
 }
 
-## Function: create_metadata_tibble ----
-# Create metadata as dataframe for Excel sheets
+#' Create metadata tibble
+#'
+#' @description Convert metadata list to tibble format suitable for Excel sheets
+#' @param metadata_list List containing metadata fields
+#' @return Tibble with Property and Value columns
+#' @importFrom tibble tibble
+#' @export
 create_metadata_tibble <- function(metadata_list) {
   tibble(
     Property = names(metadata_list),
@@ -85,8 +97,12 @@ create_metadata_tibble <- function(metadata_list) {
   )
 }
 
-## Function: get_dataset_display_name ----
-# Convert internal dataset names to user-friendly names
+#' Get dataset display name
+#'
+#' @description Convert internal dataset names to user-friendly display names
+#' @param dataset_name Character. Internal name of the dataset (e.g., "sitesData")
+#' @return Character. User-friendly display name (e.g., "Sites")
+#' @export
 get_dataset_display_name <- function(dataset_name) {
   display_names <- c(
     sitesData = "Sites",
@@ -97,55 +113,139 @@ get_dataset_display_name <- function(dataset_name) {
     methodsData = "Methods",
     samplesData = "Samples",
     biotaData = "Biota",
-    measurementsData = "Measurements"
+    measurementsData = "Measurements",
+    schemaLLM = "LLM_Schema",
+    promptLLM = "LLM_Prompt",
+    rawLLM = "LLM_Raw_Response"
   )
 
   display_names[[dataset_name]] %||% dataset_name
 }
 
+#' Convert object to human-readable text
+#'
+#' @description Convert various R objects (character vectors, lists, S3/S4 objects) to
+#'   readable text format suitable for writing to .txt files
+#' @param obj The object to convert (character, list, ellmer_schema, or other object types)
+#' @param dataset_name Character. Name of the dataset for header context
+#' @return Character vector suitable for use with writeLines()
+#' @importFrom glue glue
+#' @importFrom utils str capture.output
+#' @export
+object_to_text <- function(obj, dataset_name = "unknown") {
+  if (is.character(obj)) {
+    # Already a character vector - return as-is
+    return(obj)
+  } else if (is.list(obj)) {
+    # For lists, use str() to get a structured view
+    header <- c(
+      glue("# {dataset_name}"),
+      glue("# Exported: {format(Sys.time(), '%Y-%m-%d %H:%M:%S')}"),
+      "# Type: List",
+      "",
+      "# Structure:"
+    )
+    structure_text <- capture.output(str(obj, max.level = 3))
 
-download_all_csv <-
-  function(session, moduleState = NULL) {
-    if (is.null(moduleState) | is.null(session)) {
-      stop(
-        "moduleState & session reactive objects must be supplied to create CSVs"
-      )
-    }
-    downloadHandler(
-      filename = function() {
-        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
-        glue("{campaign}AllData_{timestamp}.zip")
-      },
+    return(c(header, structure_text))
+  } else if (inherits(obj, "ellmer_schema") || is.object(obj)) {
+    # For schema objects or other S3/S4 objects, use print()
+    header <- c(
+      glue("# {dataset_name}"),
+      glue("# Exported: {format(Sys.time(), '%Y-%m-%d %H:%M:%S')}"),
+      glue("# Type: {class(obj)[1]}"),
+      ""
+    )
+    object_text <- capture.output(print(obj))
 
-      content = function(file) {
-        print_dev("mod_export: Starting combined CSV + TXT export...")
+    return(c(header, object_text))
+  } else {
+    # Fallback for other types
+    header <- c(
+      glue("# {dataset_name}"),
+      glue("# Exported: {format(Sys.time(), '%Y-%m-%d %H:%M:%S')}"),
+      glue("# Type: {class(obj)[1]}"),
+      ""
+    )
+    text <- capture.output(print(obj))
 
-        rv <- session$userData$reactiveValues
-        metadata <- get_export_metadata(session = session)
+    return(c(header, text))
+  }
+}
 
-        # Create temporary directory for files
-        temp_dir <- tempdir()
-        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+#' Download all data as CSV and TXT files in a ZIP archive
+#'
+#' @description Creates a Shiny downloadHandler that exports all available datasets
+#'   as CSV files (for tabular data) or TXT files (for text/object data) in a single ZIP archive.
+#'   Also includes a metadata file with export information.
+#' @param session Shiny session object. Required to access reactive values.
+#' @param moduleState ReactiveValues object containing export_ready flag, available_datasets,
+#'   and campaign_name fields.
+#' @return A Shiny downloadHandler function
+#' @importFrom glue glue
+#' @importFrom utils write.csv zip
+#' @export
+download_all_csv <- function(session, moduleState = NULL) {
+  if (is.null(moduleState) || is.null(session)) {
+    stop(
+      "moduleState & session reactive objects must be supplied to create CSVs"
+    )
+  }
 
-        all_files <- character(0)
+  downloadHandler(
+    filename = function() {
+      timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+      campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+      glue("{campaign}_AllData_{timestamp}.zip")
+    },
 
-        # Export each dataset as CSV + individual metadata TXT
-        for (dataset_name in moduleState$available_datasets) {
-          data <- rv[[dataset_name]]
+    content = function(file) {
+      print_dev("mod_export: Starting combined CSV + TXT export...")
 
+      rv <- session$userData$reactiveValues
+      metadata <- get_export_metadata(session = session)
+
+      # Setup temporary directory and naming
+      temp_dir <- tempdir()
+      timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+      campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+
+      # Define which datasets should be exported as text files
+      text_datasets <- c("schemaLLM", "promptLLM", "rawLLM")
+
+      all_files <- character(0)
+
+      # Export each dataset ----
+      for (dataset_name in moduleState$available_datasets) {
+        data <- rv[[dataset_name]]
+
+        display_name <- gsub(
+          " ",
+          "_",
+          get_dataset_display_name(dataset_name)
+        )
+        base_name <- glue("{campaign}_{display_name}_{timestamp}")
+
+        if (dataset_name %in% text_datasets) {
+          # Handle text/object data
+          if (!is.null(data)) {
+            txt_file <- file.path(temp_dir, glue("{base_name}.txt"))
+
+            # Convert object to text using helper function
+            text_content <- object_to_text(data, dataset_name = display_name)
+            writeLines(text_content, txt_file)
+
+            all_files <- c(all_files, txt_file)
+
+            print_dev(glue(
+              "mod_export: Added {display_name} to combined export (text file, {length(text_content)} lines)"
+            ))
+          }
+        } else {
+          # Handle tabular data
           if (!is.null(data) && nrow(data) > 0) {
-            display_name <- gsub(
-              " ",
-              "_",
-              get_dataset_display_name(dataset_name)
-            )
-            base_name <- glue("{campaign}_{display_name}_{timestamp}")
-
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
 
-            # Write CSV
             write.csv(data, file = csv_file, row.names = FALSE)
 
             all_files <- c(all_files, csv_file)
@@ -155,30 +255,30 @@ download_all_csv <-
             ))
           }
         }
+      }
 
-        # Write one metadata file for the entire export
-        combined_metadata_file <- file.path(
-          temp_dir,
-          glue("{campaign}_export_metadata_{timestamp}.txt")
-        )
-        write_metadata_txt(metadata, combined_metadata_file)
-        all_files <- c(all_files, combined_metadata_file)
+      # Write metadata file ----
+      combined_metadata_file <- file.path(
+        temp_dir,
+        glue("{campaign}_export_metadata_{timestamp}.txt")
+      )
+      write_metadata_txt(metadata, combined_metadata_file)
+      all_files <- c(all_files, combined_metadata_file)
 
-        # Create zip file with all CSVs and one metadata TXT
-        zip(
-          zipfile = file,
-          files = all_files,
-          mode = "cherry-pick"
-        )
+      # Create and cleanup ZIP archive ----
+      zip(
+        zipfile = file,
+        files = all_files,
+        mode = "cherry-pick"
+      )
 
-        # Clean up temp files
-        unlink(all_files)
+      unlink(all_files)
 
-        print_dev(glue(
-          "mod_export: Combined ZIP export complete with {length(moduleState$available_datasets)} datasets"
-        ))
-      },
+      print_dev(glue(
+        "mod_export: Combined ZIP export complete with {length(moduleState$available_datasets)} datasets"
+      ))
+    },
 
-      contentType = "application/zip"
-    )
-  }
+    contentType = "application/zip"
+  )
+}

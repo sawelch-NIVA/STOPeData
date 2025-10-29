@@ -139,7 +139,6 @@ import_session_from_zip <- function(zip_path, session) {
       # Count rows imported (assuming result has row count info)
       row_count <- result$rows_imported %||% "unknown"
       dataset_name <- result$dataset_type %||% basename(csv_file)
-      # TODO: When importing campaignData this thing returns "4 rows", which is obviously wrong as campaigns is only ever two rows.
       import_summaries <- c(
         import_summaries,
         glue("Imported {row_count} {dataset_name} rows from CSV<br>")
