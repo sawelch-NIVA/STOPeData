@@ -71,6 +71,17 @@ mod_parameters_ui <- function(id) {
           multiple = FALSE
         ),
 
+        textAreaInput(
+          inputId = ns("parameter_comment"),
+          label = tooltip(
+            list("Parameter Comments", bs_icon("info-circle-fill")),
+            "Use this space to enter any potentially relevant or noteworthy comments or remarks about the measured parameter."
+          ),
+          placeholder = "Parameter notes (optional)",
+          width = "100%",
+          rows = 1
+        ),
+
         ## Action buttons and validation status ----
         div(
           style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
@@ -486,7 +497,8 @@ mod_parameters_server <- function(id) {
                 INCHIKEY_SD = updated_data[i, "INCHIKEY_SD"],
                 PUBCHEM_CID = updated_data[i, "PUBCHEM_CID"],
                 CAS_RN = updated_data[i, "CAS_RN"],
-                ENTERED_BY = updated_data[i, "ENTERED_BY"]
+                ENTERED_BY = updated_data[i, "ENTERED_BY"],
+                PARAMETER_COMMENT = updated_data[i, "PARAMETER_COMMENT"]
               )
             }
           }
@@ -594,6 +606,7 @@ mod_parameters_server <- function(id) {
           ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
           hot_col("ENTERED_BY", renderer = mandatory_highlight_text()) |>
+          hot_col("PARAMETER_COMMENT", type = "text") |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations

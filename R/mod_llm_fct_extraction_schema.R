@@ -126,6 +126,10 @@ create_parameters_schema <- function() {
       cas_rn = type_string(
         description = "CAS Registry Number if chemical",
         required = FALSE
+      ),
+      parameter_comment = type_string(
+        description = "Any other comments relevant to undderstanding/interpreting measured parameters.",
+        required = FALSE
       )
     )
   )

@@ -381,7 +381,11 @@ mod_data_server <- function(id, parent_session) {
             ENVIRON_COMPARTMENT_SUB,
             REP
           ),
-        parameters_data |> select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE)
+        parameters_data |>
+          select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE) |>
+          # we need to be a little bit careful to avoid including parameters that the user hasn't specifically
+          # added in mod_samples
+          filter(PARAMETER_NAME %in% samplesData$PARAMETER_NAME |> unique())
       )
 
       # Add campaign and reference info
@@ -423,12 +427,6 @@ mod_data_server <- function(id, parent_session) {
       # so it's easiest just to look for the word "validated" (though this is potentially Bad Programming)
       all_valid <- all(sapply(status, function(x) {
         grepl("validated", x$status, , ignore.case = TRUE)
-        # when x$module == "Biota", the grep call returns false... even though when we call
-        # grepl("validated", "No biota samples detected - Auto-validated", ignore.case = TRUE)
-        # it returns true!?
-        # oh. actually it doesn't.
-        # we mixed up pattern & x?
-        # lmao.
       }))
 
       moduleState$all_modules_valid <- all_valid

@@ -13,7 +13,7 @@ You are an expert at extracting environmental exposure study data from scientifi
 - Use 'null' for any field where information is not clearly provided in the text
 - For coordinates: ONLY extract if latitude/longitude are explicitly stated as numbers in the document
 - For dates, use YYYY-MM-DD format only
-- For years, only use values between 1800-2026
+- Where uncertain over interpretation, or where the existing schema does not capture enough nuance for interpretation report additional details (prerrably verbatim quotes) in *_comment fields.
 
 ## CONTROLLED VOCABULARY
 
@@ -126,3 +126,4 @@ Use these exact terms when applicable:
 ### 5. Measured Parameters
 
 - See schema
+- If the same parameter is referred to by multiple different names (e.g. Copper and Cu, Paracetamol and Acetaminophen) only include one name, preferably the fullest and most universal. However, if multiple parameters with the same chemical composition but otherwise relevant differences (e.g. particle size, structure, etc.), report these as different parameters. If uncertain, report to

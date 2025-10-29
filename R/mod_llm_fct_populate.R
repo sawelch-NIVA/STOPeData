@@ -329,6 +329,7 @@ create_parameters_from_llm <- function(
 
     param_name <- safe_extract_field(param, "parameter_name", "")
     cas_rn <- safe_extract_field(param, "cas_rn", "")
+    param_comment <- safe_extract_field(param, "parameter_comment", "")
 
     # Try to get data from chemical database
     db_match <- find_db_match(param_name, cas_rn, chemical_parameters)
@@ -359,7 +360,8 @@ create_parameters_from_llm <- function(
       INCHIKEY_SD = if (!is.null(db_match)) db_match$INCHIKEY_SD else "",
       PUBCHEM_CID = if (!is.null(db_match)) db_match$PUBCHEM_CID else "",
       CAS_RN = cas_rn,
-      ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% ""
+      ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
+      PARAMETER_COMMENT = param_comment,
     )
   })
 

@@ -6,6 +6,7 @@
 # Last Updated 2025.10.23
 # TODO: Implement caching for functions that call big datasets, if there turns
 # out to be performance issues
+# TODO: Update mod_llm_fct_populate to integrate with these functions, if poss.
 
 # -----------------------
 # ---- TABLE FORMATS ----
@@ -124,7 +125,8 @@ initialise_parameters_tibble <- function() {
     INCHIKEY_SD = character(),
     PUBCHEM_CID = character(),
     CAS_RN = character(),
-    ENTERED_BY = character()
+    ENTERED_BY = character(),
+    PARAMETER_COMMENT = character()
   )
 }
 
