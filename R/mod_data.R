@@ -69,6 +69,10 @@ mod_data_ui <- function(id) {
           "Automatic validation of table",
           value = TRUE
         ),
+        input_task_button(
+          id = ns("save_table_data"),
+          label = "Save Table Data"
+        ),
         div(
           hidden(div(
             id = "validation-llm-reporter",
@@ -434,7 +438,7 @@ mod_data_server <- function(id, parent_session) {
           EXTRACTION_PROTOCOL = "",
           ANALYTICAL_PROTOCOL = "",
 
-          REFERENCE_ID = reference_data$REFERENCE_ID,
+          REFERENCE_ID = reference_data$REFERENCE_ID %||% "UnknownReference",
         ) |>
         relocate(SAMPLE_ID, ENVIRON_COMPARTMENT, .after = REFERENCE_ID)
 
@@ -512,29 +516,29 @@ mod_data_server <- function(id, parent_session) {
     # upstream: input$measurement_table changes
     # downstream: moduleState$measurement_combinations
     # ! FORMAT-BASED
-    # observe({
-    #   # browser()
-    #   # TODO: This triggers far too often. Is it what's been causing Cam's repeated issues?
-    #   # In practical terms moduleState$data_entry_ready probably shouldn't be true yet anyway...
-    #   if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
-    #     updated_data <- hot_to_r(input$measurement_table)
-    #     moduleState$measurement_combinations <- updated_data
+    observe({
+      # browser()
+      # TODO: This triggers far too often. Is it what's been causing Cam's repeated issues?
+      # In practical terms moduleState$data_entry_ready probably shouldn't be true yet anyway...
+      if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
+        updated_data <- hot_to_r(input$measurement_table)
+        moduleState$measurement_combinations <- updated_data
 
-    #     # Update LOQ_UNIT and LOD_UNIT to match MEASURED_UNIT
-    #     # TODO: Remove or renable. But we hardly need to make the table more complicated right now.
-    #     # for (i in 1:nrow(moduleState$measurement_combinations)) {
-    #     #   measured_unit <- moduleState$measurement_combinations[
-    #     #     i,
-    #     #     "MEASURED_UNIT"
-    #     #   ]
-    #     #   if (!is.na(measured_unit) && measured_unit != "") {
-    #     #     moduleState$measurement_combinations[i, "LOQ_UNIT"] <- measured_unit
-    #     #     moduleState$measurement_combinations[i, "LOD_UNIT"] <- measured_unit
-    #     #   }
-    #     # }
-    #   }
-    # }) |>
-    #   bindEvent(input$measurement_table)
+        # Update LOQ_UNIT and LOD_UNIT to match MEASURED_UNIT
+        # TODO: Remove or renable. But we hardly need to make the table more complicated right now.
+        # for (i in 1:nrow(moduleState$measurement_combinations)) {
+        #   measured_unit <- moduleState$measurement_combinations[
+        #     i,
+        #     "MEASURED_UNIT"
+        #   ]
+        #   if (!is.na(measured_unit) && measured_unit != "") {
+        #     moduleState$measurement_combinations[i, "LOQ_UNIT"] <- measured_unit
+        #     moduleState$measurement_combinations[i, "LOD_UNIT"] <- measured_unit
+        #   }
+        # }
+      }
+    }) |>
+      bindEvent(input$save_table_data)
 
     ## observe: Check measurement data validation and save to session ----
     # upstream: moduleState$measurement_combinations, iv

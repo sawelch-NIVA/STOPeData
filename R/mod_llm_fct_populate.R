@@ -126,6 +126,14 @@ populate_references_from_llm <- function(session, llm_references_data) {
     selected = ref_type
   )
 
+  # doing this here is a little crude but currently the above
+  # observer isn't triggered by llm extract
+  reference_id <- generate_reference_id(
+    date = llm_references_data$year,
+    author = llm_references_data$author,
+    title = llm_references_data$title
+  )
+
   if (!is.null(llm_references_data$author)) {
     updateTextAreaInput(
       session,
