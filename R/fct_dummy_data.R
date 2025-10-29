@@ -6,16 +6,20 @@
 #' @description Creates a complete set of dummy environmental exposure data
 #' that can be used for testing the application or demonstration purposes.
 #' This includes campaign info, references, sites, parameters, compartments,
-#' biota, and methods data.
+#' biota, and methods data. This returns a list because that's the format we
+#' expect to get structured data back from the LLM in, even though we prefer
+#' tibbles
 #'
 #' @param uppercase_columns Logical. If TRUE, converts data frame column names
 #'   to uppercase for app data structures. If FALSE, keeps lowercase for LLM extraction.
 #'
+#' @importFrom tibble tibble is_tibble
 #' @return List containing all dummy data structures
 #' @export
 create_dummy_data <- function(uppercase_columns = FALSE) {
   dummy_data <- list(
     campaign = list(
+      # TODO: Actually, should this be a tibble? Need to coordinate with other stuff.
       campaign_name = "Dummy campaign, 1997",
       campaign_name_short = "DummyCampaign1997",
       campaign_start_date = "1997-01-01",
@@ -33,39 +37,35 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       publisher = "NIVA Library",
       doi = NULL
     ),
-    sites = data.frame(
+    sites = tibble(
       site_code = "NIVA-001",
       site_name = "NIVA Office",
       latitude = 59.924634,
       longitude = 10.792297,
       country = "Norway",
-      site_geographic_feature = "Coastal fjord",
-      stringsAsFactors = FALSE
+      site_geographic_feature = "Coastal fjord"
     ),
-    parameters = data.frame(
+    parameters = tibble(
       parameter_name = c("Silver"),
       parameter_type = rep("Stressor", 1),
       cas_rn = c(
         "7440-22-4"
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    compartments = data.frame(
+    compartments = tibble(
       environ_compartment = c("Aquatic", "Biota"),
       environ_compartment_sub = c("Marine/Salt Water", "Biota, Aquatic"),
-      measured_category = c("External", "Internal"),
-      stringsAsFactors = FALSE
+      measured_category = c("External", "Internal")
     ),
-    biota = data.frame(
+    biota = tibble(
       sample_id = NA_character_,
       species_group = "Crustaceans",
       sample_species = "Daphnia magna",
       sample_tissue = "Whole body",
       sample_species_lifestage = "Adult",
-      sample_species_gender = "Female",
-      stringsAsFactors = FALSE
+      sample_species_gender = "Female"
     ),
-    methods = data.frame(
+    methods = tibble(
       protocol_category = c(
         "Sampling Protocol",
         "Analytical Protocol",
@@ -80,27 +80,24 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
         "Adult copepods collected between January and March 1997, acclimated to 15°C for 12 days",
         "Radioactivity measured with NaI(Tl) gamma detectors at specific energy levels for each isotope",
         ""
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    samples = data.frame(
+    samples = tibble(
       sampling_date = c("2025-09-29", "2023-02-12")
     )
   )
 
   # Convert data frame column names to uppercase if requested
   if (uppercase_columns) {
-    data_frame_elements <- c(
+    tibble_elements <- c(
       "sites",
       "parameters",
       "compartments",
       "biota",
       "methods"
     )
-    for (element in data_frame_elements) {
-      if (
-        !is.null(dummy_data[[element]]) && is.data.frame(dummy_data[[element]])
-      ) {
+    for (element in tibble_elements) {
+      if (!is.null(dummy_data[[element]]) && is_tibble(dummy_data[[element]])) {
         names(dummy_data[[element]]) <- toupper(names(dummy_data[[element]]))
       }
     }

@@ -125,7 +125,6 @@ generate_units_summary <- function(measurement_data, parameters_data) {
   ) {
     return("Relevant data not found")
   }
-  browser()
 
   # Join measurement data with parameter names
   merged_data <- merge(
@@ -405,6 +404,182 @@ create_justification_input <- function(ns, criterion_id) {
   )
 }
 
+#' @title summarise user-entered data for the CREED dataset details reporting
+#' @description summarise session user data into pretty strings for CREED "Dataset Details" reporting
+#' @param sessionData session$userData$reactiveValues object
+#' @return tibble of Dataset Details fields ("field") and pretty strings ("value")
+#' @export
+summarise_CREED_details <- function(sessionData) {
+  # Helper function to check if a dataset exists and has content
+  dataset_exists <- function(dataset) {
+    isTruthy(dataset) && !all(is.na(dataset))
+  }
+
+  # Check existence of each dataset once
+  has_reference <- dataset_exists(sessionData$referenceData)
+  has_parameters <- dataset_exists(sessionData$parametersData)
+  has_compartments <- dataset_exists(sessionData$compartmentsData)
+  has_sites <- dataset_exists(sessionData$sitesData)
+  has_samples <- dataset_exists(sessionData$samplesData)
+  has_methods <- dataset_exists(sessionData$methodsData)
+  has_measurements <- dataset_exists(sessionData$measurementsData)
+
+  # Extract values into intermediate variables
+  source_value <- if (has_reference) {
+    create_bibliography_reference(sessionData$referenceData)
+  } else {
+    "Relevant data not found"
+  }
+
+  analytes_value <- if (has_parameters) {
+    summarize_multiple(
+      sessionData$parametersData$PARAMETER_NAME,
+      "Parameters"
+    )
+  } else {
+    "Relevant data not found"
+  }
+
+  medium_value <- if (has_compartments) {
+    summarize_multiple(
+      sessionData$compartmentsData$ENVIRON_COMPARTMENT,
+      "Compartments"
+    )
+  } else {
+    "Relevant data not found"
+  }
+
+  study_area_value <- if (has_sites) {
+    countries <- summarize_multiple(
+      sessionData$sitesData$COUNTRY,
+      "Countries"
+    )
+    areas <- summarize_multiple(sessionData$sitesData$AREA, "Areas")
+    paste(countries, areas, sep = "; ")
+  } else {
+    "Relevant data not found"
+  }
+
+  num_sites_value <- if (has_sites) {
+    as.character(nrow(sessionData$sitesData))
+  } else {
+    "Relevant data not found"
+  }
+
+  site_types_value <- if (has_sites) {
+    summarize_multiple(
+      sessionData$sitesData$SITE_GEOGRAPHICAL_FEATURE,
+      "Site Types"
+    )
+  } else {
+    "Relevant data not found"
+  }
+
+  num_samples_value <- if (has_samples) {
+    as.character(nrow(sessionData$samplesData))
+  } else {
+    "Relevant data not found"
+  }
+
+  sampling_period_value <- if (has_samples) {
+    calculate_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
+
+  sampling_methods_value <- if (has_methods) {
+    sampling_only <- sessionData$methodsData[
+      sessionData$methodsData$PROTOCOL_CATEGORY == "Sampling Protocol",
+    ]
+    if (nrow(sampling_only) > 0) {
+      summarize_multiple(sampling_only$PROTOCOL_NAME, "Sampling Protocols")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  analytical_methods_value <- if (has_methods) {
+    analytical_only <- sessionData$methodsData[
+      sessionData$methodsData$PROTOCOL_CATEGORY == "Analytical Protocol",
+    ]
+    if (nrow(analytical_only) > 0) {
+      summarize_multiple(
+        analytical_only$PROTOCOL_NAME,
+        "Analytical Protocols"
+      )
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  loq_info_value <- if (has_measurements) {
+    loq_values <- sessionData$measurementsData$LOQ_VALUE[
+      !is.na(sessionData$measurementsData$LOQ_VALUE)
+    ]
+    lod_values <- sessionData$measurementsData$LOD_VALUE[
+      !is.na(sessionData$measurementsData$LOD_VALUE)
+    ]
+
+    info_parts <- c()
+    if (length(loq_values) > 0) {
+      loq_range <- paste(min(loq_values), "to", max(loq_values))
+      loq_unit <- sessionData$measurementsData$LOQ_UNIT[
+        !is.na(sessionData$measurementsData$LOQ_UNIT)
+      ][1]
+      info_parts <- c(info_parts, paste("LOQ:", loq_range, loq_unit))
+    }
+    if (length(lod_values) > 0) {
+      lod_range <- paste(min(lod_values), "to", max(lod_values))
+      lod_unit <- sessionData$measurementsData$LOD_UNIT[
+        !is.na(sessionData$measurementsData$LOD_UNIT)
+      ][1]
+      info_parts <- c(info_parts, paste("LOD:", lod_range, lod_unit))
+    }
+
+    if (length(info_parts) > 0) {
+      paste(info_parts, collapse = "; ")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # Build tibble from extracted values
+  tibble(
+    field = c(
+      "source",
+      "analytes",
+      "medium",
+      "study_area",
+      "num_sites",
+      "site_types",
+      "num_samples",
+      "sampling_period",
+      "sampling_methods",
+      "analytical_methods",
+      "loq_info"
+    ),
+    value = c(
+      source_value,
+      analytes_value,
+      medium_value,
+      study_area_value,
+      num_sites_value,
+      site_types_value,
+      num_samples_value,
+      sampling_period_value,
+      sampling_methods_value,
+      analytical_methods_value,
+      loq_info_value
+    )
+  )
+}
+
 #' Create Conditional Criterion Section
 #'
 #' @description Creates a criterion section that can be conditionally disabled
@@ -456,7 +631,7 @@ auto_populate_reliability_fields <- function(user_data) {
     compartments = user_data$compartmentsData,
     samples = user_data$samplesData,
     methods = user_data$methodsData,
-    measurements = user_data$dataData
+    measurements = user_data$measurementsData
   )
 
   summaries <- summarise_CREED_details(module_data)
@@ -489,7 +664,7 @@ auto_populate_relevance_fields <- function(user_data) {
     compartments = user_data$compartmentsData,
     samples = user_data$samplesData,
     methods = user_data$methodsData,
-    measurements = user_data$dataData
+    measurements = user_data$measurementsData
   )
 
   summaries <- summarise_CREED_details(module_data)

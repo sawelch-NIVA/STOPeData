@@ -187,20 +187,20 @@ mod_CREED_server <- function(id) {
 
     # 3. Observers and Reactives ----
     ## observe: enable CREED assessment only when all previous modules have been filled out ----
-    # upstream: nrow(dataData) > 0
+    # upstream: nrow(measurementsData) > 0
     # downstream: pretty much everything in the module
-    observe({
-      if (nrow(session$userData$reactiveValues$dataData) > 0) {
-        moduleState$ready_for_assessment <- TRUE
-        # enable(id = "input$get_data")
-      } else {
-        moduleState$ready_for_assessment <- FALSE
-        # disable(id = "input$get_data")
-      }
-    }) |>
-      bindEvent(
-        session$userData$reactiveValues$dataData
-      )
+    # observe({
+    #   if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
+    #     moduleState$ready_for_assessment <- TRUE
+    #     enable(id = "input$get_data")
+    #   } else {
+    #     moduleState$ready_for_assessment <- FALSE
+    #     disable(id = "input$get_data")
+    #   }
+    # }) |>
+    #   bindEvent(
+    #     session$userData$reactiveValues$measurementsData
+    #   )
 
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment

@@ -132,7 +132,7 @@ mod_review_ui <- function(id) {
 #' @importFrom plotly renderPlotly plot_ly add_markers add_bars layout config
 #' @importFrom dplyr filter group_by summarise count mutate arrange desc case_when n
 #' @importFrom ggplot2 ggplot aes geom_point geom_boxplot geom_bar theme_minimal labs
-#' @importFrom plotly ggplotly
+#' @importFrom plotly ggplotly add_text
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @export
@@ -154,7 +154,7 @@ mod_review_server <- function(id) {
     create_dummy_review_data <- function() {
       set.seed(42) # For reproducible dummy data
 
-      dummy_data <- data.frame(
+      dummy_data <- tibble(
         SAMPLE_ID = paste0("DUMMY_", sprintf("%03d", 1:50)),
         SITE_CODE = rep(
           c("DEMO_SITE_A", "DEMO_SITE_B", "DEMO_SITE_C"),
@@ -257,19 +257,17 @@ mod_review_server <- function(id) {
         ),
 
         # Campaign info
-        CAMPAIGN_NAME = "DEMO_CAMPAIGN_2024",
-
-        stringsAsFactors = FALSE
+        CAMPAIGN_NAME = "DEMO_CAMPAIGN_2024"
       )
 
       return(dummy_data)
     }
 
     ## observe: Check for available data ----
-    # upstream: session$userData$reactiveValues$dataData
+    # upstream: session$userData$reactiveValues$measurementsData
     # downstream: moduleState$data_available, moduleState$review_data
     observe({
-      data <- session$userData$reactiveValues$dataData
+      data <- session$userData$reactiveValues$measurementsData
 
       if (!is.null(data) && nrow(data) > 0) {
         moduleState$data_available <- TRUE
@@ -285,7 +283,7 @@ mod_review_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$dataData,
+        session$userData$reactiveValues$measurementsData,
         ignoreNULL = FALSE,
         ignoreInit = TRUE
       )

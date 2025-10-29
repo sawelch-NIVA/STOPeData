@@ -140,12 +140,14 @@ validate_longitude <- function(lon) {
 #' @param parameters_data Parameters data frame (in module format with PARAMETER_NAME, CAS_RN columns)
 #' @param chemical_parameters Reference database
 #' @return List with validation results and formatted text output
+#' @importFrom glue glue
 #' @noRd
 # ! FORMAT-BASED
 validate_parameters_against_database <- function(
   parameters_data,
   chemical_parameters
 ) {
+  # Early return handling ----
   if (is.null(parameters_data) || nrow(parameters_data) == 0) {
     return(list(
       validation_text = "No parameters to validate.",
@@ -153,31 +155,33 @@ validate_parameters_against_database <- function(
     ))
   }
 
-  output_lines <- c("Parameter Database Validation Results:", "")
+  # Initialize tracking variables ----
   has_warnings <- FALSE
+
+  # Header section ----
+  header_section <- glue(
+    "Parameter Database Validation Results:",
+    "",
+    .sep = "\n"
+  )
+
+  # Parameter validation sections ----
+  parameter_sections <- c()
 
   for (i in seq_len(nrow(parameters_data))) {
     param_name <- parameters_data[i, "PARAMETER_NAME"]
-    cas_rn <- parameters_data[i, "CAS_RN"]
+    cas_rn <- parameters_data[[i, "CAS_RN"]]
 
-    output_lines <- c(
-      output_lines,
-      paste0(
-        "Row ",
-        i,
-        ": \"",
-        param_name,
-        "\"",
-        if (!is.na(cas_rn) && cas_rn != "") {
-          paste0(" (CAS: ", cas_rn, ")")
-        } else {
-          ""
-        }
-      )
+    # Parameter header ----
+    param_header <- glue(
+      "Row {i}: \"{param_name}\"",
+      "{if (!is.na(cas_rn) && cas_rn != '') glue(' (CAS: {cas_rn})') else ''}"
     )
 
-    # Name validation (exact match only)
+    # Name validation ----
+    name_validation_lines <- c()
     name_found <- FALSE
+
     if (!is.na(param_name) && param_name != "") {
       exact_matches <- chemical_parameters[
         tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
@@ -185,78 +189,102 @@ validate_parameters_against_database <- function(
 
       if (nrow(exact_matches) > 0) {
         name_found <- TRUE
-        output_lines <- c(output_lines, "  ✓ Name found in database")
+        name_validation_lines <- c(
+          name_validation_lines,
+          "  ✓ Name found in database"
+        )
 
         # Suggest CAS if missing
         if (
           (is.na(cas_rn) || cas_rn == "") && !is.na(exact_matches$CAS_RN[1])
         ) {
-          output_lines <- c(
-            output_lines,
-            paste0("  → Suggested CAS: ", exact_matches$CAS_RN[1])
+          name_validation_lines <- c(
+            name_validation_lines,
+            glue("  → Suggested CAS: {exact_matches$CAS_RN[1]}")
           )
         }
       } else {
-        output_lines <- c(output_lines, "  ⚠ Name not found in database")
+        name_validation_lines <- c(
+          name_validation_lines,
+          "  ⚠ Name not found in database"
+        )
         has_warnings <- TRUE
       }
     } else {
-      output_lines <- c(output_lines, "  ⚠ No parameter name provided")
+      name_validation_lines <- c(
+        name_validation_lines,
+        "  ⚠ No parameter name provided"
+      )
       has_warnings <- TRUE
     }
 
-    # CAS validation
+    # CAS validation ----
+    cas_validation_lines <- c()
     cas_found <- FALSE
+
     if (!is.na(cas_rn) && cas_rn != "") {
-      cas_matches <- chemical_parameters[
-        !is.na(chemical_parameters$CAS_RN) &
-          chemical_parameters$CAS_RN == cas_rn,
-      ]
+      cas_matches <- chemical_parameters |>
+        filter(!is.na(CAS_RN) & CAS_RN == cas_rn)
 
       if (nrow(cas_matches) > 0) {
         cas_found <- TRUE
-        output_lines <- c(output_lines, "  ✓ CAS number found in database")
+        cas_validation_lines <- c(
+          cas_validation_lines,
+          "  ✓ CAS number found in database"
+        )
 
         # Check name-CAS consistency
         if (
           name_found &&
             !tolower(param_name) %in% tolower(cas_matches$PARAMETER_NAME)
         ) {
-          output_lines <- c(
-            output_lines,
-            paste0(
-              "  ⚠ Name-CAS mismatch. CAS ",
-              cas_rn,
-              " belongs to: ",
-              cas_matches$PARAMETER_NAME[1]
+          cas_validation_lines <- c(
+            cas_validation_lines,
+            glue(
+              "  ⚠ Name-CAS mismatch. CAS {cas_rn} belongs to: {cas_matches$PARAMETER_NAME[1]}"
             )
           )
           has_warnings <- TRUE
         }
       } else {
-        output_lines <- c(output_lines, "  ⚠ CAS number not found in database")
+        cas_validation_lines <- c(
+          cas_validation_lines,
+          "  ⚠ CAS number not found in database"
+        )
         has_warnings <- TRUE
       }
     }
 
-    # Overall status
+    # Overall parameter status ----
+    overall_status_lines <- c()
     if (!name_found && !cas_found) {
-      output_lines <- c(
-        output_lines,
+      overall_status_lines <- c(
+        overall_status_lines,
         "  → Recommendation: Verify parameter identity"
       )
     }
 
-    output_lines <- c(output_lines, "") # Blank line between parameters
+    # Combine this parameter's validation ----
+    parameter_section <- glue(
+      param_header,
+      paste(name_validation_lines, collapse = "\n"),
+      paste(cas_validation_lines, collapse = "\n"),
+      paste(overall_status_lines, collapse = "\n"),
+      "", # Blank line between parameters
+      .sep = "\n"
+    )
+
+    parameter_sections <- c(parameter_sections, parameter_section)
   }
 
-  # Summary
+  # Calculate summary statistics ----
   total_params <- nrow(parameters_data)
+
   name_matches <- sum(
     !is.na(parameters_data$PARAMETER_NAME) &
       parameters_data$PARAMETER_NAME != "" &
       sapply(1:nrow(parameters_data), function(i) {
-        param_name <- parameters_data[i, "PARAMETER_NAME"]
+        param_name <- parameters_data[[i, "PARAMETER_NAME"]]
         nrow(chemical_parameters[
           tolower(chemical_parameters$PARAMETER_NAME) == tolower(param_name),
         ]) >
@@ -269,41 +297,48 @@ validate_parameters_against_database <- function(
       parameters_data$CAS_RN != "" &
       sapply(1:nrow(parameters_data), function(i) {
         cas_rn <- parameters_data[i, "CAS_RN"]
-        nrow(chemical_parameters[
-          !is.na(chemical_parameters$CAS_RN) &
-            chemical_parameters$CAS_RN == cas_rn,
-        ]) >
+        nrow(
+          chemical_parameters |> filter(!is.na(CAS_RN) & CAS_RN %in% cas_rn)
+        ) >
           0
       })
   )
 
-  output_lines <- c(output_lines, "Summary:")
-  output_lines <- c(
-    output_lines,
-    paste0("  Parameters processed: ", total_params)
-  )
-  output_lines <- c(
-    output_lines,
-    paste0("  Names found in database: ", name_matches, "/", total_params)
-  )
-  output_lines <- c(
-    output_lines,
-    paste0("  CAS numbers found in database: ", cas_matches, "/", total_params)
+  # Summary section ----
+  summary_section <- glue(
+    "Summary:",
+    "  Parameters processed: {total_params}",
+    "  Names found in database: {name_matches}/{total_params}",
+    "  CAS numbers found in database: {cas_matches}/{total_params}",
+    .sep = "\n"
   )
 
-  if (has_warnings) {
-    output_lines <- c(output_lines, "")
-    output_lines <- c(
-      output_lines,
-      "⚠ Some parameters need review. Check suggestions above."
+  # Final status section ----
+  final_status_section <- if (has_warnings) {
+    glue(
+      "",
+      "⚠ Some parameters need review. Check suggestions above.",
+      .sep = "\n"
     )
   } else {
-    output_lines <- c(output_lines, "")
-    output_lines <- c(output_lines, "✓ All parameters found in database!")
+    glue(
+      "",
+      "✓ All parameters found in database!",
+      .sep = "\n"
+    )
   }
 
+  # Combine all sections ----
+  validation_text <- glue(
+    header_section,
+    paste(parameter_sections, collapse = ""),
+    summary_section,
+    final_status_section,
+    .sep = "\n"
+  )
+
   return(list(
-    validation_text = paste(output_lines, collapse = "\n"),
+    validation_text = validation_text,
     has_warnings = has_warnings
   ))
 }

@@ -3,40 +3,36 @@
 # Test data setup ----
 setup_test_data <- function() {
   list(
-    sites = data.frame(
+    sites = tibble(
       SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
-      SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
-      stringsAsFactors = FALSE
+      SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C")
     ),
-    parameters = data.frame(
+    parameters = tibble(
       STRESSOR_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
       STRESSOR_TYPE = c(
         "Stressor",
         "Stressor",
         "Quality parameter",
         "Quality parameter"
-      ),
-      stringsAsFactors = FALSE
+      )
     ),
-    compartments = data.frame(
+    compartments = tibble(
       ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
       ENVIRON_COMPARTMENT_SUB = c(
         "Freshwater",
         "Marine/Salt Water",
         "Soil A Horizon (Topsoil)"
       ),
-      MEASURED_CATEGORY = c("External", "External", "External"),
-      stringsAsFactors = FALSE
+      MEASURED_CATEGORY = c("External", "External", "External")
     ),
-    existing_samples = data.frame(
+    existing_samples = tibble(
       SITE_CODE = c("SITE_001", "SITE_002"),
       PARAMETER_NAME = c("Copper", "Lead"),
       ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic"),
       ENVIRON_COMPARTMENT_SUB = c("Freshwater", "Marine/Salt Water"),
       MEASURED_CATEGORY = c("External", "External"),
       SAMPLING_DATE = c("2024-01-15", "2024-01-15"),
-      REP = c(1, 1),
-      stringsAsFactors = FALSE
+      REP = c(1, 1)
     )
   )
 }
@@ -272,46 +268,6 @@ test_that("update_combination_preview generates correct preview text", {
   result <- update_combination_preview(0, 0, 0, 0, 1)
   result_html <- as.character(result)
   expect_true(grepl("0 total samples", result_html))
-})
-
-# Test init_samples_df ----
-test_that("init_samples_df creates correct empty data frame", {
-  result <- init_samples_df()
-
-  expect_s3_class(result, "data.frame")
-  expect_equal(nrow(result), 0)
-  expect_equal(ncol(result), 11)
-
-  expected_cols <- c(
-    "SITE_CODE",
-    "SITE_NAME",
-    "PARAMETER_NAME",
-    "PARAMETER_TYPE",
-    "ENVIRON_COMPARTMENT",
-    "ENVIRON_COMPARTMENT_SUB",
-    "MEASURED_CATEGORY",
-    "SAMPLING_DATE",
-    "REP",
-    "REPLICATE_ID",
-    "SAMPLE_ID"
-  )
-  expect_equal(names(result), expected_cols)
-
-  # Test that most columns are character type
-  char_cols <- c(
-    "SITE_CODE",
-    "SITE_NAME",
-    "PARAMETER_NAME",
-    "PARAMETER_TYPE",
-    "ENVIRON_COMPARTMENT",
-    "ENVIRON_COMPARTMENT_SUB",
-    "MEASURED_CATEGORY",
-    "SAMPLING_DATE",
-    "REPLICATE_ID",
-    "SAMPLE_ID"
-  )
-  expect_true(all(sapply(result[char_cols], is.character)))
-  expect_true(is.numeric(result$REP))
 })
 
 # Integration tests ----

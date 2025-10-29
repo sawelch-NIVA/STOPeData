@@ -288,6 +288,22 @@ mod_llm_server <- function(id) {
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
 
+      # ! I believe this is redundant due to the Populate Forms
+      # ! observer. Disabling to check.
+      # # Store in session data with LLM suffix (for LLM workflow)
+      # store_llm_data_in_session(session, dummy_data)
+
+      # Also save outputs to server data so we can download them later if needed
+      session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
+      session$userData$reactiveValues$promptLLM <- if (
+        isTruthy(input$system_prompt)
+      ) {
+        input$system_prompt
+      } else {
+        create_extraction_prompt()
+      }
+      session$userData$reactiveValues$rawLLM <- dummy_data
+
       showNotification(
         "Dummy data loaded successfully!",
         type = "default"
@@ -404,6 +420,11 @@ mod_llm_server <- function(id) {
             moduleState$error_message <- NULL
             moduleState$api_metadata <- api_metadata
 
+            # Also save outputs to server data so we can download them later if needed
+            session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
+            session$userData$reactiveValues$promptLLM <- system_prompt
+            session$userData$reactiveValues$rawLLM <- result
+
             # Step 8: Update session data
             incProgress(0.9, detail = "Updating data...")
 
@@ -518,7 +539,8 @@ mod_llm_server <- function(id) {
 
           if (!is.null(moduleState$structured_data$methods)) {
             methods_data <- create_methods_from_llm(
-              moduleState$structured_data$methods
+              moduleState$structured_data$methods,
+              moduleState$structured_data$campaign
             )
             session$userData$reactiveValues$methodsDataLLM <- methods_data
           }

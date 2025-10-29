@@ -3,11 +3,11 @@
 
 #' Update Sites Selectize Input ----
 #' @param session Shiny session
-#' @param sites_data Data frame with SITE_CODE and SITE_NAME columns
+#' @param sites_data tibble with SITE_CODE and SITE_NAME columns
 #' @importFrom stats setNames
 #' @noRd
 update_sites_selectize <- function(session, sites_data) {
-  if (is.null(sites_data) || nrow(sites_data) == 0) {
+  if (nrow(sites_data) == 0) {
     choices <- character(0)
     placeholder <- "No sites available - add sites first"
   } else {
@@ -39,7 +39,7 @@ update_sites_selectize <- function(session, sites_data) {
 #' @importFrom stats setNames
 #' @noRd
 update_parameters_selectize <- function(session, parameters_data) {
-  if (is.null(parameters_data) || nrow(parameters_data) == 0) {
+  if (nrow(parameters_data) == 0) {
     choices <- character(0)
     placeholder <- "No parameters available - add parameters first"
   } else {
@@ -78,7 +78,7 @@ update_parameters_selectize <- function(session, parameters_data) {
 #' @importFrom stats setNames
 #' @noRd
 update_compartments_selectize <- function(session, compartments_data) {
-  if (is.null(compartments_data) || nrow(compartments_data) == 0) {
+  if (nrow(compartments_data) == 0) {
     choices <- character(0)
     placeholder <- "No compartments available - add compartments first"
   } else {
@@ -133,15 +133,14 @@ parse_compartment_selections <- function(
   available_compartments
 ) {
   if (is.null(compartment_selections) || length(compartment_selections) == 0) {
-    return(data.frame(
+    return(tibble(
       ENVIRON_COMPARTMENT = character(0),
       ENVIRON_COMPARTMENT_SUB = character(0),
-      MEASURED_CATEGORY = character(0),
-      stringsAsFactors = FALSE
+      MEASURED_CATEGORY = character(0)
     ))
   }
 
-  parsed <- data.frame()
+  parsed <- tibble()
 
   for (selection in compartment_selections) {
     # Parse "Aquatic | Freshwater" format
@@ -191,13 +190,7 @@ generate_sample_id_with_components <- function(
   )
   date_abbrev <- gsub("-", "-", date)
 
-  base_id <- paste(
-    site_code,
-    param_abbrev,
-    comp_abbrev,
-    date_abbrev,
-    sep = "-"
-  )
+  base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
   # Vectorized replicate handling
   replicate_suffix <- ifelse(replicate > 1, sprintf("-R%02d", replicate), "")
@@ -261,7 +254,8 @@ combination_exists_with_components <- function(
 #' @param available_sites Available sites data frame for lookup (optional)
 #' @param available_parameters Available parameters data frame for lookup (optional)
 #' @importFrom stats setNames
-#' @importFrom purrr map_dfr
+#' @importFrom purrr map_dfr map map_dbl
+#' @importFrom tidyr expand_grid
 #' @noRd
 create_sample_combinations <- function(
   sites,
@@ -290,7 +284,7 @@ create_sample_combinations <- function(
 
   if (nrow(parsed_compartments) == 0) {
     warning("No valid compartment combinations found")
-    return(list(combinations = data.frame(), skipped = 0))
+    return(list(combinations = tibble(), skipped = 0))
   }
 
   # Process dates using functional approach to avoid class-stripping
@@ -305,15 +299,14 @@ create_sample_combinations <- function(
     }
 
     # Create base combinations for this date
-    base_combinations <- tidyr::expand_grid(
+    base_combinations <- expand_grid(
       SITE_CODE = sites,
       PARAMETER_NAME = parameters,
-      SAMPLING_DATE = date_char, # Always store as character
-      stringsAsFactors = FALSE
+      SAMPLING_DATE = date_char
     )
 
     # Process each base combination with compartments and replicates
-    date_combinations <- data.frame()
+    date_combinations <- tibble()
     skipped_for_date <- 0
 
     for (i in 1:nrow(base_combinations)) {
@@ -323,15 +316,14 @@ create_sample_combinations <- function(
 
         # Add replicates for each combination
         for (rep in 1:replicates) {
-          combination <- data.frame(
+          combination <- tibble(
             SITE_CODE = base_combo$SITE_CODE,
             PARAMETER_NAME = base_combo$PARAMETER_NAME,
             ENVIRON_COMPARTMENT = compartment_combo$ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB = compartment_combo$ENVIRON_COMPARTMENT_SUB,
             MEASURED_CATEGORY = compartment_combo$MEASURED_CATEGORY,
-            SAMPLING_DATE = base_combo$SAMPLING_DATE, # Already character
-            REP = rep,
-            stringsAsFactors = FALSE
+            SAMPLING_DATE = base_combo$SAMPLING_DATE, #
+            REP = rep
           )
 
           # Check if this exact combination (including replicate) exists
@@ -362,9 +354,9 @@ create_sample_combinations <- function(
   # Combine results from all dates
   all_combinations <- do.call(
     rbind,
-    purrr::map(all_combinations_list, ~ .$combinations)
+    map(all_combinations_list, ~ .$combinations)
   )
-  total_skipped <- sum(purrr::map_dbl(all_combinations_list, ~ .$skipped))
+  total_skipped <- sum(map_dbl(all_combinations_list, ~ .$skipped))
 
   if (nrow(all_combinations) > 0) {
     # Populate SITE_NAME from available_sites if provided
@@ -401,29 +393,19 @@ create_sample_combinations <- function(
     }
 
     # Create replicate ID
-    all_combinations$REPLICATE_ID <- paste0(
-      all_combinations$SITE_CODE,
-      "_",
-      substr(gsub("[^A-Za-z0-9]", "", all_combinations$PARAMETER_NAME), 1, 8),
-      "_",
-      substr(
-        gsub("[^A-Za-z0-9]", "", all_combinations$ENVIRON_COMPARTMENT),
-        1,
-        6
-      ),
-      "_",
-      substr(
-        gsub("[^A-Za-z0-9]", "", all_combinations$ENVIRON_COMPARTMENT_SUB),
-        1,
-        6
-      ),
-      "_",
-      gsub("-", "", all_combinations$SAMPLING_DATE),
-      ifelse(
-        all_combinations$REP > 1,
-        sprintf("_R%02d", all_combinations$REP),
-        ""
-      )
+    # Helper function to create clean abbreviations ----
+    create_abbrev <- function(text, max_length) {
+      substr(gsub("[^A-Za-z0-9]", "", text), 1, max_length)
+    }
+
+    # Create REPLICATE_ID using glue ----
+    all_combinations$REPLICATE_ID <- glue(
+      "{all_combinations$SITE_CODE}",
+      "_{create_abbrev(all_combinations$PARAMETER_NAME, 8)}",
+      "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT, 6)}",
+      "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT_SUB, 6)}",
+      "_{gsub('-', '', all_combinations$SAMPLING_DATE)}",
+      "{ifelse(all_combinations$REP > 1, glue('_R{sprintf(\"%02d\", all_combinations$REP)}'), '')}"
     )
 
     # Generate sample IDs using vectorized function
@@ -486,31 +468,11 @@ update_combination_preview <- function(
   )
 }
 
-#' Initialize Empty Samples Data Frame ----
-#' @description Updated to use separate compartment columns
-#' @noRd
-init_samples_df <- function() {
-  data.frame(
-    SITE_CODE = character(0),
-    SITE_NAME = character(0),
-    PARAMETER_NAME = character(0),
-    PARAMETER_TYPE = character(0),
-    ENVIRON_COMPARTMENT = character(0), # Changed from COMPARTMENT
-    ENVIRON_COMPARTMENT_SUB = character(0), # Now properly used
-    MEASURED_CATEGORY = character(0), # Added this column
-    SAMPLING_DATE = character(0),
-    REP = numeric(0),
-    REPLICATE_ID = character(0),
-    SAMPLE_ID = character(0),
-    stringsAsFactors = FALSE
-  )
-}
-
 # Dummy data for standalone testing ----
 
 #' dummy_sites ----
 #' @noRd
-dummy_sites <- data.frame(
+dummy_sites <- tibble(
   SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
   SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
   stringsAsFactors = FALSE
@@ -518,7 +480,7 @@ dummy_sites <- data.frame(
 
 #' dummy_parameters ----
 #' @noRd
-dummy_parameters <- data.frame(
+dummy_parameters <- tibble(
   PARAMETER_NAME = c("Copper", "Lead", "pH", "Dissolved oxygen"),
   PARAMETER_TYPE = c(
     "Stressor",
@@ -531,7 +493,7 @@ dummy_parameters <- data.frame(
 
 #' dummy_compartments ----
 #' @noRd
-dummy_compartments <- data.frame(
+dummy_compartments <- tibble(
   ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Terrestrial"),
   ENVIRON_COMPARTMENT_SUB = c(
     "Freshwater",

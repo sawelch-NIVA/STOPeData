@@ -326,26 +326,24 @@ mod_CREED_reliability_server <- function(id) {
       criteria_ids <- paste0("RB", 1:19)
 
       # Collect scores for completed criteria
-      scores_data <- data.frame(
-        criterion_id = character(),
-        criterion_title = character(),
-        required_recommended = character(),
-        score = character(),
-        justification = character(),
-        stringsAsFactors = FALSE
+      scores_data <- tibble(
+        criterion_id = character(0),
+        criterion_title = character(0),
+        required_recommended = character(0),
+        score = character(0),
+        justification = character(0)
       )
 
       # RB1
       if (!isTruthy(input$RB1_score) && input$RB1_score != "") {
         scores_data <- rbind(
           scores_data,
-          data.frame(
+          tibble(
             criterion_id = "RB1",
             criterion_title = "Sample Medium/Matrix",
             required_recommended = "Required",
             score = input$RB1_score,
-            justification = input$RB1_justification %||% "",
-            stringsAsFactors = FALSE
+            justification = input$RB1_justification %||% ""
           )
         )
       }
@@ -354,13 +352,12 @@ mod_CREED_reliability_server <- function(id) {
       if (!isTruthy(input$RB2_score) && input$RB2_score != "") {
         scores_data <- rbind(
           scores_data,
-          data.frame(
+          tibble(
             criterion_id = "RB2",
             criterion_title = "Collection Method/Sample Type",
             required_recommended = "Recommended",
             score = input$RB2_score,
-            justification = input$RB2_justification %||% "",
-            stringsAsFactors = FALSE
+            justification = input$RB2_justification %||% ""
           )
         )
       }

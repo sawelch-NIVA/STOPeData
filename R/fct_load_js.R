@@ -1,3 +1,6 @@
+# Rhandsontable requires us to write renderers in JS. I've put them here to avoid
+# big blocks of unstyled text strings in my nice clean modules
+
 #' Mandatory Column Renderer - Full Highlighting - Text
 #'
 #' @description Returns a JavaScript renderer function that highlights mandatory

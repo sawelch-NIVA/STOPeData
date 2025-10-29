@@ -117,8 +117,7 @@ test_that("map_crossref_to_reference_fields handles empty data", {
   # Test with minimal valid data frame
   minimal_df <- data.frame(
     title = "Test Title",
-    type = "journal-article",
-    stringsAsFactors = FALSE
+    type = "journal-article"
   )
 
   result <- map_crossref_to_reference_fields(minimal_df)
@@ -286,7 +285,9 @@ test_that("validate_and_lookup_identifier works with diverse DOIs", {
     doi <- test_dois[i]
 
     # Add some delay to be respectful to APIs
-    if (i > 1) Sys.sleep(0.01) # limit as of 2025 is 50/sec
+    if (i > 1) {
+      Sys.sleep(0.01)
+    } # limit as of 2025 is 50/sec
 
     result <- validate_and_lookup_identifier(doi)
     results[[i]] <- result

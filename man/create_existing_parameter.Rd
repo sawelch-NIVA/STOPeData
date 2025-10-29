@@ -21,7 +21,7 @@ create_existing_parameter(
 \item{session_parameters}{Optional dataframe containing session-specific parameters}
 }
 \value{
-Data.frame with parameter information or NULL if not found
+tibble with parameter information or NULL if not found
 }
 \description{
 Create parameter row from existing parameter data

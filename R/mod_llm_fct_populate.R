@@ -11,6 +11,8 @@
 #' @noRd
 #' @importFrom shiny updateTextInput updateDateInput updateSelectInput updateTextAreaInput
 # ! FORMAT-BASED
+# TODO: Rewrite to account for the fact that it now is used for save imports as well as the LLM
+# Should probably accept tibbles as an input too
 populate_campaign_from_llm <- function(session, llm_campaign_data) {
   if (is.null(llm_campaign_data)) {
     return()
@@ -124,6 +126,22 @@ populate_references_from_llm <- function(session, llm_references_data) {
     selected = ref_type
   )
 
+  # doing this here is a little crude but currently the above
+  # observer isn't triggered by llm extract
+  reference_id <- generate_reference_id(
+    date = llm_references_data$year,
+    author = llm_references_data$author,
+    title = llm_references_data$title
+  )
+
+  if (!is.null(reference_id)) {
+    updateTextInput(
+      session,
+      "REFERENCE_ID_DISPLAY",
+      value = reference_id
+    )
+  }
+
   if (!is.null(llm_references_data$author)) {
     updateTextAreaInput(
       session,
@@ -215,16 +233,16 @@ create_sites_from_llm <- function(
   session
 ) {
   if (is.null(llm_sites_data) || nrow(llm_sites_data) == 0) {
-    return(data.frame())
+    return(tibble(NULL))
   }
 
-  sites_df <- data.frame()
+  sites_tibble <- tibble()
   # Process each row of the sites data frame
   for (i in seq_len(nrow(llm_sites_data))) {
     site <- llm_sites_data[i, ]
 
     # Create site row with LLM data, filling in defaults where needed
-    site_row <- data.frame(
+    site_row <- tibble(
       # add llm_campaign_data$campaign_name to start of site code
       SITE_CODE = paste0(
         llm_campaign_data$campaign_name_short,
@@ -259,15 +277,14 @@ create_sites_from_llm <- function(
       ALTITUDE_UNIT = "m",
       ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
       ENTERED_DATE = as.character(Sys.Date()),
-      SITE_COMMENT = "",
-      stringsAsFactors = FALSE
+      SITE_COMMENT = ""
     )
 
-    sites_df <- rbind(sites_df, site_row)
+    sites_tibble <- rbind(sites_tibble, site_row)
   }
 
-  print_dev(glue("Created {nrow(sites_df)} sites from LLM data"))
-  return(sites_df)
+  print_dev(glue("Created {nrow(sites_tibble)} sites from LLM data"))
+  return(sites_tibble)
 }
 
 
@@ -289,7 +306,7 @@ create_parameters_from_llm <- function(
   session
 ) {
   if (is.null(llm_parameters_data) || nrow(llm_parameters_data) == 0) {
-    return(data.frame())
+    return(tibble())
   }
 
   # Helper function to find database match ----
@@ -323,17 +340,18 @@ create_parameters_from_llm <- function(
   }
 
   # Process each parameter row ----
-  params_df <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
+  params_tibble <- map_dfr(seq_len(nrow(llm_parameters_data)), function(i) {
     param <- llm_parameters_data[i, ]
 
     param_name <- safe_extract_field(param, "parameter_name", "")
     cas_rn <- safe_extract_field(param, "cas_rn", "")
+    param_comment <- safe_extract_field(param, "parameter_comment", "")
 
     # Try to get data from chemical database
     db_match <- find_db_match(param_name, cas_rn, chemical_parameters)
 
     # Build parameter row
-    data.frame(
+    tibble(
       PARAMETER_TYPE = if (!is.null(db_match)) {
         db_match$PARAMETER_TYPE
       } else {
@@ -359,12 +377,12 @@ create_parameters_from_llm <- function(
       PUBCHEM_CID = if (!is.null(db_match)) db_match$PUBCHEM_CID else "",
       CAS_RN = cas_rn,
       ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
-      stringsAsFactors = FALSE
+      PARAMETER_COMMENT = param_comment,
     )
   })
 
-  print_dev(glue("Created {nrow(params_df)} parameters from LLM data"))
-  return(params_df)
+  print_dev(glue("Created {nrow(params_tibble)} parameters from LLM data"))
+  return(params_tibble)
 }
 
 ## mod_parameters helper functions ----
@@ -406,16 +424,16 @@ safe_extract_field <- function(data_obj, field_name, default = NA) {
 # ! FORMAT-BASED
 create_compartments_from_llm <- function(llm_compartments_data) {
   if (is.null(llm_compartments_data) || nrow(llm_compartments_data) == 0) {
-    return(data.frame())
+    return(tibble())
   }
 
-  comps_df <- data.frame()
+  compartments_tibble <- tibble()
 
   # Process each row of the compartments data frame
   for (i in seq_len(nrow(llm_compartments_data))) {
     comp <- llm_compartments_data[i, ]
 
-    comp_row <- data.frame(
+    comp_row <- tibble(
       ENVIRON_COMPARTMENT = map_compartment_strict(safe_extract_field(
         comp,
         "environ_compartment",
@@ -430,15 +448,16 @@ create_compartments_from_llm <- function(llm_compartments_data) {
         comp,
         "measured_category",
         ""
-      )),
-      stringsAsFactors = FALSE
+      ))
     )
 
-    comps_df <- rbind(comps_df, comp_row)
+    compartments_tibble <- rbind(compartments_tibble, comp_row)
   }
 
-  print_dev(glue("Created {nrow(comps_df)} compartments from LLM data"))
-  return(comps_df)
+  print_dev(glue(
+    "Created {nrow(compartments_tibble)} compartments from LLM data"
+  ))
+  return(compartments_tibble)
 }
 
 ## mod_compartment helper functions ----
@@ -622,17 +641,17 @@ validate_longitude <- function(lon) {
 # ! FORMAT-BASED
 create_biota_from_llm <- function(llm_biota_data) {
   if (is.null(llm_biota_data) || nrow(llm_biota_data) == 0) {
-    return(data.frame())
+    return(tibble())
   }
 
-  biota_df <- data.frame()
+  biota_tibble <- tibble()
 
   # Process each row of the biota data frame
   for (i in seq_len(nrow(llm_biota_data))) {
     biota_entry <- llm_biota_data[i, ]
 
     # Create biota row with LLM data
-    biota_row <- data.frame(
+    biota_row <- tibble(
       SAMPLE_ID = safe_extract_field(
         biota_entry,
         "sample_id",
@@ -665,15 +684,14 @@ create_biota_from_llm <- function(llm_biota_data) {
         biota_entry,
         "sample_species_gender",
         ""
-      )),
-      stringsAsFactors = FALSE
+      ))
     )
 
-    biota_df <- rbind(biota_df, biota_row)
+    biota_tibble <- rbind(biota_tibble, biota_row)
   }
 
-  print_dev(glue("Created {nrow(biota_df)} biota entries from LLM data"))
-  return(biota_df)
+  print_dev(glue("Created {nrow(biota_tibble)} biota entries from LLM data"))
+  return(biota_tibble)
 }
 
 #' Validate Species Against Database
@@ -854,7 +872,7 @@ validate_species_against_database <- function(biota_data, species_database) {
 #' @return Data frame in methods module format
 #' @noRd
 # ! FORMAT-BASED
-create_methods_from_llm <- function(llm_methods_data) {
+create_methods_from_llm <- function(llm_methods_data, llm_campaign_data) {
   # Define all required protocol categories ----
   required_categories <- c(
     "Sampling Protocol",
@@ -863,7 +881,7 @@ create_methods_from_llm <- function(llm_methods_data) {
     "Analytical Protocol"
   )
 
-  methods_df <- data.frame()
+  methods_tibble <- initialise_methods_tibble()
 
   # Process LLM extracted methods if available ----
   if (!is.null(llm_methods_data) && nrow(llm_methods_data) > 0) {
@@ -871,7 +889,9 @@ create_methods_from_llm <- function(llm_methods_data) {
       method_entry <- llm_methods_data[i, ]
 
       # Create method row with LLM data
-      method_row <- data.frame(
+      method_row <- tibble(
+        PROTOCOL_ID = "",
+        CAMPAIGN_NAME = "",
         PROTOCOL_CATEGORY = map_protocol_category_strict(safe_extract_field(
           method_entry,
           "protocol_category",
@@ -882,16 +902,15 @@ create_methods_from_llm <- function(llm_methods_data) {
           method_entry,
           "protocol_comment",
           ""
-        ),
-        stringsAsFactors = FALSE
+        )
       )
 
-      methods_df <- rbind(methods_df, method_row)
+      methods_tibble <- add_row(methods_tibble, method_row)
     }
   }
 
   # Identify missing protocol categories ----
-  extracted_categories <- unique(methods_df$PROTOCOL_CATEGORY)
+  extracted_categories <- unique(methods_tibble$PROTOCOL_CATEGORY)
   extracted_categories <- extracted_categories[extracted_categories != ""] # Remove empty strings
 
   missing_categories <- setdiff(required_categories, extracted_categories)
@@ -899,14 +918,15 @@ create_methods_from_llm <- function(llm_methods_data) {
   # Add "Not reported" entries for missing categories ----
   if (length(missing_categories) > 0) {
     for (category in missing_categories) {
-      missing_row <- data.frame(
+      missing_row <- tibble(
+        PROTOCOL_ID = "",
+        CAMPAIGN_NAME = "",
         PROTOCOL_CATEGORY = category,
         PROTOCOL_NAME = "Not reported",
-        PROTOCOL_COMMENT = "",
-        stringsAsFactors = FALSE
+        PROTOCOL_COMMENT = ""
       )
 
-      methods_df <- rbind(methods_df, missing_row)
+      methods_tibble <- add_row(methods_tibble, missing_row)
     }
 
     print_dev(glue(
@@ -915,14 +935,31 @@ create_methods_from_llm <- function(llm_methods_data) {
   }
 
   # Sort by protocol category for consistency ----
-  methods_df <- methods_df[
-    order(match(methods_df$PROTOCOL_CATEGORY, required_categories)),
+  methods_tibble <- methods_tibble[
+    order(match(methods_tibble$PROTOCOL_CATEGORY, required_categories)),
   ]
 
+  # and add IDs
+  methods_tibble <- methods_tibble |>
+    group_by(PROTOCOL_CATEGORY) |>
+    mutate(sequence = row_number()) |>
+    ungroup() |>
+    mutate(
+      PROTOCOL_ID = generate_protocol_id(
+        PROTOCOL_CATEGORY,
+        PROTOCOL_NAME,
+        sequence,
+        llm_campaign_data$campaign_name_short
+      ),
+      CAMPAIGN_NAME = llm_campaign_data$campaign_name
+    ) |>
+    select(-sequence) |>
+    relocate(PROTOCOL_ID)
+
   print_dev(glue(
-    "Created {nrow(methods_df)} methods from LLM data (including missing categories)"
+    "Created {nrow(methods_tibble)} methods from LLM data (including missing categories)"
   ))
-  return(methods_df)
+  return(methods_tibble)
 }
 
 create_samples_from_llm <- function(llm_samples_data) {

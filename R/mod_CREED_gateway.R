@@ -211,9 +211,9 @@ mod_CREED_gateway_server <- function(id) {
       ) {
         samplesData
       } else {
-        data.frame()
+        tibble(NULL)
         print_dev(
-          "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning data.frame()"
+          "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning tibble(NULL)"
         )
       }
 
@@ -226,7 +226,7 @@ mod_CREED_gateway_server <- function(id) {
         compartments = session$userData$reactiveValues$compartmentsData,
         samples = samples_data,
         methods = session$userData$reactiveValues$methodsData,
-        measurements = session$userData$reactiveValues$dataData
+        measurements = session$userData$reactiveValues$measurementsData
       )
 
       # Get gateway availability (TRUE/FALSE)

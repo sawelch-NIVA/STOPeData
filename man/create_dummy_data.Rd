@@ -17,5 +17,7 @@ List containing all dummy data structures
 Creates a complete set of dummy environmental exposure data
 that can be used for testing the application or demonstration purposes.
 This includes campaign info, references, sites, parameters, compartments,
-biota, and methods data.
+biota, and methods data. This returns a list because that's the format we
+expect to get structured data back from the LLM in, even though we prefer
+tibbles
 }

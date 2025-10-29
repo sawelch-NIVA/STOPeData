@@ -43,12 +43,7 @@ mod_compartments_ui <- function(id) {
               list("Environmental Compartment", bs_icon("info-circle-fill")),
               "Which sphere does the sample come from?"
             ),
-            choices = c(
-              "Aquatic" = "Aquatic",
-              "Atmospheric" = "Atmospheric",
-              "Terrestrial" = "Terrestrial",
-              "Biota" = "Biota"
-            ),
+            choices = environ_compartments_vocabulary(),
             width = "100%",
             selected = "Aquatic"
           ),
@@ -62,17 +57,7 @@ mod_compartments_ui <- function(id) {
               ),
               "Specific subset within the environmental compartment"
             ),
-            choices = c(
-              "Freshwater" = "Freshwater",
-              "Marine/Salt Water" = "Marine/Salt Water",
-              "Brackish/Transitional Water" = "Brackish/Transitional Water",
-              "Groundwater" = "Groundwater",
-              "Wastewater" = "Wastewater",
-              "Liquid Growth Medium" = "Liquid Growth Medium",
-              "Rainwater" = "Rainwater",
-              "Stormwater" = "Stormwater",
-              "Leachate" = "Leachate"
-            ),
+            choices = sub_compartment_options_vocabulary()$Aquatic,
             width = "100%",
             selected = "Marine/Salt Water"
           ),
@@ -83,11 +68,7 @@ mod_compartments_ui <- function(id) {
               list("Measured Category", bs_icon("info-circle-fill")),
               "Type of exposure measurement"
             ),
-            choices = c(
-              "External" = "External",
-              "Internal" = "Internal",
-              "Surface" = "Surface"
-            ),
+            choices = measured_categories_vocabulary(),
             selected = "External",
             width = "100%"
           )
@@ -139,8 +120,11 @@ mod_compartments_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom tibble tibble
 #' @importFrom shinyjs enable disable
 #' @importFrom purrr is_empty
+#' @importFrom glue glue
+#' @importFrom dplyr add_row
 #' @export
 mod_compartments_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -149,103 +133,11 @@ mod_compartments_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      compartments_data = data.frame(),
-      validated_data = NULL,
+      compartments_data = initialise_compartments_tibble(),
+      validated_data = initialise_compartments_tibble(),
       is_valid = FALSE,
       validation_message = "",
     )
-
-    ## Sub-compartment mappings ----
-    sub_compartment_options <- list(
-      "Aquatic" = c(
-        "Freshwater" = "Freshwater",
-        "Marine/Salt Water" = "Marine/Salt Water",
-        "Brackish/Transitional Water" = "Brackish/Transitional Water",
-        "Groundwater" = "Groundwater",
-        "Wastewater" = "Wastewater",
-        "Liquid Growth Medium" = "Liquid Growth Medium",
-        "Rainwater" = "Rainwater",
-        "Stormwater" = "Stormwater",
-        "Leachate" = "Leachate",
-        "Aquatic Sediment" = "Aquatic Sediment"
-      ),
-      "Atmospheric" = c(
-        "Indoor Air" = "Indoor Air",
-        "Outdoor Air" = "Outdoor Air"
-      ),
-      "Terrestrial" = c(
-        "Terrestrial Biological Residue" = "Terrestrial Biological Residue",
-        "Soil H Horizon (Peat)" = "Soil H Horizon (Peat)",
-        "Soil O Horizon (Organic)" = "Soil O Horizon (Organic)",
-        "Soil A Horizon (Topsoil)" = "Soil A Horizon (Topsoil)",
-        "Soil E Horizon (Mineral)" = "Soil E Horizon (Mineral)",
-        "Soil S Horizon (Mineral)" = "Soil S Horizon (Mineral)",
-        "Soil C Horizon (Parent Material)" = "Soil C Horizon (Parent Material)",
-        "Soil R Horizon (Bedrock)" = "Soil R Horizon (Bedrock)"
-      ),
-      "Biota" = c(
-        "Biota, Terrestrial" = "Biota, Terrestrial",
-        "Biota, Aquatic" = "Biota, Aquatic",
-        "Biota, Atmospheric" = "Biota, Atmospheric",
-        "Biota, Other" = "Biota, Other"
-      )
-    )
-
-    ## Controlled vocabulary for validation ----
-    environ_compartments <- c(
-      "Not relevant",
-      "Not reported",
-      "Aquatic",
-      "Atmospheric",
-      "Terrestrial",
-      "Biota",
-      "Other"
-    )
-
-    environ_compartment_subs <- c(
-      "Not relevant",
-      "Not reported",
-      "Freshwater",
-      "Marine/Salt Water",
-      "Brackish/Transitional Water",
-      "Groundwater",
-      "Wastewater",
-      "Liquid Growth Medium",
-      "Rainwater",
-      "Stormwater",
-      "Leachate",
-      "Aquatic Sediment",
-      "Indoor Air",
-      "Outdoor Air",
-      "Terrestrial Biological Residue",
-      "Soil H Horizon (Peat)",
-      "Soil O Horizon (Organic)",
-      "Soil A Horizon (Topsoil)",
-      "Soil E Horizon (Mineral)",
-      "Soil S Horizon (Mineral)",
-      "Soil C Horizon (Parent Material)",
-      "Soil R Horizon (Bedrock)",
-      "Biota, Terrestrial",
-      "Biota, Aquatic",
-      "Biota, Atmospheric",
-      "Biota, Other",
-      "Other"
-    )
-
-    measured_categories <- c("Not relevant", "External", "Internal", "Surface")
-
-    ## Initialize empty compartments data frame ----
-    init_compartments_df <- function() {
-      data.frame(
-        ENVIRON_COMPARTMENT = character(0),
-        ENVIRON_COMPARTMENT_SUB = character(0),
-        MEASURED_CATEGORY = character(0),
-        stringsAsFactors = FALSE
-      )
-    }
-
-    ## Set initial empty data frame ----
-    moduleState$compartments_data <- init_compartments_df()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -272,7 +164,7 @@ mod_compartments_server <- function(id) {
             if (
               is.na(field_value) || field_value == "" || is_empty(field_value)
             ) {
-              message <- paste("Row", i, "is missing required field:", field)
+              message <- glue("Row {i} is missing required field: {field}")
               moduleState$validation_message <<- message
               return(message)
             }
@@ -285,22 +177,20 @@ mod_compartments_server <- function(id) {
     iv$add_rule("compartments_data", function(value) {
       if (nrow(moduleState$compartments_data) > 0) {
         for (i in 1:nrow(moduleState$compartments_data)) {
-          compartment <- moduleState$compartments_data[i, "ENVIRON_COMPARTMENT"]
-          sub_compartment <- moduleState$compartments_data[
+          compartment <- moduleState$compartments_data[[
+            i,
+            "ENVIRON_COMPARTMENT"
+          ]]
+          sub_compartment <- moduleState$compartments_data[[
             i,
             "ENVIRON_COMPARTMENT_SUB"
-          ]
+          ]]
 
-          if (compartment %in% names(sub_compartment_options)) {
-            valid_subs <- sub_compartment_options[[compartment]]
+          if (compartment %in% names(sub_compartment_options_vocabulary())) {
+            valid_subs <- sub_compartment_options_vocabulary()[[compartment]]
             if (!sub_compartment %in% valid_subs) {
-              message <- paste(
-                "Row",
-                i,
-                "has invalid sub-compartment",
-                sub_compartment,
-                "for compartment",
-                compartment
+              message <- glue(
+                "Row {i} has invalid sub-compartment {sub_compartment} for compartment {compartment}"
               )
               moduleState$validation_message <<- message
               return(message)
@@ -333,12 +223,12 @@ mod_compartments_server <- function(id) {
       sub_compartment,
       category
     ) {
-      data.frame(
-        ENVIRON_COMPARTMENT = compartment,
-        ENVIRON_COMPARTMENT_SUB = sub_compartment,
-        MEASURED_CATEGORY = category,
-        stringsAsFactors = FALSE
-      )
+      initialise_compartments_tibble() |>
+        add_row(
+          ENVIRON_COMPARTMENT = compartment,
+          ENVIRON_COMPARTMENT_SUB = sub_compartment,
+          MEASURED_CATEGORY = category
+        )
     }
 
     # 3. Observers and Reactives ----
@@ -349,7 +239,7 @@ mod_compartments_server <- function(id) {
     observe({
       compartment <- input$environ_compartment_select
       if (isTruthy(compartment) && compartment != "") {
-        available_subs <- sub_compartment_options[[compartment]]
+        available_subs <- sub_compartment_options_vocabulary()[[compartment]]
         if (!is.null(available_subs)) {
           choices <- c("Select sub-compartment..." = "", available_subs)
           updateSelectInput(
@@ -423,13 +313,8 @@ mod_compartments_server <- function(id) {
         )
 
         showNotification(
-          paste(
-            "Added combination:",
-            compartment,
-            "→",
-            sub_compartment,
-            "→",
-            category
+          glue(
+            "Added combination: {compartment} → {sub_compartment} → {category}"
           ),
           type = "message"
         )
@@ -463,10 +348,6 @@ mod_compartments_server <- function(id) {
         moduleState$validated_data <- moduleState$compartments_data
 
         session$userData$reactiveValues$compartmentsData <- moduleState$validated_data
-        # print_dev(glue(
-        #   "moduleState$is_valid: {moduleState$is_valid},
-        #                session$userData$reactiveValues$compartmentsData: {session$userData$reactiveValues$sitesData}"
-        # ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
@@ -487,11 +368,7 @@ mod_compartments_server <- function(id) {
         moduleState$compartments_data <- llm_compartments
 
         showNotification(
-          paste(
-            "Populated",
-            nrow(llm_compartments),
-            "compartments."
-          ),
+          glue("Populated {nrow(llm_compartments)} compartments."),
           type = "message"
         )
       }
@@ -503,6 +380,19 @@ mod_compartments_server <- function(id) {
         ignoreNULL = FALSE
       )
 
+    ## observer: receive data from session$userData$reactiveValues$compartmentsData (import) ----
+    ## and update module data
+    observe({
+      moduleState$compartments_data <- session$userData$reactiveValues$compartmentsData
+      print_dev("Assigned saved data to compartments moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
+
     # 4. Outputs ----
 
     ## output: compartments_table ----
@@ -512,7 +402,7 @@ mod_compartments_server <- function(id) {
       if (nrow(moduleState$compartments_data) == 0) {
         # Show empty table structure
         rhandsontable(
-          init_compartments_df(),
+          initialise_compartments_tibble(),
           selectCallback = TRUE,
           width = NULL
         ) |>
@@ -583,10 +473,8 @@ mod_compartments_server <- function(id) {
       validation_status <- if (moduleState$is_valid) {
         div(
           bs_icon("clipboard2-check"),
-          paste(
-            "All compartment data validated successfully.",
-            nrow(moduleState$compartments_data),
-            "compartment combination(s) ready."
+          glue(
+            "All compartment data validated successfully. {nrow(moduleState$compartments_data)} compartment combination(s) ready."
           ),
           class = "validation-status validation-complete"
         )

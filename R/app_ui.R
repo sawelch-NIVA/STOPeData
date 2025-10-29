@@ -133,6 +133,12 @@ app_ui <- function(request) {
         mod_information_ui("information"),
         icon = bs_icon("info-circle")
       ),
+      # nav_panel(
+      #   title = "Saved Data",
+      #   value = "save",
+      #   mod_bookmark_manager_ui("session_manager"),
+      #   icon = bs_icon("floppy")
+      # ),
       nav_item(input_dark_mode(id = "darkmode")),
       nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
@@ -140,22 +146,30 @@ app_ui <- function(request) {
         ## Navigation buttons ----
         div(
           class = "navigation-buttons-container",
-          style = "display: flex; justify-content: space-between; margin: 20px;",
+          style = "display: flex; justify-content: space-between; align-items: center; margin: 20px;",
 
           input_task_button(
             id = "previous_section",
             label = HTML(paste(
-              bsicons::bs_icon("arrow-left"),
+              bs_icon("arrow-left"),
               "Previous"
             )),
             type = "primary"
+          ),
+
+          # Save Session button
+          input_task_button(
+            id = "download_all_modal",
+            label = "Download All",
+            class = "btn-success",
+            icon = icon("file-zipper")
           ),
 
           input_task_button(
             id = "next_section",
             label = HTML(paste(
               "Next",
-              bsicons::bs_icon("arrow-right")
+              bs_icon("arrow-right")
             )),
             type = "primary"
           )
@@ -168,7 +182,9 @@ app_ui <- function(request) {
             '<a href="https://www.niva.no/en/projects/parc">PARC</a>,',
             ' <a href="https://www.niva.no/en/projects/expect">EXPECT</a>,',
             ' and <a href="https://www.niva.no/en/featured-pages/nctp">NCTP</a>.',
-            " This app is currently in development and no responsibility is accepted for crashes or data loss."
+            " This app is currently in development and no responsibility is accepted for crashes or data loss. ",
+            "App Version: ",
+            golem::get_golem_version()
           ))
         )
       )

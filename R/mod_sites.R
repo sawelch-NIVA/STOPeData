@@ -115,33 +115,50 @@ mod_sites_ui <- function(id) {
                       margin-bottom: auto;
                       flex: 1 1 auto;
                       align-content: space-between;",
-            input_task_button(
-              id = ns("add_map_point"),
-              label = "Add",
-              icon = icon("plus"),
-              class = "btn-success btn-sm",
-              style = "width: 100px; height: fit-content;",
-              label_busy = "..."
+
+            tooltip(
+              input_task_button(
+                id = ns("add_map_point"),
+                label = "Add",
+                icon = icon("plus"),
+                class = "btn-success btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Add a new table with the current coordinates",
+              id = "add_map_point_tooltip",
+              placement = "bottom"
             ),
 
             # Update selected button
-            input_task_button(
-              id = ns("update_selected_coords"),
-              label = "Update",
-              icon = icon("map-pin"),
-              class = "btn-primary btn-sm",
-              style = "width: 100px; height: fit-content;",
-              label_busy = "..."
+            tooltip(
+              input_task_button(
+                id = ns("update_selected_coords"),
+                label = "Update",
+                icon = icon("map-pin"),
+                class = "btn-primary btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Update the selected table row(s) with the current coordinates",
+
+              id = "update_selected_coords_tooltip",
+              placement = "bottom"
             ),
 
             # Hide labels button
-            input_task_button(
-              id = ns("toggle_labels"),
-              label = "Show/Hide Labels",
-              icon = icon("eye-slash"),
-              class = "btn-warning btn-sm",
-              style = "width: 150px; height: fit-content;",
-              label_busy = "..."
+            tooltip(
+              input_task_button(
+                id = ns("toggle_labels"),
+                label = "Labels",
+                icon = icon("tag"),
+                class = "btn-warning btn-sm",
+                style = "width: 80px; height: fit-content;",
+                label_busy = "..."
+              ),
+              "Click to show/hide site labels on the map",
+              id = "toggle_labels_tooltip",
+              placement = "bottom",
             ),
 
             # Selected coordinates reporter
@@ -173,8 +190,8 @@ mod_sites_ui <- function(id) {
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
-#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers
-#' mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
+#' @importFrom tibble tibble
+#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
 #' @importFrom dplyr pull
 #' @importFrom bslib update_task_button
@@ -186,101 +203,14 @@ mod_sites_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      sites_data = data.frame(),
-      validated_data = NULL,
+      sites_data = initialise_sites_tibble(),
+      validated_data = initialise_sites_tibble(),
       is_valid = FALSE,
       selected_rows = NULL,
       next_site_id = 1,
       clicked_coords = NULL,
-      show_labels = TRUE # Add this line
+      show_labels = TRUE
     )
-
-    ## Controlled vocabulary options ----
-    geographic_features <- c(
-      "Not relevant",
-      "Not reported",
-      "River, stream, canal",
-      "Lake, pond, pool, reservoir",
-      "Ocean, sea, territorial waters",
-      "Coastal, fjord",
-      "Estuary",
-      "Drainage, sewer, artificial water",
-      "Swamp, wetland",
-      "Groundwater, aquifer",
-      "WWTP",
-      "Artificial Land/Urban Areas",
-      "Landfills",
-      "Cropland",
-      "Woodland, forest",
-      "Shrubland",
-      "Grassland",
-      "Bare land and lichen/moss",
-      "Glacier",
-      "Other"
-    )
-
-    geographic_features_sub <- c(
-      "Not relevant",
-      "Not reported",
-      "Water surface",
-      "Water column, pelagic zone",
-      "Water benthos",
-      "Other"
-    )
-
-    coordinate_systems <- c(
-      "Not relevant",
-      "Not reported",
-      "WGS 84",
-      "UTM 32",
-      "UTM 33",
-      "UTM 34",
-      "UTM 35",
-      "ETRS89",
-      "Other"
-    )
-
-    countries <- c(
-      "Not relevant",
-      "Not reported",
-      "Other/Not a Country",
-      ISOcodes::ISO_3166_1$Name
-    )
-
-    IHO_oceans <- readRDS("inst/data/clean/IHO_oceans.rds") |> pull(NAME)
-
-    areas <- c(
-      "Not relevant",
-      "Not reported",
-      "Other",
-      IHO_oceans
-    )
-
-    altitude_units <- c("km", "m", "cm", "mm")
-
-    ## Initialize empty sites data frame ----
-    init_sites_df <- function() {
-      data.frame(
-        SITE_CODE = character(0),
-        SITE_NAME = character(0),
-        SITE_GEOGRAPHIC_FEATURE = character(0),
-        SITE_GEOGRAPHIC_FEATURE_SUB = character(0),
-        COUNTRY = character(0),
-        AREA = character(0),
-        LATITUDE = numeric(0),
-        LONGITUDE = numeric(0),
-        SITE_COORDINATE_SYSTEM = character(0),
-        ALTITUDE_VALUE = numeric(0),
-        ALTITUDE_UNIT = character(0),
-        ENTERED_BY = character(0),
-        ENTERED_DATE = character(0),
-        SITE_COMMENT = character(0),
-        stringsAsFactors = FALSE
-      )
-    }
-
-    ## Set initial empty data frame ----
-    moduleState$sites_data <- init_sites_df()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -352,23 +282,23 @@ mod_sites_server <- function(id) {
         site_code <- paste0(base_code, sprintf("%03d", site_number))
       }
 
-      data.frame(
-        SITE_CODE = site_code,
-        SITE_NAME = "",
-        SITE_GEOGRAPHIC_FEATURE = "Not reported",
-        SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
-        SITE_COORDINATE_SYSTEM = "WGS 84",
-        LATITUDE = NA,
-        LONGITUDE = NA,
-        COUNTRY = "",
-        AREA = "",
-        ALTITUDE_VALUE = NA,
-        ALTITUDE_UNIT = "m",
-        ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
-        ENTERED_DATE = as.character(Sys.Date()),
-        SITE_COMMENT = "",
-        stringsAsFactors = FALSE
-      )
+      initialise_sites_tibble() |>
+        add_row(
+          SITE_CODE = site_code,
+          SITE_NAME = "",
+          SITE_GEOGRAPHIC_FEATURE = "Not reported",
+          SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
+          SITE_COORDINATE_SYSTEM = "WGS 84",
+          LATITUDE = NA,
+          LONGITUDE = NA,
+          COUNTRY = "",
+          AREA = "",
+          ALTITUDE_VALUE = NA,
+          ALTITUDE_UNIT = "m",
+          ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
+          ENTERED_DATE = as.character(Sys.Date()),
+          SITE_COMMENT = ""
+        )
     }
 
     # 3. Observers and Reactives ----
@@ -433,6 +363,19 @@ mod_sites_server <- function(id) {
         moduleState$sites_data <- hot_to_r(input$sites_table)
       }
     })
+
+    ## observer: receive data from session$userData$reactiveValues$sitesData (import) ----
+    ## and update module data
+    observe({
+      moduleState$sites_data <- session$userData$reactiveValues$sitesData
+      print_dev("Assigned saved data to sites moduleData.")
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$saveExtractionComplete,
+        session$userData$reactiveValues$saveExtractionSuccessful,
+        ignoreInit = TRUE,
+        ignoreNULL = TRUE
+      )
 
     ## observe: Capture map clicks ----
     # upstream: input$sites_map_click
@@ -664,7 +607,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_GEOGRAPHIC_FEATURE",
           type = "dropdown",
-          source = geographic_features,
+          source = geographic_features_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -676,7 +619,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_GEOGRAPHIC_FEATURE_SUB",
           type = "dropdown",
-          source = geographic_features_sub,
+          source = geographic_features_sub_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -688,7 +631,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "SITE_COORDINATE_SYSTEM",
           type = "dropdown",
-          source = coordinate_systems,
+          source = coordinate_systems_vocabulary(),
           strict = TRUE,
           renderer = mandatory_highlight_dropdown()
         ) |>
@@ -723,7 +666,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "COUNTRY",
           type = "dropdown",
-          source = countries,
+          source = countries_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(
@@ -734,7 +677,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "AREA",
           type = "dropdown",
-          source = areas,
+          source = areas_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(
@@ -756,7 +699,7 @@ mod_sites_server <- function(id) {
         hot_col(
           "ALTITUDE_UNIT",
           type = "dropdown",
-          source = altitude_units,
+          source = altitude_units_vocabulary(),
           strict = TRUE
         ) |>
         hot_cell(

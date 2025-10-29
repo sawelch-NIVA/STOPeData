@@ -10,7 +10,7 @@ create_new_parameter(param_type, entered_by)
 \item{param_type}{Character string specifying the parameter type}
 }
 \value{
-Data.frame with blank parameter template
+tibble with blank parameter template
 }
 \description{
 Create new blank parameter row

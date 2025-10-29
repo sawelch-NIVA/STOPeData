@@ -14,77 +14,92 @@
 mod_landing_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    card(
-      fill = TRUE,
-      fillable = TRUE,
-      card_body(
+    layout_column_wrap(
+      width = 1 / 2,
+      card(
         fill = TRUE,
         fillable = TRUE,
-        ## Info accordion ----
-        info_accordion(
-          content_file = "inst/app/www/md/intro_landing.md"
-        ),
-        layout_column_wrap(
-          width = "300px",
-          min_height = "200px",
-          fill = FALSE,
-          div(
-            style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Enter data manually."),
-            input_task_button(
-              id = ns("narrative_manual"),
-              label = "Enter data manually...",
-              icon = icon("keyboard"),
-              width = "300px"
-            )
+        card_body(
+          fill = TRUE,
+          fillable = TRUE,
+          ## Info accordion ----
+          info_accordion(
+            content_file = "inst/app/www/md/intro_landing.md"
           ),
-          div(
-            style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Extract data using an LLM."),
-            input_task_button(
-              id = ns("narrative_llm"),
-              label = HTML(paste(
-                bsicons::bs_icon("cpu"),
-                "Extract using LLM..."
-              )),
-              width = "300px"
-            )
-          ),
-          div(
-            style = "display: flex; flex-direction: column; align-items: center;",
-            h6("Import structured data (planned feature)"),
-            input_task_button(
-              id = ns("structured"),
-              label = "Import structured data",
-              icon = icon("table"),
-              width = "300px"
-            ) |>
-              disabled()
-          )
-          # div(
-          #   style = "display: flex; flex-direction: column; align-items: center;",
-          #   h6("Load dummy data for testing purposes."),
-          #   input_task_button(
-          #     id = ns("test_dummy"),
-          #     label = "Test with dummy data",
-          #     icon = icon("vial-circle-check"),
-          #     type = "warning",
-          #     width = "300px"
-          #   )
-          # )
-        ),
-        hr(),
-        div(
-          style = "margin-bottom: 10px;",
-          style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
-          tags$figure(
-            tags$figcaption(
-              "Illustration of STOP eData app workflow."
+          layout_column_wrap(
+            width = "300px",
+            min_height = "200px",
+            fill = FALSE,
+            div(
+              style = "display: flex; flex-direction: column; align-items: center;",
+              h6("Enter data manually."),
+              input_task_button(
+                id = ns("narrative_manual"),
+                label = "Enter data manually...",
+                icon = icon("keyboard"),
+                width = "300px",
+                type = "info"
+              )
             ),
-            tags$img(
-              style = "max-height: 500px;",
-              src = "www/app_mapp.png",
-              alt = "Illustration of STOP eData app workflow."
+            div(
+              style = "display: flex; flex-direction: column; align-items: center;",
+              h6("Extract data using an LLM."),
+              input_task_button(
+                id = ns("narrative_llm"),
+                label = HTML(paste(
+                  bs_icon("cpu"),
+                  "Extract using LLM..."
+                )),
+                width = "300px",
+                type = "primary",
+              )
+            ),
+            div(
+              style = "display: flex; flex-direction: column; align-items: center;",
+              h6("Upload session data and continue an earlier entry"),
+              input_task_button(
+                id = ns("upload_zip"),
+                label = "Upload session data",
+                icon = icon("table"),
+                width = "300px",
+                type = "success"
+              )
+            )
+            # div(
+            #   style = "display: flex; flex-direction: column; align-items: center;",
+            #   h6("Load dummy data for testing purposes."),
+            #   input_task_button(
+            #     id = ns("test_dummy"),
+            #     label = "Test with dummy data",
+            #     icon = icon("vial-circle-check"),
+            #     type = "warning",
+            #     width = "300px"
+            #   )
+            # )
+          )
+        )
+      ),
+      card(
+        fill = TRUE,
+        fillable = TRUE,
+        card_body(
+          div(
+            style = "margin-bottom: 10px;",
+            # style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
+            info_accordion(
+              title = "Version 0.0.0.9003",
+              content_file = "inst/app/www/md/whats_new.md"
+            ),
+            br(),
+            tags$figure(
+              tags$figcaption(
+                "Illustration of STOP eData app workflow:"
+              ),
+              tags$img(
+                style = "max-width: 100%",
+                src = "www/app_mapp.png",
+                alt = "Illustration of STOP eData app workflow."
+              )
             )
           )
         )
