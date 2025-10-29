@@ -526,6 +526,9 @@ map_compartment_sub_strict <- function(compartment_sub) {
   if (grepl("leachate", sub_lower)) {
     return("Leachate")
   }
+  if (grepl("sediment", sub_lower)) {
+    return("Aquatic Sediment")
+  }
 
   # Atmospheric sub-compartments
   if (grepl("indoor", sub_lower)) {

@@ -205,13 +205,13 @@ mod_CREED_server <- function(id) {
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment
     # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
-    observe(
-      {
-        print_dev("autopop all triggered")
-        # individual submodule functions go here.
-      }
-    ) |>
-      bindEvent(input$get_data)
+    # observe(
+    #   {
+    #     print_dev("autopop all triggered")
+    #     # individual submodule functions go here.
+    #   }
+    # ) |>
+    #   bindEvent(input$get_data)
 
     # 4. Outputs ----
 

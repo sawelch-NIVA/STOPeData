@@ -364,7 +364,7 @@ mod_methods_server <- function(id) {
         updated_data <- moduleState$methods_data |>
           group_by(PROTOCOL_CATEGORY) |>
           mutate(sequence = row_number()) |>
-          ungroup() |>
+          ungroup() |> #there might meant to be a rowwise() here, check master before the pr if necessary...
           mutate(
             PROTOCOL_ID = generate_protocol_id(
               PROTOCOL_CATEGORY,
