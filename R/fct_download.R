@@ -183,7 +183,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
 #'   and campaign_name fields.
 #' @return A Shiny downloadHandler function
 #' @importFrom glue glue
-#' @importFrom utils write.csv zip
+#' @importFrom utils write.csv
 #' @importFrom zip zip
 #' @export
 download_all_csv <- function(session, moduleState = NULL) {
