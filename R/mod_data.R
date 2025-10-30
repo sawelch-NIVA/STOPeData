@@ -274,37 +274,36 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 7: Validate numeric values are positive
-    iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
-        numeric_fields <- c(
-          "MEASURED_VALUE",
-          "LOQ_VALUE",
-          "LOD_VALUE",
-          "MEASURED_SD"
-        )
+    # iv$add_rule("measurement_table_validation", function(value) {
+    #   if (nrow(moduleState$measurement_combinations) > 0) {
+    #     numeric_fields <- c(
+    #       "MEASURED_VALUE",
+    #       "LOQ_VALUE",
+    #       "LOD_VALUE"
+    #     )
 
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
-          for (field in numeric_fields) {
-            field_value <- moduleState$measurement_combinations[i, field]
-            if (
-              !is.na(field_value) &&
-                field_value != "" &&
-                as.numeric(field_value) < 0
-            ) {
-              message <- paste(
-                "Row",
-                i,
-                "has invalid",
-                field,
-                "(must be positive)"
-              )
-              moduleState$validation_message <<- message
-              return(message)
-            }
-          }
-        }
-      }
-    })
+    #     for (i in 1:nrow(moduleState$measurement_combinations)) {
+    #       for (field in numeric_fields) {
+    #         field_value <- moduleState$measurement_combinations[i, field]
+    #         if (
+    #           !is.na(field_value) &&
+    #             field_value != "" &&
+    #             as.numeric(field_value) < 0
+    #         ) {
+    #           message <- paste(
+    #             "Row",
+    #             i,
+    #             "has invalid",
+    #             field,
+    #             "(must be positive)"
+    #           )
+    #           moduleState$validation_message <<- message
+    #           return(message)
+    #         }
+    #       }
+    #     }
+    #   }
+    # })
 
     # Rule 8: Check that all protocol fields are filled
     iv$add_rule("measurement_table_validation", function(value) {
@@ -426,7 +425,7 @@ mod_data_server <- function(id, parent_session) {
             SAMPLING_DATE,
             ENVIRON_COMPARTMENT,
             ENVIRON_COMPARTMENT_SUB,
-            REP
+            SUBSAMPLE
           ),
         parameters_data |>
           select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE) |>
@@ -453,7 +452,10 @@ mod_data_server <- function(id, parent_session) {
           # Add measurement fields with empty defaults
           MEASURED_FLAG = "",
           MEASURED_VALUE = NA,
-          MEASURED_SD = NA,
+          UNCERTAINTY_TYPE = NA,
+          UNCERTAINTY_UPPER = NA,
+          UNCERTAINTY_LOWER = NA,
+          MEASURED_N = NA,
           MEASURED_UNIT = "mg/L", # Default unit
           LOQ_VALUE = NA,
           LOQ_UNIT = "mg/L", # Should match MEASURED_UNIT
@@ -940,7 +942,7 @@ mod_data_server <- function(id, parent_session) {
               "PARAMETER_NAME",
               "SAMPLING_DATE",
               "ENVIRON_COMPARTMENT_SUB",
-              "REP"
+              "SUBSAMPLE"
             ),
             readOnly = TRUE
           ) |>
@@ -957,7 +959,18 @@ mod_data_server <- function(id, parent_session) {
             format = "0.0000"
           ) |>
           hot_col(
-            c("MEASURED_SD", "LOQ_VALUE", "LOD_VALUE"),
+            "UNCERTAINTY_TYPE",
+            type = "dropdown",
+            source = uncertainty_types_vocabulary(),
+            strict = TRUE
+          ) |>
+          hot_col(
+            c(
+              "UNCERTAINTY_UPPER",
+              "UNCERTAINTY_LOWER",
+              "LOQ_VALUE",
+              "LOD_VALUE"
+            ),
             type = "numeric",
             format = "0.0000"
           ) |>

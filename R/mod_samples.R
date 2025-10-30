@@ -159,18 +159,16 @@ mod_samples_ui <- function(id) {
             )
           ),
 
-          ## Sample replicates ----
-          numericInput(
-            inputId = ns("sample_replicates"),
+          ## Subsampling index ----
+          textInput(
+            inputId = ns("subsample"),
             label = tooltip(
-              list("Sample Replicates", bs_icon("info-circle-fill")),
-              "Number of replicate samples for each combination"
+              list("Subsample Indices", bs_icon("info-circle-fill")),
+              "If samples are split (replicates or e.g. core depths), enter values separated by commas."
             ),
-            value = 1,
-            min = 1,
-            max = 20,
-            step = 1,
-            width = "100%"
+            placeholder = "Comma-separated subsample identifiers (e.g., '1,2,3' or '1cm,2cm,3cm')",
+            width = "100%",
+            value = 1
           )
         ),
 
@@ -266,7 +264,7 @@ mod_samples_server <- function(id) {
           "ENVIRON_COMPARTMENT_SUB",
           "MEASURED_CATEGORY",
           # "SAMPLING_DATE",
-          "REP",
+          "SUBSAMPLE",
           "SAMPLE_ID"
         )
 
@@ -556,7 +554,7 @@ mod_samples_server <- function(id) {
           length(input$compartments_select) > 0,
           length(input$parameters_select) > 0,
           length(input$sampling_date) > 0,
-          length(input$sample_replicates) > 0
+          length(input$subsample) > 0
         )
       ) {
         enable("generate_combinations")
@@ -569,7 +567,7 @@ mod_samples_server <- function(id) {
         input$compartments_select,
         input$parameters_select,
         input$sampling_date,
-        input$sample_replicates
+        input$subsample
       )
 
     ## observe ~bindEvent(generate_combinations): Generate sample combinations ----
@@ -580,7 +578,7 @@ mod_samples_server <- function(id) {
       parameters <- input$parameters_select
       compartments <- input$compartments_select
       dates <- input$sampling_date
-      replicates <- input$sample_replicates %||% 1
+      subsamples <- input$subsample %||% 1
 
       if (
         length(sites) == 0 ||
@@ -601,7 +599,7 @@ mod_samples_server <- function(id) {
         parameters,
         compartments, # These are still merged format like "Aquatic | Freshwater"
         dates,
-        replicates,
+        subsamples,
         moduleState$samples_data,
         moduleState$available_compartments, # Pass this for parsing
         moduleState$available_sites, # Pass this for SITE_NAME lookup
@@ -670,7 +668,10 @@ mod_samples_server <- function(id) {
       params_count <- length(input$parameters_select %||% character(0))
       comps_count <- length(input$compartments_select %||% character(0))
       dates_count <- length(input$sampling_date %||% character(0))
-      replicates_count <- input$sample_replicates %||% 1
+      replicates_count <- length(strsplit(input$subsample, split = ",")[[
+        1
+      ]]) %||%
+        1
 
       update_combination_preview(
         sites_count,
@@ -695,7 +696,7 @@ mod_samples_server <- function(id) {
           width = NULL
         ) |>
           hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          hot_col("REPLICATE_ID", readOnly = TRUE) |> # Make replicate ID read-only
+          hot_col("SUBSAMPLE_ID", readOnly = TRUE) |> # Make replicate ID read-only
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations
@@ -717,27 +718,28 @@ mod_samples_server <- function(id) {
           width = NULL
         ) |>
           hot_col("SITE_CODE", readOnly = TRUE) |>
-          hot_col("SITE_NAME", readOnly = TRUE) |>
-          hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          hot_col("REPLICATE_ID", readOnly = TRUE) |> # Make replicate ID read-only
-          hot_col(
-            "SAMPLING_DATE",
-            readOnly = TRUE,
-            type = "date",
-            dateFormat = "YYYY-MM-DD"
-          ) |>
-          hot_col(
-            "ENVIRON_COMPARTMENT",
-            readOnly = TRUE
-          ) |>
-          hot_col(
-            "ENVIRON_COMPARTMENT_SUB",
-            readOnly = TRUE
-          ) |>
-          hot_col(
-            "MEASURED_CATEGORY",
-            readOnly = TRUE
-          ) |>
+          # hot_col("SUBSAMPLE") |>
+          # hot_col("SITE_NAME", readOnly = TRUE) |>
+          # hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
+          # hot_col("SUBSAMPLE_ID", readOnly = TRUE) |> # Make replicate ID read-only
+          # hot_col(
+          #   "SAMPLING_DATE",
+          #   readOnly = TRUE,
+          #   type = "date",
+          #   dateFormat = "YYYY-MM-DD"
+          # ) |>
+          # hot_col(
+          #   "ENVIRON_COMPARTMENT",
+          #   readOnly = TRUE
+          # ) |>
+          # hot_col(
+          #   "ENVIRON_COMPARTMENT_SUB",
+          #   readOnly = TRUE
+          # ) |>
+          # hot_col(
+          #   "MEASURED_CATEGORY",
+          #   readOnly = TRUE
+          # ) |>
           hot_context_menu(
             allowRowEdit = TRUE, # Enable row operations
             allowColEdit = FALSE, # Disable column operations

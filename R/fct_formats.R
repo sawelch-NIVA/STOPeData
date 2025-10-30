@@ -57,7 +57,7 @@ initialise_biota_tibble <- function() {
     ENVIRON_COMPARTMENT_SUB = character(),
     MEASURED_CATEGORY = character(),
     SAMPLING_DATE = character(),
-    REP = integer(),
+    SUBSAMPLE = character(),
     SPECIES_GROUP = character(),
     SAMPLE_SPECIES = character(),
     SAMPLE_TISSUE = character(),
@@ -184,8 +184,8 @@ initialise_samples_tibble <- function() {
     ENVIRON_COMPARTMENT_SUB = character(),
     MEASURED_CATEGORY = character(),
     SAMPLING_DATE = character(),
-    REP = numeric(),
-    REPLICATE_ID = character(),
+    SUBSAMPLE = character(),
+    SUBSAMPLE_ID = character(),
     SAMPLE_ID = character()
   )
 }
@@ -236,11 +236,14 @@ initialise_measurements_tibble <- function() {
     PARAMETER_NAME = character(),
     SAMPLING_DATE = character(),
     ENVIRON_COMPARTMENT_SUB = character(),
-    REP = integer(),
+    SUBSAMPLE = character(),
     MEASURED_FLAG = character(),
     MEASURED_VALUE = numeric(),
-    MEASURED_SD = numeric(),
+    UNCERTAINTY_TYPE = character(),
+    UNCERTAINTY_UPPER = numeric(),
+    UNCERTAINTY_LOWER = numeric(),
     MEASURED_UNIT = character(),
+    MEASURED_N = numeric(),
     LOQ_VALUE = numeric(),
     LOQ_UNIT = character(),
     LOD_VALUE = numeric(),
@@ -687,6 +690,43 @@ species_groups_vocabulary <- function() {
     "Plants",
     "Reptiles",
     "Worms",
+    "Other"
+  )
+}
+
+#' Uncertainty Types Controlled Vocabulary
+#'
+#' Returns controlled vocabulary options for uncertainty types commonly found
+#' in scientific literature and databases.
+#'
+#' @return A character vector of uncertainty type options
+#' @export
+uncertainty_types_vocabulary <- function() {
+  c(
+    "Not Reported",
+    "Not Relevant",
+    "Arithmetic Mean",
+    "Geometric Mean",
+    "Standard Deviation",
+    "Standard Error",
+    "95% Confidence Interval",
+    "90% Confidence Interval",
+    "99% Confidence Interval",
+    "Min-Max Range",
+    "Interquartile Range (Q1-Q3)",
+    "10th-90th Percentile",
+    "5th-95th Percentile",
+    "Coefficient of Variation (%)",
+    "Median Absolute Deviation",
+    "First-Third Quartile Range",
+    "Minimum-Maximum",
+    "Variance",
+    "Standard Error of Mean",
+    "Relative Standard Deviation (%)",
+    "95% Credible Interval",
+    "95% Prediction Interval",
+    "95% Tolerance Interval",
+    "95% Bootstrap CI",
     "Other"
   )
 }

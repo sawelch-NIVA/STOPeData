@@ -201,7 +201,7 @@ test_that("create_sample_combinations generates correct combinations", {
     "MEASURED_CATEGORY",
     "SAMPLING_DATE",
     "REP",
-    "REPLICATE_ID",
+    "SUBSAMPLE_ID",
     "SAMPLE_ID"
   )
   expect_true(all(expected_cols %in% names(result$combinations)))

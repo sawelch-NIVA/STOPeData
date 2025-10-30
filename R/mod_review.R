@@ -192,7 +192,7 @@ mod_review_server <- function(id) {
           ),
           each = 10
         ),
-        REP = rep(1:2, length.out = 50),
+        SUBSAMPLE = rep(1:2, length.out = 50),
 
         # Create realistic measurement data with some variation
         MEASURED_VALUE = c(

@@ -295,7 +295,7 @@ mod_biota_server <- function(id) {
         "ENVIRON_COMPARTMENT_SUB",
         "MEASURED_CATEGORY",
         "SAMPLING_DATE",
-        "REP",
+        "SUBSAMPLE",
         biota_columns
       )
 
@@ -645,7 +645,7 @@ mod_biota_server <- function(id) {
           hot_col("ENVIRON_COMPARTMENT_SUB", readOnly = TRUE) |>
           hot_col("MEASURED_CATEGORY", readOnly = TRUE) |>
           hot_col("SAMPLING_DATE", readOnly = TRUE) |>
-          hot_col("REP", readOnly = TRUE) |>
+          hot_col("SUBSAMPLE", readOnly = TRUE) |>
           # Add dropdowns for biota-specific fields
           hot_col(
             "SPECIES_GROUP",

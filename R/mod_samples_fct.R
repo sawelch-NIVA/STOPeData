@@ -171,7 +171,7 @@ parse_compartment_selections <- function(
 #' @param environ_compartment Environmental compartment (vectorized)
 #' @param environ_compartment_sub Environmental sub-compartment (vectorized)
 #' @param date Sampling date (vectorized)
-#' @param replicate Replicate number (vectorized)
+#' @param subsample subsample
 #' @noRd
 generate_sample_id_with_components <- function(
   site_code,
@@ -179,7 +179,7 @@ generate_sample_id_with_components <- function(
   environ_compartment,
   environ_compartment_sub,
   date,
-  replicate = 1
+  subsample = 1
 ) {
   # Create abbreviated versions for ID (vectorized)
   param_abbrev <- substr(gsub("[^A-Za-z0-9]", "", parameter_name), 1, 8)
@@ -193,8 +193,8 @@ generate_sample_id_with_components <- function(
   base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
   # Vectorized replicate handling
-  replicate_suffix <- sprintf("-R%02d", replicate)
-  paste0(base_id, replicate_suffix)
+  subsample_suffix <- sprintf("-R%02s", trimws(subsample))
+  paste0(base_id, subsample_suffix)
 }
 
 #' Check if Sample Combination with Components Exists ----
@@ -205,7 +205,7 @@ generate_sample_id_with_components <- function(
 #' @param environ_compartment_sub Environmental sub-compartment
 #' @param measured_category Measured category
 #' @param date Sampling date
-#' @param replicate Replicate number
+#' @param subsample subsample identifiers
 #' @noRd
 combination_exists_with_components <- function(
   existing_data,
@@ -215,16 +215,10 @@ combination_exists_with_components <- function(
   environ_compartment_sub,
   measured_category,
   date,
-  replicate
+  subsample
 ) {
   if (nrow(existing_data) == 0) {
     return(FALSE)
-  }
-
-  # Check if REP column exists in existing data
-  if (!"REP" %in% names(existing_data)) {
-    # For backward compatibility, assume existing data has no replicates (replicate = 1)
-    existing_data$REP <- 1
   }
 
   any(
@@ -234,13 +228,13 @@ combination_exists_with_components <- function(
       existing_data$ENVIRON_COMPARTMENT_SUB == environ_compartment_sub &
       existing_data$MEASURED_CATEGORY == measured_category &
       existing_data$SAMPLING_DATE == as.character(date) &
-      existing_data$REP == replicate
+      existing_data$SUBSAMPLE == subsample
   )
 }
 
 #' Create Sample Combinations with Separate Compartment Components ----
 #' @description
-#' Create all valid combinations of sites, parameters, compartments, dates, and replicates,
+#' Create all valid combinations of sites, parameters, compartments, dates, and subsamples,
 #' except for those already found in existing_data. Now handles separate compartment columns.
 #' Fixed to handle Date objects properly and avoid class-stripping in loops.
 #'
@@ -248,7 +242,7 @@ combination_exists_with_components <- function(
 #' @param parameters Vector of parameter names
 #' @param compartment_selections Vector of merged compartment selections like "Aquatic | Freshwater"
 #' @param dates Vector of sampling dates
-#' @param replicates Number of replicates per combination
+#' @param subsample commas-separated string used to identify subsamples
 #' @param existing_data Existing samples data frame
 #' @param available_compartments Available compartments data frame for parsing
 #' @param available_sites Available sites data frame for lookup (optional)
@@ -262,7 +256,7 @@ create_sample_combinations <- function(
   parameters,
   compartment_selections,
   dates,
-  replicates = 1,
+  subsamples = 1,
   existing_data,
   available_compartments,
   available_sites = NULL,
@@ -274,7 +268,6 @@ create_sample_combinations <- function(
     isTruthy(compartment_selections),
     isTruthy(dates)
   )
-  stopifnot(is.numeric(replicates) && replicates >= 1)
 
   # Parse compartment selections back to individual components
   parsed_compartments <- parse_compartment_selections(
@@ -305,7 +298,10 @@ create_sample_combinations <- function(
       SAMPLING_DATE = date_char
     )
 
-    # Process each base combination with compartments and replicates
+    # Split subsamples cs-string into a vector
+    subsamples <- trimws(strsplit(subsamples, split = ",")[[1]]) %||% c(1)
+
+    # Process each base combination with compartments and subsamples
     date_combinations <- tibble()
     skipped_for_date <- 0
 
@@ -314,8 +310,8 @@ create_sample_combinations <- function(
         base_combo <- base_combinations[i, ]
         compartment_combo <- parsed_compartments[j, ]
 
-        # Add replicates for each combination
-        for (rep in 1:replicates) {
+        # Add subsamples for each combination
+        for (k in 1:length(subsamples)) {
           combination <- tibble(
             SITE_CODE = base_combo$SITE_CODE,
             PARAMETER_NAME = base_combo$PARAMETER_NAME,
@@ -323,10 +319,10 @@ create_sample_combinations <- function(
             ENVIRON_COMPARTMENT_SUB = compartment_combo$ENVIRON_COMPARTMENT_SUB,
             MEASURED_CATEGORY = compartment_combo$MEASURED_CATEGORY,
             SAMPLING_DATE = base_combo$SAMPLING_DATE, #
-            REP = rep
+            SUBSAMPLE = subsamples[[k]]
           )
 
-          # Check if this exact combination (including replicate) exists
+          # Check if this exact combination (including subsample) exists
           if (
             !combination_exists_with_components(
               existing_data,
@@ -336,7 +332,7 @@ create_sample_combinations <- function(
               combination$ENVIRON_COMPARTMENT_SUB,
               combination$MEASURED_CATEGORY,
               combination$SAMPLING_DATE,
-              rep
+              subsamples[[k]]
             )
           ) {
             date_combinations <- rbind(date_combinations, combination)
@@ -392,20 +388,20 @@ create_sample_combinations <- function(
       all_combinations$PARAMETER_TYPE <- ""
     }
 
-    # Create replicate ID
+    # Create SUBSAMPLE ID
     # Helper function to create clean abbreviations ----
     create_abbrev <- function(text, max_length) {
       substr(gsub("[^A-Za-z0-9]", "", text), 1, max_length)
     }
 
-    # Create REPLICATE_ID using glue ----
-    all_combinations$REPLICATE_ID <- glue(
+    # Create SUBSAMPLE_ID using glue ----
+    all_combinations$SUBSAMPLE_ID <- glue(
       "{all_combinations$SITE_CODE}",
       "_{create_abbrev(all_combinations$PARAMETER_NAME, 8)}",
       "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT, 6)}",
       "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT_SUB, 6)}",
       "_{gsub('-', '', all_combinations$SAMPLING_DATE)}",
-      "{glue('_R{sprintf(\"%02d\", all_combinations$REP)}')}"
+      "{glue('_R{sprintf(\"%02s\", all_combinations$SUBSAMPLE)}')}"
     )
 
     # Generate sample IDs using vectorized function
@@ -415,7 +411,7 @@ create_sample_combinations <- function(
       all_combinations$ENVIRON_COMPARTMENT,
       all_combinations$ENVIRON_COMPARTMENT_SUB,
       all_combinations$SAMPLING_DATE,
-      all_combinations$REP
+      all_combinations$SUBSAMPLE
     )
 
     # Reorder columns to match expected structure
@@ -428,8 +424,7 @@ create_sample_combinations <- function(
       "ENVIRON_COMPARTMENT_SUB",
       "MEASURED_CATEGORY",
       "SAMPLING_DATE",
-      "REP",
-      "REPLICATE_ID",
+      "SUBSAMPLE",
       "SAMPLE_ID"
     )]
   }
@@ -442,27 +437,27 @@ create_sample_combinations <- function(
 #' @param params_count Number of selected parameters
 #' @param comps_count Number of selected compartments
 #' @param dates_count Number of selected dates
-#' @param replicates_count Number of replicates per combination
+#' @param subsamples_count Number of subsamples per combination
 #' @noRd
 update_combination_preview <- function(
   sites_count,
   params_count,
   comps_count,
   dates_count,
-  replicates_count = 1
+  subsamples_count = 1
 ) {
   base_combinations <- sites_count * params_count * comps_count * dates_count
-  total_samples <- base_combinations * replicates_count
+  total_samples <- base_combinations * subsamples_count
 
   div(
     strong("Preview: "),
     sprintf(
-      "%d sites × %d parameters × %d compartments × %d dates × %d replicates = %d total samples",
+      "%d sites × %d parameters × %d compartments × %d dates × %d subsamples = %d total samples",
       sites_count,
       params_count,
       comps_count,
       dates_count,
-      replicates_count,
+      subsamples_count,
       total_samples
     )
   )

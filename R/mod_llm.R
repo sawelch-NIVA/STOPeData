@@ -51,13 +51,6 @@ mod_llm_ui <- function(id) {
               accept = ".pdf",
               width = "100%",
               buttonLabel = "Browse...",
-            ),
-            a(
-              "Example PDF URL",
-              href = "https://link.springer.com/content/pdf/10.1007/s10646-024-02740-4.pdf",
-              target = "_blank",
-              class = "text-muted",
-              style = "font-size: 0.8rem; margin-top: -20px;"
             )
           ),
 

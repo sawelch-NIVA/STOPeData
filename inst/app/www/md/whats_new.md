@@ -5,3 +5,5 @@
 - Aquatic Sediment is now properly available as a subcompartment.
 - w/w dry weight units (both conventional SI and ppm/ppb/etc.) can now be selected as options
 - Units and controlled vocabulary lists have been moved to a centralised, harmonised file. This may affect performance, please let me know if anything seems slower than previously.
+- Sample REPLICATE has been changed to SUBSAMPLE and now takes text values. This allows splitting samples into e.g. different sediment core depths
+- MEASURED_SD has been replaced with UNCERTAINTY_TYPE, UNCERTAINTY_UPPER, UNCERTAINTY_LOWER and MEASURED_N, which allow more precise reporting of uncertainty.

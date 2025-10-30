@@ -72,7 +72,7 @@ mod_export_ui <- function(id) {
 #' @importFrom bslib layout_column_wrap
 #' @importFrom golem get_golem_version print_dev
 #' @importFrom utils write.csv
-#' @importFrom zip zip
+#' @importFrom utils zip
 #' @export
 mod_export_server <- function(id) {
   moduleServer(id, function(input, output, session) {
