@@ -87,7 +87,7 @@ mod_landing_ui <- function(id) {
             style = "margin-bottom: 10px;",
             # style = "display: block !important; margin: auto !important; max-width: 100% !important; max-height: 500px !important;",
             info_accordion(
-              title = "Version 0.0.0.9003",
+              title = paste0("Version ", golem::get_golem_version()),
               content_file = "inst/app/www/md/whats_new.md"
             ),
             br(),

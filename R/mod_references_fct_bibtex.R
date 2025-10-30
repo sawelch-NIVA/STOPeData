@@ -491,7 +491,7 @@ clean_bibtex_text <- function(text) {
 #' @importFrom stringr str_to_title
 generate_reference_id <- function(date, author, title) {
   # Format date as YYYYMMDD
-  date_part <- format(as.Date(date), "%Y")
+  date_part <- date
 
   # Extract first author's last name
   author_part <- ""
