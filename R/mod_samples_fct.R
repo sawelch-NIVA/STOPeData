@@ -281,7 +281,7 @@ create_sample_combinations <- function(
   }
 
   # Process dates using functional approach to avoid class-stripping
-  all_combinations_list <- purrr::map(dates, function(date) {
+  all_combinations_list <- map(dates, function(date) {
     # Ensure we have a proper Date object and convert to character for storage
     if (inherits(date, "Date")) {
       date_char <- as.character(date)
@@ -298,8 +298,17 @@ create_sample_combinations <- function(
       SAMPLING_DATE = date_char
     )
 
-    # Split subsamples cs-string into a vector
-    subsamples <- trimws(strsplit(subsamples, split = ",")[[1]]) %||% c(1)
+    # Split subsamples cs-string into a vector, if possible
+    # do some fairly careful checking of subsamples to see if it's empty
+    # todo: we run this exact same code outside the function as well. could be consolidated.
+    subsamples <- subsamples |> as.character()
+    subsamples <- if (
+      length(trimws(strsplit(subsamples, split = ",")[[1]])) > 1
+    ) {
+      trimws(strsplit(subsamples, split = ",")[[1]])
+    } else {
+      "1"
+    }
 
     # Process each base combination with compartments and subsamples
     date_combinations <- tibble()
