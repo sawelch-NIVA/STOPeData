@@ -23,20 +23,34 @@ psu,dimensionless,1,practical salinity unit
 ppm(w/v),kg/m³,1e-3,aqueous weight/volume - equivalent to mg/L
 ppb(w/v),kg/m³,1e-6,aqueous weight/volume - equivalent to µg/L
 ppt(w/v),kg/m³,1e-9,aqueous weight/volume - equivalent to ng/L
-g/kg,dimensionless,1e-3,mass ratio
-mg/kg,dimensionless,1e-6,mass ratio
-μg/kg,dimensionless,1e-9,mass ratio
-ng/kg,dimensionless,1e-12,mass ratio
-pg/kg,dimensionless,1e-15,mass ratio
-g/g,dimensionless,1,mass ratio
-mg/g,dimensionless,1e-3,mass ratio
-μg/g,dimensionless,1e-6,mass ratio
-ng/g,dimensionless,1e-9,mass ratio
-pg/g,dimensionless,1e-12,mass ratio
-ppm(w/w),dimensionless,1e-6,mass ratio - equivalent to mg/kg
-ppb(w/w),dimensionless,1e-9,mass ratio - equivalent to μg/kg
-ppt(w/w),dimensionless,1e-12,mass ratio - equivalent to ng/kg
-%(w/w),dimensionless,0.01,mass percentage
+g/kg (dry),dimensionless,1e-3,mass ratio
+g/kg (wet),dimensionless,1e-3,mass ratio
+mg/kg (dry),dimensionless,1e-6,mass ratio
+mg/kg (wet),dimensionless,1e-6,mass ratio
+μg/kg (dry),dimensionless,1e-9,mass ratio
+μg/kg (wet),dimensionless,1e-9,mass ratio
+ng/kg (dry),dimensionless,1e-12,mass ratio
+ng/kg (wet),dimensionless,1e-12,mass ratio
+pg/kg (dry),dimensionless,1e-15,mass ratio
+pg/kg (wet),dimensionless,1e-15,mass ratio
+g/g (dry),dimensionless,1,mass ratio
+g/g (wet),dimensionless,1,mass ratio
+mg/g (dry),dimensionless,1e-3,mass ratio
+mg/g (wet),dimensionless,1e-3,mass ratio
+μg/g (dry),dimensionless,1e-6,mass ratio
+μg/g (wet),dimensionless,1e-6,mass ratio
+ng/g (dry),dimensionless,1e-9,mass ratio
+ng/g (wet),dimensionless,1e-9,mass ratio
+pg/g (dry),dimensionless,1e-12,mass ratio
+pg/g (wet),dimensionless,1e-12,mass ratio
+ppm(w/w) (dry),dimensionless,1e-6,mass ratio - equivalent to mg/kg
+ppm(w/w) (wet),dimensionless,1e-6,mass ratio - equivalent to mg/kg
+ppb(w/w) (dry),dimensionless,1e-9,mass ratio - equivalent to μg/kg
+ppb(w/w) (wet),dimensionless,1e-9,mass ratio - equivalent to μg/kg
+ppt(w/w) (dry),dimensionless,1e-12,mass ratio - equivalent to ng/kg
+ppt(w/w) (wet),dimensionless,1e-12,mass ratio - equivalent to ng/kg
+%(w/w) (dry),dimensionless,0.01,mass percentage
+%(w/w) (wet),dimensionless,0.01,mass percentage
 Gy,Gy,1,absorbed dose
 Gy/h,Gy/s,1/3600,absorbed dose rate
 mGy,Gy,1e-3,absorbed dose
