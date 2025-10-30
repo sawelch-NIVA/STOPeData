@@ -3,10 +3,7 @@
 # The plan is that eventually all functions that are dependent on table format will
 # be based in some way on these functions. That may prove to be impractical. But it's a start.
 # eData DRF Version - Not Tracked
-# Last Updated 2025.10.23
-# TODO: Implement caching for functions that call big datasets, if there turns
-# out to be performance issues
-# TODO: Update mod_llm_fct_populate to integrate with these functions, if poss.
+# Last Updated 2025.10.30
 
 # -----------------------
 # ---- TABLE FORMATS ----
@@ -766,15 +763,150 @@ reference_character_limits <- function() {
   )
 }
 
+# Protocol Vocabulary Functions ----
+# Each protocol type creates its own tribble, then combined with bind_rows
+
+#' Sampling Protocol Options Vocabulary
+#'
+#' Returns sampling protocol options as a tibble with Protocol_Type, Short_Name, and Long_Name columns.
+#'
+#' @return A tibble with sampling protocol options
+#' @export
+#' @importFrom tibble tribble
+sampling_protocols_vocabulary <- function() {
+  tribble(
+    ~Protocol_Type      , ~Short_Name        , ~Long_Name                            ,
+    "Sampling Protocol" , "Not relevant"     , "Not relevant"                        ,
+    "Sampling Protocol" , "Not reported"     , "Not reported"                        ,
+    "Sampling Protocol" , "Point"            , "Point sampling"                      ,
+    "Sampling Protocol" , "Composite"        , "Composite sampling"                  ,
+    "Sampling Protocol" , "Trawl"            , "Trawl sampling"                      ,
+    "Sampling Protocol" , "Grab"             , "Grab sampling"                       ,
+    "Sampling Protocol" , "Core"             , "Core sampling"                       ,
+    "Sampling Protocol" , "Seine net"        , "Seine net sampling"                  ,
+    "Sampling Protocol" , "Electrofishing"   , "Electrofishing"                      ,
+    "Sampling Protocol" , "Plankton net"     , "Plankton net sampling"               ,
+    "Sampling Protocol" , "Bailer"           , "Bailer sampling"                     ,
+    "Sampling Protocol" , "Peristaltic pump" , "Peristaltic pump sampling"           ,
+    "Sampling Protocol" , "Active air"       , "Active air sampling"                 ,
+    "Sampling Protocol" , "Passive air"      , "Passive air sampling"                ,
+    "Sampling Protocol" , "SPMD"             , "Semipermeable membrane device"       ,
+    "Sampling Protocol" , "SPE"              , "Solid phase extraction device"       ,
+    "Sampling Protocol" , "LVSPE"            , "Large volume solid phase extraction" ,
+    "Sampling Protocol" , "DGT"              , "Diffusive gradients in thin films"   ,
+    "Sampling Protocol" , "Caged organisms"  , "Caged organism deployment"           ,
+    "Sampling Protocol" , "Blood sample"     , "Blood sample"                        ,
+    "Sampling Protocol" , "Biopsy"           , "Biopsy"                              ,
+    "Sampling Protocol" , "Other"            , "Other"
+  )
+}
+
+#' Fractionation Protocol Options Vocabulary
+#'
+#' Returns fractionation protocol options as a tibble with Protocol_Type, Short_Name, and Long_Name columns.
+#'
+#' @return A tibble with fractionation protocol options
+#' @export
+#' @importFrom tibble tribble
+fractionation_protocols_vocabulary <- function() {
+  tribble(
+    ~Protocol_Type           , ~Short_Name         , ~Long_Name                                  ,
+    "Fractionation Protocol" , "Not relevant"      , "Not relevant"                              ,
+    "Fractionation Protocol" , "Not reported"      , "Not reported"                              ,
+    "Fractionation Protocol" , "Total"             , "Total fraction"                            ,
+    "Fractionation Protocol" , "Particles"         , "Particulate fraction"                      ,
+    "Fractionation Protocol" , "Colloidal"         , "Colloidal fraction"                        ,
+    "Fractionation Protocol" , "LMM"               , "Low molecular mass fraction"               ,
+    "Fractionation Protocol" , "Aqueous"           , "Aqueous fraction"                          ,
+    "Fractionation Protocol" , "Filtered 0.45um"   , "Filtered through 0.45 micrometer membrane" ,
+    "Fractionation Protocol" , "Filtered 0.2um"    , "Filtered through 0.2 micrometer membrane"  ,
+    "Fractionation Protocol" , "Dissolved"         , "Dissolved fraction"                        ,
+    "Fractionation Protocol" , "Filtered"          , "Filtered fraction"                         ,
+    "Fractionation Protocol" , "Acid extractable"  , "Acid extractable fraction"                 ,
+    "Fractionation Protocol" , "Reducible"         , "Reducible fraction"                        ,
+    "Fractionation Protocol" , "Oxidisable"        , "Oxidisable fraction"                       ,
+    "Fractionation Protocol" , "Residual"          , "Residual fraction"                         ,
+    "Fractionation Protocol" , "Bioavailable"      , "Bioavailable fraction"                     ,
+    "Fractionation Protocol" , "Free ion"          , "Free ion activity"                         ,
+    "Fractionation Protocol" , "Size fractionated" , "Size fractionated"                         ,
+    "Fractionation Protocol" , "Other"             , "Other"
+  )
+}
+
+#' Extraction Protocol Options Vocabulary
+#'
+#' Returns extraction protocol options as a tibble with Protocol_Type, Short_Name, and Long_Name columns.
+#'
+#' @return A tibble with extraction protocol options
+#' @export
+#' @importFrom tibble tribble
+extraction_protocols_vocabulary <- function() {
+  tribble(
+    ~Protocol_Type        , ~Short_Name                         , ~Long_Name                                           ,
+    "Extraction Protocol" , "Not relevant"                      , "Not relevant"                                       ,
+    "Extraction Protocol" , "Not reported"                      , "Not reported"                                       ,
+    "Extraction Protocol" , "None"                              , "No extraction"                                      ,
+    "Extraction Protocol" , "Methanol"                          , "Methanol extraction"                                ,
+    "Extraction Protocol" , "Dichloromethane"                   , "Dichloromethane extraction"                         ,
+    "Extraction Protocol" , "SPE Isolute Env+"                  , "Solid phase extraction with Isolute Env+ cartridge" ,
+    "Extraction Protocol" , "Membrane filtration 0.45um"        , "Membrane filtration through 0.45 micrometer"        ,
+    "Extraction Protocol" , "Membrane filtration 0.2um"         , "Membrane filtration through 0.2 micrometer"         ,
+    "Extraction Protocol" , "Membrane filtration"               , "Membrane filtration"                                ,
+    "Extraction Protocol" , "Filtration"                        , "Filtration"                                         ,
+    "Extraction Protocol" , "Microwave-assisted acid digestion" , "Microwave-assisted acid digestion"                  ,
+    "Extraction Protocol" , "Acid digestion"                    , "Acid digestion"                                     ,
+    "Extraction Protocol" , "Pressurised liquid"                , "Pressurised liquid extraction"                      ,
+    "Extraction Protocol" , "Ultrasonic"                        , "Ultrasonic extraction"                              ,
+    "Extraction Protocol" , "Soxhlet"                           , "Soxhlet extraction"                                 ,
+    "Extraction Protocol" , "QuEChERS"                          , "Quick easy cheap effective rugged safe extraction"  ,
+    "Extraction Protocol" , "Accelerated solvent"               , "Accelerated solvent extraction"                     ,
+    "Extraction Protocol" , "Sequential extraction"             , "Sequential extraction protocol"                     ,
+    "Extraction Protocol" , "Other"                             , "Other"
+  )
+}
+
+#' Analytical Protocol Options Vocabulary
+#'
+#' Returns analytical protocol options as a tibble with Protocol_Type, Short_Name, and Long_Name columns.
+#'
+#' @return A tibble with analytical protocol options
+#' @export
+#' @importFrom tibble tribble
+analytical_protocols_vocabulary <- function() {
+  tribble(
+    ~Protocol_Type        , ~Short_Name          , ~Long_Name                                                 ,
+    "Analytical Protocol" , "Not relevant"       , "Not relevant"                                             ,
+    "Analytical Protocol" , "Not reported"       , "Not reported"                                             ,
+    "Analytical Protocol" , "GC-MS"              , "Gas chromatography mass spectrometry"                     ,
+    "Analytical Protocol" , "LC-MS"              , "Liquid chromatography mass spectrometry"                  ,
+    "Analytical Protocol" , "LC-MS/MS"           , "Liquid chromatography tandem mass spectrometry"           ,
+    "Analytical Protocol" , "GC-MS/MS"           , "Gas chromatography tandem mass spectrometry"              ,
+    "Analytical Protocol" , "UPLC"               , "Ultra performance liquid chromatography"                  ,
+    "Analytical Protocol" , "ICP-MS"             , "Inductively coupled plasma mass spectrometry"             ,
+    "Analytical Protocol" , "ICP-OES"            , "Inductively coupled plasma optical emission spectroscopy" ,
+    "Analytical Protocol" , "AAS"                , "Atomic absorption spectroscopy"                           ,
+    "Analytical Protocol" , "XRF"                , "X-ray fluorescence spectroscopy"                          ,
+    "Analytical Protocol" , "Ion chromatography" , "Ion chromatography"                                       ,
+    "Analytical Protocol" , "Spectrophotometry"  , "Spectrophotometry"                                        ,
+    "Analytical Protocol" , "Fluorescence"       , "Fluorescence spectroscopy"                                ,
+    "Analytical Protocol" , "Other"              , "Other"
+  )
+}
+
 #' Protocol Options Data
 #'
-#' Returns protocol options data from parquet file.
+#' Returns all protocol options data by combining all individual protocol vocabularies.
 #'
-#' @return A data frame of protocol options
+#' @return A tibble with Protocol_Type, Short_Name, and Long_Name columns for all protocols
 #' @export
-#' @importFrom arrow read_parquet
+#' @importFrom dplyr bind_rows
 protocol_options_vocabulary <- function() {
-  read_parquet("inst/data/clean/inst-claude-2025-08-05-methods.parquet")
+  bind_rows(
+    sampling_protocols_vocabulary(),
+    fractionation_protocols_vocabulary(),
+    extraction_protocols_vocabulary(),
+    analytical_protocols_vocabulary()
+  )
 }
 
 #' Protocol Categories Controlled Vocabulary
@@ -791,6 +923,7 @@ protocol_categories_vocabulary <- function() {
     "Analytical Protocol"
   )
 }
+
 
 #' Read in ecotoxicological units and conversion factors from csv
 #'

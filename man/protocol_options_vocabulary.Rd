@@ -7,8 +7,8 @@
 protocol_options_vocabulary()
 }
 \value{
-A data frame of protocol options
+A tibble with Protocol_Type, Short_Name, and Long_Name columns for all protocols
 }
 \description{
-Returns protocol options data from parquet file.
+Returns all protocol options data by combining all individual protocol vocabularies.
 }

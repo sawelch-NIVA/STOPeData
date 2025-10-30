@@ -1,4 +1,9 @@
+# LLM Extraction Schema Functions ----
+# Uses vocabulary functions from fct_formats.R to reduce duplication
+# Updated to use glue instead of paste0 for string construction
+
 #' Create campaign schema
+#' @importFrom glue glue
 #' @noRd
 create_campaign_schema <- function() {
   type_object(
@@ -98,15 +103,26 @@ create_sites_schema <- function() {
         required = FALSE
       ),
       area = type_string(
-        description = "Non-national area where site is located. E.g. ocean or sea",
+        description = as.character(glue(
+          "International ocean or sea, if relevant. For territorial waters, return Not relevant.: {paste(areas_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       site_geographic_feature = type_string(
-        description = "Geographic feature type from: River stream canal, Lake pond pool reservoir, Ocean sea territorial waters, Coastal fjord, Estuary, Drainage sewer artificial water, Swamp wetland, Groundwater aquifer, WWTP, Artificial Land/Urban Areas, Landfills, Cropland, Woodland forest, Shrubland, Grassland, Bare land and lichen/moss, Other",
+        description = as.character(glue(
+          "Geographic feature type from: {paste(geographic_features_vocabulary(), collapse = ', ')}"
+        )),
+        required = FALSE
+      ),
+      site_geographic_feature_sub = type_string(
+        description = as.character(glue(
+          "Geographic sub-feature type from: {paste(geographic_features_sub_vocabulary(), collapse = ', ')}. ",
+          "As these are currently mostly water-based use other most of the time."
+        )),
         required = FALSE
       ),
       site_comment = type_string(
-        description = "Any additional details about the site not captured in the previous variables. If coordinates are converted from another CRS or from minute degrees to decimal degrees, report here.",
+        description = "Any additional details about the site not captured in the previous variables. If coordinates are converted from another CRS or from minute degrees to decimal degrees, report original figures and that a conversion was performed here.",
         required = FALSE
       )
     )
@@ -150,11 +166,15 @@ create_compartments_schema <- function() {
         required = FALSE
       ),
       environ_compartment_sub = type_string(
-        description = "Sub-compartment: Freshwater, Marine/Salt Water, Brackish/Transitional Water, Groundwater, Wastewater, Aquatic Sediment, Indoor Air, Outdoor Air, Soil A Horizon (Topsoil), Soil O Horizon (Organic), Biota Terrestrial, Biota Aquatic",
+        description = as.character(glue(
+          "Sub-compartment: {paste(environ_compartment_subs_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       measured_category = type_string(
-        description = "Measurement category: External, Internal, or Surface",
+        description = as.character(glue(
+          "Measurement category: {paste(names(measured_categories_vocabulary()), collapse = ', ')}"
+        )),
         required = FALSE
       )
     )
@@ -172,7 +192,9 @@ create_biota_schema <- function() {
         required = FALSE
       ),
       species_group = type_string(
-        description = "Taxonomic group: Worms, Insects/Spiders, Molluscs, Fungi, Crustaceans, Mammals, Amphibians, Moss/Hornworts, Birds, Fish, Plants, Algae, Invertebrates, Reptiles, Bacteria, Ecosystem, Other",
+        description = as.character(glue(
+          "Taxonomic group: {paste(species_groups_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       sample_species = type_string(
@@ -180,15 +202,21 @@ create_biota_schema <- function() {
         required = FALSE
       ),
       sample_tissue = type_string(
-        description = "Tissue type: Whole organism, Muscle, Liver, Kidney, Brain, Heart, Lung, Gill, Shell, Carapace, Blood, Egg, Larva, Leaf, Root, Stem, Fruit, Seed, Other",
+        description = as.character(glue(
+          "Tissue type: {paste(tissue_types_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       sample_species_lifestage = type_string(
-        description = "Life stage: Adult, Juvenile, Larva, Embryo, Egg, Seedling, Mature, Young, Mixed, Not applicable, Other",
+        description = as.character(glue(
+          "Life stage: {paste(lifestage_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       sample_species_gender = type_string(
-        description = "Gender: Male, Female, Mixed, Hermaphrodite, Not applicable, Not determined, Other",
+        description = as.character(glue(
+          "Gender: {paste(gender_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       )
     )
@@ -202,7 +230,9 @@ create_methods_schema <- function() {
     type_object(
       .description = "Analytical and sampling methods used",
       protocol_category = type_string(
-        description = "Protocol type: Sampling Protocol, Fractionation Protocol, Extraction Protocol, Analytical Protocol",
+        description = as.character(glue(
+          "Protocol type: {paste(protocol_categories_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       protocol_name = type_string(

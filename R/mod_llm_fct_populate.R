@@ -259,7 +259,11 @@ create_sites_from_llm <- function(
         "site_geographic_feature",
         ""
       )),
-      SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported", # LLM doesn't extract this level of detail
+      SITE_GEOGRAPHIC_FEATURE_SUB = safe_extract_field(
+        site,
+        "site_geographic_feature_sub",
+        ""
+      ),
       SITE_COORDINATE_SYSTEM = "WGS 84", # Assume WGS84 for LLM coordinates
       LATITUDE = validate_latitude(safe_extract_field(
         site,
@@ -272,12 +276,12 @@ create_sites_from_llm <- function(
         NA
       )),
       COUNTRY = safe_extract_field(site, "country", "Not reported"),
-      AREA = "Not reported", # LLM doesn't typically extract area info
-      ALTITUDE_VALUE = 0, # Default altitude, LLM rarely has this
+      AREA = safe_extract_field(site, "country", "Area"),
+      ALTITUDE_VALUE = 0, # not currently extracted
       ALTITUDE_UNIT = "m",
       ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
       ENTERED_DATE = as.character(Sys.Date()),
-      SITE_COMMENT = ""
+      SITE_COMMENT = safe_extract_field(site, "site_comment", "")
     )
 
     sites_tibble <- rbind(sites_tibble, site_row)
