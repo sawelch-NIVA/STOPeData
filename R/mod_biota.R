@@ -689,7 +689,8 @@ mod_biota_server <- function(id) {
           hot_context_menu(
             allowRowEdit = FALSE, # Don't allow adding/removing rows
             allowColEdit = FALSE
-          )
+          ) |>
+          hot_cols(manualColumnResize = TRUE, columnSorting = TRUE)
       }
     })
 

@@ -600,6 +600,7 @@ tissue_types_vocabulary <- function() {
     "Not reported",
     "Not relevant",
     "Whole body",
+    "Total Soft Tissues",
     "Muscle",
     "Liver",
     "Kidney",

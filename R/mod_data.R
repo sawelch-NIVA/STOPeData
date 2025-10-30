@@ -1011,9 +1011,9 @@ mod_data_server <- function(id, parent_session) {
           ) |>
           hot_cols(
             # fixedColumnsLeft = 5,
-            manualColumnMove = TRUE,
+            # manualColumnMove = TRUE, # turns out this breaks when we try to convert the table to an R object!
             manualColumnResize = TRUE,
-            columnSorting = FALSE # turns out this breaks when we try to convert the table to an R object!
+            columnSorting = TRUE
           )
       }
     })
