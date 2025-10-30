@@ -193,10 +193,22 @@ download_all_csv <- function(session, moduleState = NULL) {
     )
   }
 
+  campaign_short <- function() {
+    if (nrow(session$userData$reactiveValues$referenceData) > 0) {
+      generate_reference_id(
+        session$userData$reactiveValues$referenceData$YEAR,
+        session$userData$reactiveValues$referenceData$AUTHOR,
+        session$userData$reactiveValues$referenceData$TITLE
+      )
+    } else {
+      "ReferenceNotFound"
+    }
+  }
+
   downloadHandler(
     filename = function() {
       timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-      campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+      campaign <- campaign_short()
       glue("{campaign}_AllData_{timestamp}.zip")
     },
 
@@ -209,7 +221,7 @@ download_all_csv <- function(session, moduleState = NULL) {
       # Setup temporary directory and naming
       temp_dir <- tempdir()
       timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-      campaign <- gsub("[^A-Za-z0-9_]", "_", moduleState$campaign_name)
+      campaign <- campaign_short()
 
       # Define which datasets should be exported as text files
       text_datasets <- c("schemaLLM", "promptLLM", "rawLLM")
