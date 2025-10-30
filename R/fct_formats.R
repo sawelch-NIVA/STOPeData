@@ -489,7 +489,8 @@ sub_compartment_options_vocabulary <- function() {
       "Liquid Growth Medium" = "Liquid Growth Medium",
       "Rainwater" = "Rainwater",
       "Stormwater" = "Stormwater",
-      "Leachate" = "Leachate"
+      "Leachate" = "Leachate",
+      "Aquatic Sediment" = "Aquatic Sediment"
     ),
     "Atmospheric" = c(
       "Indoor Air" = "Indoor Air",

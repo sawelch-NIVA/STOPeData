@@ -300,17 +300,17 @@ mod_compartments_server <- function(id) {
         )
 
         # Reset form
-        updateSelectInput(session, "environ_compartment_select", selected = "")
-        updateSelectInput(
-          session,
-          "environ_compartment_sub_select",
-          choices = c("Select main compartment first..." = "")
-        )
-        updateSelectInput(
-          session,
-          "measured_category_select",
-          selected = "External"
-        )
+        # updateSelectInput(session, "environ_compartment_select", selected = "")
+        # updateSelectInput(
+        #   session,
+        #   "environ_compartment_sub_select",
+        #   choices = c("Select main compartment first..." = "")
+        # )
+        # updateSelectInput(
+        #   session,
+        #   "measured_category_select",
+        #   selected = "External"
+        # )
 
         showNotification(
           glue(
