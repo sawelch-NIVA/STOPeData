@@ -219,8 +219,8 @@ mod_campaign_server <- function(id) {
     iv <- InputValidator$new()
     iv$add_rule("CAMPAIGN_NAME", sv_required())
     iv$add_rule("CAMPAIGN_NAME", function(value) {
-      if (isTruthy(value) && nchar(value) > 100) {
-        "Campaign Name must be 100 characters or less"
+      if (isTruthy(value) && nchar(value) > 150) {
+        "Campaign Name must be 150 characters or less"
       }
     })
 
@@ -278,8 +278,8 @@ mod_campaign_server <- function(id) {
     # CAMPAIGN_NAME_SHORT is short
     iv$add_rule("CAMPAIGN_NAME_SHORT", sv_required())
     iv$add_rule("CAMPAIGN_NAME_SHORT", function(value) {
-      if (isTruthy(value) && nchar(value) > 20) {
-        "Campaign Name Short must be 20 characters or less"
+      if (isTruthy(value) && nchar(value) > 40) {
+        "Campaign Name Short must be 40 characters or less"
       }
     })
 

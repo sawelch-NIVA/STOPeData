@@ -82,7 +82,7 @@ create_sites_schema <- function() {
         required = FALSE
       ),
       site_name = type_string(
-        description = "Descriptive site name. If many sampling sites are reported without specific coordinates, note in the name.",
+        description = "Descriptive site name. If many sampling sites are reported without specific coordinates, note in the name and site_comment that they have been merged into a single site for convenience.",
         required = FALSE
       ),
       latitude = type_number(
@@ -97,12 +97,16 @@ create_sites_schema <- function() {
         description = "Country where site is located - ONLY if explicitly stated",
         required = FALSE
       ),
+      area = type_string(
+        description = "Non-national area where site is located. E.g. ocean or sea",
+        required = FALSE
+      ),
       site_geographic_feature = type_string(
         description = "Geographic feature type from: River stream canal, Lake pond pool reservoir, Ocean sea territorial waters, Coastal fjord, Estuary, Drainage sewer artificial water, Swamp wetland, Groundwater aquifer, WWTP, Artificial Land/Urban Areas, Landfills, Cropland, Woodland forest, Shrubland, Grassland, Bare land and lichen/moss, Other",
         required = FALSE
       ),
       site_comment = type_string(
-        description = "Any additional details about the site not captured in the previous variables.",
+        description = "Any additional details about the site not captured in the previous variables. If coordinates are converted from another CRS or from minute degrees to decimal degrees, report here.",
         required = FALSE
       )
     )

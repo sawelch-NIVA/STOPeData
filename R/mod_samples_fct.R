@@ -193,7 +193,7 @@ generate_sample_id_with_components <- function(
   base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
   # Vectorized replicate handling
-  replicate_suffix <- ifelse(replicate > 1, sprintf("-R%02d", replicate), "")
+  replicate_suffix <- sprintf("-R%02d", replicate)
   paste0(base_id, replicate_suffix)
 }
 
@@ -405,7 +405,7 @@ create_sample_combinations <- function(
       "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT, 6)}",
       "_{create_abbrev(all_combinations$ENVIRON_COMPARTMENT_SUB, 6)}",
       "_{gsub('-', '', all_combinations$SAMPLING_DATE)}",
-      "{ifelse(all_combinations$REP > 1, glue('_R{sprintf(\"%02d\", all_combinations$REP)}'), '')}"
+      "{glue('_R{sprintf(\"%02d\", all_combinations$REP)}')}"
     )
 
     # Generate sample IDs using vectorized function
