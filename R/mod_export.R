@@ -71,7 +71,7 @@ mod_export_ui <- function(id) {
 #' @importFrom bsicons bs_icon
 #' @importFrom bslib layout_column_wrap
 #' @importFrom golem get_golem_version print_dev
-#' @importFrom utils write.csv
+#' @importFrom readr write_excel_csv
 #' @importFrom zip zip
 #' @export
 mod_export_server <- function(id) {
@@ -187,7 +187,7 @@ mod_export_server <- function(id) {
             txt_file <- file.path(temp_dir, glue("{base_name}_metadata.txt"))
 
             # Write CSV
-            write.csv(data, file = csv_file, row.names = FALSE)
+            write_excel_csv(data, file = csv_file, row.names = FALSE)
 
             # Write metadata TXT
             write_metadata_txt(metadata, txt_file)

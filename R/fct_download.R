@@ -183,8 +183,8 @@ object_to_text <- function(obj, dataset_name = "unknown") {
 #'   and campaign_name fields.
 #' @return A Shiny downloadHandler function
 #' @importFrom glue glue
-#' @importFrom utils write.csv
 #' @importFrom zip zip
+#' @importFrom readr write_excel_csv
 #' @export
 download_all_csv <- function(session, moduleState = NULL) {
   if (is.null(moduleState) || is.null(session)) {
@@ -259,7 +259,7 @@ download_all_csv <- function(session, moduleState = NULL) {
           if (!is.null(data) && nrow(data) > 0) {
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
 
-            write.csv(data, file = csv_file, row.names = FALSE)
+            write_excel_csv(data, file = csv_file, row.names = FALSE)
 
             all_files <- c(all_files, csv_file)
 

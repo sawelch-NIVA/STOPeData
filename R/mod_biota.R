@@ -189,22 +189,12 @@ mod_biota_server <- function(id) {
       llm_lookup_validation = FALSE
     )
 
-    moduleState$species_options <- read_parquet(
-      "inst/data/clean/ecotox_2025_06_12_species.parquet"
-    ) |>
-      mutate(
-        SPECIES_COMMON_NAME = common_name,
-        SPECIES_NAME = latin_name,
-        SPECIES_KINGDOM = kingdom,
-        SPECIES_GROUP = species_group,
-        .keep = "none"
-      ) |>
-      bind_rows(tibble(
-        SPECIES_COMMON_NAME = c("Other", "Ecosystem"),
-        SPECIES_NAME = c("Other", "Ecosystem"),
-        SPECIES_KINGDOM = c("Other", "Ecosystem"),
-        SPECIES_GROUP = c("Other", "Ecosystem")
-      ))
+    # Autosave timer -----
+    # Anything that calls autoInvalidate will automatically invalidate
+    # every 2 seconds.
+    autoInvalidate <- reactiveTimer(10000)
+
+    moduleState$species_options <- species_names_vocabulary()
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
@@ -529,15 +519,16 @@ mod_biota_server <- function(id) {
       )
 
     ## observe: Handle table changes ----
-    # upstream: input$biota_table changes
+    # upstream: autoInvalidate invalidates (every 10 seconds)
     # downstream: moduleState$biota_data
     observe({
+      req(input$biota_table)
       if (!is.null(input$biota_table) && moduleState$has_biota_samples) {
         updated_data <- hot_to_r(input$biota_table)
         moduleState$biota_data <- updated_data
       }
     }) |>
-      bindEvent(input$biota_table)
+      bindEvent(autoInvalidate())
 
     ## observer: receive data from session$userData$reactiveValues$biotaData (import) ----
     ## and update module data

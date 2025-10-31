@@ -585,6 +585,34 @@ measured_categories_vocabulary <- function() {
   )
 }
 
+#' Species Controlled Vocabulary
+#'
+#' Returns species name options drom ECOTOX data
+#'
+#' @return A character vector of parameter type subcategory options
+#' @export
+#' @import dplyr
+#' @importFrom tibble tibble
+#' @importFrom arrow read_parquet
+species_names_vocabulary <- function() {
+  read_parquet(
+    "inst/data/clean/ecotox_2025_06_12_species.parquet"
+  ) |>
+    mutate(
+      SPECIES_COMMON_NAME = common_name,
+      SPECIES_NAME = latin_name,
+      SPECIES_KINGDOM = kingdom,
+      SPECIES_GROUP = species_group,
+      .keep = "none"
+    ) |>
+    bind_rows(tibble(
+      SPECIES_COMMON_NAME = c("Other", "Ecosystem"),
+      SPECIES_NAME = c("Other", "Ecosystem"),
+      SPECIES_KINGDOM = c("Other", "Ecosystem"),
+      SPECIES_GROUP = c("Other", "Ecosystem")
+    ))
+}
+
 
 #' Initialize Tissue Types Controlled Vocabulary
 #'
