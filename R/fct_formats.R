@@ -253,7 +253,8 @@ initialise_measurements_tibble <- function() {
     SAMPLE_ID = character(),
     ENVIRON_COMPARTMENT = character(),
     PARAMETER_TYPE = character(),
-    MEASURED_TYPE = character()
+    MEASURED_TYPE = character(),
+    MEASUREMENT_COMMENT = character()
   )
 }
 

@@ -259,7 +259,7 @@ download_all_csv <- function(session, moduleState = NULL) {
           if (!is.null(data) && nrow(data) > 0) {
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
 
-            write_excel_csv(data, file = csv_file, row.names = FALSE)
+            write_excel_csv(data, file = csv_file)
 
             all_files <- c(all_files, csv_file)
 
