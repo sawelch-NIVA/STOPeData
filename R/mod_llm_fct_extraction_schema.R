@@ -173,7 +173,7 @@ create_compartments_schema <- function() {
       ),
       measured_category = type_string(
         description = as.character(glue(
-          "Measurement category: {paste(names(measured_categories_vocabulary()), collapse = ', ')}"
+          "Measurement category: {paste(measured_categories_vocabulary(), collapse = ', ')}"
         )),
         required = FALSE
       )

@@ -187,7 +187,7 @@ mod_export_server <- function(id) {
             txt_file <- file.path(temp_dir, glue("{base_name}_metadata.txt"))
 
             # Write CSV
-            write_excel_csv(data, file = csv_file)
+            write_excel_csv(data, file = csv_file, na = "NA")
 
             # Write metadata TXT
             write_metadata_txt(metadata, txt_file)

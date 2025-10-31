@@ -217,20 +217,6 @@ mod_compartments_server <- function(id) {
       )
     }
 
-    ## Create new compartment combination ----
-    create_compartment_combination <- function(
-      compartment,
-      sub_compartment,
-      category
-    ) {
-      initialise_compartments_tibble() |>
-        add_row(
-          ENVIRON_COMPARTMENT = compartment,
-          ENVIRON_COMPARTMENT_SUB = sub_compartment,
-          MEASURED_CATEGORY = category
-        )
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Update sub-compartment dropdown when compartment changes ----

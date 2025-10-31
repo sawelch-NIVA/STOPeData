@@ -442,11 +442,14 @@ mod_parameters_server <- function(id) {
     observe({
       param_type <- input$parameter_type_select
 
+      # TODO: Format-dependent
       if (isTruthy(param_type)) {
         new_param <- create_new_parameter(
           param_type,
           session$userData$reactiveValues$ENTERED_BY %|truthy|% ""
-        )
+        ) |>
+          mutate(PARAMETER_COMMENT)
+        browser()
         moduleState$parameters_data <- rbind(
           moduleState$parameters_data,
           new_param
@@ -577,35 +580,35 @@ mod_parameters_server <- function(id) {
           width = NULL,
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
-          hot_col(
-            "PARAMETER_NAME",
-            type = "text",
-            renderer = mandatory_highlight_text()
-          ) |>
-          hot_col(
-            "PARAMETER_NAME_SUB",
-            type = "text"
-          ) |>
-          hot_col(
-            "PARAMETER_TYPE",
-            type = "dropdown",
-            source = parameter_types_vocabulary(),
-            strict = TRUE,
-            renderer = mandatory_highlight_dropdown()
-          ) |>
-          hot_col(
-            "PARAMETER_TYPE_SUB",
-            type = "dropdown",
-            source = parameter_types_sub_vocabulary(),
-            strict = TRUE
-          ) |>
-          hot_col(
-            "MEASURED_TYPE",
-            type = "dropdown",
-            source = measured_types_vocabulary(),
-            strict = TRUE,
-            renderer = mandatory_highlight_dropdown()
-          ) |>
+          # hot_col(
+          #   "PARAMETER_NAME",
+          #   type = "text",
+          #   renderer = mandatory_highlight_text()
+          # ) |>
+          # hot_col(
+          #   "PARAMETER_NAME_SUB",
+          #   type = "text"
+          # ) |>
+          # hot_col(
+          #   "PARAMETER_TYPE",
+          #   type = "dropdown",
+          #   source = parameter_types_vocabulary(),
+          #   strict = TRUE,
+          #   renderer = mandatory_highlight_dropdown()
+          # ) |>
+          # hot_col(
+          #   "PARAMETER_TYPE_SUB",
+          #   type = "dropdown",
+          #   source = parameter_types_sub_vocabulary(),
+          #   strict = TRUE
+          # ) |>
+          # hot_col(
+          #   "MEASURED_TYPE",
+          #   type = "dropdown",
+          #   source = measured_types_vocabulary(),
+          #   strict = TRUE,
+          #   renderer = mandatory_highlight_dropdown()
+          # ) |>
           hot_col(c("INCHIKEY_SD", "PUBCHEM_CID", "CAS_RN"), type = "text") |>
           hot_col("ENTERED_BY", renderer = mandatory_highlight_text()) |>
           hot_col("PARAMETER_COMMENT", type = "text") |>

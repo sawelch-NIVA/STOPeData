@@ -69,6 +69,7 @@ initialise_biota_tibble <- function() {
 #' Creates an empty tibble with the standardised column structure for environmental
 #' compartment data. Compartments define the environmental matrix and measurement
 #' context for sampling activities.
+#' One immediate child: create_compartment_combination() in mod_compartments_fct.R
 #'
 #' @return A tibble with 0 rows and standardised compartment columns
 #' @importFrom tibble tibble
@@ -107,6 +108,7 @@ initialise_methods_tibble <- function() {
 #' Creates an empty tibble with the standardised column structure for parameter data.
 #' Parameters define chemical substances, physical properties, or biological markers
 #' being measured, including classification and chemical identifiers.
+#' Two immediate children: create_new_parameter() and create_existing_parameter() in mod_parameters_fct.R
 #'
 #' @return A tibble with 0 rows and standardised parameter columns
 #' @importFrom tibble tibble
@@ -626,13 +628,15 @@ tissue_types_vocabulary <- function() {
     "Not reported",
     "Not relevant",
     "Whole body",
-    "Total Soft Tissues",
+    "Total soft tissues",
     "Muscle",
     "Liver",
     "Kidney",
     "Fat/Adipose",
     "Skin",
     "Bone",
+    "Pyloric caeca",
+    "Body wall",
     "Brain",
     "Heart",
     "Lung",

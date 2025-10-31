@@ -22,37 +22,15 @@ Use these exact terms when applicable:
 
 ### Environmental Compartments
 
-- **Primary**: Aquatic, Atmospheric, Terrestrial, Biota
-- **Sub-compartments**:
-  - **Aquatic**: Freshwater, Marine/Salt Water, Brackish/Transitional Water, Groundwater, Wastewater, Liquid Growth Medium, Rainwater, Stormwater, Leachate, Aquatic Sediment
-  - **Atmospheric**: Indoor Air, Outdoor Air
-  - **Terrestrial**: Terrestrial Biological Residue, Soil H Horizon (Peat), Soil O Horizon (Organic), Soil A Horizon (Topsoil), Soil E Horizon (Mineral), Soil S Horizon (Mineral), Soil C Horizon (Parent Material), Soil R Horizon (Bedrock)
-  - **Biota**: Biota Terrestrial, Biota Aquatic, Biota Atmospheric, Biota Other
+See schema
 
 ### Measurement Categories
 
-- External, Internal, Surface
+See schema
 
 ### Geographic Features
 
-- River stream canal
-- Lake pond pool reservoir
-- Ocean sea territorial waters
-- Coastal fjord
-- Estuary
-- Drainage sewer artificial water
-- Swamp wetland
-- Groundwater aquifer
-- WWTP
-- Artificial Land/Urban Areas
-- Landfills
-- Cropland
-- Woodland forest
-- Shrubland
-- Grassland
-- Bare land and lichen/moss
-- Glacier
-- Other
+See schema
 
 ### Species Groups (for Biota)
 

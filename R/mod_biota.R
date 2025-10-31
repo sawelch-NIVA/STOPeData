@@ -107,6 +107,14 @@ mod_biota_ui <- function(id) {
                 )
               )
             )
+          ),
+          tooltip(
+            input_task_button(
+              id = ns("update_biota_manual"),
+              label = "Update Biota from Samples",
+              type = "primary"
+            ),
+            "Refresh the available Sample rows where ENVIRON_COMPARTMENT = Biota. Will wipe existing data, so be a little careful."
           )
         ),
 
@@ -438,6 +446,27 @@ mod_biota_server <- function(id) {
     }) |>
       bindEvent(
         session$userData$reactiveValues$samplesData,
+        input$update_biota_manual,
+        ignoreNULL = FALSE,
+        ignoreInit = TRUE
+      )
+
+    ## observe ~ force loading biota samples if the table is stuck ----
+    # upstream: session$userData$reactiveValues$samplesData
+    # downstream: moduleState$biota_data, moduleState$has_biota_samples
+    observe({
+      if (!is.null(session$userData$reactiveValues$samplesData)) {
+        samples_data <- session$userData$reactiveValues$samplesData
+        biota_samples <- extract_biota_samples(samples_data)
+
+        moduleState$biota_data <- biota_samples
+        print_dev(glue(
+          "mod_biota loaded {nrow(biota_samples)} biota samples"
+        ))
+      }
+    }) |>
+      bindEvent(
+        input$update_biota_manual,
         ignoreNULL = FALSE,
         ignoreInit = TRUE
       )

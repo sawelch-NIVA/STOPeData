@@ -28,6 +28,33 @@ get_parameters_of_types <- function(
   return(all_params)
 }
 
+#' Create new blank parameter row
+#'
+#' @param param_type Character string specifying the parameter type
+#' @param entered_by Character string specifying who entered the parameter
+#'
+#' @return tibble with blank parameter template
+#' @export
+#' @seealso \code{\link{initialise_parameters_tibble}}
+create_new_parameter <- function(param_type, entered_by) {
+  template <- initialise_parameters_tibble()
+
+  # Add single row with specified values
+  template |>
+    add_row(
+      PARAMETER_TYPE = param_type,
+      PARAMETER_TYPE_SUB = "",
+      MEASURED_TYPE = "Concentration",
+      PARAMETER_NAME = "",
+      PARAMETER_NAME_SUB = "",
+      INCHIKEY_SD = "",
+      PUBCHEM_CID = "",
+      CAS_RN = "",
+      ENTERED_BY = entered_by,
+      PARAMETER_COMMENT = ""
+    )
+}
+
 #' Create parameter row from existing parameter data
 #'
 #' @param param_type Character string specifying the parameter type
@@ -36,8 +63,9 @@ get_parameters_of_types <- function(
 #' @param session_parameters Optional dataframe containing session-specific parameters
 #'
 #' @return tibble with parameter information or NULL if not found
-#' @importFrom dplyr filter slice
+#' @importFrom dplyr filter slice add_row
 #' @export
+#' @seealso \code{\link{initialise_parameters_tibble}}
 create_existing_parameter <- function(
   param_type,
   param_name,
@@ -59,40 +87,25 @@ create_existing_parameter <- function(
     return(NULL)
   }
 
-  # Extract first matching row and ensure all required columns exist
+  # Extract first matching row
   param_data <- param_row |> slice(1)
 
-  tibble(
-    PARAMETER_TYPE = param_type,
-    PARAMETER_TYPE_SUB = param_data$PARAMETER_TYPE_SUB %||% "",
-    MEASURED_TYPE = param_data$MEASURED_TYPE %||% "Concentration",
-    PARAMETER_NAME = param_data$PARAMETER_NAME %||% param_name,
-    PARAMETER_NAME_SUB = param_data$PARAMETER_NAME_SUB %||% "",
-    INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
-    PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
-    CAS_RN = param_data$CAS_RN %||% "",
-    ENTERED_BY = param_data$ENTERED_BY %||% "Not found"
-  )
-}
+  # Start with template to ensure all columns exist
+  template <- initialise_parameters_tibble()
 
-#' Create new blank parameter row
-#'
-#' @param param_type Character string specifying the parameter type
-#'
-#' @return tibble with blank parameter template
-#' @export
-create_new_parameter <- function(param_type, entered_by) {
-  tibble(
-    PARAMETER_TYPE = param_type,
-    PARAMETER_TYPE_SUB = "",
-    MEASURED_TYPE = "Concentration",
-    PARAMETER_NAME = "",
-    PARAMETER_NAME_SUB = "",
-    INCHIKEY_SD = "",
-    PUBCHEM_CID = "",
-    CAS_RN = "",
-    ENTERED_BY = entered_by,
-  )
+  template |>
+    add_row(
+      PARAMETER_TYPE = param_type,
+      PARAMETER_TYPE_SUB = param_data$PARAMETER_TYPE_SUB %||% "",
+      MEASURED_TYPE = param_data$MEASURED_TYPE %||% "Concentration",
+      PARAMETER_NAME = param_data$PARAMETER_NAME %||% param_name,
+      PARAMETER_NAME_SUB = param_data$PARAMETER_NAME_SUB %||% "",
+      INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
+      PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
+      CAS_RN = param_data$CAS_RN %||% "",
+      ENTERED_BY = param_data$ENTERED_BY %||% "Not found",
+      PARAMETER_COMMENT = ""
+    )
 }
 
 #' Get parameter names filtered by type and optionally subtype

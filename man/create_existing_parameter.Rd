@@ -26,3 +26,6 @@ tibble with parameter information or NULL if not found
 \description{
 Create parameter row from existing parameter data
 }
+\seealso{
+\code{\link{initialise_parameters_tibble}}
+}

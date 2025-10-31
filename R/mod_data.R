@@ -416,6 +416,25 @@ mod_data_server <- function(id, parent_session) {
         return(initialise_measurements_tibble())
       }
 
+      # get available methods
+      available_methods <- session$userData$reactiveValues$methodsData
+      # make each first available method the default for new combos
+      first_sampling <- available_methods |>
+        filter(PROTOCOL_CATEGORY == "Sampling Protocol") |>
+        pull(PROTOCOL_NAME)
+
+      first_extraction <- available_methods |>
+        filter(PROTOCOL_CATEGORY == "Extraction Protocol") |>
+        pull(PROTOCOL_NAME)
+
+      first_fractionation <- available_methods |>
+        filter(PROTOCOL_CATEGORY == "Fractionation Protocol") |>
+        pull(PROTOCOL_NAME)
+
+      first_analytical <- available_methods |>
+        filter(PROTOCOL_CATEGORY == "Analytical Protocol") |>
+        pull(PROTOCOL_NAME)
+
       # rejoin extended parameter data to samples
       combinations <- left_join(
         samples_data |>
@@ -461,17 +480,17 @@ mod_data_server <- function(id, parent_session) {
           UNCERTAINTY_UPPER = NA,
           UNCERTAINTY_LOWER = NA,
           MEASURED_N = NA,
-          MEASURED_UNIT = "mg/L", # Default unit
+          MEASURED_UNIT = "",
           LOQ_VALUE = NA,
-          LOQ_UNIT = "mg/L", # Should match MEASURED_UNIT
+          LOQ_UNIT = "",
           LOD_VALUE = NA,
-          LOD_UNIT = "mg/L", # Should match MEASURED_UNIT
+          LOD_UNIT = "",
 
           # Add method info
-          SAMPLING_PROTOCOL = "",
-          FRACTIONATION_PROTOCOL = "",
-          EXTRACTION_PROTOCOL = "",
-          ANALYTICAL_PROTOCOL = "",
+          SAMPLING_PROTOCOL = first_sampling[1],
+          FRACTIONATION_PROTOCOL = first_extraction[1],
+          EXTRACTION_PROTOCOL = first_extraction[1],
+          ANALYTICAL_PROTOCOL = first_analytical[1],
 
           REFERENCE_ID = reference_id,
         ) |>
@@ -640,7 +659,7 @@ mod_data_server <- function(id, parent_session) {
         if (length(analytical_methods) == 0) {
           analytical_methods <<- c("", "")
         } else if (length(analytical_methods) == 1) {
-          analytical_methods <<- c("", analytical_methods)
+          analytical_methods <<- c(analytical_methods)
         }
 
         sampling_methods <- available_methods |>
@@ -650,7 +669,7 @@ mod_data_server <- function(id, parent_session) {
         if (length(sampling_methods) == 0) {
           sampling_methods <<- c("", "")
         } else if (length(sampling_methods) == 1) {
-          sampling_methods <<- c("", sampling_methods)
+          sampling_methods <<- c(sampling_methods)
         }
 
         extraction_methods <- available_methods |>
@@ -660,7 +679,7 @@ mod_data_server <- function(id, parent_session) {
         if (length(extraction_methods) == 0) {
           extraction_methods <<- c("", "")
         } else if (length(extraction_methods) == 1) {
-          extraction_methods <<- c("", extraction_methods)
+          extraction_methods <<- c(extraction_methods)
         }
 
         fractionation_methods <- available_methods |>
@@ -670,7 +689,7 @@ mod_data_server <- function(id, parent_session) {
         if (length(fractionation_methods) == 0) {
           fractionation_methods <<- c("", "")
         } else if (length(fractionation_methods) == 1) {
-          fractionation_methods <<- c("", fractionation_methods)
+          fractionation_methods <<- c(fractionation_methods)
         }
       } else {
         # No methods data available - set all to 2-element vectors

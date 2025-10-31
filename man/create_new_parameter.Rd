@@ -8,10 +8,15 @@ create_new_parameter(param_type, entered_by)
 }
 \arguments{
 \item{param_type}{Character string specifying the parameter type}
+
+\item{entered_by}{Character string specifying who entered the parameter}
 }
 \value{
 tibble with blank parameter template
 }
 \description{
 Create new blank parameter row
+}
+\seealso{
+\code{\link{initialise_parameters_tibble}}
 }
