@@ -204,16 +204,20 @@ mod_compartments_server <- function(id) {
     # 2. Helper functions ----
 
     ## Check if combination already exists ----
-    combination_exists <- function(compartment, sub_compartment, category) {
-      if (nrow(moduleState$compartments_data) == 0) {
+    combination_exists <- function(
+      compartment,
+      sub_compartment,
+      category,
+      data
+    ) {
+      if (nrow(data) == 0) {
         return(FALSE)
       }
 
-      existing <- moduleState$compartments_data
       any(
-        existing$ENVIRON_COMPARTMENT == compartment &
-          existing$ENVIRON_COMPARTMENT_SUB == sub_compartment &
-          existing$MEASURED_CATEGORY == category
+        data$ENVIRON_COMPARTMENT == compartment &
+          data$ENVIRON_COMPARTMENT_SUB == sub_compartment &
+          data$MEASURED_CATEGORY == category
       )
     }
 
@@ -266,7 +270,14 @@ mod_compartments_server <- function(id) {
           isTruthy(category)
       ) {
         # Check if combination already exists
-        if (combination_exists(compartment, sub_compartment, category)) {
+        if (
+          combination_exists(
+            compartment,
+            sub_compartment,
+            category,
+            data = moduleState$compartments_data
+          )
+        ) {
           showNotification(
             "This combination already exists in the table",
             type = "warning"

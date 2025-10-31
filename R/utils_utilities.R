@@ -98,3 +98,86 @@ info_accordion <- function(title = "Instructions", content_file) {
     )
   )
 }
+
+#' Abbreviate string to first n words with case formatting
+#'
+#' Takes a string, extracts the first n words (removing special characters),
+#' and formats them according to the specified case style.
+#'
+#' @param string Character. The input string to abbreviate.
+#' @param n_words Integer. Number of words to include in the abbreviation.
+#' @param case Character. Case style for the output. One of:
+#'   \itemize{
+#'     \item "lower" - all lowercase, no separator (e.g., "dogsandcats")
+#'     \item "upper" - all uppercase, no separator (e.g., "DOGSANDCATS")
+#'     \item "sentence" - sentence case, no separator (e.g., "Dogsandcats")
+#'     \item "snake" - lowercase with underscores (e.g., "dogs_and_cats")
+#'     \item "title" - title case, no separator (e.g., "DogsAndCats")
+#'     \item "screamingsnake" - uppercase with underscores (e.g., "DOGS_AND_CATS")
+#'     \item "camel" - camel case (e.g., "dogsAndCats")
+#'   }
+#'
+#' @return Character. The abbreviated and formatted string.
+#'
+#' @importFrom stringr str_to_title
+#'
+#' @examples
+#' abbreviate_string("Total Phosphorus Concentration", n_words = 2L, "snake")
+#' abbreviate_string("dogs and cats", n_words = 3L, "title")
+#' abbreviate_string("Water Quality Index", n_words = 3L, "camel")
+#'
+#' @export
+abbreviate_string <- function(
+  string,
+  n_words,
+  case = c(
+    "lower",
+    "upper",
+    "sentence",
+    "snake",
+    "title",
+    "screamingsnake",
+    "camel"
+  )
+) {
+  case <- match.arg(case)
+
+  stopifnot(
+    is.character(as.character(string)),
+    is.integer(as.integer(n_words))
+  )
+
+  n_words <- as.integer(n_words)
+  string <- as.character(string)
+
+  words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", string), "\\s+")
+  words <- words[nchar(words) > 0] # Remove empty strings
+
+  # Take first n words
+  selected_words <- head(words, n_words)
+
+  # Apply case transformation
+  result <- switch(
+    case,
+    "lower" = paste(tolower(selected_words), collapse = ""),
+    "upper" = paste(toupper(selected_words), collapse = ""),
+    "sentence" = {
+      words_lower <- tolower(selected_words)
+      words_lower[1] <- paste0(
+        toupper(substr(words_lower[1], 1, 1)),
+        substr(words_lower[1], 2, nchar(words_lower[1]))
+      )
+      paste(words_lower, collapse = "")
+    },
+    "snake" = paste(tolower(selected_words), collapse = "_"),
+    "title" = paste(str_to_title(selected_words), collapse = ""),
+    "screamingsnake" = paste(toupper(selected_words), collapse = "_"),
+    "camel" = {
+      camel_words <- str_to_title(selected_words)
+      camel_words[1] <- tolower(camel_words[1])
+      paste(camel_words, collapse = "")
+    }
+  )
+
+  return(result)
+}

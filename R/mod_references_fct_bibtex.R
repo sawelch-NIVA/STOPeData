@@ -506,16 +506,7 @@ generate_reference_id <- function(date, author, title) {
   }
 
   # Extract first three words from title
-  title_part <- ""
-  if (!is.null(title) && nchar(trimws(title)) > 0) {
-    # Remove punctuation and split into words
-    words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", title), "\\s+")[[1]]
-    words <- words[nchar(words) > 0] # Remove empty strings
-    # Take first 3 words
-    title_words <- head(words, 3) |> str_to_title()
-    title_part <- paste(title_words, collapse = "")
-  }
-
+  title_part <- abbreviate_string(title, 3, case = "title")
   # Combine parts
   reference_id <- paste0(date_part, author_part, title_part)
 

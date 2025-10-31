@@ -87,7 +87,7 @@ mod_llm_ui <- function(id) {
             icon = bs_icon("gear"),
             div(
               textAreaInput(
-                inputId = ns("system_prompt"),
+                inputId = ns("extraction_prompt"),
                 label = "Extraction Instructions",
                 value = create_extraction_prompt(),
                 rows = 8,
@@ -122,7 +122,7 @@ mod_llm_ui <- function(id) {
             input_task_button(
               id = ns("extract_data"),
               label = HTML(paste(
-                bsicons::bs_icon("cpu"),
+                bs_icon("cpu"),
                 "Extract Data from PDF"
               )),
               class = "btn-info"
@@ -224,7 +224,6 @@ mod_llm_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      extraction_complete = FALSE,
       extraction_successful = FALSE,
       raw_extraction = NULL,
       structured_data = NULL,
@@ -237,7 +236,7 @@ mod_llm_server <- function(id) {
     observe({
       updateTextAreaInput(
         session,
-        "system_prompt",
+        "extraction_prompt",
         value = create_extraction_prompt()
       )
       updateTextAreaInput(
@@ -275,23 +274,17 @@ mod_llm_server <- function(id) {
       dummy_data <- create_dummy_data(uppercase_columns = FALSE)
 
       # Store results in module state (for LLM-specific behavior)
-      moduleState$extraction_complete <- TRUE
+      session$userData$reactiveValues$llmExtractionComplete <- TRUE
       moduleState$extraction_successful <- TRUE
       moduleState$structured_data <- dummy_data
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
 
-      # ! I believe this is redundant due to the Populate Forms
-      # ! observer. Disabling to check.
-      # # Store in session data with LLM suffix (for LLM workflow)
-      # store_llm_data_in_session(session, dummy_data)
-
       # Also save outputs to server data so we can download them later if needed
-      session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
       session$userData$reactiveValues$promptLLM <- if (
-        isTruthy(input$system_prompt)
+        isTruthy(input$extraction_prompt)
       ) {
-        input$system_prompt
+        input$extraction_prompt
       } else {
         create_extraction_prompt()
       }
@@ -344,7 +337,6 @@ mod_llm_server <- function(id) {
                 test_response <- test_chat$chat(
                   "Hello, please respond with 'API connection successful'"
                 )
-                print_dev("API test successful")
               },
               error = function(e) {
                 showNotification(
@@ -371,8 +363,8 @@ mod_llm_server <- function(id) {
 
             # Step 5: Set up prompts
             incProgress(0.04, detail = "Configuring extraction...")
-            system_prompt <- if (isTruthy(input$system_prompt)) {
-              input$system_prompt
+            extraction_prompt <- if (isTruthy(input$extraction_prompt)) {
+              input$extraction_prompt
             } else {
               create_extraction_prompt()
             }
@@ -380,7 +372,7 @@ mod_llm_server <- function(id) {
             # Step 6: Extract data (this is the longest step)
             incProgress(0.05, detail = "Extracting data...")
             result <- chat$chat_structured(
-              system_prompt,
+              extraction_prompt,
               pdf_content,
               type = extraction_schema
             )
@@ -406,7 +398,7 @@ mod_llm_server <- function(id) {
             )
 
             # Store results
-            moduleState$extraction_complete <- TRUE
+            session$userData$reactiveValues$llmExtractionComplete <- TRUE
             moduleState$extraction_successful <- TRUE
             moduleState$structured_data <- result
             moduleState$raw_extraction <- result
@@ -415,7 +407,7 @@ mod_llm_server <- function(id) {
 
             # Also save outputs to server data so we can download them later if needed
             session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
-            session$userData$reactiveValues$promptLLM <- system_prompt
+            session$userData$reactiveValues$promptLLM <- extraction_prompt
             session$userData$reactiveValues$rawLLM <- result
 
             # Step 8: Update session data
@@ -439,7 +431,7 @@ mod_llm_server <- function(id) {
             )
           },
           error = function(e) {
-            moduleState$extraction_complete <- TRUE
+            session$userData$reactiveValues$llmExtractionComplete <- TRUE
             moduleState$extraction_successful <- FALSE
             moduleState$error_message <- e$message
             moduleState$structured_data <- NULL
@@ -456,11 +448,12 @@ mod_llm_server <- function(id) {
       bindEvent(input$extract_data)
 
     ## observe: Enable download button when extraction is complete ----
-    # upstream: moduleState$extraction_complete, moduleState$extraction_successful
+    # upstream: session$userData$reactiveValues$llmExtractionComplete, moduleState$extraction_successful
     # downstream: download_extraction button state
     observe({
       if (
-        moduleState$extraction_complete && moduleState$extraction_successful
+        session$userData$reactiveValues$llmExtractionComplete &&
+          moduleState$extraction_successful
       ) {
         enable("download_extraction")
       } else {
@@ -468,7 +461,7 @@ mod_llm_server <- function(id) {
       }
     }) |>
       bindEvent(
-        moduleState$extraction_complete,
+        session$userData$reactiveValues$llmExtractionComplete,
         moduleState$extraction_successful
       )
 
@@ -539,14 +532,9 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$samples)) {
-            print_dev(paste0(
-              "moduleState$structured_data$samples: ",
-              moduleState$structured_data$samples
-            ))
             samples_data <- create_samples_from_llm(
               moduleState$structured_data$samples
             )
-            print_dev(paste0("samples_data: ", samples_data))
             session$userData$reactiveValues$samplesDataLLM <- samples_data
           }
 
@@ -558,15 +546,12 @@ mod_llm_server <- function(id) {
             "Forms populated with extracted data! Review and correct in each module.",
             type = "default"
           )
-
-          print_dev("All forms populated from LLM extraction")
         },
         error = function(e) {
           showNotification(
             paste("Error populating forms:", e$message),
             type = "error"
           )
-          print_dev(glue("Form population error: {e$message}"))
         }
       )
     }) |>
@@ -577,7 +562,7 @@ mod_llm_server <- function(id) {
     # downstream: reset module state and session data
     observe({
       # Clear module state
-      moduleState$extraction_complete <- FALSE
+      session$userData$reactiveValues$llmExtractionComplete <- FALSE
       moduleState$extraction_successful <- FALSE
       moduleState$raw_extraction <- NULL
       moduleState$structured_data <- NULL
@@ -621,7 +606,7 @@ mod_llm_server <- function(id) {
     # upstream: moduleState
     # downstream: UI status display
     output$extraction_status <- renderUI({
-      if (!moduleState$extraction_complete) {
+      if (!session$userData$reactiveValues$llmExtractionComplete) {
         div(
           bs_icon("info-circle"),
           "Upload a PDF and provide your API key to begin extraction, or use dummy data for testing.",

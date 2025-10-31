@@ -45,9 +45,9 @@ app_server <- function(input, output, session) {
       ),
 
       # LLM extracted data and metadata
-      schemaLLM = "",
-      promptLLM = "",
-      rawLLM = "",
+      schemaLLM = create_extraction_schema(),
+      promptLLM = create_extraction_prompt(),
+      rawLLM = tibble(NULL),
       campaignDataLLM = tibble(NULL),
       referenceDataLLM = tibble(NULL),
       sitesDataLLM = tibble(NULL),
@@ -61,6 +61,7 @@ app_server <- function(input, output, session) {
       # LLM extraction status flags
       llmExtractionComplete = FALSE,
       llmExtractionSuccessful = FALSE,
+      llmDataPopulated = FALSE,
 
       # Import data from save status flags
       saveExtractionComplete = FALSE,

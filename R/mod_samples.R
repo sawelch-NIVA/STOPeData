@@ -660,7 +660,6 @@ mod_samples_server <- function(id) {
     observe({
       moduleState$samples_data <- session$userData$reactiveValues$samplesData |>
         mutate(SUBSAMPLE = as.character(SUBSAMPLE)) # numbered subsamples get converted to numeric otherwise, which can cause issues
-      print_dev("Assigned saved data to samples moduleData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,

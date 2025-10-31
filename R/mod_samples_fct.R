@@ -192,9 +192,14 @@ generate_sample_id_with_components <- function(
 
   base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
-  # Vectorized replicate handling
-  subsample_suffix <- sprintf("-R%02s", trimws(subsample))
-  paste0(base_id, subsample_suffix)
+  # Vectorized replicate
+  # Subsamples will generally be text, so let's abbreviate them a bit
+
+  subsample_suffix <- sapply(
+    subsample,
+    function(x) abbreviate_string(string = x, n_words = 3, case = "title")
+  )
+  paste0(base_id, "-R-", subsample_suffix)
 }
 
 #' Check if Sample Combination with Components Exists ----

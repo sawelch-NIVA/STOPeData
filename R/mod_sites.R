@@ -274,7 +274,7 @@ mod_sites_server <- function(id) {
     # 2. Helper functions ----
 
     ## Create new site row with defaults ----
-    create_new_site <- function(site_number = 1, base_code = "") {
+    create_new_site <- function(site_number = 1, base_code = "", session) {
       # Generate site code
       if (base_code == "" || is.null(base_code)) {
         site_code <- paste0("SITE_", sprintf("%03d", site_number))
@@ -330,7 +330,11 @@ mod_sites_server <- function(id) {
 
       # Create multiple sites
       new_sites_list <- lapply(1:num_sites, function(i) {
-        create_new_site(site_number = i, base_code = base_code)
+        create_new_site(
+          site_number = i,
+          base_code = base_code,
+          username = session$userData$reactiveValues$ENTERED_BY
+        )
       })
 
       # Combine into single data frame
@@ -423,7 +427,8 @@ mod_sites_server <- function(id) {
       # Create new site with map coordinates
       new_site <- create_new_site(
         site_number = moduleState$next_site_id,
-        base_code = input$base_site_code
+        base_code = input$base_site_code,
+        username = session$userData$reactiveValues$ENTERED_BY
       )
 
       # Set coordinates from map click
@@ -533,10 +538,6 @@ mod_sites_server <- function(id) {
         moduleState$validated_data <- moduleState$sites_data
 
         session$userData$reactiveValues$sitesData <- moduleState$validated_data
-        # print_dev(glue(
-        #   "moduleState$is_valid: {moduleState$is_valid},
-        #   session$userData$reactiveValues$sitesData: {session$userData$reactiveValues$sitesData}"
-        # ))
       } else {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
