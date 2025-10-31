@@ -657,7 +657,8 @@ mod_samples_server <- function(id) {
     ## observer: receive data from session$userData$reactiveValues$samplesData (import) ----
     ## and update module data
     observe({
-      moduleState$samples_data <- session$userData$reactiveValues$samplesData
+      moduleState$samples_data <- session$userData$reactiveValues$samplesData |>
+        mutate(SUBSAMPLE = as.character(SUBSAMPLE)) # numbered subsamples get converted to numeric otherwise, which can cause issues
       print_dev("Assigned saved data to samples moduleData.")
     }) |>
       bindEvent(

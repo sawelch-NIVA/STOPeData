@@ -433,7 +433,11 @@ mod_data_server <- function(id, parent_session) {
           # added in mod_samples
           filter(PARAMETER_NAME %in% samplesData$PARAMETER_NAME |> unique()),
         by = "PARAMETER_NAME"
-      )
+      ) |>
+        mutate(
+          # make sure SUBSAMPLE is always a string
+          SUBSAMPLE = as.character(SUBSAMPLE)
+        )
 
       # Fixme: if the user makes it all the way to samples without
       # entering a a username, our attempt to get a reference id will
@@ -512,6 +516,7 @@ mod_data_server <- function(id, parent_session) {
         # Create measurement combinations when ready
         # FIXME: We need to use add_row() rather than recreate the object from scratch, or we lose already entered data
         moduleState$measurement_combinations <- moduleState$measurement_combinations |>
+          mutate(SUBSAMPLE = as.character(SUBSAMPLE)) |>
           add_row(create_measurement_combinations()) |>
           distinct(.keep_all = FALSE) # this should ensure that only the first "copy" of
         # each row is kept, but it's a bit hacky.
@@ -973,6 +978,11 @@ mod_data_server <- function(id, parent_session) {
             ),
             type = "numeric",
             format = "0.0000"
+          ) |>
+          hot_col(
+            "MEASURED_N",
+            type = "numeric",
+            format = "0"
           ) |>
           hot_col(
             c("MEASURED_UNIT", "LOQ_UNIT", "LOD_UNIT"),

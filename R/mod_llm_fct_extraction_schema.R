@@ -236,11 +236,9 @@ create_methods_schema <- function() {
         required = FALSE
       ),
       protocol_name = type_string(
-        description = "Specific method name - must match exactly one of these options: 
-          Not relevant, Not reported, 
-        Point, Composite, Trawl, Grab, Core, Seine net, Electrofishing, Plankton net, 
-        Pooled, Filtration, Size Fractionation, PLE, MAE, USE, SPE, QuEChERS, LLE, SLE, Classical Extraction, Soxhlet, 
-        SBSE, HS-SPME, SPME, GC-MS, LC-MS, GC-ECD, GC-NPD, GC-FID, LC-UV, LC-FLD, ICP-MS, ICP-AES, AAS, FAAS, GFAAS, HGAAS, CVAAS, XRF, XRD, FTIR, UV-VIS, Enzyme assay, ELISA, RIA, Bioassay, Chemical analysis, Physical analysis, Microscopy, Histology. If technique does not match these options, report as Other",
+        description = as.character(glue(
+          "Protocol name is more like a rough grouping: {paste(protocol_options_vocabulary(), collapse = ', ')}"
+        )),
         required = FALSE
       ),
       protocol_comment = type_string(
