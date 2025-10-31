@@ -105,7 +105,7 @@ mod_sites_ui <- function(id) {
         full_screen = TRUE,
         card_body(
           ### Leaflet map ----
-          leafletOutput(ns("sites_map")),
+          leafletOutput(ns("sites_map"), height = "100%"),
 
           ### Map controls ----
 
