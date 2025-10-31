@@ -362,7 +362,8 @@ mod_sites_server <- function(id) {
         # Update sites_data from the table
         moduleState$sites_data <- hot_to_r(input$sites_table)
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observer: receive data from session$userData$reactiveValues$sitesData (import) ----
     ## and update module data
@@ -540,7 +541,8 @@ mod_sites_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$sitesDataLLM

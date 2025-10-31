@@ -81,6 +81,9 @@ app_server <- function(input, output, session) {
     dataset_dimensions = list()
   )
 
+  ## reactiveTimer: Autosave periodicity (10 seconds)
+  autoInvalidate <<- reactiveTimer(10000)
+
   ## Module servers ----
   # upstream: session start
   # downstream: module server instances

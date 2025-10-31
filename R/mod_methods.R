@@ -309,7 +309,7 @@ mod_methods_server <- function(id) {
         session$userData$reactiveValues$methodsData <- moduleState$methods_data
       }
     }) |>
-      bindEvent(input$methods_table)
+      bindEvent(autoInvalidate())
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$methods_data, iv
@@ -324,7 +324,8 @@ mod_methods_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observe ~ bindEvent: Load methods data from LLM extraction ----
     observe({

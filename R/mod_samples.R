@@ -652,7 +652,8 @@ mod_samples_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observer: receive data from session$userData$reactiveValues$samplesData (import) ----
     ## and update module data

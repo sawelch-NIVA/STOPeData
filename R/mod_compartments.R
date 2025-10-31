@@ -335,7 +335,8 @@ mod_compartments_server <- function(id) {
         updated_data <- hot_to_r(input$compartments_table)
         moduleState$compartments_data <- updated_data
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observe: Check overall validation status ----
     # upstream: moduleState$compartments_data, iv
@@ -352,7 +353,8 @@ mod_compartments_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- NULL
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$compartmentsDataLLM

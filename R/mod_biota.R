@@ -189,11 +189,6 @@ mod_biota_server <- function(id) {
       llm_lookup_validation = FALSE
     )
 
-    # Autosave timer -----
-    # Anything that calls autoInvalidate will automatically invalidate
-    # every 2 seconds.
-    autoInvalidate <- reactiveTimer(10000)
-
     moduleState$species_options <- species_names_vocabulary()
 
     ## InputValidator for table-level validation ----
@@ -580,7 +575,7 @@ mod_biota_server <- function(id) {
         print_dev("mod_biota: Validation failed")
       }
     }) |>
-      bindEvent(moduleState$biota_data, iv, ignoreInit = TRUE)
+      bindEvent(autoInvalidate())
 
     # 4. Outputs ----
 

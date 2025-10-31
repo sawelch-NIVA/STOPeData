@@ -506,7 +506,8 @@ mod_parameters_server <- function(id) {
 
         moduleState$parameters_data <- updated_data
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observe: Check overall validation status and update reactiveValues ----
     # upstream: moduleState$parameters_data, iv
@@ -523,7 +524,8 @@ mod_parameters_server <- function(id) {
         moduleState$is_valid <- FALSE
         moduleState$validated_data <- initialise_parameters_tibble()
       }
-    })
+    }) |>
+      bindEvent(autoInvalidate())
 
     ## observer: receive data from session$userData$reactiveValues$parametersData (import) ----
     ## and update module data

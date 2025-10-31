@@ -86,10 +86,11 @@ mod_data_ui <- function(id) {
         #   ),
         #   "Turn on to enable real-time validation of table data. This may reduce performance."
         # ),
-        input_task_button(
-          id = ns("save_table_data"),
-          label = "Save Table Data"
-        ),
+        # Disabled and replaced with a
+        # input_task_button(
+        #   id = ns("save_table_data"),
+        #   label = "Save Table Data"
+        # ),
         div(
           hidden(div(
             id = "validation-llm-reporter",
@@ -112,7 +113,7 @@ mod_data_ui <- function(id) {
         rHandsontableOutput(
           ns("measurement_table"),
           width = "100%",
-          height = "100%"
+          height = NULL
         ),
         style = "margin-bottom: 10px; margin-left: 10px;"
       )
@@ -552,8 +553,7 @@ mod_data_server <- function(id, parent_session) {
       )
 
     ## observe: Handle table changes ----
-    # upstream: input$save_table_data (previously
-    # input$measurement_table, but that caused too many issues)
+    # upstream:  autoInvalidate <- reactiveTimer(10000) - saves every 10 seconds
     # downstream: moduleState$measurement_combinations
     # ! FORMAT-BASED
     observe({
@@ -578,7 +578,7 @@ mod_data_server <- function(id, parent_session) {
         session$userData$reactiveValues$measurementsData <- moduleState$complete_dataset
       }
     }) |>
-      bindEvent(input$save_table_data)
+      bindEvent(autoInvalidate())
 
     ## observe: Check measurement data validation and save to session ----
     # upstream: moduleState$measurement_combinations, iv
