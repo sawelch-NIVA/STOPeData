@@ -13,7 +13,7 @@
 #' @param sequence_number Numeric vector. Sequential number for protocols
 #'   within the same category. Defaults to 1. Will be zero-padded to 2 digits.
 #' @param campaign_name Character vector. Name of the campaign/study.
-#'   Will be abbreviated to first 3 alphanumeric characters. Defaults to "".
+#'   Will be abbreviated to first 10 alphanumeric characters. Defaults to "".
 #'
 #' @return Character vector of protocol IDs with format:
 #'   `{TypeCode}{SequenceNumber}_{AbbreviatedName}_{CampaignAbbrev}`
@@ -23,7 +23,7 @@
 #'     A (Analytical), X (Unknown)
 #'   - SequenceNumber: Zero-padded 2-digit number
 #'   - AbbreviatedName: Up to 15 alphanumeric characters (optional)
-#'   - CampaignAbbrev: Up to 3 alphanumeric characters (optional)
+#'   - CampaignAbbrev: Up to 10 alphanumeric characters (optional)
 #'
 #' @details
 #' The function handles edge cases gracefully:
@@ -35,16 +35,18 @@
 #' @examples
 #' # Single protocol
 #' generate_protocol_id("Sampling Protocol", "Water Sample", 1, "MyStudy")
-#' # Returns: "S01_WaterSample_MyS"
+#' # Returns: "S01_WaterSample_MyStudy"
 #'
 #' # Multiple protocols (vectorised)
 #' types <- c("Sampling Protocol", "Analytical Protocol")
 #' names <- c("Water Sample", "LC-MS Analysis")
 #' sequences <- c(1, 2)
 #' generate_protocol_id(types, names, sequences, "Study2024")
-#' # Returns: c("S01_WaterSample_Stu", "A02_LCMSAnalysis_Stu")
+#' # Returns: c("S01_WaterSample_Study2024", "A02_LCMSAnalysis_Study2024")
 #'
 #' @family protocol_functions
+#' @importFrom stringr str_trim str_split str_to_upper str_to_lower str_sub
+#'   str_remove_all str_c
 #' @export
 generate_protocol_id <- function(
   protocol_type,
@@ -65,22 +67,34 @@ generate_protocol_id <- function(
   type_code <- ifelse(is.na(type_code), "X", type_code)
 
   # Create abbreviated name (vectorised) ----
-  # Handle NULL and empty protocol_name values
-  abbreviated_name <- case_when(
-    is.null(protocol_name) |
-      is.na(protocol_name) |
-      nchar(trimws(protocol_name)) == 0 ~ "",
-    TRUE ~ {
-      # Split into words, capitalize first letter of each, then join and clean
-      words <- strsplit(protocol_name, "\\s+")[[1]]
-      capitalized <- paste0(
-        toupper(substr(words, 1, 1)),
-        tolower(substr(words, 2, nchar(words)))
+  # Handle NULL, NA, and empty values
+  is_empty <- is.na(protocol_name) | str_trim(protocol_name) == ""
+
+  abbreviated_name <- ifelse(
+    is_empty,
+    "",
+    {
+      # Split by whitespace, capitalize first letter of each word, rejoin
+      words <- str_split(protocol_name, "\\s+")
+
+      # Process each set of words
+      processed <- vapply(
+        words,
+        FUN = function(word_vec) {
+          # Capitalize and combine words
+          capitalized <- str_c(
+            str_to_upper(str_sub(word_vec, 1, 1)),
+            str_to_lower(str_sub(word_vec, 2, -1))
+          )
+          # Join words, remove non-alphanumeric, truncate
+          str_c(capitalized, collapse = "") |>
+            str_remove_all("[^A-Za-z0-9]") |>
+            str_sub(1, 15)
+        },
+        FUN.VALUE = character(1)
       )
-      clean_name <- paste0(capitalized, collapse = "")
-      # Remove any remaining special chars and limit length
-      clean_name <- gsub("[^A-Za-z0-9]", "", clean_name)
-      substr(clean_name, 1, 15)
+
+      processed
     }
   )
 
@@ -88,23 +102,22 @@ generate_protocol_id <- function(
   formatted_sequence <- sprintf("%02d", sequence_number)
 
   # Create campaign abbreviation (vectorised) ----
-  campaign_abbrev <- case_when(
-    is.null(campaign_name) |
-      is.na(campaign_name) |
-      nchar(trimws(campaign_name)) == 0 ~ "",
-    TRUE ~ {
-      # Take first 3 characters, remove spaces and special chars
-      clean_campaign <- gsub("[^A-Za-z0-9]", "", campaign_name)
-      substr(clean_campaign, 1, 10)
-    }
+  is_empty_campaign <- is.na(campaign_name) | str_trim(campaign_name) == ""
+
+  campaign_abbrev <- ifelse(
+    is_empty_campaign,
+    "",
+    campaign_name |>
+      str_remove_all("[^A-Za-z0-9]") |>
+      str_sub(1, 10)
   )
 
-  # Combine all parts ----
-  protocol_id <- paste0(
+  # Combine all parts (vectorised) ----
+  protocol_id <- str_c(
     type_code,
     formatted_sequence,
-    ifelse(abbreviated_name == "", "", paste0("_", abbreviated_name)),
-    ifelse(campaign_abbrev == "", "", paste0("_", campaign_abbrev))
+    ifelse(abbreviated_name == "", "", str_c("_", abbreviated_name)),
+    ifelse(campaign_abbrev == "", "", str_c("_", campaign_abbrev))
   )
 
   return(protocol_id)
