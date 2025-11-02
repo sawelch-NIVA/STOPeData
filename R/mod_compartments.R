@@ -321,10 +321,10 @@ mod_compartments_server <- function(id) {
         # CHANGED: Replace userData with LLM data
         session$userData$reactiveValues$compartmentsData <- llm_compartments
 
-        showNotification(
-          glue("Populated {nrow(llm_compartments)} compartments."),
-          type = "message"
-        )
+        # showNotification(
+        #   glue("Populated {nrow(llm_compartments)} compartments."),
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(

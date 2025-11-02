@@ -173,6 +173,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
   }
 }
 
+# TODO: This does a lot more than CSV. Rename.
 #' Download all data as CSV and TXT files in a ZIP archive
 #'
 #' @description Creates a Shiny downloadHandler that exports all available datasets
@@ -258,6 +259,17 @@ download_all_csv <- function(session, moduleState = NULL) {
             all_files <- c(all_files, csv_file)
           }
         }
+      }
+
+      # Export PDF if available ----
+      if (!is.null(rv$pdfPath) && file.exists(rv$pdfPath)) {
+        pdf_dest <- file.path(
+          temp_dir,
+          rv$uploaded_pdf_filename %||%
+            glue("{campaign}_MS.pdf")
+        )
+        file.copy(rv$pdfPath, pdf_dest)
+        all_files <- c(all_files, pdf_dest)
       }
 
       # Write metadata file ----

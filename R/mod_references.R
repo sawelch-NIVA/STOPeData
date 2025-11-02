@@ -675,10 +675,10 @@ mod_references_server <- function(id) {
       ) {
         populate_references_from_llm(session, llm_data)
 
-        showNotification(
-          "References form populated.",
-          type = "message"
-        )
+        # showNotification(
+        #   "References form populated.",
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(

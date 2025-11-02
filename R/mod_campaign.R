@@ -384,10 +384,10 @@ mod_campaign_server <- function(id) {
       ) {
         populate_campaign_from_llm(session, llm_data)
 
-        showNotification(
-          "Campaign form populated.",
-          type = "message"
-        )
+        # showNotification(
+        #   "Campaign form populated.",
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(

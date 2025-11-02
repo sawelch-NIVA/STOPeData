@@ -361,34 +361,34 @@ mod_parameters_server <- function(id) {
           moduleState$llm_lookup_validation <- TRUE
 
           # Show notification based on validation
-          if (validation_result$has_warnings) {
-            showNotification(
-              paste(
-                "Populated",
-                nrow(llm_parameters),
-                "parameters (validation warning)"
-              ),
-              type = "warning"
-            )
-          } else {
-            showNotification(
-              paste(
-                "Populated",
-                nrow(llm_parameters),
-                "parameters (validated))"
-              ),
-              type = "message"
-            )
-          }
-        } else {
-          showNotification(
-            paste(
-              "Populated",
-              nrow(llm_parameters),
-              "parameters. (validation not available)"
-            ),
-            type = "message"
-          )
+          #   if (validation_result$has_warnings) {
+          #     showNotification(
+          #       paste(
+          #         "Populated",
+          #         nrow(llm_parameters),
+          #         "parameters (validation warning)"
+          #       ),
+          #       type = "warning"
+          #     )
+          #   } else {
+          #     showNotification(
+          #       paste(
+          #         "Populated",
+          #         nrow(llm_parameters),
+          #         "parameters (validated))"
+          #       ),
+          #       type = "message"
+          #     )
+          #   }
+          # } else {
+          #   showNotification(
+          #     paste(
+          #       "Populated",
+          #       nrow(llm_parameters),
+          #       "parameters. (validation not available)"
+          #     ),
+          #     type = "message"
+          #   )
           moduleState$llm_lookup_validation <- FALSE
         }
       }

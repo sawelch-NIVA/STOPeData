@@ -58,6 +58,7 @@ app_server <- function(input, output, session) {
       schemaLLM = "",
       promptLLM = "",
       rawLLM = "",
+      pdfPath = NULL,
       campaignDataLLM = tibble(NULL),
       referenceDataLLM = tibble(NULL),
       sitesDataLLM = tibble(NULL),

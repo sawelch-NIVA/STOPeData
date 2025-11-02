@@ -558,14 +558,14 @@ mod_sites_server <- function(id) {
         # Update next_site_id counter
         moduleState$next_site_id <- nrow(llm_sites) + 1
 
-        showNotification(
-          paste(
-            "Loaded",
-            nrow(llm_sites),
-            "sites from LLM extraction."
-          ),
-          type = "message"
-        )
+        # showNotification(
+        #   paste(
+        #     "Loaded",
+        #     nrow(llm_sites),
+        #     "sites from LLM extraction."
+        #   ),
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(

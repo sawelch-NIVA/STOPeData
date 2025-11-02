@@ -368,6 +368,7 @@ mod_llm_server <- function(id) {
 
             extraction_schema <- create_extraction_schema()
             pdf_content <- content_pdf_file(input$pdf_file$datapath)
+            session$userData$reactiveValues$pdfPath = input$pdf_file$datapath
 
             # Step 5: Set up prompts
             incProgress(0.04, detail = "Configuring extraction...")
@@ -556,7 +557,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "Forms populated with extracted data! Review and correct in each module.",
-            type = "default"
+            type = "message"
           )
 
           print_dev("All forms populated from LLM extraction")
