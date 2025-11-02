@@ -254,9 +254,31 @@ create_methods_schema <- function() {
 create_samples_schema <- function() {
   type_array(
     type_object(
-      .description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
-      sampling_date = type_string(
+      .description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters combined from schema already extracted. 
+      Some of these may be replicated multiple times. It is important to ensure that all reported combinations actually occur in the paper.",
+      sampling_dates = type_string(
         description = "Dates (YYYY-MM-DD) when samples were taken",
+        required = TRUE
+      ),
+      sampling_site_code = type_string(
+        description = "The {site_code} where samples were taken.",
+        required = TRUE
+      ),
+      sampling_site_name = type_string(
+        description = "The {site_name} where samples were taken.",
+        required = TRUE
+      ),
+      sampling_compartment = type_string(
+        description = "The {environ_compartment} > {environ_compartment_sub} > {measured_category} that was sampled.",
+        required = TRUE
+      ),
+      sampling_parameters = type_string(
+        description = "The {parameter_name} measured or analysed, based on the data extracted earlier in the schema.",
+        required = TRUE
+      ),
+      subsample_indices = type_string(
+        description = "Any other sampling dimensions not captured in the schema. this may include tissues, species, core depth, replicates, etc.
+        return either short names or numbers for all valid subsamples per site/parameter/compartment/date combinations as a single comma-separated string (e.g. cod liver, trout liver, cod muscle, crab whole body).",
         required = TRUE
       )
     ),

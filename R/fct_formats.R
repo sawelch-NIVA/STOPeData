@@ -642,6 +642,7 @@ tissue_types_vocabulary <- function() {
     "Heart",
     "Lung",
     "Gill",
+    "Gonad",
     "Shell",
     "Carapace",
     "Blood",

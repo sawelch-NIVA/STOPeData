@@ -968,17 +968,83 @@ create_methods_from_llm <- function(llm_methods_data, llm_campaign_data) {
 }
 
 create_samples_from_llm <- function(llm_samples_data) {
-  # Currently we only send SAMPLING_DATE to the samples modul
-  if (is.null(llm_samples_data) || length(llm_samples_data) == 0) {
-    return(c())
-  } else {
-    dates_vector <- c()
+  # Currently we only send SAMPLING_DATE to the samples module
+  # if (is.null(llm_samples_data) || length(llm_samples_data) == 0) {
+  #   return(c())
+  # } else {
+  #   dates_vector <- c()
 
-    for (row in 1:nrow(llm_samples_data)) {
-      date <- llm_samples_data$sampling_date[row]
-      print(date)
-      dates_vector <- append(dates_vector, date)
-    }
-    return(dates_vector)
+  #   for (row in 1:nrow(llm_samples_data)) {
+  #     date <- llm_samples_data$sampling_date[row]
+  #     print(date)
+  #     dates_vector <- append(dates_vector, date)
+  #   }
+  #   return(dates_vector)
+  # }
+
+  if (is.null(llm_biota_data) || nrow(llm_biota_data) == 0) {
+    return(tibble())
   }
+
+  samples_tibble <- tibble()
+
+  # Process each row of the biota data frame
+  tryCatch(
+    {
+      for (i in seq_len(nrow(llm_samples_data))) {
+        samples_entry <- llm_samples_data[i, ]
+
+        # Create biota row with LLM data
+        samples_row <- tibble(
+          SAMPLING_DATE = safe_extract_field(
+            samples,
+            "sampling_dates",
+            as.Date(NA)
+          ),
+          SITE_CODE = "SITE_001", # Default - will be updated when samples are created
+          PARAMETER_NAME = "Parameter_001", # Default - will be updated when samples are created
+          ENVIRON_COMPARTMENT = "Biota",
+          ENVIRON_COMPARTMENT_SUB = "Biota Aquatic", # Default assumption
+          MEASURED_CATEGORY = "Internal", # Default for biota
+          SAMPLING_DATE = as.character(Sys.Date()), # Default
+          REP = 1L, # Default
+          SPECIES_GROUP = map_species_group_strict(safe_extract_field(
+            biota_entry,
+            "species_group",
+            ""
+          )),
+          SAMPLE_SPECIES = safe_extract_field(
+            biota_entry,
+            "sample_species",
+            ""
+          ),
+          SAMPLE_TISSUE = map_tissue_type_strict(safe_extract_field(
+            biota_entry,
+            "sample_tissue",
+            ""
+          )),
+          SAMPLE_SPECIES_LIFESTAGE = map_lifestage_strict(safe_extract_field(
+            biota_entry,
+            "sample_species_lifestage",
+            ""
+          )),
+          SAMPLE_SPECIES_GENDER = map_gender_strict(safe_extract_field(
+            biota_entry,
+            "sample_species_gender",
+            ""
+          ))
+        )
+
+        samples_tibble <- rbind(samples_tibble, samples_row)
+      }
+    },
+    error = function(msg) {
+      glue("Error populating samples data: {llm_samples_data[i, ]}")
+    }
+  )
+
+  print_dev(glue(
+    "Created {nrow(samples_tibble)} samples entries from LLM data"
+  ))
+  return(samples_tibble)
 }
