@@ -1,5 +1,5 @@
 - Enter sampling site information. The 'Area' field is ideal for sites in international waters.
-- Add blank sites by clicking 'Add Site(s)' below, or selecting a point on the map (right) and clicking 'Add'.
+- Add blank sites by clicking 'Add Site(s)' below, or selecting a point on the map (right) and clicking 'Add'. Use an appropriate level of precision based on the source data - 3 d.p. (within 111 m) or 4 d.p. (within 11 m) may be most appropriate.
 - Edit fields directly in the table. Use the map to verify coordinates are
   correct.
 - Sites added via the table will appear on the map, and the inverse.

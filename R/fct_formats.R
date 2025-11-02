@@ -122,7 +122,7 @@ initialise_parameters_tibble <- function() {
     PARAMETER_NAME = character(),
     PARAMETER_NAME_SUB = character(),
     INCHIKEY_SD = character(),
-    PUBCHEM_CID = character(),
+    PUBCHEM_CID = integer(),
     CAS_RN = character(),
     ENTERED_BY = character(),
     PARAMETER_COMMENT = character()
@@ -407,7 +407,8 @@ dummy_parameters_vocabulary <- function() {
         PARAMETER_NAME == "Carbon" ~ "Carbon",
         TRUE ~ PARAMETER_TYPE_SUB
       ),
-      PARAMETER_NAME_SUB = ""
+      PARAMETER_NAME_SUB = "",
+      CAS_RN = as.character(CAS_RN)
     )
 
   # Merge datasets ----

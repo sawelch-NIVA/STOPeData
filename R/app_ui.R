@@ -140,7 +140,16 @@ app_ui <- function(request) {
       #   icon = bs_icon("floppy")
       # ),
       nav_item(input_dark_mode(id = "darkmode")),
-      nav_item(htmlOutput(outputId = "dbStatus")),
+      # nav_item(
+      #   input_task_button(
+      #     id = "autosave_modal",
+      #     label = HTML(paste(
+      #       bs_icon("floppy")
+      #     )),
+      #     type = "success"
+      #   )
+      # ),
+      # nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
       footer = tags$span(
         ## Navigation buttons ----

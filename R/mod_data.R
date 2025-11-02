@@ -19,7 +19,7 @@ mod_data_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Enable shinyjs
+    # Enable shinyjs ----
     useShinyjs(),
 
     # Main content card ----
@@ -31,7 +31,6 @@ mod_data_ui <- function(id) {
         info_accordion(content_file = "inst/app/www/md/intro_data.md"),
 
         ## Dynamic validation status accordion ----
-        # Dynamic accordion
         div(
           class = "accordion_class",
           accordion(
@@ -45,7 +44,6 @@ mod_data_ui <- function(id) {
             )
           )
         ),
-        # uiOutput(ns("validation_accordion_ui")),
 
         ## Data entry controls ----
         div(
@@ -76,21 +74,10 @@ mod_data_ui <- function(id) {
       ## Measurement Data Validation status ----
       div(
         style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0; justify-content: center;",
-
-        ### Auto-validation toggle ----
-        # tooltip(
-        #   input_switch(
-        #     ns("auto_validate"),
-        #     "Auto-validation",
-        #     value = TRUE
-        #   ),
-        #   "Turn on to enable real-time validation of table data. This may reduce performance."
-        # ),
-        # Disabled and replaced with a
-        # input_task_button(
-        #   id = ns("save_table_data"),
-        #   label = "Save Table Data"
-        # ),
+        input_task_button(
+          id = ns("save_table_data"),
+          label = "Save Table Data"
+        ),
         div(
           hidden(div(
             id = "validation-llm-reporter",
@@ -99,16 +86,9 @@ mod_data_ui <- function(id) {
             class = "validation-status validation-llm ",
             style = "margin-bottom: 10px;"
           )),
-          # div(
-          #   id = "validation_measurement-reporter",
-          #   bs_icon("info-circle"),
-          #   "Complete all setup modules to enable measurement data entry.",
-          #   class = "validation-status validation-info"
-          # ),
           class = "validation-container"
         )
       ),
-      # style = "overflow: clip;",
       div(
         rHandsontableOutput(
           ns("measurement_table"),
@@ -141,22 +121,20 @@ mod_data_server <- function(id, parent_session) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
+    # CHANGED: Keep only UI-specific transient state
     moduleState <- reactiveValues(
       all_modules_valid = FALSE,
       data_entry_ready = FALSE,
-      measurement_combinations = initialise_measurements_tibble(),
-      complete_dataset = initialise_measurements_tibble(),
-      is_valid = FALSE,
       validation_message = ""
     )
 
     # reactive: are all the previous modules ready?
+    # CHANGED: Check validation flags instead of nrow
     modulesStatus <- reactive({
       all(get_modules_status()$ready)
     })
 
     ## Controlled vocabulary options ----
-
     measured_units <- parameter_unit_vocabulary("MEASURED_UNIT")
 
     ## InputValidator for measurement data validation ----
@@ -171,21 +149,23 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 2: Check if measurement combinations exist
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) == 0) {
+      if (nrow(session$userData$reactiveValues$measurementsData) == 0) {
         moduleState$validation_message <<- "No sample-parameter combinations available"
         return("No sample-parameter combinations available")
       }
     })
 
     # Rule 3: Check for missing required fields
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
         required_fields <- c("MEASURED_UNIT")
 
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
+        for (i in 1:nrow(session$userData$reactiveValues$measurementsData)) {
           for (field in required_fields) {
-            value <- moduleState$measurement_combinations[i, field]
+            value <- session$userData$reactiveValues$measurementsData[i, field]
             if (is.na(value) || value == "") {
               message <- paste("Row", i, "is missing required field:", field)
               moduleState$validation_message <<- message
@@ -197,14 +177,15 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 4: Check MEASURED_VALUE when no flag is set
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
-          measured_flag <- moduleState$measurement_combinations[
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
+        for (i in 1:nrow(session$userData$reactiveValues$measurementsData)) {
+          measured_flag <- session$userData$reactiveValues$measurementsData[
             i,
             "MEASURED_FLAG"
           ]
-          measured_value <- moduleState$measurement_combinations[
+          measured_value <- session$userData$reactiveValues$measurementsData[
             i,
             "MEASURED_VALUE"
           ]
@@ -225,14 +206,18 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 5: Check LOQ_VALUE when flag is <LOQ
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
-          measured_flag <- moduleState$measurement_combinations[
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
+        for (i in 1:nrow(session$userData$reactiveValues$measurementsData)) {
+          measured_flag <- session$userData$reactiveValues$measurementsData[
             i,
             "MEASURED_FLAG"
           ]
-          loq_value <- moduleState$measurement_combinations[i, "LOQ_VALUE"]
+          loq_value <- session$userData$reactiveValues$measurementsData[
+            i,
+            "LOQ_VALUE"
+          ]
 
           if (!is.na(measured_flag) && measured_flag == "< LOQ") {
             if (is.na(loq_value) || loq_value == "") {
@@ -250,14 +235,18 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 6: Check LOD_VALUE when flag is < LOD
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
-          measured_flag <- moduleState$measurement_combinations[
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
+        for (i in 1:nrow(session$userData$reactiveValues$measurementsData)) {
+          measured_flag <- session$userData$reactiveValues$measurementsData[
             i,
             "MEASURED_FLAG"
           ]
-          lod_value <- moduleState$measurement_combinations[i, "LOD_VALUE"]
+          lod_value <- session$userData$reactiveValues$measurementsData[
+            i,
+            "LOD_VALUE"
+          ]
 
           if (!is.na(measured_flag) && measured_flag == "< LOD") {
             if (is.na(lod_value) || lod_value == "") {
@@ -274,41 +263,10 @@ mod_data_server <- function(id, parent_session) {
       }
     })
 
-    # Rule 7: Validate numeric values are positive
-    # iv$add_rule("measurement_table_validation", function(value) {
-    #   if (nrow(moduleState$measurement_combinations) > 0) {
-    #     numeric_fields <- c(
-    #       "MEASURED_VALUE",
-    #       "LOQ_VALUE",
-    #       "LOD_VALUE"
-    #     )
-
-    #     for (i in 1:nrow(moduleState$measurement_combinations)) {
-    #       for (field in numeric_fields) {
-    #         field_value <- moduleState$measurement_combinations[i, field]
-    #         if (
-    #           !is.na(field_value) &&
-    #             field_value != "" &&
-    #             as.numeric(field_value) < 0
-    #         ) {
-    #           message <- paste(
-    #             "Row",
-    #             i,
-    #             "has invalid",
-    #             field,
-    #             "(must be positive)"
-    #           )
-    #           moduleState$validation_message <<- message
-    #           return(message)
-    #         }
-    #       }
-    #     }
-    #   }
-    # })
-
     # Rule 8: Check that all protocol fields are filled
+    # CHANGED: Reference userData instead of moduleState
     iv$add_rule("measurement_table_validation", function(value) {
-      if (nrow(moduleState$measurement_combinations) > 0) {
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
         protocol_fields <- c(
           "SAMPLING_PROTOCOL",
           "FRACTIONATION_PROTOCOL",
@@ -316,9 +274,12 @@ mod_data_server <- function(id, parent_session) {
           "ANALYTICAL_PROTOCOL"
         )
 
-        for (i in 1:nrow(moduleState$measurement_combinations)) {
+        for (i in 1:nrow(session$userData$reactiveValues$measurementsData)) {
           for (field in protocol_fields) {
-            field_value <- moduleState$measurement_combinations[i, field]
+            field_value <- session$userData$reactiveValues$measurementsData[
+              i,
+              field
+            ]
             if (is.na(field_value) || field_value == "") {
               message <- paste(
                 "Row",
@@ -334,54 +295,75 @@ mod_data_server <- function(id, parent_session) {
       }
     })
 
-    # iv$enable()
-
     # 2. Helper functions ----
 
     ## Get validation status for each module ----
-    # specifically, check if each data object is either a tibble with rows or at least
-    # a non-empty object
+    # CHANGED: Check validation flags instead of nrow
     get_modules_status <- function() {
       modules <- list(
-        Campaign = session$userData$reactiveValues$campaignData,
-        References = session$userData$reactiveValues$referenceData,
-        Sites = session$userData$reactiveValues$sitesData,
-        Parameters = session$userData$reactiveValues$parametersData,
-        Compartments = session$userData$reactiveValues$compartmentsData,
-        Methods = session$userData$reactiveValues$methodsData,
-        Samples = session$userData$reactiveValues$samplesData,
-        Biota = session$userData$reactiveValues$biotadata
+        Campaign = list(
+          data = session$userData$reactiveValues$campaignData,
+          valid = session$userData$reactiveValues$campaignDataValid
+        ),
+        References = list(
+          data = session$userData$reactiveValues$referenceData,
+          valid = session$userData$reactiveValues$referenceDataValid
+        ),
+        Sites = list(
+          data = session$userData$reactiveValues$sitesData,
+          valid = session$userData$reactiveValues$sitesDataValid
+        ),
+        Parameters = list(
+          data = session$userData$reactiveValues$parametersData,
+          valid = session$userData$reactiveValues$parametersDataValid
+        ),
+        Compartments = list(
+          data = session$userData$reactiveValues$compartmentsData,
+          valid = session$userData$reactiveValues$compartmentsDataValid
+        ),
+        Methods = list(
+          data = session$userData$reactiveValues$methodsData,
+          valid = session$userData$reactiveValues$methodsDataValid
+        ),
+        Samples = list(
+          data = session$userData$reactiveValues$samplesData,
+          valid = session$userData$reactiveValues$samplesDataValid
+        ),
+        Biota = list(
+          data = session$userData$reactiveValues$biotaData,
+          valid = session$userData$reactiveValues$biotaDataValid
+        )
       )
 
       status_list <- lapply(names(modules), function(name) {
-        data <- modules[[name]]
-        nrow <- nrow(data) %||% 0 # should always work as data is always a tibble of 0+ rows
-        # but doesn't - somehow we get nrow == NULL for biota from LLM
-        # TODO: Why?
+        data <- modules[[name]]$data
+        valid <- modules[[name]]$valid %||% FALSE
+        nrow <- nrow(data) %||% 0
 
+        # CHANGED: Use validation flag as primary check
         if (
-          # for biotaData, we need to check if samplesData contains biota - if not we auto-validate empty biotaData
-          name == "Biota" &
+          name == "Biota" &&
             "Biota" %notin%
               session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT
         ) {
+          # No biota samples detected - auto-validate
           message <- "No biota samples detected - Auto-validated"
           ready <- TRUE
         } else if (
-          # If samples does contain biota - does biotaData have rows?
-          name == "Biota" &
+          name == "Biota" &&
             "Biota" %in%
-              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT &
-            nrow == 0
+              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT &&
+            !valid
         ) {
+          # Biota samples exist but not validated
           message <- "Biota samples detected but no biota data found - Attention required"
           ready <- FALSE
-
-          # all other modules are mandatory, so we can just check number of rows
-        } else if (nrow > 0) {
+        } else if (valid) {
+          # Module is validated
           message <- "Validated"
           ready <- TRUE
         } else {
+          # Module not validated
           message <- "Attention required"
           ready <- FALSE
         }
@@ -402,7 +384,7 @@ mod_data_server <- function(id, parent_session) {
       campaign_data <- session$userData$reactiveValues$campaignData
       reference_data <- session$userData$reactiveValues$referenceData
 
-      # check to see if either samplesData or samplesDataWithBiota actualy exist
+      # check to see if either samplesData or samplesDataWithBiota actually exist
       samples_data <- if (nrow(samplesDataWithBiota) > 0) {
         samplesDataWithBiota
       } else if (nrow(samplesData)) {
@@ -421,19 +403,19 @@ mod_data_server <- function(id, parent_session) {
       # make each first available method the default for new combos
       first_sampling <- available_methods |>
         filter(PROTOCOL_CATEGORY == "Sampling Protocol") |>
-        pull(PROTOCOL_NAME)
+        pull(PROTOCOL_ID)
 
       first_extraction <- available_methods |>
         filter(PROTOCOL_CATEGORY == "Extraction Protocol") |>
-        pull(PROTOCOL_NAME)
+        pull(PROTOCOL_ID)
 
       first_fractionation <- available_methods |>
         filter(PROTOCOL_CATEGORY == "Fractionation Protocol") |>
-        pull(PROTOCOL_NAME)
+        pull(PROTOCOL_ID)
 
       first_analytical <- available_methods |>
         filter(PROTOCOL_CATEGORY == "Analytical Protocol") |>
-        pull(PROTOCOL_NAME)
+        pull(PROTOCOL_ID)
 
       # rejoin extended parameter data to samples
       combinations <- left_join(
@@ -460,7 +442,7 @@ mod_data_server <- function(id, parent_session) {
         )
 
       # Fixme: if the user makes it all the way to samples without
-      # entering a a username, our attempt to get a reference id will
+      # entering a username, our attempt to get a reference id will
       # fail. But this is a very unlikely chain of events, so we can
       # probably just slap a temporary patch on it.
       reference_id <- if (nrow(reference_data == 0)) {
@@ -470,7 +452,6 @@ mod_data_server <- function(id, parent_session) {
       }
 
       # Add campaign and reference info
-      # TODO: This should probably use initialise_samples_tibble(), but since the logic's a bit special I won't rush into it
       combinations <- combinations |>
         mutate(
           # Add measurement fields with empty defaults
@@ -513,7 +494,7 @@ mod_data_server <- function(id, parent_session) {
     }) |>
       bindEvent(input$auto_validate, ignoreInit = FALSE)
 
-    # Observer: show llm UI only if relevant -----
+    # Observer: show llm UI only if relevant ----
     observe({
       if (session$userData$reactiveValues$llmExtractionComplete) {
         show(id = "validation-llm-reporter", asis = TRUE)
@@ -527,42 +508,41 @@ mod_data_server <- function(id, parent_session) {
       )
 
     ## observe: Check upstream modules validation status continuously ----
-    # upstream: all session$userData$reactiveValues
-    # downstream: moduleState$all_modules_valid, moduleState$data_entry_ready
+    # upstream: all session$userData$reactiveValues validation flags
+    # downstream: moduleState$data_entry_ready, session$userData$reactiveValues$measurementsData
     observe({
-      # FIXME: Is this a pragmatic solution for now? It is not!
       if (modulesStatus()) {
         moduleState$data_entry_ready <- TRUE
-        # Create measurement combinations when ready
-        # FIXME: We need to use add_row() rather than recreate the object from scratch, or we lose already entered data
-        moduleState$measurement_combinations <- moduleState$measurement_combinations |>
+
+        # CHANGED: Create measurement combinations and store in userData
+        # Use add_row() rather than recreate from scratch to preserve entered data
+        new_combinations <- session$userData$reactiveValues$measurementsData |>
           mutate(SUBSAMPLE = as.character(SUBSAMPLE)) |>
           add_row(create_measurement_combinations()) |>
-          distinct(.keep_all = FALSE) # this should ensure that only the first "copy" of
-        # each row is kept, but it's a bit hacky.
+          distinct(.keep_all = FALSE)
+
+        session$userData$reactiveValues$measurementsData <- new_combinations
 
         print_dev(glue(
-          "mod_data: All modules validated, created {nrow(moduleState$measurement_combinations)} measurement combinations"
+          "mod_data: All modules validated, created {nrow(session$userData$reactiveValues$measurementsData)} measurement combinations"
         ))
       } else {
         moduleState$data_entry_ready <- FALSE
-        moduleState$measurement_combinations <- initialise_measurements_tibble()
+        session$userData$reactiveValues$measurementsData <- initialise_measurements_tibble()
 
         print_dev("mod_data: Some modules pending, data entry disabled")
       }
     }) |>
       bindEvent(
         modulesStatus(),
-        # now watches a single reactive that turns TRUE only when all modules are valid
         ignoreInit = TRUE,
         ignoreNULL = TRUE
       )
 
     ## observe: receive data from session$userData$reactiveValues$measurementsData (import) ----
-    ## and update module data
+    ## Data is already in userData, just log the event
     observe({
-      moduleState$complete_dataset <- session$userData$reactiveValues$measurementsData
-      print_dev("Assigned saved data to measurements moduleData.")
+      print_dev("Loaded saved data into measurements userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -572,73 +552,29 @@ mod_data_server <- function(id, parent_session) {
       )
 
     ## observe: Handle table changes ----
-    # upstream:  autoInvalidate <- reactiveTimer(10000) - saves every 10 seconds
-    # downstream: moduleState$measurement_combinations
-    # ! FORMAT-BASED
-    observe({
-      # In practical terms moduleState$data_entry_ready probably shouldn't be true yet anyway...
-      if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
-        updated_data <- hot_to_r(input$measurement_table)
-        moduleState$measurement_combinations <- updated_data
-
-        # FIXME: please excuse the utterly insane assignment, I'm
-        # sticking two observers together
-        complete_data <- moduleState$measurement_combinations
-        moduleState$complete_dataset <- complete_data
-
-        # merge in campaign data
-        campaign_data <- isolate(session$userData$reactiveValues$campaignData)
-        for (col in names(campaign_data)) {
-          if (!col %in% names(complete_data)) {
-            complete_data[[col]] <- campaign_data[[col]]
-          }
-        }
-
-        session$userData$reactiveValues$measurementsData <- moduleState$complete_dataset
-      }
-    }) |>
-      bindEvent(autoInvalidate())
-
-    ## observe: Check measurement data validation and save to session ----
-    # upstream: moduleState$measurement_combinations, iv
-    # downstream: moduleState$is_valid, moduleState$complete_dataset, session$userData
-    # FIXME: Trial and error - disable entirely
-    # HELP: Hah! It doesn't actuall do anything, as far as I can tell.
-    # Although perhaps turning the toggle off _and_ commenting this out do turn it off.
+    # upstream: ainput$save_table_data
+    # downstream: session$userData$reactiveValues$measurementsData
     # observe({
-    #   validation_result <- iv$is_valid()
+    #   if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
+    #     updated_data <- hot_to_r(input$measurement_table)
 
-    #   if (validation_result && nrow(moduleState$measurement_combinations) > 0) {
-    #     moduleState$is_valid <- TRUE
+    #     # CHANGED: Update userData directly
+    #     session$userData$reactiveValues$measurementsData <- updated_data
 
-    #     # Create complete dataset by merging all components
-    #     complete_data <- moduleState$measurement_combinations
-
-    #     # Add campaign info
-    #     # TODO: Is this triggering the validation dropdown?
-    #     # Not as far as I can tell from trial and error.
-    #     # campaign_data <- session$userData$reactiveValues$campaignData
-    #     # for (col in names(campaign_data)) {
-    #     #   if (!col %in% names(complete_data)) {
-    #     #     complete_data[[col]] <- campaign_data[[col]]
-    #     #   }
-    #     # }
-
-    #     moduleState$complete_dataset <- complete_data
-    #     session$userData$reactiveValues$measurementsData <- moduleState$complete_dataset
-
-    #     print_dev(glue(
-    #       "mod_data: Data validated and saved - {nrow(moduleState$complete_dataset)} complete records"
-    #     ))
-    #   } else {
-    #     moduleState$is_valid <- FALSE
-    #     moduleState$complete_dataset <- NULL
-    #     session$userData$reactiveValues$measurementsData <- NULL
-
-    #     print_dev("mod_data: Data validation failed")
+    #     # Merge in campaign data
+    #     campaign_data <- isolate(session$userData$reactiveValues$campaignData)
+    #     for (col in names(campaign_data)) {
+    #       if (
+    #         !col %in% names(session$userData$reactiveValues$measurementsData)
+    #       ) {
+    #         session$userData$reactiveValues$measurementsData[[
+    #           col
+    #         ]] <- campaign_data[[col]]
+    #       }
+    #     }
     #   }
     # }) |>
-    #   bindEvent(iv$is_valid(), ignoreInit = TRUE)
+    #   bindEvent(input$save_table_data)
 
     ## observe: Update method dropdown options whenever methods change ----
     # Define some methods for the UI to find so it doesn't crash
@@ -653,9 +589,8 @@ mod_data_server <- function(id, parent_session) {
       if (nrow(available_methods) > 0) {
         analytical_methods <- available_methods |>
           filter(PROTOCOL_CATEGORY == "Analytical Protocol") |>
-          pull(PROTOCOL_NAME)
+          pull(PROTOCOL_ID)
 
-        # Ensure at least 2 elements
         if (length(analytical_methods) == 0) {
           analytical_methods <<- c("", "")
         } else if (length(analytical_methods) == 1) {
@@ -664,7 +599,7 @@ mod_data_server <- function(id, parent_session) {
 
         sampling_methods <- available_methods |>
           filter(PROTOCOL_CATEGORY == "Sampling Protocol") |>
-          pull(PROTOCOL_NAME)
+          pull(PROTOCOL_ID)
 
         if (length(sampling_methods) == 0) {
           sampling_methods <<- c("", "")
@@ -674,7 +609,7 @@ mod_data_server <- function(id, parent_session) {
 
         extraction_methods <- available_methods |>
           filter(PROTOCOL_CATEGORY == "Extraction Protocol") |>
-          pull(PROTOCOL_NAME)
+          pull(PROTOCOL_ID)
 
         if (length(extraction_methods) == 0) {
           extraction_methods <<- c("", "")
@@ -684,7 +619,7 @@ mod_data_server <- function(id, parent_session) {
 
         fractionation_methods <- available_methods |>
           filter(PROTOCOL_CATEGORY == "Fractionation Protocol") |>
-          pull(PROTOCOL_NAME)
+          pull(PROTOCOL_ID)
 
         if (length(fractionation_methods) == 0) {
           fractionation_methods <<- c("", "")
@@ -692,7 +627,6 @@ mod_data_server <- function(id, parent_session) {
           fractionation_methods <<- c(fractionation_methods)
         }
       } else {
-        # No methods data available - set all to 2-element vectors
         analytical_methods <<- c("", "")
         sampling_methods <<- c("", "")
         extraction_methods <<- c("", "")
@@ -705,8 +639,6 @@ mod_data_server <- function(id, parent_session) {
       )
 
     ## observe: Navigate to Campaign when go_to_campaign clicked ----
-    # Upstream: input$go_to_campaign button click
-    # Downstream: Updates main navbar to campaign tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -717,8 +649,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_campaign)
 
     ## observe: Navigate to References when go_to_references clicked ----
-    # Upstream: input$go_to_references button click
-    # Downstream: Updates main navbar to references tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -729,8 +659,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_references)
 
     ## observe: Navigate to Sites when go_to_sites clicked ----
-    # Upstream: input$go_to_sites button click
-    # Downstream: Updates main navbar to sites tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -741,8 +669,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_sites)
 
     ## observe: Navigate to Parameters when go_to_parameters clicked ----
-    # Upstream: input$go_to_parameters button click
-    # Downstream: Updates main navbar to parameters tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -753,8 +679,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_parameters)
 
     ## observe: Navigate to Compartments when go_to_compartments clicked ----
-    # Upstream: input$go_to_compartments button click
-    # Downstream: Updates main navbar to compartments tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -765,8 +689,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_compartments)
 
     ## observe: Navigate to Methods when go_to_methods clicked ----
-    # Upstream: input$go_to_methods button click
-    # Downstream: Updates main navbar to methods tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -777,8 +699,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_methods)
 
     ## observe: Navigate to Samples when go_to_samples clicked ----
-    # Upstream: input$go_to_samples button click
-    # Downstream: Updates main navbar to samples tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -789,8 +709,6 @@ mod_data_server <- function(id, parent_session) {
       bindEvent(input$go_to_samples)
 
     ## observe: Navigate to Biota when go_to_biota clicked ----
-    # Upstream: input$go_to_biota button click
-    # Downstream: Updates main navbar to biota tab
     observe({
       updateNavbarPage(
         session = parent_session,
@@ -802,76 +720,8 @@ mod_data_server <- function(id, parent_session) {
 
     # 4. Outputs ----
 
-    ## output: validation_accordion_ui ----
-    # upstream: moduleState$is_valid, moduleState$data_entry_ready, moduleState$all_modules_valid
-    # downstream: UI validation accordion with dynamic styling
-    output$validation_accordion_ui <- renderUI({
-      # Determine validation state
-      if (modulesStatus()) {
-        accordion_class <- "accordion-validation-valid"
-        accordion_text <-
-          paste0(
-            "All modules validated - ",
-            nrow(moduleState$measurement_combinations),
-            " samples ready for data"
-          )
-        icon_name <- "check-circle"
-        style_css <- "
-          .accordion-validation-valid .accordion-button {
-            background-color: var(--color-success) !important;
-            color: white !important;
-          }
-          .accordion-validation-valid .accordion-button:not(.collapsed) {
-            background-color: #198754 !important;
-            color: white !important;
-          }
-        "
-      } else {
-        accordion_class <- "accordion-validation-warning"
-        accordion_text <- "All modules must be valid to add measurements"
-        icon_name <- "exclamation-triangle"
-        style_css <- "
-          .accordion-validation-warning .accordion-button {
-            background-color: var(--color-warning) !important;
-            color: var(--text-dark) !important;
-          }
-          .accordion-validation-warning .accordion-button:not(.collapsed) {
-            background-color: #e0a800 !important;
-            color: var(--text-dark) !important;
-          }
-        "
-      }
-      tagList(
-        # Dynamic CSS for current state
-        tags$head(
-          tags$style(HTML(paste0(
-            style_css,
-            "
-            .accordion-body {
-              margin: 0px;
-            }
-            "
-          )))
-        ),
-        # Dynamic accordion
-        div(
-          class = accordion_class,
-          accordion(
-            id = ns("validation_accordion"),
-            accordion_panel(
-              value = "validation_accordion_panel",
-              style = "margin: 20px 0;",
-              title = accordion_text,
-              icon = bs_icon(icon_name),
-              uiOutput(ns("validation_overview"))
-            )
-          )
-        )
-      )
-    })
-
     ## output: validation_overview ----
-    # upstream: session data
+    # upstream: session userData validation flags
     # downstream: UI validation status display
     output$validation_overview <- renderUI({
       status_list <- get_modules_status()
@@ -897,7 +747,7 @@ mod_data_server <- function(id, parent_session) {
             paste(item$count, "row(s)"),
             style = "align-self: center;"
           ),
-          # Column 2: Validation message (big column)
+          # Column 2: Validation message
           div(
             class = class,
             style = "padding: 8px; border-radius: 4px; margin: 0px;",
@@ -939,13 +789,13 @@ mod_data_server <- function(id, parent_session) {
     })
 
     ## output: measurement_table ----
-    # upstream: moduleState$measurement_combinations, moduleState$data_entry_ready
+    # upstream: session$userData$reactiveValues$measurementsData, moduleState$data_entry_ready
     # downstream: UI table display
-    # ! FORMAT-BASED
     output$measurement_table <- renderRHandsontable({
+      # CHANGED: Reference userData instead of moduleState
       if (
         !moduleState$data_entry_ready ||
-          nrow(moduleState$measurement_combinations) == 0
+          nrow(session$userData$reactiveValues$measurementsData) == 0
       ) {
         rhandsontable(
           initialise_measurements_tibble(),
@@ -955,7 +805,7 @@ mod_data_server <- function(id, parent_session) {
           hot_table(overflow = "visible", stretchH = "all")
       } else {
         rhandsontable(
-          moduleState$measurement_combinations,
+          session$userData$reactiveValues$measurementsData,
           selectCallback = TRUE,
           width = NULL
         ) |>
@@ -970,7 +820,6 @@ mod_data_server <- function(id, parent_session) {
             ),
             readOnly = TRUE
           ) |>
-          # Configure measurement fields
           hot_col(
             "MEASURED_FLAG",
             type = "dropdown",
@@ -1009,7 +858,6 @@ mod_data_server <- function(id, parent_session) {
             source = measured_units,
             strict = TRUE
           ) |>
-          # Configure protocol fields as dropdowns
           hot_col(
             "SAMPLING_PROTOCOL",
             type = "dropdown",
@@ -1039,8 +887,6 @@ mod_data_server <- function(id, parent_session) {
             readOnly = TRUE
           ) |>
           hot_cols(
-            # fixedColumnsLeft = 5,
-            # manualColumnMove = TRUE, # turns out this breaks when we try to convert the table to an R object!
             manualColumnResize = TRUE,
             columnSorting = TRUE
           )
@@ -1048,35 +894,42 @@ mod_data_server <- function(id, parent_session) {
     })
 
     ## output: complete_data_preview ----
-    # upstream: moduleState$complete_dataset
+    # upstream: session$userData$reactiveValues$measurementsData
     # downstream: UI data display
-    # ! FORMAT-BASED
     output$complete_data_preview <- renderText({
-      if (isTruthy(moduleState$complete_dataset)) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
         # Show overview of complete dataset
         dataset_info <- paste0(
           "Complete Dataset Overview:\n",
           "Total Records: ",
-          nrow(moduleState$complete_dataset),
+          nrow(session$userData$reactiveValues$measurementsData),
           "\n",
           "Total Columns: ",
-          ncol(moduleState$complete_dataset),
+          ncol(session$userData$reactiveValues$measurementsData),
           "\n",
           "Sample-Parameter Combinations: ",
           length(unique(paste(
-            moduleState$complete_dataset$SAMPLE_ID,
-            moduleState$complete_dataset$PARAMETER_NAME
+            session$userData$reactiveValues$measurementsData$SAMPLE_ID,
+            session$userData$reactiveValues$measurementsData$PARAMETER_NAME
           ))),
           "\n",
           "Unique Sites: ",
-          length(unique(moduleState$complete_dataset$SITE_CODE)),
+          length(unique(
+            session$userData$reactiveValues$measurementsData$SITE_CODE
+          )),
           "\n",
           "Unique Parameters: ",
-          length(unique(moduleState$complete_dataset$PARAMETER_NAME)),
+          length(unique(
+            session$userData$reactiveValues$measurementsData$PARAMETER_NAME
+          )),
           "\n\n",
           "First 3 records:\n",
           paste(
-            capture.output(head(moduleState$complete_dataset, 3)),
+            capture.output(head(
+              session$userData$reactiveValues$measurementsData,
+              3
+            )),
             collapse = "\n"
           )
         )

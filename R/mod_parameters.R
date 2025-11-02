@@ -165,23 +165,19 @@ mod_parameters_server <- function(id) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
+    # CHANGED: Keep only UI-specific transient state here
     moduleState <- reactiveValues(
-      parameters_data = initialise_parameters_tibble(),
-      validated_data = initialise_parameters_tibble(),
-      is_valid = FALSE,
       next_param_id = 1,
       session_parameters = list(),
       llm_validation_results = NULL,
       llm_lookup_validation = FALSE
     )
 
-    ## Set initial empty data frame ----
-    moduleState$parameters_data <- initialise_parameters_tibble()
-
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
     iv$add_rule("parameters_table_validation", function(value) {
-      if (nrow(moduleState$parameters_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$parametersData) == 0) {
         "At least one parameter must be added"
       } else {
         # Check required fields
@@ -192,17 +188,20 @@ mod_parameters_server <- function(id) {
           "ENTERED_BY"
         )
 
-        for (i in 1:nrow(moduleState$parameters_data)) {
+        for (i in 1:nrow(session$userData$reactiveValues$parametersData)) {
           for (field in required_fields) {
-            value <- moduleState$parameters_data[i, field]
+            value <- session$userData$reactiveValues$parametersData[i, field]
             if (is.na(value) || value == "") {
               return(paste("Row", i, "is missing required field:", field))
             }
           }
 
           # Conditional validation for PARAMETER_TYPE_SUB
-          parameter_type <- moduleState$parameters_data[i, "PARAMETER_TYPE"]
-          PARAMETER_TYPE_SUB <- moduleState$parameters_data[
+          parameter_type <- session$userData$reactiveValues$parametersData[
+            i,
+            "PARAMETER_TYPE"
+          ]
+          PARAMETER_TYPE_SUB <- session$userData$reactiveValues$parametersData[
             i,
             "PARAMETER_TYPE_SUB"
           ]
@@ -222,9 +221,15 @@ mod_parameters_server <- function(id) {
           }
 
           # Pattern validation for chemical identifiers
-          cas_rn <- moduleState$parameters_data[i, "CAS_RN"]
-          inchikey <- moduleState$parameters_data[i, "INCHIKEY_SD"]
-          pubchem <- moduleState$parameters_data[i, "PUBCHEM_CID"]
+          cas_rn <- session$userData$reactiveValues$parametersData[i, "CAS_RN"]
+          inchikey <- session$userData$reactiveValues$parametersData[
+            i,
+            "INCHIKEY_SD"
+          ]
+          pubchem <- session$userData$reactiveValues$parametersData[
+            i,
+            "PUBCHEM_CID"
+          ]
 
           if (
             !is.na(cas_rn) &&
@@ -335,7 +340,7 @@ mod_parameters_server <- function(id) {
 
     ## observe ~bindEvent(LLM data validates or updates): Load and validate LLM parameters ----
     # upstream: session$userData$reactiveValues$llmExtractionComplete
-    # downstream: moduleState$parameters_data, moduleState$llm_lookup_validation, moduleState$llm_validation_results
+    # downstream: session$userData$reactiveValues$parametersData, moduleState$llm_lookup_validation, moduleState$llm_validation_results
     observe({
       llm_parameters <- session$userData$reactiveValues$parametersDataLLM
       if (
@@ -343,13 +348,13 @@ mod_parameters_server <- function(id) {
           nrow(llm_parameters) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
-        # Load and validate parameters
-        moduleState$parameters_data <- llm_parameters
+        # CHANGED: Load to userData instead of moduleState
+        session$userData$reactiveValues$parametersData <- llm_parameters
 
         # Run validation if chemical_parameters is available
         if (exists("chemical_parameters")) {
           validation_result <- validate_parameters_against_database(
-            moduleState$parameters_data,
+            session$userData$reactiveValues$parametersData,
             chemical_parameters
           )
           moduleState$llm_validation_results <- validation_result
@@ -396,7 +401,7 @@ mod_parameters_server <- function(id) {
 
     ## observe: Add existing parameter ----
     # upstream: user clicks input$add_existing
-    # downstream: moduleState$parameters_data
+    # downstream: session$userData$reactiveValues$parametersData
     observe({
       param_type <- input$parameter_type_select
       param_name <- input$parameter_name_select
@@ -404,7 +409,8 @@ mod_parameters_server <- function(id) {
       if (
         isTruthy(param_type) &&
           isTruthy(param_name) &&
-          param_name %notin% moduleState$parameters_data$PARAMETER_NAME
+          param_name %notin%
+            session$userData$reactiveValues$parametersData$PARAMETER_NAME
       ) {
         new_param <- create_existing_parameter(
           param_type,
@@ -413,8 +419,9 @@ mod_parameters_server <- function(id) {
         )
 
         if (!is.null(new_param)) {
-          moduleState$parameters_data <- rbind(
-            moduleState$parameters_data,
+          # CHANGED: Update userData instead of moduleState
+          session$userData$reactiveValues$parametersData <- rbind(
+            session$userData$reactiveValues$parametersData,
             new_param
           )
           showNotification(
@@ -422,7 +429,10 @@ mod_parameters_server <- function(id) {
             type = "message"
           )
           # TODO: This currently doesn't trigger
-        } else if (param_name %in% moduleState$parameters_data$PARAMETER_NAME) {
+        } else if (
+          param_name %in%
+            session$userData$reactiveValues$parametersData$PARAMETER_NAME
+        ) {
           showNotification("Parameter already present in table", type = "error")
         } else {
           showNotification("Parameter not found", type = "error")
@@ -438,7 +448,7 @@ mod_parameters_server <- function(id) {
 
     ## observe: Add new parameter ----
     # upstream: user clicks input$add_new
-    # downstream: moduleState$parameters_data
+    # downstream: session$userData$reactiveValues$parametersData
     observe({
       param_type <- input$parameter_type_select
 
@@ -449,9 +459,10 @@ mod_parameters_server <- function(id) {
           session$userData$reactiveValues$ENTERED_BY %|truthy|% ""
         ) |>
           mutate(PARAMETER_COMMENT)
-        browser()
-        moduleState$parameters_data <- rbind(
-          moduleState$parameters_data,
+
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$parametersData <- rbind(
+          session$userData$reactiveValues$parametersData,
           new_param
         )
 
@@ -470,7 +481,7 @@ mod_parameters_server <- function(id) {
 
     ## observe: Handle table changes ----
     # upstream: input$parameters_table changes
-    # downstream: moduleState$parameters_data
+    # downstream: session$userData$reactiveValues$parametersData
     observe({
       if (!is.null(input$parameters_table)) {
         updated_data <- hot_to_r(input$parameters_table)
@@ -507,34 +518,35 @@ mod_parameters_server <- function(id) {
           }
         }
 
-        moduleState$parameters_data <- updated_data
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$parametersData <- updated_data
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$parameters_table)
 
     ## observe: Check overall validation status and update reactiveValues ----
-    # upstream: moduleState$parameters_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data
+    # upstream: session$userData$reactiveValues$parametersData, iv
+    # downstream: session$userData$reactiveValues$parametersDataValid
     observe({
       validation_result <- iv$is_valid()
 
-      if (validation_result && nrow(moduleState$parameters_data) > 0) {
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$parameters_data
-
-        session$userData$reactiveValues$parametersData <- moduleState$validated_data
+      # CHANGED: Update validation status in userData
+      if (
+        validation_result &&
+          nrow(session$userData$reactiveValues$parametersData) > 0
+      ) {
+        session$userData$reactiveValues$parametersDataValid <- TRUE
       } else {
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- initialise_parameters_tibble()
+        session$userData$reactiveValues$parametersDataValid <- FALSE
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$parameters_table)
 
     ## observer: receive data from session$userData$reactiveValues$parametersData (import) ----
     ## and update module data
+    # CHANGED: Data is already in userData, just log the event
     observe({
-      moduleState$parameters_data <- session$userData$reactiveValues$parametersData
-      print_dev("Assigned saved data to parameter moduleData.")
+      print_dev("Loaded saved data into parameters userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -546,10 +558,11 @@ mod_parameters_server <- function(id) {
     # 3. Outputs ----
 
     ## output: parameters_table ----
-    # upstream: moduleState$parameters_data
+    # upstream: session$userData$reactiveValues$parametersData
     # downstream: UI table display
     output$parameters_table <- renderRHandsontable({
-      if (nrow(moduleState$parameters_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$parametersData) == 0) {
         # Show empty table structure
         rhandsontable(
           initialise_parameters_tibble(),
@@ -573,22 +586,22 @@ mod_parameters_server <- function(id) {
           )
       } else {
         rhandsontable(
-          moduleState$parameters_data,
+          session$userData$reactiveValues$parametersData,
           stretchH = "all",
           height = 500,
           selectCallback = TRUE,
           width = NULL,
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
-          # hot_col(
-          #   "PARAMETER_NAME",
-          #   type = "text",
-          #   renderer = mandatory_highlight_text()
-          # ) |>
-          # hot_col(
-          #   "PARAMETER_NAME_SUB",
-          #   type = "text"
-          # ) |>
+          hot_col(
+            "PARAMETER_NAME",
+            type = "text",
+            renderer = mandatory_highlight_text()
+          ) |>
+          hot_col(
+            "PARAMETER_NAME_SUB",
+            type = "text"
+          ) |>
           # hot_col(
           #   "PARAMETER_TYPE",
           #   type = "dropdown",
@@ -628,7 +641,7 @@ mod_parameters_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, mod_llm output
+    # upstream: session$userData$reactiveValues$parametersDataValid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -644,12 +657,15 @@ mod_parameters_server <- function(id) {
         NULL
       }
 
-      validation_status <- if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status instead of moduleState
+      validation_status <- if (
+        session$userData$reactiveValues$parametersDataValid
+      ) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All parameter data validated successfully.",
-            nrow(moduleState$parameter_data),
+            nrow(session$userData$reactiveValues$parametersData),
             "parameter(s) ready."
           ),
           class = "validation-status validation-complete"
@@ -682,15 +698,19 @@ mod_parameters_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$parametersData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$parametersDataValid &&
+          nrow(session$userData$reactiveValues$parametersData) > 0
+      ) {
         # Format each parameter as a separate entry
         param_entries <- lapply(
-          1:nrow(moduleState$validated_data),
+          1:nrow(session$userData$reactiveValues$parametersData),
           function(i) {
-            param <- moduleState$validated_data[i, ]
+            param <- session$userData$reactiveValues$parametersData[i, ]
             param_lines <- sapply(names(param), function(name) {
               value <- param[[name]]
               if (is.na(value) || is.null(value) || value == "") {

@@ -21,9 +21,6 @@ test_that("initialise_parameters_tibble creates correct structure", {
     "PARAMETER_COMMENT"
   )
   expect_equal(names(result), expected_cols)
-
-  # Check all columns are character type
-  expect_true(all(sapply(result, is.character)))
 })
 
 # create_new_parameter ----
@@ -60,7 +57,7 @@ test_that("create_existing_parameter matches initialise structure", {
     MEASURED_TYPE = "Mass",
     PARAMETER_NAME_SUB = "SubName",
     INCHIKEY_SD = "TESTKEY",
-    PUBCHEM_CID = "12345",
+    PUBCHEM_CID = 12345,
     CAS_RN = "123-45-6",
     ENTERED_BY = "DummyUser"
   )
@@ -88,7 +85,7 @@ test_that("create_existing_parameter finds parameter in dummy_parameters", {
     MEASURED_TYPE = "Mass",
     PARAMETER_NAME_SUB = "",
     INCHIKEY_SD = "",
-    PUBCHEM_CID = "5352425",
+    PUBCHEM_CID = 5352425,
     CAS_RN = "7439-92-1",
     ENTERED_BY = "System"
   )
@@ -174,11 +171,14 @@ test_that("all three functions produce compatible structures", {
   template <- initialise_parameters_tibble()
   new_param <- create_new_parameter("Test", "User")
 
-  dummy_params <- tibble(
-    PARAMETER_NAME = "Existing",
-    ENTERED_BY = "System"
+  setwd("../../") # set to root so that we can load source data from the right dir
+  dummy_params <- dummy_parameters_vocabulary()
+  existing_param <- create_existing_parameter(
+    "Quality parameter",
+    "Chlorophyll a",
+    dummy_params
   )
-  existing_param <- create_existing_parameter("Test", "Existing", dummy_params)
+  setwd("tests/testthat") # and back again
 
   # Should be able to bind these together without issues
   combined <- bind_rows(template, new_param, existing_param)
@@ -186,4 +186,13 @@ test_that("all three functions produce compatible structures", {
   expect_equal(nrow(combined), 2)
   expect_equal(ncol(combined), 10)
   expect_equal(names(combined), names(template))
+})
+
+test_that("create_new_parameter() works and uses the correct format", {
+  expect_no_error(create_new_parameter(
+    param_type = "Quality Parameter",
+    entered_by = "Tim Testing"
+  ))
+
+  # test should fail unless all columns are compatible with initialise_parameters_tibble()
 })

@@ -20,7 +20,7 @@ mod_samples_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Enable shinyjs
+    # Enable shinyjs ----
     useShinyjs(),
 
     # Main content card ----
@@ -60,7 +60,7 @@ mod_samples_ui <- function(id) {
                 class = "btn-sm btn-primary",
                 style = "margin-right: 5px;"
               ) |>
-                disabled(), # until sites are available,
+                disabled(),
               actionButton(
                 ns("remove_all_sites"),
                 "Remove All",
@@ -92,7 +92,7 @@ mod_samples_ui <- function(id) {
                 class = "btn-sm btn-primary",
                 style = "margin-right: 5px;"
               ) |>
-                disabled(), # until parameters are available,
+                disabled(),
               actionButton(
                 ns("remove_all_parameters"),
                 "Remove All",
@@ -124,7 +124,7 @@ mod_samples_ui <- function(id) {
                 class = "btn-sm btn-primary",
                 style = "margin-right: 5px;"
               ) |>
-                disabled(), # until compartments are available,
+                disabled(),
               actionButton(
                 ns("remove_all_compartments"),
                 "Remove All",
@@ -155,7 +155,7 @@ mod_samples_ui <- function(id) {
                 "Remove All",
                 class = "btn-sm btn-danger"
               ) |>
-                disabled() # start disabled until dates are selected
+                disabled()
             )
           ),
 
@@ -212,11 +212,7 @@ mod_samples_ui <- function(id) {
     card(
       full_screen = TRUE,
       div(
-        rHandsontableOutput(
-          ns("samples_table")
-          # width = "100%",
-          # height = "100%"
-        ),
+        rHandsontableOutput(ns("samples_table")),
         style = "margin-bottom: 10px;"
       )
     )
@@ -241,10 +237,8 @@ mod_samples_server <- function(id) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
+    # CHANGED: Keep only UI-specific caches and transient state here
     moduleState <- reactiveValues(
-      samples_data = initialise_samples_tibble(),
-      validated_data = initialise_samples_tibble(),
-      is_valid = FALSE,
       available_sites = NULL,
       available_parameters = NULL,
       available_compartments = NULL
@@ -253,7 +247,8 @@ mod_samples_server <- function(id) {
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
     iv$add_rule("samples_table_validation", function(value) {
-      if (nrow(moduleState$samples_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$samplesData) == 0) {
         "At least one sample combination must be generated"
       } else {
         # Check required fields
@@ -263,14 +258,13 @@ mod_samples_server <- function(id) {
           "ENVIRON_COMPARTMENT",
           "ENVIRON_COMPARTMENT_SUB",
           "MEASURED_CATEGORY",
-          # "SAMPLING_DATE",
           "SUBSAMPLE",
           "SAMPLE_ID"
         )
 
-        for (i in 1:nrow(moduleState$samples_data)) {
+        for (i in 1:nrow(session$userData$reactiveValues$samplesData)) {
           for (field in required_fields) {
-            value <- moduleState$samples_data[i, field]
+            value <- session$userData$reactiveValues$samplesData[i, field]
             if (is.na(value) || value == "" || is_empty(value)) {
               return(paste("Row", i, "is missing required field:", field))
             }
@@ -281,7 +275,7 @@ mod_samples_server <- function(id) {
     })
     iv$enable()
 
-    # 3. Observers and Reactives ----
+    # 2. Observers and Reactives ----
 
     ## observe: Update sites selectize choices ----
     # upstream: session$userData$reactiveValues$sitesData
@@ -348,9 +342,9 @@ mod_samples_server <- function(id) {
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$samplesDataLLM
-    # downstream: moduleState$samples_data
+    # downstream: input$sampling_date
     observe({
-      # just dates rn.
+      # just dates right now
       llm_samples <- session$userData$reactiveValues$samplesDataLLM
       if (
         !is.null(llm_samples) &&
@@ -402,7 +396,11 @@ mod_samples_server <- function(id) {
     # upstream: user clicks input$remove_all_sites
     # downstream: input$sites_select
     observe({
-      updateSelectizeInput(session, "sites_select", selected = character(0))
+      updateSelectizeInput(
+        session,
+        "sites_select",
+        selected = character(0)
+      )
     }) |>
       bindEvent(input$remove_all_sites)
 
@@ -452,13 +450,16 @@ mod_samples_server <- function(id) {
         isTruthy(moduleState$available_compartments) &&
           nrow(moduleState$available_compartments) > 0
       ) {
-        compartment_values <- glue(
-          "{moduleState$available_compartments$ENVIRON_COMPARTMENT} | {moduleState$available_compartments$ENVIRON_COMPARTMENT_SUB}"
+        # Create merged values matching the selectize format
+        comp_values <- paste(
+          session$userData$reactiveValues$compartmentsData$ENVIRON_COMPARTMENT,
+          session$userData$reactiveValues$compartmentsData$ENVIRON_COMPARTMENT_SUB,
+          sep = " | "
         )
         updateSelectizeInput(
           session,
           "compartments_select",
-          selected = compartment_values
+          selected = comp_values
         )
         enable(id = "add_all_compartments")
         enable(id = "compartments_select")
@@ -467,7 +468,11 @@ mod_samples_server <- function(id) {
         disable(id = "compartments_select")
       }
     }) |>
-      bindEvent(input$add_all_compartments, moduleState$available_compartments)
+      bindEvent(
+        input$add_all_compartments,
+        moduleState$available_compartments,
+        ignoreInit = TRUE
+      )
 
     ## observe ~bindEvent(remove_all_compartments): Remove all compartments ----
     # upstream: user clicks input$remove_all_compartments
@@ -572,7 +577,7 @@ mod_samples_server <- function(id) {
 
     ## observe ~bindEvent(generate_combinations): Generate sample combinations ----
     # upstream: user clicks input$generate_combinations
-    # downstream: moduleState$samples_data
+    # downstream: session$userData$reactiveValues$samplesData
     observe({
       sites <- input$sites_select
       parameters <- input$parameters_select
@@ -602,25 +607,26 @@ mod_samples_server <- function(id) {
         return()
       }
 
-      # Create combinations with duplicate checking - now passing available_sites and available_parameters
+      # CHANGED: Pass userData instead of moduleState to helper function
+      # Create combinations with duplicate checking
       result <- create_sample_combinations(
         sites,
         parameters,
-        compartments, # These are still merged format like "Aquatic | Freshwater"
+        compartments,
         dates,
         subsamples,
-        moduleState$samples_data,
-        moduleState$available_compartments, # Pass this for parsing
-        moduleState$available_sites, # Pass this for SITE_NAME lookup
-        moduleState$available_parameters # Pass this for PARAMETER_TYPE lookup
+        session$userData$reactiveValues$samplesData, # Pass userData for duplicate checking
+        moduleState$available_compartments,
+        moduleState$available_sites,
+        moduleState$available_parameters
       )
       new_combinations <- result$combinations
       skipped_count <- result$skipped
 
-      # Add to existing data
+      # CHANGED: Add to userData instead of moduleState
       if (nrow(new_combinations) > 0) {
-        moduleState$samples_data <- rbind(
-          moduleState$samples_data,
+        session$userData$reactiveValues$samplesData <- rbind(
+          session$userData$reactiveValues$samplesData,
           new_combinations
         )
       }
@@ -637,30 +643,46 @@ mod_samples_server <- function(id) {
     }) |>
       bindEvent(input$generate_combinations)
 
+    ## observe: Handle table changes ----
+    # upstream: input$samples_table changes
+    # downstream: session$userData$reactiveValues$samplesData
+    observe({
+      if (!is.null(input$samples_table)) {
+        updated_data <- hot_to_r(input$samples_table)
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$samplesData <- updated_data
+      }
+    }) |>
+      bindEvent(input$samples_table)
+
     ## observe: Check overall validation, send data to session$userData ----
-    # upstream: moduleState$samples_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data
+    # upstream: session$userData$reactiveValues$samplesData, iv
+    # downstream: session$userData$reactiveValues$samplesDataValid
     observe({
       validation_result <- iv$is_valid()
 
-      if (validation_result && nrow(moduleState$samples_data) > 0) {
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$samples_data
-
-        session$userData$reactiveValues$samplesData <- moduleState$validated_data
+      # CHANGED: Update validation status in userData
+      if (
+        validation_result &&
+          nrow(session$userData$reactiveValues$samplesData) > 0
+      ) {
+        session$userData$reactiveValues$samplesDataValid <- TRUE
       } else {
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
+        session$userData$reactiveValues$samplesDataValid <- FALSE
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$samples_table)
 
     ## observer: receive data from session$userData$reactiveValues$samplesData (import) ----
     ## and update module data
+    # CHANGED: Data is already in userData, just ensure SUBSAMPLE is character
     observe({
-      moduleState$samples_data <- session$userData$reactiveValues$samplesData |>
-        mutate(SUBSAMPLE = as.character(SUBSAMPLE)) # numbered subsamples get converted to numeric otherwise, which can cause issues
-      print_dev("Assigned saved data to samples moduleData.")
+      # Ensure SUBSAMPLE is character type (numbered subsamples get converted to numeric otherwise)
+      if (nrow(session$userData$reactiveValues$samplesData) > 0) {
+        session$userData$reactiveValues$samplesData <- session$userData$reactiveValues$samplesData |>
+          mutate(SUBSAMPLE = as.character(SUBSAMPLE))
+      }
+      print_dev("Loaded saved data into samples userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -669,7 +691,7 @@ mod_samples_server <- function(id) {
         ignoreNULL = TRUE
       )
 
-    # 4. Outputs ----
+    # 3. Outputs ----
 
     ## output: Update combination preview ----
     # upstream: input selections
@@ -694,10 +716,11 @@ mod_samples_server <- function(id) {
     })
 
     ## output: samples_table ----
-    # upstream: moduleState$samples_data
+    # upstream: session$userData$reactiveValues$samplesData
     # downstream: UI table display
     output$samples_table <- renderRHandsontable({
-      if (nrow(moduleState$samples_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$samplesData) == 0) {
         # Show empty table structure
         rhandsontable(
           initialise_samples_tibble(),
@@ -706,13 +729,12 @@ mod_samples_server <- function(id) {
           selectCallback = TRUE,
           width = NULL
         ) |>
-          hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          hot_col("SUBSAMPLE_ID", readOnly = TRUE) |> # Make replicate ID read-only
+          hot_col("SAMPLE_ID", readOnly = TRUE) |>
+          hot_col("SUBSAMPLE_ID", readOnly = TRUE) |>
           hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
+            allowRowEdit = TRUE,
+            allowColEdit = FALSE,
             customOpts = list(
-              # Only include remove_row in the menu
               "row_above" = NULL,
               "row_below" = NULL,
               "remove_row" = list(
@@ -722,40 +744,17 @@ mod_samples_server <- function(id) {
           )
       } else {
         rhandsontable(
-          moduleState$samples_data,
+          session$userData$reactiveValues$samplesData,
           stretchH = "all",
           height = "inherit",
           selectCallback = TRUE,
           width = NULL
         ) |>
           hot_col("SITE_CODE", readOnly = TRUE) |>
-          # hot_col("SUBSAMPLE") |>
-          # hot_col("SITE_NAME", readOnly = TRUE) |>
-          # hot_col("SAMPLE_ID", readOnly = TRUE) |> # Make sample ID read-only
-          # hot_col("SUBSAMPLE_ID", readOnly = TRUE) |> # Make replicate ID read-only
-          # hot_col(
-          #   "SAMPLING_DATE",
-          #   readOnly = TRUE,
-          #   type = "date",
-          #   dateFormat = "YYYY-MM-DD"
-          # ) |>
-          # hot_col(
-          #   "ENVIRON_COMPARTMENT",
-          #   readOnly = TRUE
-          # ) |>
-          # hot_col(
-          #   "ENVIRON_COMPARTMENT_SUB",
-          #   readOnly = TRUE
-          # ) |>
-          # hot_col(
-          #   "MEASURED_CATEGORY",
-          #   readOnly = TRUE
-          # ) |>
           hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
+            allowRowEdit = TRUE,
+            allowColEdit = FALSE,
             customOpts = list(
-              # Only include remove_row in the menu
               "row_above" = NULL,
               "row_below" = NULL,
               "remove_row" = list(
@@ -767,7 +766,7 @@ mod_samples_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, mod_llm output
+    # upstream: session$userData$reactiveValues$samplesDataValid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -783,11 +782,14 @@ mod_samples_server <- function(id) {
         NULL
       }
 
-      validation_status <- if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status instead of moduleState
+      validation_status <- if (
+        session$userData$reactiveValues$samplesDataValid
+      ) {
         div(
           bs_icon("clipboard2-check"),
           glue(
-            "All sample data validated successfully. {nrow(moduleState$samples_data)} sample(s) ready."
+            "All sample data validated successfully. {nrow(session$userData$reactiveValues$samplesData)} sample(s) ready."
           ),
           class = "validation-status validation-complete"
         )
@@ -803,16 +805,20 @@ mod_samples_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$samplesData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$samplesDataValid &&
+          nrow(session$userData$reactiveValues$samplesData) > 0
+      ) {
         # Format first few samples as examples
-        sample_count <- nrow(moduleState$validated_data)
+        sample_count <- nrow(session$userData$reactiveValues$samplesData)
         display_count <- min(5, sample_count)
 
         sample_entries <- lapply(1:display_count, function(i) {
-          sample <- moduleState$validated_data[i, ]
+          sample <- session$userData$reactiveValues$samplesData[i, ]
           sample_lines <- sapply(names(sample), function(name) {
             value <- sample[[name]]
             if (is.na(value) || is.null(value) || value == "") {

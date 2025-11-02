@@ -21,20 +21,30 @@ app_server <- function(input, output, session) {
   if (!is.reactivevalues(session$userData$reactiveValues)) {
     session$userData$reactiveValues <- reactiveValues(
       ENTERED_BY = character(0),
+      autosave_enabled = FALSE,
 
-      # Standard validated data
+      # Standard validated data ----
       # All userData and module_state$data data is stored in a tabular (tibble) format centrally, even for campaign and reference (which currently only have one row)
       # This means we can use a consistent set of functions to check for presence (nrow(tibble) > 0), and not have any nasty surprises when we expect one and get the other
       sitesData = initialise_sites_tibble(),
+      sitesDataValid = FALSE,
       parametersData = initialise_parameters_tibble(),
+      parametersDataValid = FALSE,
       compartmentsData = initialise_compartments_tibble(),
+      compartmentsDataValid = FALSE,
       referenceData = initialise_references_tibble(),
+      referenceDataValid = FALSE,
       campaignData = initialise_campaign_tibble(),
+      campaignDataValid = FALSE,
       methodsData = initialise_methods_tibble(),
+      methodsDataValid = FALSE,
       samplesData = initialise_samples_tibble(),
+      samplesDataValid = FALSE,
       biotaData = initialise_biota_tibble(),
+      biotaDataValid = FALSE,
       samplesDataWithBiota = tibble(NULL),
       measurementsData = initialise_measurements_tibble(),
+      measurementsDataValid = FALSE,
       creedData = list(
         purpose_statement = tibble(NULL),
         dataset_details = tibble(NULL),
@@ -44,7 +54,7 @@ app_server <- function(input, output, session) {
         CREED_output = tibble(NULL)
       ),
 
-      # LLM extracted data and metadata
+      # LLM extracted data and metadata ----
       schemaLLM = "",
       promptLLM = "",
       rawLLM = "",
@@ -58,15 +68,13 @@ app_server <- function(input, output, session) {
       biotaDataLLM = tibble(NULL),
       samplesDataLLM = tibble(NULL),
 
-      # LLM extraction status flags
+      # LLM extraction status flags ----
       llmExtractionComplete = FALSE,
       llmExtractionSuccessful = FALSE,
 
-      # Import data from save status flags
+      # Import data from save status flags ----
       saveExtractionComplete = FALSE,
-      saveExtractionSuccessful = FALSE,
-
-      bookmarkedSessions = NULL
+      saveExtractionSuccessful = FALSE
     )
   }
 
@@ -81,8 +89,16 @@ app_server <- function(input, output, session) {
     dataset_dimensions = list()
   )
 
-  ## reactiveTimer: Autosave periodicity (10 seconds)
-  autoInvalidate <<- reactiveTimer(10000)
+  ## reactiveTimer: Autosave periodicity
+  # Update autoInvalidate based on settings ----
+  # autoInvalidate <<- reactive({
+  #   if ((input$input_switch %|truthy|% 0) != 0) {
+  #     invalidateLater(input$autosave_interval * 60000) # Convert minutes to milliseconds
+  #     Sys.time()
+  #   } else {
+  #     NULL
+  #   }
+  # })
 
   ## Module servers ----
   # upstream: session start
@@ -432,6 +448,42 @@ app_server <- function(input, output, session) {
     removeModal()
   }) |>
     bindEvent(input$import_cancel, ignoreInit = TRUE)
+
+  ## Observer: Open autosave modal
+  # Show Autosave Modal ----
+  observe({
+    # Replace with your actual button ID
+    showModal(
+      modalDialog(
+        title = "Autosave Settings",
+        size = "m",
+        easyClose = TRUE,
+        footer = modalButton("Close"),
+
+        sliderInput(
+          inputId = "autosave_interval",
+          label = "Autosave Interval (minutes)",
+          min = 0,
+          max = 20,
+          value = 0,
+          step = 1,
+          post = " min",
+          width = "100%"
+        ),
+
+        div(
+          class = "alert alert-warning",
+          style = "margin-top: 15px;",
+          icon("triangle-exclamation"),
+          strong(" Note: "),
+          "Shorter autosave intervals may cause performance issues with large tables or complex calculations. 
+          Setting interval to 0 disables autosave entirely. Please note that this refers to saving data to the session, not your PC - 
+          if you close the tab and come back later your work will be lost (use the Download all button instead)."
+        )
+      )
+    )
+  }) |>
+    bindEvent(input$autosave_modal, ignoreInit = TRUE)
 
   # todo: this is a hacky copy-paste of an observer from mod_export. a more integrated solution should be (eventually) added.
   ## Observer: Show download modal when download_all_modal button clicked ----

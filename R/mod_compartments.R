@@ -19,7 +19,7 @@ mod_compartments_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Enable shinyjs
+    # Enable shinyjs ----
     useShinyjs(),
 
     # Main content card ----
@@ -58,8 +58,7 @@ mod_compartments_ui <- function(id) {
               "Specific subset within the environmental compartment"
             ),
             choices = sub_compartment_options_vocabulary()$Aquatic,
-            width = "100%",
-            selected = "Marine/Salt Water"
+            width = "100%"
           ),
 
           selectInput(
@@ -132,18 +131,17 @@ mod_compartments_server <- function(id) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
+    # CHANGED: Keep only UI-specific transient state here
     moduleState <- reactiveValues(
-      compartments_data = initialise_compartments_tibble(),
-      validated_data = initialise_compartments_tibble(),
-      is_valid = FALSE,
-      validation_message = "",
+      validation_message = ""
     )
 
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
     # Rule 1: Check if there are no rows
     iv$add_rule("compartments_data", function(value) {
-      if (nrow(moduleState$compartments_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$compartmentsData) == 0) {
         moduleState$validation_message <<- "At least one compartment combination must be added."
         return("At least one compartment combination must be added.")
       }
@@ -151,16 +149,20 @@ mod_compartments_server <- function(id) {
 
     # Rule 2: Check for missing required fields in any row
     iv$add_rule("compartments_data", function(value) {
-      if (nrow(moduleState$compartments_data) > 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$compartmentsData) > 0) {
         required_fields <- c(
           "ENVIRON_COMPARTMENT",
           "ENVIRON_COMPARTMENT_SUB",
           "MEASURED_CATEGORY"
         )
 
-        for (i in 1:nrow(moduleState$compartments_data)) {
+        for (i in 1:nrow(session$userData$reactiveValues$compartmentsData)) {
           for (field in required_fields) {
-            field_value <- moduleState$compartments_data[i, field]
+            field_value <- session$userData$reactiveValues$compartmentsData[
+              i,
+              field
+            ]
             if (
               is.na(field_value) || field_value == "" || is_empty(field_value)
             ) {
@@ -175,13 +177,14 @@ mod_compartments_server <- function(id) {
 
     # Rule 3: Check for invalid compartment/sub-compartment combinations
     iv$add_rule("compartments_data", function(value) {
-      if (nrow(moduleState$compartments_data) > 0) {
-        for (i in 1:nrow(moduleState$compartments_data)) {
-          compartment <- moduleState$compartments_data[[
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$compartmentsData) > 0) {
+        for (i in 1:nrow(session$userData$reactiveValues$compartmentsData)) {
+          compartment <- session$userData$reactiveValues$compartmentsData[[
             i,
             "ENVIRON_COMPARTMENT"
           ]]
-          sub_compartment <- moduleState$compartments_data[[
+          sub_compartment <- session$userData$reactiveValues$compartmentsData[[
             i,
             "ENVIRON_COMPARTMENT_SUB"
           ]]
@@ -201,23 +204,7 @@ mod_compartments_server <- function(id) {
     })
     iv$enable()
 
-    # 2. Helper functions ----
-
-    ## Check if combination already exists ----
-    combination_exists <- function(compartment, sub_compartment, category) {
-      if (nrow(moduleState$compartments_data) == 0) {
-        return(FALSE)
-      }
-
-      existing <- moduleState$compartments_data
-      any(
-        existing$ENVIRON_COMPARTMENT == compartment &
-          existing$ENVIRON_COMPARTMENT_SUB == sub_compartment &
-          existing$MEASURED_CATEGORY == category
-      )
-    }
-
-    # 3. Observers and Reactives ----
+    # 2. Observers and Reactives ----
 
     ## observe: Update sub-compartment dropdown when compartment changes ----
     # upstream: input$environ_compartment_select
@@ -240,19 +227,13 @@ mod_compartments_server <- function(id) {
             choices = c("No sub-compartments available" = "")
           )
         }
-      } else {
-        updateSelectInput(
-          session,
-          "environ_compartment_sub_select",
-          choices = c("Select main compartment first..." = "")
-        )
       }
     }) |>
       bindEvent(input$environ_compartment_select)
 
-    ## observe: Add compartment combination ----
+    ## observe: Add combination from form ----
     # upstream: user clicks input$add_combination
-    # downstream: moduleState$compartments_data
+    # downstream: session$userData$reactiveValues$compartmentsData
     observe({
       compartment <- input$environ_compartment_select
       sub_compartment <- input$environ_compartment_sub_select
@@ -263,40 +244,24 @@ mod_compartments_server <- function(id) {
           compartment != "" &&
           isTruthy(sub_compartment) &&
           sub_compartment != "" &&
-          isTruthy(category)
+          isTruthy(category) &&
+          category != ""
       ) {
-        # Check if combination already exists
-        if (combination_exists(compartment, sub_compartment, category)) {
-          showNotification(
-            "This combination already exists in the table",
-            type = "warning"
-          )
-          return()
-        }
+        # CHANGED: Removed duplicate check - duplicates are now allowed
 
-        # Add new combination
-        new_combination <- create_compartment_combination(
-          compartment,
-          sub_compartment,
-          category
-        )
-        moduleState$compartments_data <- rbind(
-          moduleState$compartments_data,
+        # Create new combination
+        new_combination <- initialise_compartments_tibble() |>
+          add_row(
+            ENVIRON_COMPARTMENT = compartment,
+            ENVIRON_COMPARTMENT_SUB = sub_compartment,
+            MEASURED_CATEGORY = category
+          )
+
+        # CHANGED: Add to userData instead of moduleState
+        session$userData$reactiveValues$compartmentsData <- rbind(
+          session$userData$reactiveValues$compartmentsData,
           new_combination
         )
-
-        # Reset form
-        # updateSelectInput(session, "environ_compartment_select", selected = "")
-        # updateSelectInput(
-        #   session,
-        #   "environ_compartment_sub_select",
-        #   choices = c("Select main compartment first..." = "")
-        # )
-        # updateSelectInput(
-        #   session,
-        #   "measured_category_select",
-        #   selected = "External"
-        # )
 
         showNotification(
           glue(
@@ -315,36 +280,37 @@ mod_compartments_server <- function(id) {
 
     ## observe: Handle table changes ----
     # upstream: input$compartments_table changes
-    # downstream: moduleState$compartments_data
+    # downstream: session$userData$reactiveValues$compartmentsData
     observe({
       if (!is.null(input$compartments_table)) {
         updated_data <- hot_to_r(input$compartments_table)
-        moduleState$compartments_data <- updated_data
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$compartmentsData <- updated_data
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$compartments_table)
 
     ## observe: Check overall validation status ----
-    # upstream: moduleState$compartments_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data
+    # upstream: session$userData$reactiveValues$compartmentsData, iv
+    # downstream: session$userData$reactiveValues$compartmentsDataValid
     observe({
       validation_result <- iv$is_valid()
 
-      if (validation_result && nrow(moduleState$compartments_data) > 0) {
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$compartments_data
-
-        session$userData$reactiveValues$compartmentsData <- moduleState$validated_data
+      # CHANGED: Update validation status in userData
+      if (
+        validation_result &&
+          nrow(session$userData$reactiveValues$compartmentsData) > 0
+      ) {
+        session$userData$reactiveValues$compartmentsDataValid <- TRUE
       } else {
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
+        session$userData$reactiveValues$compartmentsDataValid <- FALSE
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$compartments_table)
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$compartmentsDataLLM
-    # downstream: moduleState$compartments_data
+    # downstream: session$userData$reactiveValues$compartmentsData
     observe({
       llm_compartments <- session$userData$reactiveValues$compartmentsDataLLM
       if (
@@ -352,8 +318,8 @@ mod_compartments_server <- function(id) {
           nrow(llm_compartments) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
-        # Replace current compartments data with LLM data
-        moduleState$compartments_data <- llm_compartments
+        # CHANGED: Replace userData with LLM data
+        session$userData$reactiveValues$compartmentsData <- llm_compartments
 
         showNotification(
           glue("Populated {nrow(llm_compartments)} compartments."),
@@ -370,9 +336,9 @@ mod_compartments_server <- function(id) {
 
     ## observer: receive data from session$userData$reactiveValues$compartmentsData (import) ----
     ## and update module data
+    # CHANGED: Data is already in userData, just log the event
     observe({
-      moduleState$compartments_data <- session$userData$reactiveValues$compartmentsData
-      print_dev("Assigned saved data to compartments moduleData.")
+      print_dev("Loaded saved data into compartments userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -381,13 +347,14 @@ mod_compartments_server <- function(id) {
         ignoreNULL = TRUE
       )
 
-    # 4. Outputs ----
+    # 3. Outputs ----
 
     ## output: compartments_table ----
-    # upstream: moduleState$compartments_data
+    # upstream: session$userData$reactiveValues$compartmentsData
     # downstream: UI table display
     output$compartments_table <- renderRHandsontable({
-      if (nrow(moduleState$compartments_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$compartmentsData) == 0) {
         # Show empty table structure
         rhandsontable(
           initialise_compartments_tibble(),
@@ -396,10 +363,9 @@ mod_compartments_server <- function(id) {
         ) |>
           hot_table(overflow = "visible", stretchH = "all") |>
           hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
+            allowRowEdit = TRUE,
+            allowColEdit = FALSE,
             customOpts = list(
-              # Only include remove_row in the menu
               "row_above" = NULL,
               "row_below" = NULL,
               "remove_row" = list(
@@ -409,7 +375,7 @@ mod_compartments_server <- function(id) {
           )
       } else {
         rhandsontable(
-          moduleState$compartments_data,
+          session$userData$reactiveValues$compartmentsData,
           selectCallback = TRUE,
           width = NULL
         ) |>
@@ -427,10 +393,9 @@ mod_compartments_server <- function(id) {
             readOnly = TRUE
           ) |>
           hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
+            allowRowEdit = TRUE,
+            allowColEdit = FALSE,
             customOpts = list(
-              # Only include remove_row in the menu
               "row_above" = NULL,
               "row_below" = NULL,
               "remove_row" = list(
@@ -442,7 +407,7 @@ mod_compartments_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, mod_llm output
+    # upstream: session$userData$reactiveValues$compartmentsDataValid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -458,11 +423,14 @@ mod_compartments_server <- function(id) {
         NULL
       }
 
-      validation_status <- if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status instead of moduleState
+      validation_status <- if (
+        session$userData$reactiveValues$compartmentsDataValid
+      ) {
         div(
           bs_icon("clipboard2-check"),
           glue(
-            "All compartment data validated successfully. {nrow(moduleState$compartments_data)} compartment combination(s) ready."
+            "All compartment data validated successfully. {nrow(session$userData$reactiveValues$compartmentsData)} compartment combination(s) ready."
           ),
           class = "validation-status validation-complete"
         )
@@ -478,15 +446,19 @@ mod_compartments_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$compartmentsData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$compartmentsDataValid &&
+          nrow(session$userData$reactiveValues$compartmentsData) > 0
+      ) {
         # Format each combination as a separate entry
         combo_entries <- lapply(
-          1:nrow(moduleState$validated_data),
+          1:nrow(session$userData$reactiveValues$compartmentsData),
           function(i) {
-            combo <- moduleState$validated_data[i, ]
+            combo <- session$userData$reactiveValues$compartmentsData[i, ]
             combo_lines <- sapply(names(combo), function(name) {
               value <- combo[[name]]
               if (is.na(value) || is.null(value) || value == "") {

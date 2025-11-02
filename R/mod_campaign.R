@@ -209,12 +209,6 @@ mod_campaign_server <- function(id) {
     ns <- session$ns
 
     # 1. Module setup ----
-    ## ReactiveValues: moduleState ----
-    moduleState <- reactiveValues(
-      validated_data = initialise_campaign_tibble(),
-      is_valid = FALSE
-    )
-
     ## InputValidator$new: iv ----
     iv <- InputValidator$new()
     iv$add_rule("CAMPAIGN_NAME", sv_required())
@@ -226,34 +220,21 @@ mod_campaign_server <- function(id) {
 
     iv$add_rule("CAMPAIGN_START_DATE", sv_required())
 
+    iv$add_rule("ENTERED_BY", sv_required())
+
     iv$add_rule("ORGANISATION", sv_required())
     iv$add_rule("ORGANISATION", function(value) {
-      if (isTruthy(value) && nchar(value) > 50) {
-        "Organisation must be 50 characters or less"
-      }
-    })
-
-    iv$add_rule("ENTERED_BY", sv_required())
-    iv$add_rule("ENTERED_BY", function(value) {
-      if (isTruthy(value) && nchar(value) > 50) {
-        "Entered By must be 50 characters or less"
+      if (isTruthy(value) && nchar(value) > 100) {
+        "Organisation must be 100 characters or less"
       }
     })
 
     iv$add_rule("ENTERED_DATE", sv_required())
 
-    ### Conditional field validations
-    # if RELIABILITY_EVAL_SYS isTruthy, then require a score
-    iv$add_rule("RELIABILITY_SCORE", function(value) {
-      if (isTruthy(value) && nchar(as.character(value)) > 22) {
-        "Reliability Score must be 22 characters or less"
-      }
-    })
-
+    # Conditional validation for reliability score
     iv$add_rule("RELIABILITY_SCORE", function(value) {
       if (
-        isTruthy(input$RELIABILITY_EVAL_SYS) &&
-          isRelevant(input$RELIABILITY_EVAL_SYS) &&
+        isRelevant(input$RELIABILITY_EVAL_SYS) &&
           !isTruthy(value)
       ) {
         "If an evaluation system is selected a score must also be entered."
@@ -291,7 +272,7 @@ mod_campaign_server <- function(id) {
     ## observe: check validation status and send to session$userData ----
     # imports: fct_formats::initialise_campaign_tibble()
     # upstream: iv
-    # downstream: moduleState$validated_data, moduleState$is_valid, session$userData$reactiveValues
+    # downstream: session$userData$reactiveValues$campaignData, campaignDataValid
     observe({
       if (iv$is_valid()) {
         # Collect validated data
@@ -324,13 +305,12 @@ mod_campaign_server <- function(id) {
           }
         )
 
-        moduleState$validated_data <- validated_data
-        moduleState$is_valid <- TRUE
-
-        session$userData$reactiveValues$campaignData <- moduleState$validated_data
+        # CHANGED: Store directly to userData
+        session$userData$reactiveValues$campaignData <- validated_data
+        session$userData$reactiveValues$campaignDataValid <- TRUE
       } else {
-        moduleState$validated_data <- NULL
-        moduleState$is_valid <- FALSE
+        # CHANGED: Set validation flag to FALSE
+        session$userData$reactiveValues$campaignDataValid <- FALSE
       }
     })
 
@@ -356,9 +336,9 @@ mod_campaign_server <- function(id) {
         updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
         updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
 
-        # Clear validation state
-        moduleState$validated_data <- initialise_campaign_tibble()
-        moduleState$is_valid <- FALSE
+        # CHANGED: Clear validation state in userData
+        session$userData$reactiveValues$campaignData <- initialise_campaign_tibble()
+        session$userData$reactiveValues$campaignDataValid <- FALSE
       } |>
         suppressWarnings()
     ) |>
@@ -418,21 +398,19 @@ mod_campaign_server <- function(id) {
       )
 
     ## observer: receive data from session$userData$reactiveValues$campaignData (import) ----
-    ## and update module data
+    ## and update module inputs
     observe({
-      extraction_success <- session$userData$reactiveValues$saveExtractionComplete
-      moduleState$validated_data <- session$userData$reactiveValues$campaignData |>
+      # CHANGED: Data is already in userData, just need to populate the form
+      campaign_data <- session$userData$reactiveValues$campaignData |>
         as.list()
-      names(moduleState$validated_data) <- tolower(names(
-        moduleState$validated_data
-      ))
-      # import data is SCREAMING_NAME but module expects snake_case, so we need to conver the list names
+      names(campaign_data) <- tolower(names(campaign_data))
+      # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
 
       populate_campaign_from_llm(
         session,
-        moduleState$validated_data
+        campaign_data
       )
-      print_dev("Assigned saved data to campaign moduleData, updated inputs")
+      print_dev("Populated campaign form from saved data")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -444,10 +422,11 @@ mod_campaign_server <- function(id) {
     # 3. Outputs ----
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: session$userData$reactiveValues$campaignDataValid
     # downstream: UI update
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status
+      if (session$userData$reactiveValues$campaignDataValid) {
         div(
           bs_icon("clipboard2-check"),
           "All data validated successfully.",
@@ -463,11 +442,15 @@ mod_campaign_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$campaignData (when valid)
     # downstream: UI update
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
-        printreactiveValues(moduleState$validated_data)
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$campaignDataValid &&
+          nrow(session$userData$reactiveValues$campaignData) > 0
+      ) {
+        printreactiveValues(session$userData$reactiveValues$campaignData)
       } else {
         "# Data object will be created when valid data is entered."
       }
