@@ -163,23 +163,28 @@ mod_llm_ui <- function(id) {
           id = ns("results_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Extraction Results",
+            title = "Extraction Results and Comments",
             value = "extraction_results",
             icon = bs_icon("cpu"),
             div(
               verbatimTextOutput(ns("extraction_results")),
-              # Add download button ----
+              # Add download button ---- disabled, as this is now covered by Download All button
+              # div(
+              #   style = "margin-top: 10px;",
+              #   downloadButton(
+              #     outputId = ns("download_extraction"),
+              #     label = "Download Results",
+              #     class = "btn-secondary btn-sm",
+              #     icon = icon("download")
+              #   ) |>
+              #     disabled()
+              # ),
               div(
-                style = "margin-top: 10px;",
-                downloadButton(
-                  outputId = ns("download_extraction"),
-                  label = "Download Results",
-                  class = "btn-secondary btn-sm",
-                  icon = icon("download")
-                ) |>
-                  disabled()
-              ),
-              htmlOutput(ns("extraction_comments"))
+                h5(
+                  "This is an experiment in getting the LLM to report on its own opinion of the extraction. I don't yet know how good its assessment is, but I'm interested to hear your feedback."
+                ),
+                htmlOutput(ns("extraction_comments"))
+              )
             )
           )
         ),
@@ -769,7 +774,7 @@ mod_llm_server <- function(id) {
     ## output: extraction commentary ----
     output$extraction_comments <- renderUI({
       req(session$userData$reactiveValues$llmExtractionComments)
-      render_named_list(
+      render_extraction_comments(
         session$userData$reactiveValues$llmExtractionComments
       )
     })
@@ -804,12 +809,34 @@ clear_llm_data_from_session <- function(session) {
   )
 }
 
-render_named_list <- function(named_list) {
+render_extraction_comments <- function(named_list) {
   tagList(
     lapply(names(named_list), function(nm) {
+      pretty_name <- c(
+        "paper_relevance" = "Relevance",
+        "paper_reliability" = "Reliability",
+        "paper_data_source" = "Original Data",
+        "paper_data_available" = "Data Availability",
+        "extraction_assessement" = "Extraction Grade"
+      )
+      score_emoji <- c(
+        "Score: 5" = "🟢",
+        "Score: 4" = "🟢",
+        "Score: 3" = "🟡",
+        "Score: 2" = "🟠",
+        "Score: 1" = "🔴"
+      )
       tags$div(
-        tags$strong(paste0(nm, ": ")),
-        named_list[[nm]]
+        tags$strong(paste0(pretty_name[[nm]], ": ")),
+        score_emoji[[stringr::str_extract(
+          named_list[[nm]],
+          pattern = "Score: [1-5]"
+        )]],
+        stringr::str_replace(
+          string = named_list[[nm]],
+          pattern = "Score: [1-5]",
+          replacement = ""
+        )
       )
     })
   )

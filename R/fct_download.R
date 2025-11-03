@@ -145,7 +145,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
       "",
       "# Structure:"
     )
-    structure_text <- capture.output(str(obj, max.level = 3))
+    structure_text <- capture.output(dput(obj))
 
     return(c(header, structure_text))
   } else if (inherits(obj, "ellmer_schema") || is.object(obj)) {

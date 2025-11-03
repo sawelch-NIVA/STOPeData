@@ -944,7 +944,6 @@ create_methods_from_llm <- function(llm_methods_data, llm_campaign_data) {
   ]
 
   # and add IDs
-  browser()
   methods_tibble <- methods_tibble |>
     group_by(PROTOCOL_CATEGORY) |>
     mutate(sequence = row_number()) |>

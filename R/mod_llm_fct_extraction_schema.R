@@ -291,27 +291,27 @@ create_samples_schema <- function() {
 #' @noRd
 create_comments_schema <- function() {
   type_object(
-    .description = "Commentary and metadata on the information quality of the paper, and of the LLM extraction",
+    .description = "Commentary and metadata on the information quality of the paper, and of the LLM extraction. For scoring, 1 is worst, 5 is best.",
     paper_relevance = type_string(
-      description = "A comment on the relevance of the paper to the questions posed in the prompt.",
+      description = "A comment on the relevance of the paper to the questions posed in the prompt (2 sentences). Return in the format Score: {1-5}: {text}",
       required = TRUE
     ),
     paper_reliability = type_string(
-      description = "A general assessment of the reliability of the paper.",
+      description = "A general assessment of the reliability of the paper. Return in the format Score: {1-5}: {text}",
       required = TRUE
     ),
     paper_data_source = type_string(
-      description = "Where the paper's original data came from (e.g. does the paper describe the generation of data, or its aquisition from another source",
+      description = "Where the paper's original data came from (e.g. does the paper describe the generation of data, or its aquisition from another source. Return in the format Score: {1-5}: {text}",
       required = TRUE
     ),
     paper_data_available = type_string(
-      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs). 
+      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs) Return in the format Score: {1-5}: {text}. 
       Also if data may be available in supplementary information.",
       required = TRUE
     ),
     extraction_assessement = type_string(
       description = "An assessment of how confident you the LLM are in the quality of the data extraction process. 
-      Has relevant data been lost? How confident are you that the information you returned matches that reported by the paper?",
+      Has relevant data been lost? How confident are you that the information you returned matches that reported by the paper? Return in the format Score: {1-5}: {text}",
       required = TRUE
     )
   )

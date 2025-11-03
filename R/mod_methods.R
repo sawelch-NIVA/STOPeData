@@ -298,35 +298,50 @@ mod_methods_server <- function(id) {
     observe({
       # CHANGED: Update userData instead of moduleState
       if (!is.null(input$methods_table)) {
-        updated_data <- hot_to_r(input$methods_table)
+        tryCatch(
+          {
+            updated_data <- hot_to_r(input$methods_table)
 
-        # Check if any rows were actually removed (row count decreased)
-        if (
-          nrow(updated_data) < nrow(session$userData$reactiveValues$methodsData)
-        ) {
-          # Get current HOT selection - this might contain row indices
-          # that were marked for deletion
-          session$userData$reactiveValues$methodsData <- updated_data
-        } else {
-          # Normal update - preserve all rows
-          # Update only the editable fields, keep generated fields
-          for (i in 1:nrow(updated_data)) {
-            if (i <= nrow(session$userData$reactiveValues$methodsData)) {
-              session$userData$reactiveValues$methodsData[
-                i,
-                "PROTOCOL_CATEGORY"
-              ] <-
-                updated_data[i, "PROTOCOL_CATEGORY"]
-              session$userData$reactiveValues$methodsData[i, "PROTOCOL_NAME"] <-
-                updated_data[i, "PROTOCOL_NAME"]
-              session$userData$reactiveValues$methodsData[
-                i,
-                "PROTOCOL_COMMENT"
-              ] <-
-                updated_data[i, "PROTOCOL_COMMENT"]
+            # Check if any rows were actually removed (row count decreased)
+            if (
+              nrow(updated_data) <
+                nrow(session$userData$reactiveValues$methodsData)
+            ) {
+              # Get current HOT selection - this might contain row indices
+              # that were marked for deletion
+              session$userData$reactiveValues$methodsData <- updated_data
+            } else {
+              # Normal update - preserve all rows
+              # Update only the editable fields, keep generated fields
+              for (i in 1:nrow(updated_data)) {
+                if (i <= nrow(session$userData$reactiveValues$methodsData)) {
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_CATEGORY"
+                  ] <-
+                    updated_data[i, "PROTOCOL_CATEGORY"]
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_NAME"
+                  ] <-
+                    updated_data[i, "PROTOCOL_NAME"]
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_COMMENT"
+                  ] <-
+                    updated_data[i, "PROTOCOL_COMMENT"]
+                }
+              }
             }
+          },
+          error = function(e) {
+            showNotification(paste0(
+              "Error updating methods data from table. Please report. Additional details:",
+              e$message,
+              type = "error"
+            ))
           }
-        }
+        )
       }
     }) |>
       bindEvent(input$methods_table)
