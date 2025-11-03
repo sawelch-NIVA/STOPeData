@@ -72,6 +72,7 @@ app_server <- function(input, output, session) {
       # LLM extraction status flags ----
       llmExtractionComplete = FALSE,
       llmExtractionSuccessful = FALSE,
+      llmExtractionComments = tibble(NULL),
 
       # Import data from save status flags ----
       saveExtractionComplete = FALSE,
@@ -395,6 +396,21 @@ app_server <- function(input, output, session) {
 
     # Get file path
     zip_path <- input$import_zip_file$datapath
+
+    if (
+      substr(
+        zip_path,
+        start = length(zip_path) - 4,
+        end = length(zip_path) != ".zip"
+      )
+    ) {
+      showNotification(
+        ui = "Uploaded file not of type .zip.",
+        type = "error",
+        duration = 10
+      )
+      stop()
+    }
 
     # Import data using helper function
     result <- import_session_from_zip(zip_path, session)

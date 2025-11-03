@@ -287,6 +287,36 @@ create_samples_schema <- function() {
   )
 }
 
+#' Create comemnts schema
+#' @noRd
+create_comments_schema <- function() {
+  type_object(
+    .description = "Commentary and metadata on the information quality of the paper, and of the LLM extraction",
+    paper_relevance = type_string(
+      description = "A comment on the relevance of the paper to the questions posed in the prompt.",
+      required = TRUE
+    ),
+    paper_reliability = type_string(
+      description = "A general assessment of the reliability of the paper.",
+      required = TRUE
+    ),
+    paper_data_source = type_string(
+      description = "Where the paper's original data came from (e.g. does the paper describe the generation of data, or its aquisition from another source",
+      required = TRUE
+    ),
+    paper_data_available = type_string(
+      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs). 
+      Also if data may be available in supplementary information.",
+      required = TRUE
+    ),
+    extraction_assessement = type_string(
+      description = "An assessment of how confident you the LLM are in the quality of the data extraction process. 
+      Has relevant data been lost? How confident are you that the information you returned matches that reported by the paper?",
+      required = TRUE
+    )
+  )
+}
+
 #' Create extraction schema with correct ellmer syntax
 #' @noRd
 create_extraction_schema <- function() {
@@ -299,7 +329,8 @@ create_extraction_schema <- function() {
     compartments = create_compartments_schema(),
     biota = create_biota_schema(),
     methods = create_methods_schema(),
-    samples = create_samples_schema()
+    samples = create_samples_schema(),
+    comments = create_comments_schema()
   )
 }
 
@@ -311,7 +342,7 @@ get_schema_display <- function() {
 
       # Convert to a readable format showing the actual ellmer object structure
       schema_str <- capture.output({
-        print(schema, width = 80)
+        print(schema, width = 1000)
       })
 
       # Join the output lines

@@ -178,7 +178,8 @@ mod_llm_ui <- function(id) {
                   icon = icon("download")
                 ) |>
                   disabled()
-              )
+              ),
+              htmlOutput(ns("extraction_comments"))
             )
           )
         ),
@@ -333,7 +334,7 @@ mod_llm_server <- function(id) {
             Sys.setenv(ANTHROPIC_API_KEY = input$api_key)
 
             # Step 3: Test API connectivity
-            incProgress(0.02, detail = "Testing API connection...")
+            incProgress(0.01, detail = "Testing API connection...")
             test_chat <- NULL
             tryCatch(
               {
@@ -360,7 +361,7 @@ mod_llm_server <- function(id) {
             }
 
             # Step 4: Prepare extraction components
-            incProgress(0.03, detail = "Preparing extraction...")
+            incProgress(0.01, detail = "Preparing extraction...")
             chat <- chat_anthropic(
               model = "claude-sonnet-4-20250514",
               params = params(max_tokens = 4000)
@@ -371,7 +372,8 @@ mod_llm_server <- function(id) {
             session$userData$reactiveValues$pdfPath = input$pdf_file$datapath
 
             # Step 5: Set up prompts
-            incProgress(0.04, detail = "Configuring extraction...")
+            incProgress(0.01, detail = "Configuring extraction...")
+            # should be at 0.05 by now
             system_prompt <- if (isTruthy(input$system_prompt)) {
               input$system_prompt
             } else {
@@ -379,7 +381,10 @@ mod_llm_server <- function(id) {
             }
 
             # Step 6: Extract data (this is the longest step)
-            incProgress(0.05, detail = "Extracting data...")
+            incProgress(
+              0.01,
+              detail = "Extracting data (I haven't worked out how to fake progress yet so don't be alarmed if this sits at ~10% for 30 seconds)..."
+            )
             result <- chat$chat_structured(
               system_prompt,
               pdf_content,
@@ -387,7 +392,7 @@ mod_llm_server <- function(id) {
             )
 
             # Step 7: Get API call metadata
-            incProgress(0.8, detail = "Storing results...")
+            incProgress(0.1, detail = "Storing results...")
 
             # Capture cost information
             api_metadata <- NULL
@@ -419,11 +424,15 @@ mod_llm_server <- function(id) {
             session$userData$reactiveValues$promptLLM <- system_prompt
             session$userData$reactiveValues$rawLLM <- result
 
+            if (!is.null(moduleState$structured_data$comments)) {
+              session$userData$reactiveValues$llmExtractionComments <- moduleState$structured_data$comments
+            }
+
             # Step 8: Update session data
-            incProgress(0.9, detail = "Updating data...")
+            incProgress(0.1, detail = "Updating data...")
 
             # Step 9: Enable UI elements
-            incProgress(1.0, detail = "Finalising...")
+            incProgress(0.1, detail = "Finalising...")
             enable("populate_forms")
             enable("clear_extraction")
 
@@ -756,6 +765,14 @@ mod_llm_server <- function(id) {
         writeLines(output_lines, file, useBytes = TRUE)
       }
     )
+
+    ## output: extraction commentary ----
+    output$extraction_comments <- renderUI({
+      req(session$userData$reactiveValues$llmExtractionComments)
+      render_named_list(
+        session$userData$reactiveValues$llmExtractionComments
+      )
+    })
   })
 }
 
@@ -784,6 +801,17 @@ clear_llm_data_from_session <- function(session) {
   showNotification(
     "Cleared all LLM extracted data from session",
     type = "message"
+  )
+}
+
+render_named_list <- function(named_list) {
+  tagList(
+    lapply(names(named_list), function(nm) {
+      tags$div(
+        tags$strong(paste0(nm, ": ")),
+        named_list[[nm]]
+      )
+    })
   )
 }
 
