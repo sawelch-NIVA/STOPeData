@@ -7,3 +7,4 @@
   bottom right of a selected cell to copy its contents to another cell (just
   like Excel!)
 - Click the *Expand* icon in the bottom-right of the map and table panels to view them in full screen
+- When searching for locations by name, it can be easier to look them up in [Google Maps](https://www.google.no/maps/). If you right-click a location there you can copy its coordinates to the clipboard. Do note that Google normally returns coordinates to 14 d.p., which is a completely unrealistic level of precision.

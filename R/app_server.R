@@ -122,10 +122,10 @@ app_server <- function(input, output, session) {
   moduleReview <- mod_review_server(
     "review"
   )
-  moduleExport <- mod_export_server(
-    "export"
-  )
-  moduleCREED <- mod_CREED_server("CREED")
+  # moduleExport <- mod_export_server(
+  #   "export"
+  # )
+  # moduleCREED <- mod_CREED_server("CREED")
 
   ## Navigation setup ----
   # upstream: session start

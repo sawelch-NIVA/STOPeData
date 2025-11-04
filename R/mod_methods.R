@@ -297,7 +297,10 @@ mod_methods_server <- function(id) {
     # downstream: session$userData$reactiveValues$methodsData
     observe({
       # CHANGED: Update userData instead of moduleState
-      if (!is.null(input$methods_table)) {
+      if (
+        isTruthy(input$methods_table) &&
+          nrow(session$userData$reactiveValues$methodsData) > 0
+      ) {
         tryCatch(
           {
             updated_data <- hot_to_r(input$methods_table)
@@ -335,16 +338,18 @@ mod_methods_server <- function(id) {
             }
           },
           error = function(e) {
-            showNotification(paste0(
-              "Error updating methods data from table. Please report. Additional details:",
-              e$message,
+            showNotification(
+              paste0(
+                "Error updating methods data from table. Please report to admin. Additional details:",
+                e$message
+              ),
               type = "error"
-            ))
+            )
           }
         )
       }
     }) |>
-      bindEvent(input$methods_table)
+      bindEvent(input$methods_table, ignoreInit = TRUE, ignoreNULL = TRUE)
 
     ## observe: Check overall validation status and update reactiveValues ----
     # upstream: session$userData$reactiveValues$methodsData, iv
@@ -453,84 +458,84 @@ mod_methods_server <- function(id) {
     # downstream: UI table display
     output$methods_table <- renderRHandsontable({
       # CHANGED: Reference userData instead of moduleState
-      if (nrow(session$userData$reactiveValues$methodsData) == 0) {
-        # Show empty table structure
-        rhandsontable(
-          initialise_methods_tibble(),
-          selectCallback = TRUE,
-          width = NULL
-        ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
-          hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
-            customOpts = list(
-              # Only include remove_row in the menu
-              "row_above" = NULL,
-              "row_below" = NULL,
-              "remove_row" = list(
-                name = "Remove selected rows"
-              )
-            )
-          )
-      } else {
-        rhandsontable(
-          session$userData$reactiveValues$methodsData,
-          selectCallback = TRUE,
-          stretchH = "all",
-          width = NULL
-        ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
-          hot_col(
-            "PROTOCOL_ID",
-            readOnly = TRUE,
-            renderer = "
+      # if (nrow(session$userData$reactiveValues$methodsData) == 0) {
+      #   # Show empty table structure
+      #   rhandsontable(
+      #     initialise_methods_tibble(),
+      #     selectCallback = TRUE,
+      #     width = NULL
+      #   ) |>
+      #     hot_table(overflow = "visible", stretchH = "all") |>
+      #     hot_context_menu(
+      #       allowRowEdit = TRUE, # Enable row operations
+      #       allowColEdit = FALSE, # Disable column operations
+      #       customOpts = list(
+      #         # Only include remove_row in the menu
+      #         "row_above" = NULL,
+      #         "row_below" = NULL,
+      #         "remove_row" = list(
+      #           name = "Remove selected rows"
+      #         )
+      #       )
+      #     )
+      # } else {
+      rhandsontable(
+        session$userData$reactiveValues$methodsData,
+        selectCallback = TRUE,
+        stretchH = "all",
+        width = NULL
+      ) |>
+        hot_table(overflow = "visible", stretchH = "all") |>
+        hot_col(
+          "PROTOCOL_ID",
+          readOnly = TRUE,
+          renderer = "
         function(instance, td, row, col, prop, value, cellProperties) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           td.style.backgroundColor = '#f5f5f5';
           td.style.fontStyle = 'italic';
         }
       "
-          ) |>
-          hot_col(
-            "CAMPAIGN_NAME",
-            readOnly = TRUE,
-            renderer = "
+        ) |>
+        hot_col(
+          "CAMPAIGN_NAME",
+          readOnly = TRUE,
+          renderer = "
         function(instance, td, row, col, prop, value, cellProperties) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           td.style.backgroundColor = '#f5f5f5';
         }
       "
-          ) |>
-          hot_col(
-            "PROTOCOL_CATEGORY",
-            type = "dropdown",
-            source = protocol_categories_vocabulary(),
-            strict = TRUE
-          ) |>
-          hot_col(
-            "PROTOCOL_NAME",
-            type = "dropdown",
-            source = protocol_options_vocabulary(),
-            strict = TRUE
-          ) |>
-          hot_col(
-            "PROTOCOL_COMMENT",
-            type = "text"
-          ) |>
-          hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
-            customOpts = list(
-              # Only include remove_row in the menu
-              "row_above" = NULL,
-              "row_below" = NULL,
-              "remove_row" = list(
-                name = "Remove selected rows"
-              )
+        ) |>
+        hot_col(
+          "PROTOCOL_CATEGORY",
+          type = "dropdown",
+          source = protocol_categories_vocabulary(),
+          strict = TRUE
+        ) |>
+        hot_col(
+          "PROTOCOL_NAME",
+          type = "dropdown",
+          source = protocol_options_vocabulary(),
+          strict = TRUE
+        ) |>
+        hot_col(
+          "PROTOCOL_COMMENT",
+          type = "text"
+        ) |>
+        hot_context_menu(
+          allowRowEdit = TRUE, # Enable row operations
+          allowColEdit = FALSE, # Disable column operations
+          customOpts = list(
+            # Only include remove_row in the menu
+            "row_above" = NULL,
+            "row_below" = NULL,
+            "remove_row" = list(
+              name = "Remove selected rows"
             )
           )
-      }
+        )
+      # }
     })
 
     ## output: validation_reporter ----

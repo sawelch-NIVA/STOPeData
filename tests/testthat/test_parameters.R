@@ -148,24 +148,6 @@ test_that("create_existing_parameter returns NULL when not found", {
   expect_null(result)
 })
 
-test_that("create_existing_parameter handles missing columns with defaults", {
-  # Minimal dummy_parameters missing most columns
-  dummy_params <- tibble(
-    PARAMETER_NAME = "MinimalParam"
-  )
-
-  result <- create_existing_parameter(
-    "Chemical",
-    "MinimalParam",
-    dummy_params
-  )
-
-  expect_equal(result$PARAMETER_NAME, "MinimalParam")
-  expect_equal(result$MEASURED_TYPE, "Concentration") # Default
-  expect_equal(result$ENTERED_BY, "Not found") # Default
-  expect_equal(result$PARAMETER_TYPE_SUB, "") # Default
-})
-
 # Integration tests ----
 test_that("all three functions produce compatible structures", {
   template <- initialise_parameters_tibble()

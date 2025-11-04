@@ -85,7 +85,7 @@ printreactiveValues <- function(data) {
 #' @importFrom bslib card card_body accordion accordion_panel
 #' @importFrom htmltools includeMarkdown
 #' @importFrom glue glue
-info_accordion <- function(title = "Instructions", content_file) {
+info_accordion <- function(title = "Instructions", content_file, ...) {
   accordion(
     accordion_panel(
       title,
@@ -94,7 +94,8 @@ info_accordion <- function(title = "Instructions", content_file) {
         includeMarkdown(content_file)
       } else {
         p(glue("MD file {content_file} not found."))
-      }
+      },
+      ...
     )
   )
 }

@@ -41,12 +41,12 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
-          ### CAMPAIGN_NAME_SHORT - Required string, 10 char ----
+          ### CAMPAIGN_NAME_SHORT - Required string, 40 char ----
           textInput(
             inputId = ns("CAMPAIGN_NAME_SHORT"),
             label = tooltip(
               list("Campaign Name Short", bs_icon("info-circle-fill")),
-              "Abbreviated campaign identifier (max 10 characters). Use for compact displays and references."
+              "Abbreviated campaign identifier (max 40 characters). Use for compact displays and references."
             ),
             placeholder = "e.g., 'Vm_Tilt_2025'",
             width = "100%"
@@ -234,7 +234,8 @@ mod_campaign_server <- function(id) {
     # Conditional validation for reliability score
     iv$add_rule("RELIABILITY_SCORE", function(value) {
       if (
-        isRelevant(input$RELIABILITY_EVAL_SYS) &&
+        isTruthy(input$RELIABILITY_EVAL_SYS) &&
+          isRelevant(input$RELIABILITY_EVAL_SYS) &&
           !isTruthy(value)
       ) {
         "If an evaluation system is selected a score must also be entered."
@@ -274,44 +275,48 @@ mod_campaign_server <- function(id) {
     # upstream: iv
     # downstream: session$userData$reactiveValues$campaignData, campaignDataValid
     observe({
-      if (iv$is_valid()) {
-        # Collect validated data
-        validated_data <- tryCatch(
-          {
-            # uses standardised format from fct_formats, will fail if format/data types not respected
-            initialise_campaign_tibble() |>
-              add_row(
-                CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
-                CAMPAIGN_NAME = input$CAMPAIGN_NAME,
-                CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE,
-                CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
-                  as.Date(NA),
-                RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
-                RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|% NA,
-                CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
-                  as.Date(NA),
-                ORGANISATION = input$ORGANISATION,
-                ENTERED_BY = input$ENTERED_BY,
-                ENTERED_DATE = input$ENTERED_DATE,
-                CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
-              )
-          },
-          error = function(e) {
-            stop(
-              "Column mismatch in campaign data collection: ",
-              e$message,
-              call. = FALSE
+      # if (iv$is_valid()) {
+      # TODO: Strictly speaking this shouldn't be conditional on validity, because
+      # we claim that data is saved even when invalid. But CAMPAIGN is almost always valid
+      # and I don't want to disable it just yet
+      # Collect validated data
+      validated_data <- tryCatch(
+        {
+          # uses standardised format from fct_formats, will fail if format/data types not respected
+          initialise_campaign_tibble() |>
+            add_row(
+              CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
+              CAMPAIGN_NAME = input$CAMPAIGN_NAME,
+              CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE %|truthy|%
+                as.Date(NA),
+              CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
+                as.Date(NA),
+              RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
+              RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|% NA,
+              CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
+                as.Date(NA),
+              ORGANISATION = input$ORGANISATION,
+              ENTERED_BY = input$ENTERED_BY,
+              ENTERED_DATE = input$ENTERED_DATE,
+              CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
             )
-          }
-        )
+        },
+        error = function(e) {
+          stop(
+            "Column mismatch in campaign data collection: ",
+            e$message,
+            call. = FALSE
+          )
+        }
+      )
 
-        # CHANGED: Store directly to userData
-        session$userData$reactiveValues$campaignData <- validated_data
-        session$userData$reactiveValues$campaignDataValid <- TRUE
-      } else {
-        # CHANGED: Set validation flag to FALSE
-        session$userData$reactiveValues$campaignDataValid <- FALSE
-      }
+      # CHANGED: Store directly to userData
+      session$userData$reactiveValues$campaignData <- validated_data
+      session$userData$reactiveValues$campaignDataValid <- TRUE
+      # } else {
+      # CHANGED: Set validation flag to FALSE
+      # session$userData$reactiveValues$campaignDataValid <- FALSE
+      # }
     })
 
     ## observe ~ bindEvent: Clear fields button ----

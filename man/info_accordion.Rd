@@ -4,7 +4,7 @@
 \alias{info_accordion}
 \title{Create a collapsible single-panel accordion containing a markdown file}
 \usage{
-info_accordion(title = "Instructions", content_file)
+info_accordion(title = "Instructions", content_file, ...)
 }
 \arguments{
 \item{title}{the desired title of the accordion panel}

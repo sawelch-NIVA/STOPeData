@@ -414,21 +414,33 @@ mod_references_server <- function(id) {
 
     # Journal-specific required fields
     iv$add_rule("PERIODICAL_JOURNAL", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE == "journal" &&
+          !isTruthy(value)
+      ) {
         "Journal Name is required for journal articles"
       }
     })
 
     # Book-specific required fields
     iv$add_rule("PUBLISHER", function(value) {
-      if (input$REFERENCE_TYPE %in% c("book", "report") && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE %in% c("book", "report") &&
+          !isTruthy(value)
+      ) {
         "Publisher is required for books and reports"
       }
     })
 
     # Report-specific required fields
     iv$add_rule("INSTITUTION", function(value) {
-      if (input$REFERENCE_TYPE == "report" && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE == "report" &&
+          !isTruthy(value)
+      ) {
         "Institution is required for reports"
       }
     })

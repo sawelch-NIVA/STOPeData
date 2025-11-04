@@ -482,7 +482,7 @@ measured_types_vocabulary <- function() {
 #'
 #' @return A named list of character vectors with sub-compartment options for each main compartment
 #' @export
-sub_compartment_options_vocabulary <- function() {
+environ_compartments_sub_vocabulary <- function() {
   list(
     "Aquatic" = c(
       "Freshwater" = "Freshwater",
@@ -494,7 +494,9 @@ sub_compartment_options_vocabulary <- function() {
       "Rainwater" = "Rainwater",
       "Stormwater" = "Stormwater",
       "Leachate" = "Leachate",
-      "Aquatic Sediment" = "Aquatic Sediment"
+      "Aquatic Sediment" = "Aquatic Sediment",
+      "Porewater" = "Porewater",
+      "Sludge" = "Sludge"
     ),
     "Atmospheric" = c(
       "Indoor Air" = "Indoor Air",
@@ -533,44 +535,6 @@ environ_compartments_vocabulary <- function() {
     "Biota",
     "Not relevant",
     "Not reported",
-    "Other"
-  )
-}
-
-#' Environmental Compartment Subs Controlled Vocabulary
-#'
-#' Returns controlled vocabulary options for environmental compartment subcategories.
-#'
-#' @return A character vector of environmental compartment subcategory options
-#' @export
-environ_compartment_subs_vocabulary <- function() {
-  c(
-    "Not relevant",
-    "Not reported",
-    "Freshwater",
-    "Marine/Salt Water",
-    "Brackish/Transitional Water",
-    "Groundwater",
-    "Wastewater",
-    "Liquid Growth Medium",
-    "Rainwater",
-    "Stormwater",
-    "Leachate",
-    "Aquatic Sediment",
-    "Indoor Air",
-    "Outdoor Air",
-    "Terrestrial Biological Residue",
-    "Soil H Horizon (Peat)",
-    "Soil O Horizon (Organic)",
-    "Soil A Horizon (Topsoil)",
-    "Soil E Horizon (Mineral)",
-    "Soil S Horizon (Mineral)",
-    "Soil C Horizon (Parent Material)",
-    "Soil R Horizon (Bedrock)",
-    "Biota, Terrestrial",
-    "Biota, Aquatic",
-    "Biota, Atmospheric",
-    "Biota, Other",
     "Other"
   )
 }

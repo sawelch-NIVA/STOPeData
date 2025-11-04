@@ -168,7 +168,7 @@ create_compartments_schema <- function() {
       ),
       environ_compartment_sub = type_string(
         description = as.character(glue(
-          "Sub-compartment: {paste(environ_compartment_subs_vocabulary(), collapse = ', ')}"
+          "Sub-compartment: {paste(environ_compartments_sub_vocabulary(), collapse = ', ')}"
         )),
         required = FALSE
       ),

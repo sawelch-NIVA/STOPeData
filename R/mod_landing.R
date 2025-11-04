@@ -24,8 +24,20 @@ mod_landing_ui <- function(id) {
           fillable = TRUE,
           ## Info accordion ----
           info_accordion(
-            content_file = "inst/app/www/md/intro_landing.md"
+            title = "Can we put some extra stuff about tooltips here?",
+            content_file = "inst/app/www/md/intro_landing.md",
+            div(
+              "Instructions and tooltips (",
+              tooltip(
+                bs_icon("info-circle-fill"),
+                "Mouse over icons like this for more information"
+              ),
+              ", mouse over for more information) are available on each page. For an FAQ and more details instructions, go to the Info tab (",
+              bs_icon("info-circle"),
+              ")."
+            )
           ),
+          h5("Quick Start Buttons"),
           layout_column_wrap(
             width = "300px",
             min_height = "200px",
@@ -37,7 +49,7 @@ mod_landing_ui <- function(id) {
                 id = ns("narrative_manual"),
                 label = "Enter data manually...",
                 icon = icon("keyboard"),
-                width = "300px",
+                width = "350px",
                 type = "info"
               )
             ),
@@ -50,18 +62,18 @@ mod_landing_ui <- function(id) {
                   bs_icon("cpu"),
                   "Extract using LLM..."
                 )),
-                width = "300px",
+                width = "350px",
                 type = "primary",
               )
             ),
             div(
               style = "display: flex; flex-direction: column; align-items: center;",
-              h6("Upload session data and continue an earlier entry"),
+              h6("Upload a session data .zip and continue an earlier entry"),
               input_task_button(
                 id = ns("upload_zip"),
                 label = "Upload session data",
                 icon = icon("table"),
-                width = "300px",
+                width = "350px",
                 type = "success"
               )
             )
@@ -91,16 +103,16 @@ mod_landing_ui <- function(id) {
               content_file = "inst/app/www/md/whats_new.md"
             ),
             br(),
-            tags$figure(
-              tags$figcaption(
-                "Illustration of STOP eData app workflow:"
-              ),
-              tags$img(
-                style = "max-width: 100%",
-                src = "www/app_mapp.png",
-                alt = "Illustration of STOP eData app workflow."
-              )
-            )
+            # tags$figure(
+            #   tags$figcaption(
+            #     "Illustration of STOP eData app workflow:"
+            #   ),
+            #   tags$img(
+            #     style = "max-width: 100%",
+            #     src = "www/app_mapp.png",
+            #     alt = "Illustration of STOP eData app workflow."
+            #   )
+            # )
           )
         )
       )

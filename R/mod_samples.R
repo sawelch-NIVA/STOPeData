@@ -139,7 +139,7 @@ mod_samples_ui <- function(id) {
               inputId = ns("sampling_date"),
               label = tooltip(
                 list("Sampling Dates", bs_icon("info-circle-fill")),
-                "Dates when samples were collected"
+                "Dates when samples were collected. The selector here is a bit unreliable, so please deselect using the calendar picker or Remove All button, not Backspace"
               ),
               dateFormat = "yyyy-MM-dd",
               width = "100%",
@@ -185,15 +185,12 @@ mod_samples_ui <- function(id) {
           ) |>
             disabled(),
 
-          ### Validation status ----
-          uiOutput(ns("validation_reporter"))
-        ),
-
-        ## Preview info ----
-        div(
-          style = "margin-top: 10px; padding: 10px; border-radius: 5px;",
+          ### Preview combination count ----
           uiOutput(ns("combination_preview"))
         ),
+
+        ## Validation info ----
+        uiOutput(ns("validation_reporter")),
 
         ## Raw data accordion ----
         accordion(

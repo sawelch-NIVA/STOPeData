@@ -57,7 +57,7 @@ mod_compartments_ui <- function(id) {
               ),
               "Specific subset within the environmental compartment"
             ),
-            choices = sub_compartment_options_vocabulary()$Aquatic,
+            choices = environ_compartments_sub_vocabulary()$Aquatic,
             width = "100%"
           ),
 
@@ -189,8 +189,8 @@ mod_compartments_server <- function(id) {
             "ENVIRON_COMPARTMENT_SUB"
           ]]
 
-          if (compartment %in% names(sub_compartment_options_vocabulary())) {
-            valid_subs <- sub_compartment_options_vocabulary()[[compartment]]
+          if (compartment %in% names(environ_compartments_sub_vocabulary())) {
+            valid_subs <- environ_compartments_sub_vocabulary()[[compartment]]
             if (!sub_compartment %in% valid_subs) {
               message <- glue(
                 "Row {i} has invalid sub-compartment {sub_compartment} for compartment {compartment}"
@@ -212,7 +212,7 @@ mod_compartments_server <- function(id) {
     observe({
       compartment <- input$environ_compartment_select
       if (isTruthy(compartment) && compartment != "") {
-        available_subs <- sub_compartment_options_vocabulary()[[compartment]]
+        available_subs <- environ_compartments_sub_vocabulary()[[compartment]]
         if (!is.null(available_subs)) {
           choices <- c("Select sub-compartment..." = "", available_subs)
           updateSelectInput(
