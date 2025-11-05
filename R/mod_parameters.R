@@ -40,7 +40,10 @@ mod_parameters_ui <- function(id) {
 
           selectizeInput(
             inputId = ns("parameter_type_select"),
-            label = "Parameter Type (dummy data)",
+            label = tooltip(
+              list("Parameter Type", bs_icon("info-circle-fill")),
+              "Is the measured parameter a stressor (chemical, radiation, etc.), quality parameter (pH, nutrients, etc.), normalization (?) or background count(?)."
+            ),
             choices = c(
               "Stressor" = "Stressor",
               "Quality parameter" = "Quality parameter",
@@ -54,7 +57,10 @@ mod_parameters_ui <- function(id) {
 
           selectizeInput(
             inputId = ns("parameter_subtype_select"),
-            label = "Parameter Subtype",
+            label = tooltip(
+              list("Parameter Subtype", bs_icon("info-circle-fill")),
+              "Each parameter type is split into multiple subtypes. Use to filter the Parameter Name field."
+            ),
             choices = c("Show all" = "Show all"),
             selected = "Show all",
             width = "100%",
@@ -64,7 +70,10 @@ mod_parameters_ui <- function(id) {
 
         selectizeInput(
           inputId = ns("parameter_name_select"),
-          label = "Parameter Name",
+          label = tooltip(
+            list("Parameter Name", bs_icon("info-circle-fill")),
+            "Press backspace to remove existing parameters. Start typing a name to search for parameters."
+          ),
           choices = c("Select parameter type first..."),
           width = "100%",
           selected = "Formaldehyde",
@@ -86,20 +95,26 @@ mod_parameters_ui <- function(id) {
         div(
           style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap;",
 
-          input_task_button(
-            id = ns("add_existing"),
-            label = "Add Existing Parameter",
-            icon = icon("plus-circle"),
-            class = "btn-success",
-            width = "200px"
+          tooltip(
+            input_task_button(
+              id = ns("add_existing"),
+              label = "Add Existing Parameter",
+              icon = icon("plus-circle"),
+              class = "btn-success",
+              width = "200px"
+            ),
+            "Add a parameter already in the database, including metadata, to the table."
           ),
 
-          input_task_button(
-            id = ns("add_new"),
-            label = "Add New Parameter",
-            icon = icon("plus"),
-            class = "btn-info",
-            width = "200px"
+          tooltip(
+            input_task_button(
+              id = ns("add_new"),
+              label = "Add New Parameter",
+              icon = icon("plus"),
+              class = "btn-info",
+              width = "200px"
+            ),
+            "Add a new parameter not in the database to the table, and fill out its metadata manually."
           ),
 
           ### Validation status ----

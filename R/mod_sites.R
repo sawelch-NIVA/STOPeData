@@ -29,7 +29,7 @@ mod_sites_ui <- function(id) {
     # Main content layout ----
     layout_column_wrap(
       width = NULL,
-      style = css(grid_template_columns = "3fr 1fr"),
+      style = css(grid_template_columns = "2fr 2fr"),
       fill = TRUE,
       fillable = TRUE,
 

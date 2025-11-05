@@ -38,20 +38,26 @@ mod_llm_ui <- function(id) {
           width = "400px",
           fill = FALSE,
           fillable = FALSE,
-
-          ### PDF upload ----
-          div(
-            style = "display: flex; flex-direction: column;",
-            fileInput(
-              inputId = ns("pdf_file"),
-              label = tooltip(
-                list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report (pdf) containing environmental exposure data"
-              ),
-              accept = ".pdf",
-              width = "100%",
-              buttonLabel = "Browse...",
-            )
+          ### ENTERED_BY
+          textInput(
+            inputId = ns("ENTERED_BY"),
+            label = tooltip(
+              list("Entered By", bs_icon("info-circle-fill")),
+              "Name/contact details."
+            ),
+            value = Sys.getenv("EDATA_USERNAME", unset = ""),
+            placeholder = "Ole Nordman",
+            width = "100%"
+          ),
+          fileInput(
+            inputId = ns("pdf_file"),
+            label = tooltip(
+              list("Upload PDF", bs_icon("info-circle-fill")),
+              "Upload a research paper or report (pdf) containing environmental exposure data"
+            ),
+            accept = ".pdf",
+            width = "100%",
+            buttonLabel = "Browse...",
           ),
 
           ### API key input ----
@@ -63,17 +69,6 @@ mod_llm_ui <- function(id) {
             ),
             value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
             placeholder = "sk-ant-...",
-            width = "100%"
-          ),
-          ### ENTERED_BY
-          textInput(
-            inputId = ns("ENTERED_BY"),
-            label = tooltip(
-              list("Entered By", bs_icon("info-circle-fill")),
-              "Name/contact details."
-            ),
-            value = Sys.getenv("EDATA_USERNAME", unset = ""),
-            placeholder = "Ole Nordman",
             width = "100%"
           ),
         ),
@@ -117,39 +112,27 @@ mod_llm_ui <- function(id) {
         ## Extract buttons ----
         layout_columns(
           fill = FALSE,
-          div(
-            style = "display: flex; flex-direction: column;",
+          tooltip(
             input_task_button(
               id = ns("extract_data"),
               label = HTML(paste(
-                bsicons::bs_icon("cpu"),
+                bs_icon("cpu"),
                 "Extract Data from PDF"
               )),
               class = "btn-info"
             ) |>
-              disabled()
-            # todo: this span provides useful information but prevents the button from being disabled
-            # until a pdf is added
-            # span(
-            #   "Per extraction: ~$0.10, 30 seconds",
-            #   class = "text-muted",
-            #   style = "font-size: 0.8rem;"
-            # )
+              disabled(),
+            "Extract data from a .pdf using an LLM. A PDF must be uploaded to enable this function."
           ),
 
-          div(
-            style = "display: flex; flex-direction: column;",
+          tooltip(
             input_task_button(
               id = ns("load_dummy_data"),
               label = "Load Dummy Data",
               icon = icon("flask"),
               class = "btn-info"
             ),
-            span(
-              "For testing/demonstration purposes.",
-              class = "text-muted",
-              style = "font-size: 0.8rem;"
-            )
+            "Load a short dummy dataset for testing or demonstrations, as if you had extracted it from a paper."
           )
         ),
 
@@ -168,17 +151,6 @@ mod_llm_ui <- function(id) {
             icon = bs_icon("cpu"),
             div(
               verbatimTextOutput(ns("extraction_results")),
-              # Add download button ---- disabled, as this is now covered by Download All button
-              # div(
-              #   style = "margin-top: 10px;",
-              #   downloadButton(
-              #     outputId = ns("download_extraction"),
-              #     label = "Download Results",
-              #     class = "btn-secondary btn-sm",
-              #     icon = icon("download")
-              #   ) |>
-              #     disabled()
-              # ),
               div(
                 h5(
                   "This is an experiment in getting the LLM to report on its own opinion of the extraction. I don't yet know how good its assessment is, but I'm interested to hear your feedback."
@@ -192,13 +164,16 @@ mod_llm_ui <- function(id) {
         ## Action buttons for extracted data  ----
         layout_columns(
           fill = FALSE,
-          input_task_button(
-            id = ns("populate_forms"),
-            label = "Populate Modules",
-            icon = icon("download"),
-            class = "btn-primary"
-          ) |>
-            disabled(),
+          tooltip(
+            (input_task_button(
+              id = ns("populate_forms"),
+              label = "Populate Modules",
+              icon = icon("download"),
+              class = "btn-primary"
+            ) |>
+              disabled()),
+            "Send extracted data to the data entry modules for checking and validation."
+          ),
 
           input_task_button(
             id = ns("clear_extraction"),
@@ -286,11 +261,6 @@ mod_llm_server <- function(id) {
       moduleState$structured_data <- dummy_data
       moduleState$raw_extraction <- dummy_data
       moduleState$error_message <- NULL
-
-      # ! I believe this is redundant due to the Populate Forms
-      # ! observer. Disabling to check.
-      # # Store in session data with LLM suffix (for LLM workflow)
-      # store_llm_data_in_session(session, dummy_data)
 
       # Also save outputs to server data so we can download them later if needed
       session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
@@ -646,7 +616,7 @@ mod_llm_server <- function(id) {
         if (!is.null(moduleState$api_metadata)) {
           metadata_text <- paste0(
             " Extraction Cost: ~$",
-            moduleState$api_metadata$total_cost
+            moduleState$api_metadata$total_cost |> round(digits = 2)
           )
           status_text <- paste0(status_text, metadata_text)
         }

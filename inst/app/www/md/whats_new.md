@@ -7,7 +7,7 @@
 - When adding sites from the map you can now choose what precision to report coordinates at.
 
 ##### Compartments
-- Added *Aquatic Sediment* and *Sludge* as subcompartments of *Aquatic*
+- Added *Aquatic Sediment*, *Sludge*, and *Porewater* as subcompartments of *Aquatic*
 
 ##### Samples
 - Sample REPLICATE has been changed to SUBSAMPLE and now takes text values. This allows splitting samples into e.g. different sediment core depths, different combinations of tissues and organisms, etc.

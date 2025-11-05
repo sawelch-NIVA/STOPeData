@@ -144,7 +144,7 @@ app_server <- function(input, output, session) {
     "08-biota",
     "09-data",
     "10-review",
-    "11-export",
+    # "11-export",
     "12-CREED",
     "info"
   )

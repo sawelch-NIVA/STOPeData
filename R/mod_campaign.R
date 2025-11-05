@@ -52,6 +52,17 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ),
 
+          ### ORGANISATION - Required string, 50 char ----
+          textInput(
+            inputId = ns("ORGANISATION"),
+            label = tooltip(
+              list("Organisation", bs_icon("info-circle-fill")),
+              "The principal organisation(s) responsible for collecting or creating the original data: authors' institution, report publishing institution, etc."
+            ),
+            placeholder = "Data collection organisation",
+            width = "100%"
+          ),
+
           ### CAMPAIGN_START_DATE - Required date ----
           dateInput(
             inputId = ns("CAMPAIGN_START_DATE"),
@@ -121,17 +132,6 @@ mod_campaign_ui <- function(id) {
             width = "100%"
           ) |>
             suppressWarnings(), # suppress date NA warning
-
-          ### ORGANISATION - Required string, 50 char ----
-          textInput(
-            inputId = ns("ORGANISATION"),
-            label = tooltip(
-              list("Organisation", bs_icon("info-circle-fill")),
-              "The principal organisation(s) responsible for collecting or creating the original data: authors' institution, report publishing institution, etc."
-            ),
-            placeholder = "Data collection organisation",
-            width = "100%"
-          ),
 
           ### ENTERED_BY - Required string, 50 char ----
           textInput(
@@ -313,9 +313,14 @@ mod_campaign_server <- function(id) {
             }
           )
 
+          # set module true at server level if validation passes
+          if (isTRUE(iv$is_valid())) {
+            session$userData$reactiveValues$campaignDataValid <- TRUE
+          }
+
           # CHANGED: Store directly to userData
           session$userData$reactiveValues$campaignData <- validated_data
-          session$userData$reactiveValues$campaignDataValid <- TRUE
+
           # } else {
           # CHANGED: Set validation flag to FALSE
           # session$userData$reactiveValues$campaignDataValid <- FALSE

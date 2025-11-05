@@ -1,9 +1,12 @@
 Since this app is exclusively being used for EXPECT's AEP copper data extraction right now, I'm writing these instructions for myself, Pierre, Camden, Li, Knut Erik, and anyone else I've roped in to help with data extraction. If you're not one of these people, I may be showing the app off anyway. So you can probably skip this bit.
 
-Some tips:
+###### Some tips:
+
 1. You can find the list of papers [here](https://docs.google.com/spreadsheets/d/1Tq2vd6-Cwzh93O8prHdXuML0cgBU1mbR9l7Ka_u70BE/edit?gid=1566526983#gid=1566526983). Columns should be fairly self-explanatory.
 2. Likewise, I've been saving both ongoing and completed extractions on a [Google Drive](https://drive.google.com/drive/u/0/folders/19PsBm-B5tsA54MKJ0xNJW3n1vhSoeXxR). This means if you have to walk away from an extraction, someone else can take over.
 3. The app's generally pretty stable, but I recommend using the Download All to download your data fairly frequently. It takes a second to do so and could save a lot of repeated effort.
-4. When extracting data from papers, I've found the most important first step is to check if they have a Supplementary Information/Supporting Information section (sometimes called an ESI, Electronic Supporting Information). If so, check it for relevant data before doing anything else. If it has raw data in a table (which is most common), you can run the extraction on the main paper and SI at the same time by [merging the two PDFs together](https://smallpdf.com/merge-pdf) before uploading here.  
+4. When extracting data from papers, I've found the most important first step is to check if they have a Supplementary Information/Supporting Information section (sometimes called an ESI, Electronic Supporting Information). If so, check it for relevant data before doing anything else. If it has raw data in a table (which is most common), you can run the extraction on the main paper and SI at the same time by [merging the two PDFs together](https://smallpdf.com/merge-pdf) before uploading here.
 5. I strongly recommend doing data extraction in two screens - one with the app, one with the paper. Some UI elements are not designed to work on narrower screens.
 6. Don't be afraid to jump in and out of the app if you find it's easier to work in Excel. But be careful about using the controlled vocabulary.
+
+I'm sure it goes without saying, but if something goes wrong, shoot me an email at saw@niva.no or better yet log an issue [here](https://github.com/sawelch-NIVA/STOPeData/issues). Be as detailed and descriptive as possible (ideally include screenshots and a download of the extraction you were working on). If not, I probably won't be able to help you.

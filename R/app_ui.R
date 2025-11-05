@@ -157,38 +157,25 @@ app_ui <- function(request) {
       #   mod_export_ui("export"),
       #   icon = bs_icon("box-arrow-right")
       # ),
-      # nav_panel(
-      #   title = "12. Quality",
-      #   value = "12-CREED",
-      #   mod_CREED_ui("CREED"),
-      #   icon = bs_icon("award-fill")
-      # ),
       nav_panel(
         title = tooltip(
-          "",
-          "Help, FAQ, and notes on design."
+          "11. Quality",
+          "Assess the reliability and relevance of extracted data for answering your assessment question."
         ),
+        value = "12-CREED",
+        mod_CREED_ui("CREED"),
+        icon = bs_icon("award-fill")
+      ),
+      nav_panel(
+        title = "",
         value = "info",
         mod_information_ui("information"),
-        icon = bs_icon("info-circle")
+        icon = tooltip(
+          bs_icon("info-circle"),
+          "FAQ and References"
+        )
       ),
-      # nav_panel(
-      #   title = "Saved Data",
-      #   value = "save",
-      #   mod_bookmark_manager_ui("session_manager"),
-      #   icon = bs_icon("floppy")
-      # ),
       nav_item(input_dark_mode(id = "darkmode")),
-      # nav_item(
-      #   input_task_button(
-      #     id = "autosave_modal",
-      #     label = HTML(paste(
-      #       bs_icon("floppy")
-      #     )),
-      #     type = "success"
-      #   )
-      # ),
-      # nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
       footer = tags$span(
         ## Navigation buttons ----
@@ -209,11 +196,13 @@ app_ui <- function(request) {
           tooltip(
             input_task_button(
               id = "download_all_modal",
-              label = "Download All",
+              label = HTML(paste(
+                bs_icon("file-earmark-zip"),
+                "Download extraction"
+              )),
               class = "btn-success",
-              icon = icon("file-zipper")
             ),
-            "Download all available data and metadata as a zip file."
+            "Download all available data and metadata as a zip file. Can be used to manually modify data or continue an extraction later."
           ),
 
           input_task_button(
@@ -235,7 +224,10 @@ app_ui <- function(request) {
             ' and <a href="https://www.niva.no/en/featured-pages/nctp">NCTP</a>.',
             " This app is currently in development and no responsibility is accepted for crashes or data loss. ",
             "App Version: ",
-            golem::get_golem_version()
+            "<em>",
+            golem::get_golem_version(),
+            "</em>",
+            "."
           ))
         )
       )
