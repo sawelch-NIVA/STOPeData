@@ -369,7 +369,7 @@ mod_llm_server <- function(id) {
             incProgress(0.01, detail = "Preparing extraction...")
             chat <- chat_anthropic(
               model = "claude-sonnet-4-20250514",
-              params = params(max_tokens = 4000)
+              params = params(max_tokens = 6000)
             )
 
             extraction_schema <- create_extraction_schema()
@@ -405,10 +405,7 @@ mod_llm_server <- function(id) {
               {
                 cost_info <- chat$get_cost(include = "all")
                 api_metadata <- list(
-                  total_cost = cost_info$total_cost,
-                  total_input_tokens = cost_info$total_input_tokens,
-                  total_output_tokens = cost_info$total_output_tokens,
-                  call_count = nrow(cost_info$calls)
+                  total_cost = cost_info
                 )
               },
               error = function(e) {
@@ -648,15 +645,8 @@ mod_llm_server <- function(id) {
 
         if (!is.null(moduleState$api_metadata)) {
           metadata_text <- paste0(
-            " API usage: $",
-            sprintf("%.4f", moduleState$api_metadata$total_cost),
-            " (",
-            moduleState$api_metadata$total_input_tokens,
-            " input + ",
-            moduleState$api_metadata$total_output_tokens,
-            " output tokens, ",
-            moduleState$api_metadata$call_count,
-            " calls)"
+            " Extraction Cost: ~$",
+            moduleState$api_metadata$total_cost
           )
           status_text <- paste0(status_text, metadata_text)
         }

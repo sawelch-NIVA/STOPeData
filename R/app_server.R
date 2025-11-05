@@ -8,6 +8,7 @@
 #' @importFrom shinyjs enable disable hide show
 #' @importFrom htmltools HTML
 #' @importFrom purrr map_chr
+#' @importFrom tools file_ext
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
 `%notin%` <- negate(`%in%`) # my belovéd.
@@ -386,75 +387,78 @@ app_server <- function(input, output, session) {
   # downstream: session$userData$reactiveValues updated with imported data
   observe({
     req(input$import_zip_file)
+    tryCatch(
+      {
+        # Show loading status
+        show("import_status")
+        HTML(
+          "import_status",
+          '<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Importing data...</div>'
+        )
 
-    # Show loading status
-    show("import_status")
-    HTML(
-      "import_status",
-      '<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Importing data...</div>'
+        # Get file path
+        zip_path <- input$import_zip_file$datapath
+
+        if (file_ext(zip_path) != "zip") {
+          showNotification(
+            ui = "Uploaded file not of type .zip.",
+            type = "error",
+            duration = 10
+          )
+        }
+
+        # Import data using helper function
+        result <- import_session_from_zip(zip_path, session)
+
+        # Update status and handle result
+        if (result$success) {
+          session$userData$reactiveValues$saveExtractionComplete <- TRUE
+          session$userData$reactiveValues$saveExtractionSuccessful <- TRUE
+          # Success - show success message and close modal
+          HTML(
+            "import_status",
+            glue(
+              '<div class="alert alert-success"><i class="fa fa-check"></i> {result$message}</div>'
+            )
+          )
+
+          # Small delay to show success message, then close modal and navigate
+          Sys.sleep(0.1)
+          removeModal()
+
+          # Show notification
+          showNotification(
+            ui = HTML(result$message),
+            type = "message",
+            duration = 5
+          )
+        } else {
+          # Error - show error message but keep modal open
+          session$userData$reactiveValues$saveExtractionComplete <- FALSE
+          session$userData$reactiveValues$saveExtractionSuccessful <- FALSE
+          HTML(
+            "import_status",
+            glue(
+              '<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> {result$message}</div>'
+            )
+          )
+
+          # Also show notification
+          showNotification(
+            ui = result$message,
+            type = "error",
+            duration = 10
+          )
+        }
+      },
+      error = function(e) {
+        showNotification(
+          ui = e$message,
+          type = "error",
+          duration = 10
+        )
+      }
     )
-
-    # Get file path
-    zip_path <- input$import_zip_file$datapath
-
-    if (
-      substr(
-        zip_path,
-        start = length(zip_path) - 4,
-        end = length(zip_path) != ".zip"
-      )
-    ) {
-      showNotification(
-        ui = "Uploaded file not of type .zip.",
-        type = "error",
-        duration = 10
-      )
-      stop()
-    }
-
-    # Import data using helper function
-    result <- import_session_from_zip(zip_path, session)
-
-    # Update status and handle result
-    if (result$success) {
-      session$userData$reactiveValues$saveExtractionComplete <- TRUE
-      session$userData$reactiveValues$saveExtractionSuccessful <- TRUE
-      # Success - show success message and close modal
-      HTML(
-        "import_status",
-        glue(
-          '<div class="alert alert-success"><i class="fa fa-check"></i> {result$message}</div>'
-        )
-      )
-
-      # Small delay to show success message, then close modal and navigate
-      Sys.sleep(0.1)
-      removeModal()
-
-      # Show notification
-      showNotification(
-        ui = HTML(result$message),
-        type = "message",
-        duration = 5
-      )
-    } else {
-      # Error - show error message but keep modal open
-      session$userData$reactiveValues$saveExtractionComplete <- FALSE
-      session$userData$reactiveValues$saveExtractionSuccessful <- FALSE
-      HTML(
-        "import_status",
-        glue(
-          '<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> {result$message}</div>'
-        )
-      )
-
-      # Also show notification
-      showNotification(
-        ui = result$message,
-        type = "error",
-        duration = 10
-      )
-    }
   }) |>
     bindEvent(input$import_confirm, ignoreInit = TRUE)
 

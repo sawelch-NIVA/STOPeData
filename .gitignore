@@ -10,3 +10,4 @@ rsconnect/
 .Renviron
 cite.r
 .vscode/tasks.json
+*.pdf

@@ -275,127 +275,281 @@ mod_campaign_server <- function(id) {
     # upstream: iv
     # downstream: session$userData$reactiveValues$campaignData, campaignDataValid
     observe({
-      # if (iv$is_valid()) {
-      # TODO: Strictly speaking this shouldn't be conditional on validity, because
-      # we claim that data is saved even when invalid. But CAMPAIGN is almost always valid
-      # and I don't want to disable it just yet
-      # Collect validated data
-      validated_data <- tryCatch(
+      tryCatch(
         {
-          # uses standardised format from fct_formats, will fail if format/data types not respected
-          initialise_campaign_tibble() |>
-            add_row(
-              CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
-              CAMPAIGN_NAME = input$CAMPAIGN_NAME,
-              CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE %|truthy|%
-                as.Date(NA),
-              CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
-                as.Date(NA),
-              RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
-              RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|% NA,
-              CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
-                as.Date(NA),
-              ORGANISATION = input$ORGANISATION,
-              ENTERED_BY = input$ENTERED_BY,
-              ENTERED_DATE = input$ENTERED_DATE,
-              CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
-            )
+          # if (iv$is_valid()) {
+          # TODO: Strictly speaking this shouldn't be conditional on validity, because
+          # we claim that data is saved even when invalid. But CAMPAIGN is almost always valid
+          # and I don't want to disable it just yet
+          # Collect validated data
+          validated_data <- tryCatch(
+            {
+              # uses standardised format from fct_formats, will fail if format/data types not respected
+              initialise_campaign_tibble() |>
+                add_row(
+                  CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
+                  CAMPAIGN_NAME = input$CAMPAIGN_NAME,
+                  CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE %|truthy|%
+                    as.Date(NA),
+                  CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
+                    as.Date(NA),
+                  RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
+                  RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|%
+                    NA,
+                  CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
+                    as.Date(NA),
+                  ORGANISATION = input$ORGANISATION,
+                  ENTERED_BY = input$ENTERED_BY,
+                  ENTERED_DATE = input$ENTERED_DATE,
+                  CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
+                )
+            },
+            error = function(e) {
+              stop(
+                "Column mismatch in campaign data collection: ",
+                e$message,
+                call. = FALSE
+              )
+            }
+          )
+
+          # CHANGED: Store directly to userData
+          session$userData$reactiveValues$campaignData <- validated_data
+          session$userData$reactiveValues$campaignDataValid <- TRUE
+          # } else {
+          # CHANGED: Set validation flag to FALSE
+          # session$userData$reactiveValues$campaignDataValid <- FALSE
+          # }
         },
         error = function(e) {
-          stop(
-            "Column mismatch in campaign data collection: ",
-            e$message,
-            call. = FALSE
+          showNotification(
+            paste0(
+              "Error validating campaign data: ",
+              e$message,
+              " (Code: mod_campaign_validate_data)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_validate_data)"
+            ),
+            type = "warning",
+            duration = 10
           )
         }
       )
-
-      # CHANGED: Store directly to userData
-      session$userData$reactiveValues$campaignData <- validated_data
-      session$userData$reactiveValues$campaignDataValid <- TRUE
-      # } else {
-      # CHANGED: Set validation flag to FALSE
-      # session$userData$reactiveValues$campaignDataValid <- FALSE
-      # }
-    })
+    }) |>
+      bindEvent(
+        label = "mod_campaign_validate_data",
+        input$CAMPAIGN_NAME,
+        input$CAMPAIGN_NAME_SHORT,
+        input$CAMPAIGN_START_DATE,
+        input$CAMPAIGN_END_DATE,
+        input$RELIABILITY_SCORE,
+        input$RELIABILITY_EVAL_SYS,
+        input$CONFIDENTIALITY_EXPIRY_DATE,
+        input$ORGANISATION,
+        input$ENTERED_BY,
+        input$ENTERED_DATE,
+        input$CAMPAIGN_COMMENT
+      )
 
     ## observe ~ bindEvent: Clear fields button ----
     # upstream: user clicks input$clear
     # downstream: all input fields
-    observe(
-      {
-        # Reset all inputs to default values
-        updateTextInput(session, "CAMPAIGN_NAME_SHORT", value = "")
-        updateTextInput(session, "CAMPAIGN_NAME", value = "")
-        updateDateInput(session, "CAMPAIGN_START_DATE", value = as.Date(NA))
-        updateDateInput(session, "CAMPAIGN_END_DATE", value = as.Date(NA))
-        updateNumericInput(session, "RELIABILITY_SCORE", value = NA)
-        updateTextInput(session, "RELIABILITY_EVAL_SYS", value = "")
-        updateDateInput(
-          session,
-          "CONFIDENTIALITY_EXPIRY_DATE",
-          value = as.Date(NA)
-        )
-        updateTextInput(session, "ORGANISATION", value = "")
-        updateTextInput(session, "ENTERED_BY", value = "")
-        updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
-        updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
+    observe({
+      tryCatch(
+        {
+          # Reset all inputs to default values
+          updateTextInput(session, "CAMPAIGN_NAME_SHORT", value = "")
+          updateTextInput(session, "CAMPAIGN_NAME", value = "")
+          updateDateInput(session, "CAMPAIGN_START_DATE", value = as.Date(NA))
+          updateDateInput(session, "CAMPAIGN_END_DATE", value = as.Date(NA))
+          updateNumericInput(session, "RELIABILITY_SCORE", value = NA)
+          updateTextInput(session, "RELIABILITY_EVAL_SYS", value = "")
+          updateDateInput(
+            session,
+            "CONFIDENTIALITY_EXPIRY_DATE",
+            value = as.Date(NA)
+          )
+          updateTextInput(session, "ORGANISATION", value = "")
+          updateTextInput(session, "ENTERED_BY", value = "")
+          updateDateInput(session, "ENTERED_DATE", value = Sys.Date())
+          updateTextAreaInput(session, "CAMPAIGN_COMMENT", value = "")
 
-        # CHANGED: Clear validation state in userData
-        session$userData$reactiveValues$campaignData <- initialise_campaign_tibble()
-        session$userData$reactiveValues$campaignDataValid <- FALSE
-      } |>
+          # CHANGED: Clear validation state in userData
+          session$userData$reactiveValues$campaignData <- initialise_campaign_tibble()
+          session$userData$reactiveValues$campaignDataValid <- FALSE
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error clearing fields: ",
+              e$message,
+              " (Code: mod_campaign_clear_fields)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_clear_fields)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+        }
+      ) |>
         suppressWarnings()
-    ) |>
-      bindEvent(input$clear)
+    }) |>
+      bindEvent(
+        label = "mod_campaign_clear_fields",
+        input$clear
+      )
 
     ## observe ~ bindEvent: Set session username from ENTERED_BY ----
     observe({
-      req(input$ENTERED_BY)
+      tryCatch(
+        {
+          req(input$ENTERED_BY)
 
-      # only trigger if a username doesn't already exist in the session
-      if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
-        # Set the reactive value
-        session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
+          # only trigger if a username doesn't already exist in the session
+          if (!isTruthy(session$userData$reactiveValues$ENTERED_BY)) {
+            # Set the reactive value
+            session$userData$reactiveValues$ENTERED_BY <- input$ENTERED_BY
 
-        showNotification(
-          glue("Saved your username {input$ENTERED_BY} to session data."),
-          type = "message"
-        )
-      }
+            showNotification(
+              glue("Saved your username {input$ENTERED_BY} to session data."),
+              type = "message"
+            )
+          }
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error saving username: ",
+              e$message,
+              " (Code: mod_campaign_save_username)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_save_username)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+        }
+      )
     }) |>
-      bindEvent(input$ENTERED_BY, ignoreInit = TRUE)
+      bindEvent(
+        label = "mod_campaign_save_username",
+        input$ENTERED_BY,
+        ignoreInit = TRUE
+      )
 
     ## observe: update ENTERED_BY field with user_id ----
     # upstream: session$userData$reactiveValues$ENTERED_BY
     # downstream: input$ENTERED_BY
     observe({
-      updateTextInput(
-        session,
-        "ENTERED_BY",
-        value = session$userData$reactiveValues$ENTERED_BY
+      tryCatch(
+        {
+          updateTextInput(
+            session,
+            "ENTERED_BY",
+            value = session$userData$reactiveValues$ENTERED_BY
+          )
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error updating ENTERED_BY field: ",
+              e$message,
+              " (Code: mod_campaign_update_entered_by)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_update_entered_by)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+        }
       )
     }) |>
-      bindEvent(session$userData$reactiveValues$ENTERED_BY)
+      bindEvent(
+        label = "mod_campaign_update_entered_by",
+        session$userData$reactiveValues$ENTERED_BY
+      )
 
     ## observe: Populate from LLM data when available ----
     # upstream: session$userData$reactiveValues$campaignDataLLM
     # downstream: input fields
     observe({
-      llm_data <- session$userData$reactiveValues$campaignDataLLM
-      if (
-        !is.null(llm_data) &&
-          session$userData$reactiveValues$llmExtractionComplete
-      ) {
-        populate_campaign_from_llm(session, llm_data)
+      tryCatch(
+        {
+          llm_data <- session$userData$reactiveValues$campaignDataLLM
+          if (
+            !is.null(llm_data) &&
+              session$userData$reactiveValues$llmExtractionComplete
+          ) {
+            populate_campaign_from_llm(session, llm_data)
 
-        # showNotification(
-        #   "Campaign form populated.",
-        #   type = "message"
-        # )
-      }
+            # showNotification(
+            #   "Campaign form populated.",
+            #   type = "message"
+            # )
+          }
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error populating from LLM data: ",
+              e$message,
+              " (Code: mod_campaign_populate_llm)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_populate_llm)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+        }
+      )
     }) |>
       bindEvent(
+        label = "mod_campaign_populate_llm",
         session$userData$reactiveValues$campaignDataLLM,
         session$userData$reactiveValues$llmExtractionComplete,
         ignoreInit = TRUE,
@@ -405,19 +559,46 @@ mod_campaign_server <- function(id) {
     ## observer: receive data from session$userData$reactiveValues$campaignData (import) ----
     ## and update module inputs
     observe({
-      # CHANGED: Data is already in userData, just need to populate the form
-      campaign_data <- session$userData$reactiveValues$campaignData |>
-        as.list()
-      names(campaign_data) <- tolower(names(campaign_data))
-      # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
+      tryCatch(
+        {
+          # CHANGED: Data is already in userData, just need to populate the form
+          campaign_data <- session$userData$reactiveValues$campaignData |>
+            as.list()
+          names(campaign_data) <- tolower(names(campaign_data))
+          # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
 
-      populate_campaign_from_llm(
-        session,
-        campaign_data
+          populate_campaign_from_llm(
+            session,
+            campaign_data
+          )
+          print_dev("Populated campaign form from saved data")
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error loading saved data: ",
+              e$message,
+              " (Code: mod_campaign_load_saved_data)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_load_saved_data)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+        }
       )
-      print_dev("Populated campaign form from saved data")
     }) |>
       bindEvent(
+        label = "mod_campaign_load_saved_data",
         session$userData$reactiveValues$saveExtractionComplete,
         session$userData$reactiveValues$saveExtractionSuccessful,
         ignoreInit = TRUE,
@@ -430,35 +611,91 @@ mod_campaign_server <- function(id) {
     # upstream: session$userData$reactiveValues$campaignDataValid
     # downstream: UI update
     output$validation_reporter <- renderUI({
-      # CHANGED: Reference userData validation status
-      if (session$userData$reactiveValues$campaignDataValid) {
-        div(
-          bs_icon("clipboard2-check"),
-          "All data validated successfully.",
-          class = "validation-status validation-complete"
-        )
-      } else {
-        div(
-          bs_icon("exclamation-triangle"),
-          "Please ensure all required fields are filled, and all entered data is properly formatted.",
-          class = "validation-status validation-warning"
-        )
-      }
+      tryCatch(
+        {
+          # CHANGED: Reference userData validation status
+          if (session$userData$reactiveValues$campaignDataValid) {
+            div(
+              bs_icon("clipboard2-check"),
+              "All data validated successfully.",
+              class = "validation-status validation-complete"
+            )
+          } else {
+            div(
+              bs_icon("exclamation-triangle"),
+              "Please ensure all required fields are filled, and all entered data is properly formatted.",
+              class = "validation-status validation-warning"
+            )
+          }
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error rendering validation status: ",
+              e$message,
+              " (Code: mod_campaign_validation_reporter)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+          return(NULL)
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_validation_reporter)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+          return(NULL)
+        }
+      )
     })
 
     ## output: validated_data_display ----
     # upstream: session$userData$reactiveValues$campaignData (when valid)
     # downstream: UI update
     output$validated_data_display <- renderText({
-      # CHANGED: Show data only when valid, reference userData
-      if (
-        session$userData$reactiveValues$campaignDataValid &&
-          nrow(session$userData$reactiveValues$campaignData) > 0
-      ) {
-        printreactiveValues(session$userData$reactiveValues$campaignData)
-      } else {
-        "# Data object will be created when valid data is entered."
-      }
+      tryCatch(
+        {
+          # CHANGED: Show data only when valid, reference userData
+          if (
+            session$userData$reactiveValues$campaignDataValid &&
+              nrow(session$userData$reactiveValues$campaignData) > 0
+          ) {
+            printreactiveValues(session$userData$reactiveValues$campaignData)
+          } else {
+            "# Data object will be created when valid data is entered."
+          }
+        },
+        error = function(e) {
+          showNotification(
+            paste0(
+              "Error displaying validated data: ",
+              e$message,
+              " (Code: mod_campaign_validated_data_display)"
+            ),
+            type = "error",
+            duration = NULL
+          )
+          return("# Error displaying data - see notification for details")
+        },
+        warning = function(w) {
+          showNotification(
+            paste0(
+              "Warning: ",
+              w$message,
+              " (Code: mod_campaign_validated_data_display)"
+            ),
+            type = "warning",
+            duration = 10
+          )
+          return(NULL)
+        }
+      )
     })
   })
 }
