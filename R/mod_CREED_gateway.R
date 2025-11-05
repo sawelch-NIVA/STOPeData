@@ -190,7 +190,11 @@ mod_CREED_gateway_server <- function(id) {
     observe({
       auto_populate_gateway_criteria()
     }) |>
-      bindEvent(input$populate_from_data, ignoreInit = TRUE)
+      bindEvent(
+        input$populate_from_data,
+        session$userData$reactiveValues$creedGetData <- TRUE,
+        ignoreInit = TRUE
+      )
 
     # 2. Helper functions ----
 
@@ -230,6 +234,7 @@ mod_CREED_gateway_server <- function(id) {
       )
 
       # Get gateway availability (TRUE/FALSE)
+      browser()
       availability <- check_gateway_availability(module_data)
 
       # Get gateway summaries (text data)

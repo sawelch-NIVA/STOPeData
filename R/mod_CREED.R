@@ -31,8 +31,8 @@ mod_CREED_ui <- function(id) {
         div(
           div(
             style = "margin: 10px 10px 0 10px; display: flex; align-items: center; gap: 15px;",
-            actionButton(
-              inputId = ns("get_data"),
+            input_task_button(
+              id = ns("get_data"),
               label = "Get Data from Modules",
               icon = icon("refresh"),
               class = "btn-primary"
@@ -186,32 +186,19 @@ mod_CREED_server <- function(id) {
     # 2. Helper functions ----
 
     # 3. Observers and Reactives ----
-    ## observe: enable CREED assessment only when all previous modules have been filled out ----
-    # upstream: nrow(measurementsData) > 0
-    # downstream: pretty much everything in the module
-    # observe({
-    #   if (nrow(session$userData$reactiveValues$measurementsData) > 0) {
-    #     moduleState$ready_for_assessment <- TRUE
-    #     enable(id = "input$get_data")
-    #   } else {
-    #     moduleState$ready_for_assessment <- FALSE
-    #     disable(id = "input$get_data")
-    #   }
-    # }) |>
-    #   bindEvent(
-    #     session$userData$reactiveValues$measurementsData
-    #   )
 
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment
     # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
-    # observe(
-    #   {
-    #     print_dev("autopop all triggered")
-    #     # individual submodule functions go here.
-    #   }
-    # ) |>
-    #   bindEvent(input$get_data)
+    observe(
+      {
+        print_dev("autopop all triggered")
+        # this needs to be slightly more robust than just turning it TRUE once...
+        session$userData$reactiveValues$creedGetData <- TRUE
+        # individual submodule functions go here.
+      }
+    ) |>
+      bindEvent(input$get_data)
 
     # 4. Outputs ----
 

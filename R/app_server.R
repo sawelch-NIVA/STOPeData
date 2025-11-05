@@ -54,6 +54,7 @@ app_server <- function(input, output, session) {
         relevance_criteria = tibble(NULL),
         CREED_output = tibble(NULL)
       ),
+      creedGetData = NULL, # watched by multiple observers in nested CREED modules
 
       # LLM extracted data and metadata ----
       schemaLLM = "",
@@ -126,7 +127,7 @@ app_server <- function(input, output, session) {
   # moduleExport <- mod_export_server(
   #   "export"
   # )
-  # moduleCREED <- mod_CREED_server("CREED")
+  moduleCREED <- mod_CREED_server("CREED")
 
   ## Navigation setup ----
   # upstream: session start

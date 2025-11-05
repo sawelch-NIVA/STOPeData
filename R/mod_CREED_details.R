@@ -320,10 +320,9 @@ mod_CREED_details_server <- function(id) {
     }) |>
       bindEvent(
         input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
         ignoreInit = TRUE
       )
-
-
   })
 }
 
