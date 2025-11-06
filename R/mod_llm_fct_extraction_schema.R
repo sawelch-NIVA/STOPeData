@@ -305,7 +305,9 @@ create_comments_schema <- function() {
       required = TRUE
     ),
     paper_data_available = type_string(
-      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs) Return in the format Score: {1-5}: {text}. 
+      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs) 
+      Return in the format Score: {1-5}: {text}. 
+      If the paper is missing any of the following minimum data standards, it should be scored as 1: Specific analysed medium/matrix, specified analyte, sampling location information to at least country/ocean level, sampling date to at least year level, units of measurement.
       Also if data may be available in supplementary information.",
       required = TRUE
     ),
