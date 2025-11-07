@@ -191,6 +191,7 @@ get_gateway_summaries <- function(module_data) {
       "Relevant data not found"
     },
 
+    # TODO: pretty sure this doesn't work cos we changed the unit/param table structure
     units = generate_units_summary(
       module_data$measurements,
       module_data$parameters
@@ -211,6 +212,7 @@ get_gateway_summaries <- function(module_data) {
 #' @return Named list of TRUE/FALSE values
 #' @noRd
 check_gateway_availability <- function(module_data) {
+  browser()
   list(
     medium = !is.null(module_data$compartments) &&
       any(
@@ -468,7 +470,7 @@ summarise_CREED_details <- function(sessionData) {
 
   site_types_value <- if (has_sites) {
     summarize_multiple(
-      sessionData$sitesData$SITE_GEOGRAPHICAL_FEATURE,
+      sessionData$sitesData$SITE_GEOGRAPHIC_FEATURE,
       "Site Types"
     )
   } else {

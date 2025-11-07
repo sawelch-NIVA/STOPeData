@@ -1205,7 +1205,8 @@ mod_samples_server <- function(id) {
     }) |>
       bindEvent(
         label = "mod_samples_validate_data",
-        input$samples_table
+        input$samples_table,
+        session$userData$reactiveValues$biotaData
       )
 
     ## observer: receive data from session$userData$reactiveValues$samplesData (import) ----

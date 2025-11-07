@@ -35,7 +35,8 @@ mod_CREED_purpose_ui <- function(id) {
 
     # Import/Export section ----
     div(
-      "You can usually import/export purpose statements here, but since we're just doing a copper AEP for now I've hard-coded it."
+      "You can usually import/export purpose statements here, but since we're just doing a copper AEP for now I've hard-coded it.",
+      class = "text-muted"
     ),
     # layout_column_wrap(
     #   width = "300px",

@@ -306,7 +306,10 @@ mod_compartments_server <- function(id) {
         session$userData$reactiveValues$compartmentsDataValid <- FALSE
       }
     }) |>
-      bindEvent(input$compartments_table)
+      bindEvent(
+        input$compartments_table,
+        session$userData$reactiveValues$biotaData
+      )
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$compartmentsDataLLM

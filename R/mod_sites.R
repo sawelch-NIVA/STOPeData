@@ -539,7 +539,7 @@ mod_sites_server <- function(id) {
         session$userData$reactiveValues$sitesDataValid <- FALSE
       }
     }) |>
-      bindEvent(input$sites_table)
+      bindEvent(input$sites_table, session$userData$reactiveValues$sitesData)
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$sitesDataLLM

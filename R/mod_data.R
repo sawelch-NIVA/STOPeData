@@ -498,7 +498,10 @@ mod_data_server <- function(id, parent_session) {
         session$userData$reactiveValues$measurementsDataValid <- FALSE
       }
     }) |>
-      bindEvent(iv$is_valid())
+      bindEvent(
+        iv$is_valid(),
+        session$userData$reactiveValues$saveExtractionSuccessful
+      )
 
     # Observer: show llm UI only if relevant ----
     observe({
@@ -517,6 +520,8 @@ mod_data_server <- function(id, parent_session) {
     # upstream: all session$userData$reactiveValues validation flags
     # downstream: moduleState$data_entry_ready, session$userData$reactiveValues$measurementsData
     observe({
+      req(isFALSE(session$userData$reactiveValues$saveExtractionSuccessful)) # need to be a little careful here, as if we upload measurments data
+      # the observer will create combinations and upload existing data, resulting in n new entries each time.
       if (modulesStatus()) {
         moduleState$data_entry_ready <- TRUE
 
@@ -525,7 +530,7 @@ mod_data_server <- function(id, parent_session) {
         new_combinations <- session$userData$reactiveValues$measurementsData |>
           mutate(SUBSAMPLE = as.character(SUBSAMPLE)) |>
           add_row(create_measurement_combinations()) |>
-          distinct(.keep_all = FALSE)
+          distinct(.keep_all = FALSE) # TODO: All very clever, but doesn't catch imported rows that have entered data (see req above)
 
         session$userData$reactiveValues$measurementsData <- new_combinations
 

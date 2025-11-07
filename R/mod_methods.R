@@ -367,7 +367,7 @@ mod_methods_server <- function(id) {
         session$userData$reactiveValues$methodsDataValid <- FALSE
       }
     }) |>
-      bindEvent(iv$is_valid())
+      bindEvent(iv$is_valid(), session$userData$reactiveValues$methodsDataValid)
 
     ## observe ~ bindEvent: Load methods data from LLM extraction ----
     observe({

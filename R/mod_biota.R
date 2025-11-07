@@ -578,7 +578,6 @@ mod_biota_server <- function(id) {
         # CHANGED: Update userData validation status
         session$userData$reactiveValues$biotaDataValid <- TRUE
         session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
-        print_dev("mod_biota: No biota samples, validation passes")
       } else if (
         validation_result && nrow(session$userData$reactiveValues$biotaData) > 0
       ) {
@@ -604,7 +603,7 @@ mod_biota_server <- function(id) {
         print_dev("mod_biota: Validation failed")
       }
     }) |>
-      bindEvent(input$biota_table)
+      bindEvent(input$biota_table, session$userData$reactiveValues$biotaData)
 
     # 4. Outputs ----
 

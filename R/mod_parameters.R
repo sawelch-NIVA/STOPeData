@@ -555,7 +555,10 @@ mod_parameters_server <- function(id) {
         session$userData$reactiveValues$parametersDataValid <- FALSE
       }
     }) |>
-      bindEvent(input$parameters_table)
+      bindEvent(
+        input$parameters_table,
+        session$userData$reactiveValues$parametersData
+      )
 
     ## observer: receive data from session$userData$reactiveValues$parametersData (import) ----
     ## and update module data
