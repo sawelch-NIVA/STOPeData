@@ -99,7 +99,7 @@ mod_methods_ui <- function(id) {
       full_screen = TRUE,
       div(
         rHandsontableOutput(ns("methods_table")),
-        style = "margin-bottom: 10px;"
+        style = "margin: 20px; word-wrap: break-word;"
       )
     )
   )

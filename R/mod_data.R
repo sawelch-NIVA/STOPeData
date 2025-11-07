@@ -76,18 +76,24 @@ mod_data_ui <- function(id) {
         style = "display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 15px 0; justify-content: center;",
         input_task_button(
           id = ns("save_table_data"),
-          label = "Save Table Data"
+          label = "Save and Validate"
         ),
+        ### Validation status reporters ----
         div(
+          class = "validation-container",
+          style = "display: flex; flex-direction: column; gap: 5px;",
+
+          # LLM extraction indicator (conditionally shown)
           hidden(div(
-            id = "validation-llm-reporter",
+            id = ns("llm_extraction_indicator"),
             bs_icon("cpu"),
             "Some data populated from LLM extraction - please review for accuracy",
-            class = "validation-status validation-llm ",
-            style = "margin-bottom: 10px;"
+            class = "validation-status validation-llm"
           )),
-          class = "validation-container"
-        )
+
+          # Data validation status
+          uiOutput(ns("data_validation_reporter"))
+        ),
       ),
       div(
         rHandsontableOutput(
@@ -295,6 +301,8 @@ mod_data_server <- function(id, parent_session) {
       }
     })
 
+    iv$enable()
+
     # 2. Helper functions ----
 
     ## Get validation status for each module ----
@@ -482,17 +490,15 @@ mod_data_server <- function(id, parent_session) {
 
     # 3. Observers and Reactives ----
 
-    ## observe: enable/disable automatic validation of table ----
-    # upstream: input$auto_validate
-    # downstream: all measurement validation rules & UI
     observe({
-      if (input$auto_validate) {
-        iv$enable()
+      # set validation variable true when ready
+      if (isTRUE(iv$is_valid())) {
+        session$userData$reactiveValues$measurementsDataValid <- TRUE
       } else {
-        iv$disable()
+        session$userData$reactiveValues$measurementsDataValid <- FALSE
       }
     }) |>
-      bindEvent(input$auto_validate, ignoreInit = FALSE)
+      bindEvent(iv$is_valid())
 
     # Observer: show llm UI only if relevant ----
     observe({
@@ -554,27 +560,27 @@ mod_data_server <- function(id, parent_session) {
     ## observe: Handle table changes ----
     # upstream: ainput$save_table_data
     # downstream: session$userData$reactiveValues$measurementsData
-    # observe({
-    #   if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
-    #     updated_data <- hot_to_r(input$measurement_table)
+    observe({
+      if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
+        updated_data <- hot_to_r(input$measurement_table)
 
-    #     # CHANGED: Update userData directly
-    #     session$userData$reactiveValues$measurementsData <- updated_data
+        # CHANGED: Update userData directly
+        session$userData$reactiveValues$measurementsData <- updated_data
 
-    #     # Merge in campaign data
-    #     campaign_data <- isolate(session$userData$reactiveValues$campaignData)
-    #     for (col in names(campaign_data)) {
-    #       if (
-    #         !col %in% names(session$userData$reactiveValues$measurementsData)
-    #       ) {
-    #         session$userData$reactiveValues$measurementsData[[
-    #           col
-    #         ]] <- campaign_data[[col]]
-    #       }
-    #     }
-    #   }
-    # }) |>
-    #   bindEvent(input$save_table_data)
+        # Merge in campaign data
+        campaign_data <- isolate(session$userData$reactiveValues$campaignData)
+        for (col in names(campaign_data)) {
+          if (
+            !col %in% names(session$userData$reactiveValues$measurementsData)
+          ) {
+            session$userData$reactiveValues$measurementsData[[
+              col
+            ]] <- campaign_data[[col]]
+          }
+        }
+      }
+    }) |>
+      bindEvent(input$save_table_data)
 
     ## observe: Update method dropdown options whenever methods change ----
     # Define some methods for the UI to find so it doesn't crash
@@ -786,6 +792,36 @@ mod_data_server <- function(id, parent_session) {
           gap = "0.5rem"
         )
       )
+    })
+
+    ## output: data_validation_reporter ----
+    # upstream: iv validation state, moduleState$validation_message
+    # downstream: UI validation status display
+    output$data_validation_reporter <- renderUI({
+      # Trigger reactivity on validation state changes
+      iv$is_valid()
+
+      if (iv$is_valid()) {
+        div(
+          bs_icon("clipboard2-check"),
+          paste(
+            "All measurement data validated successfully.",
+            nrow(session$userData$reactiveValues$measurementsData),
+            "measurement(s) ready."
+          ),
+          class = "validation-status validation-complete"
+        )
+      } else {
+        div(
+          bs_icon("exclamation-triangle"),
+          if (nzchar(moduleState$validation_message)) {
+            moduleState$validation_message
+          } else {
+            "Complete all required measurement fields to proceed."
+          },
+          class = "validation-status validation-warning"
+        )
+      }
     })
 
     ## output: measurement_table ----

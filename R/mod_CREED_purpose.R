@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textAreaInput h5 p strong div actionButton fileInput downloadButton hr h6
+#' @importFrom shiny NS tagList textAreaInput h5 p strong div actionButton fileInput downloadButton hr h5
 #' @importFrom bslib layout_columns input_task_button
 #' @importFrom bsicons bs_icon
 mod_CREED_purpose_ui <- function(id) {
@@ -19,44 +19,49 @@ mod_CREED_purpose_ui <- function(id) {
     # Info section ----
     # Purpose statement section ----
     p(
-      "Describe the objective for which the usability of the dataset is assessed, including any required dataset thresholds."
+      "Describe the objective for which the usability of the dataset is assessed, including any required dataset thresholds.",
+      class = "text-muted"
     ),
     textAreaInput(
       inputId = ns("purpose_statement"),
-      label = "Purpose Statement:",
+      label = "Purpose Statement (Pre-made copper statement/thresholds):",
       placeholder = "Enter the assessment purpose and any specific requirements...",
       rows = 6,
-      width = "100%"
+      width = "100%",
+      value = copper_CREED_purpose_statement()$study_purpose
     ),
 
     hr(),
 
     # Import/Export section ----
-    layout_column_wrap(
-      width = "300px",
-
-      fileInput(
-        inputId = ns("import_file"),
-        label = "Import Purpose & Thresholds (YAML)",
-        accept = c(".yaml", ".yml")
-      ),
-      input_task_button(
-        id = ns("import_btn"),
-        label = "Load Imported Data",
-        icon = bs_icon("upload")
-      ),
-      downloadButton(
-        outputId = ns("export_btn"),
-        label = "Export Purpose & Thresholds",
-        icon = icon("download")
-      ),
-      input_task_button(
-        id = ns("clear_all"),
-        label = "Clear All Fields",
-        icon = bs_icon("trash"),
-        class = "btn-outline-danger"
-      )
+    div(
+      "You can usually import/export purpose statements here, but since we're just doing a copper AEP for now I've hard-coded it."
     ),
+    # layout_column_wrap(
+    #   width = "300px",
+
+    #   fileInput(
+    #     inputId = ns("import_file"),
+    #     label = "Import Purpose & Thresholds (YAML)",
+    #     accept = c(".yaml", ".yml")
+    #   ),
+    #   input_task_button(
+    #     id = ns("import_btn"),
+    #     label = "Load Imported Data",
+    #     icon = bs_icon("upload")
+    #   ),
+    #   downloadButton(
+    #     outputId = ns("export_btn"),
+    #     label = "Export Purpose & Thresholds",
+    #     icon = icon("download")
+    #   ),
+    #   input_task_button(
+    #     id = ns("clear_all"),
+    #     label = "Clear All Fields",
+    #     icon = bs_icon("trash"),
+    #     class = "btn-outline-danger"
+    #   )
+    # ),
 
     hr(),
 
@@ -68,8 +73,8 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV1 ----
-    h6(
-      "RV1: The sampling medium/matrix was appropriate for the given purpose."
+    h5(
+      copper_CREED_purpose_statement()$criteria[[1]]$name
     ),
     layout_column_wrap(
       width = "400px",
@@ -78,19 +83,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[1]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                1
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  1
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV1_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[1]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                1
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  1
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV2 ----
-    h6("RV2: The sample collection method was adequate for the given purpose."),
+    h5(copper_CREED_purpose_statement()$criteria[[2]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -98,19 +147,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[2]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                2
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  2
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV2_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[2]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                2
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  2
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV3 ----
-    h6(
+    h5(
       "RV3: The study area and number of locations sampled was suitable for the given purpose."
     ),
     layout_columns(
@@ -132,7 +225,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV4 ----
-    h6(
+    h5(
       "RV4: The rationale for selection of sampling locations was provided and it is suitable for the given purpose."
     ),
     layout_columns(
@@ -154,7 +247,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV5 ----
-    h6(
+    h5(
       "RV5: The samples were collected over a time scale that was appropriate for the given purpose."
     ),
     layout_columns(
@@ -176,7 +269,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV6 ----
-    h6(
+    h5(
       "RV6: Over the timespan, the sampling frequency was appropriate for the given purpose."
     ),
     layout_columns(
@@ -198,7 +291,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV7 ----
-    h6(
+    h5(
       "RV7: Conditions during sampling events were documented and relevant for the given purpose."
     ),
     layout_columns(
@@ -220,7 +313,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV8 ----
-    h6(
+    h5(
       "RV8: The analyte(s) reported was/were appropriate for the given purpose."
     ),
     layout_columns(
@@ -242,7 +335,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV9 ----
-    h6("RV9: The method was sensitive enough for the given purpose."),
+    h5("RV9: The method was sensitive enough for the given purpose."),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -262,7 +355,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV10 ----
-    h6(
+    h5(
       "RV10: The summary statistics provided were appropriate for the given purpose."
     ),
     layout_columns(
@@ -284,7 +377,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV11 ----
-    h6(
+    h5(
       "RV11: All supporting parameters that were needed to achieve the given purpose were provided."
     ),
     layout_columns(
@@ -305,17 +398,17 @@ mod_CREED_purpose_ui <- function(id) {
       )
     ),
 
-    hr(),
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ),
+    # hr(),
+    # input_task_button(
+    #   id = ns("save_assessment"),
+    #   label = "Save Section",
+    #   icon = icon("save"),
+    #   class = "btn-success"
+    # ),
 
-    # Status section ----
-    h5("Status"),
-    uiOutput(ns("purpose_status"))
+    # # Status section ----
+    # h5("Status"),
+    # uiOutput(ns("purpose_status"))
   )
 }
 

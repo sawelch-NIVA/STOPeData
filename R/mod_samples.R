@@ -160,15 +160,16 @@ mod_samples_ui <- function(id) {
           ),
 
           ## Subsampling index ----
-          textInput(
+          textAreaInput(
             inputId = ns("subsample"),
             label = tooltip(
               list("Subsample Indices", bs_icon("info-circle-fill")),
               "If samples are split (replicates or e.g. core depths), enter values separated by commas."
             ),
-            placeholder = "Comma-separated subsample identifiers (e.g., '1,2,3' or '1cm,2cm,3cm')",
+            placeholder = "Comma-separated subsample identifiers (e.g., '1, 2, 3' or '1cm, 2cm, 3cm')",
             width = "100%",
-            value = 1
+            value = 1,
+            rows = 1
           )
         ),
 

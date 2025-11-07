@@ -1,0 +1,113 @@
+study_purpose: |
+  Assessment of concentrations of copper in biota and environmental media in the Arctic and near-Arctic, 
+  covering the last century. No minimum of monitoring period, site density, or sampling approach has selected. 
+  The goal is to build a rough, conceptual but weight-of-evidence-based Aggregate Exposure Pathway 
+  (i.e. network diagram of sources, sinks, and fluxes) for copper occurence and exposure to wildlife in the study region.
+
+criteria:
+  - id: RV1
+    name: "RV1: The sampling medium/matrix was appropriate for the given purpose"
+    partly_met:
+      description: "Not applicable"
+      requirements: []
+    fully_met:
+      description: "Paper reports medium/matrix to subcompartment level"
+      requirements:
+        - "Subcompartment is applicable to ecotoxicology"
+        - "Not exclusively human-relevant (e.g. not indoor air)"
+
+  - id: RV2
+    name: "RV2: The sample collection method was adequate for the given purpose"
+    partly_met:
+      description: "Paper reports vague sampling method without quantifying parameters"
+      requirements:
+        - "Depth not specified"
+        - "Sampling period not specified"
+        - "Equipment used not specified"
+    fully_met:
+      description: "Paper reports sampling protocol appropriate for medium type"
+      requirements:
+        - "Degree of specificity and quantification necessary to repeat the study"
+
+  - id: RV3
+    name: "RV3: The study area and number of locations sampled was suitable for the given purpose"
+    partly_met:
+      description: "Study reports areas at low resolution"
+      requirements:
+        - "Identifies area to regional, island, or sea level"
+        - "Low quality map provided"
+        - "Vague details about sampling area"
+        - "No detailed description of conditions, ecosystems, or important nearby pollution sources"
+    fully_met:
+      description: "Study reports sampling sites to high resolution"
+      requirements:
+        - "Coordinates provided (>3 decimal places)"
+        - "Local ecosystem and land use type reported"
+        - "Nearby pollution sources identified"
+        - "Hydrological dynamics reported (if potentially relevant)"
+        - "Time of year sampled reported"
+        - "Recent events that may affect pollution load reported"
+
+  - id: RV4
+    name: "RV4: The rationale for selection of sampling locations was provided and it is suitable for the given purpose"
+    partly_met:
+      description: "Study reports vague goals and reason for sampling area"
+      requirements: []
+    fully_met:
+      description: "Study reports scientific and other considerations in selection of sampling locations"
+      requirements:
+        - "Reasons for selection are clear"
+        - "Proper context (historical, etc.) for site selection are reported"
+
+  - id: RV5
+    name: "RV5: The samples were collected over a time scale that was appropriate for the given purpose"
+    partly_met:
+      description: "Sampling was conducted as a one-off event"
+      requirements:
+        - "Over less than a month total"
+    fully_met:
+      description: "Sites were resampled over multiple months/years"
+      requirements:
+        - "Multiple sampling events over time, OR"
+        - "Similar sites were sampled with appropriate justification for this similarity"
+
+  - id: RV9
+    name: "RV9: The method was sensitive enough for the given purpose"
+    partly_met:
+      description: "Basic analytical methods used"
+      requirements:
+        - "AAS (Atomic Absorption Spectroscopy)"
+        - "Acid digestion"
+      notes: "Consult with Kuria for specific requirements"
+    fully_met:
+      description: "Advanced analytical methods used"
+      requirements:
+        - "Fractionation performed"
+        - "ICP-MS (Inductively Coupled Plasma Mass Spectrometry)"
+      notes: "Consult with Kuria for specific requirements"
+
+  - id: RV10
+    name: "RV10: The summary statistics provided were appropriate for the given purpose"
+    partly_met:
+      description: "Study reports mean values aggregated over similar populations/areas"
+      requirements:
+        - "Uncertainty provided (SD, range, or CI)"
+    fully_met:
+      description: "Study reports original measured values per individual reading"
+      requirements: []
+
+  - id: RV11
+    name: "RV11: All supporting parameters that were needed to achieve the given purpose were provided"
+    partly_met:
+      description: "Total copper concentrations reported"
+      requirements:
+        - "All copper concentrations reported as total digested fraction"
+      notes: |
+        Although interpreting copper concentrations in both biota and environmental compartments requires 
+        an assessment of geochemistry/biochemistry, this assessment is foregoing an in-depth exploration 
+        of these factors to reduce scope.
+    fully_met:
+      description: "Fractionated copper data reported"
+      requirements:
+        - "Paper reported fractionated copper concentrations, OR"
+        - "Paper reported bioavailable fractions"

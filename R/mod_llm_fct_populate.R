@@ -366,6 +366,7 @@ create_parameters_from_llm <- function(
         ))
       },
       PARAMETER_TYPE_SUB = if (!is.null(db_match)) {
+        browser()
         db_match$PARAMETER_TYPE_SUB
       } else {
         "Not reported"

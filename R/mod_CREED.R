@@ -9,10 +9,10 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText markdown
+#' @importFrom shiny NS tagList textInput textAreaInput actionButton checkboxInput renderText markdown HTML
 #' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel input_task_button
 #' @importFrom bsicons bs_icon
-#' @importFrom shinyjs disabled
+#' @importFrom shinyjs disabled disable enable
 #' @export
 mod_CREED_ui <- function(id) {
   ns <- NS(id)
@@ -33,8 +33,10 @@ mod_CREED_ui <- function(id) {
             style = "margin: 10px 10px 0 10px; display: flex; align-items: center; gap: 15px;",
             input_task_button(
               id = ns("get_data"),
-              label = "Get Data from Modules",
-              icon = icon("refresh"),
+              label = list(
+                "Get Data from Modules",
+                bs_icon("arrow-down-circle-fill")
+              ),
               class = "btn-primary"
             ),
             uiOutput(ns("validation_reporter")),
@@ -187,15 +189,51 @@ mod_CREED_server <- function(id) {
 
     # 3. Observers and Reactives ----
 
+    ## observe enable CREED assessment once measurements are entered
+    # upstream: session$userData$reactiveValues$measurementsDataValid
+    # downstream: alll CREED stuff
+    observe(
+      {
+        tryCatch(
+          {
+            if (isTRUE(session$userData$reactiveValues$measurementsDataValid)) {
+              enable("get_data")
+            } else {
+              disable("get_data")
+            } # we could technically do this with toggle() but I trust this implementation slightly more?
+          },
+          error = function(e) {
+            showNotification(
+              paste("CREED validation of previous modules failed:", e$message),
+              type = "error"
+            )
+          }
+        )
+      }
+    ) |>
+      bindEvent(
+        session$userData$reactiveValues$measurementsDataValid == TRUE,
+        ignoreInit = FALSE
+      )
+
     ## observe ~bindEvent(save_assessment): Save CREED assessment ----
     # upstream: user clicks input$save_assessment
     # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
     observe(
       {
-        print_dev("autopop all triggered")
-        # this needs to be slightly more robust than just turning it TRUE once...
-        session$userData$reactiveValues$creedGetData <- TRUE
-        # individual submodule functions go here.
+        tryCatch(
+          {
+            session$userData$reactiveValues$creedGetData <- session$userData$reactiveValues$creedGetData +
+              1
+          },
+          error = function(e) {
+            showNotification(
+              paste("CREED Autopopulation failed:", e$message),
+              type = "error"
+            )
+          }
+        )
+        # this triggers all the autopopulation observers in the individual CREED modules
       }
     ) |>
       bindEvent(input$get_data)
@@ -206,7 +244,9 @@ mod_CREED_server <- function(id) {
     # upstream: moduleState$is_valid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
-      validation_status <- if (moduleState$ready_for_assessment) {
+      validation_status <- if (
+        session$userData$reactiveValues$measurementsDataValid
+      ) {
         div(
           bs_icon("clipboard2-check"),
           "Data module validated successfully.",
@@ -215,13 +255,17 @@ mod_CREED_server <- function(id) {
       } else {
         div(
           bs_icon("exclamation-triangle"),
-          "Please complete the data module before starting CREED assessment..",
+          "Please complete the data module before starting CREED assessment.",
           class = "validation-status validation-warning"
         )
       }
 
       div(validation_status, class = "validation-container")
-    })
+    }) |>
+      bindEvent(
+        session$userData$reactiveValues$measurementsDataValid,
+        ignoreInit = FALSE
+      )
 
     ## output: status_reporter ----
     # upstream: moduleState$assessment_saved

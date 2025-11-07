@@ -491,6 +491,7 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$parameters)) {
+            browser()
             parameters_data <- create_parameters_from_llm(
               moduleState$structured_data$parameters,
               session = session

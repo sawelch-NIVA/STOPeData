@@ -54,7 +54,7 @@ app_server <- function(input, output, session) {
         relevance_criteria = tibble(NULL),
         CREED_output = tibble(NULL)
       ),
-      creedGetData = NULL, # watched by multiple observers in nested CREED modules
+      creedGetData = 0, # watched by multiple observers in nested CREED modules. +1 every time we input$get_data in mod_CREED
 
       # LLM extracted data and metadata ----
       schemaLLM = "",

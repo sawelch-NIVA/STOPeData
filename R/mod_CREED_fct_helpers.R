@@ -680,3 +680,8 @@ auto_populate_relevance_fields <- function(user_data) {
     # Add other mappings
   )
 }
+
+#' @importFrom yaml read_yaml
+copper_CREED_purpose_statement <- function() {
+  read_yaml("inst/app/www/md/CREED_Copper_Purpose.yml")
+}

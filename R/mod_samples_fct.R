@@ -172,6 +172,7 @@ parse_compartment_selections <- function(
 #' @param environ_compartment_sub Environmental sub-compartment (vectorized)
 #' @param date Sampling date (vectorized)
 #' @param subsample subsample
+#' @importFrom stringr str_to_title str_remove_all
 #' @noRd
 generate_sample_id_with_components <- function(
   site_code,
@@ -192,8 +193,12 @@ generate_sample_id_with_components <- function(
 
   base_id <- glue("{site_code}-{param_abbrev}-{comp_abbrev}-{date_abbrev}")
 
+  subsample <- subsample |>
+    str_to_title("Hello I am Sample") |>
+    str_remove_all("\\s")
+
   # Vectorized replicate handling
-  subsample_suffix <- sprintf("-R%02s", trimws(subsample))
+  subsample_suffix <- glue("-R-{subsample}")
   paste0(base_id, subsample_suffix)
 }
 
