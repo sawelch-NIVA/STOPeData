@@ -99,7 +99,7 @@ mod_methods_ui <- function(id) {
       full_screen = TRUE,
       div(
         rHandsontableOutput(ns("methods_table")),
-        style = "margin-bottom: 10px;"
+        style = "margin: 20px; word-wrap: break-word;"
       )
     )
   )
@@ -123,59 +123,78 @@ mod_methods_server <- function(id) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
-    moduleState <- reactiveValues(
-      methods_data = initialise_methods_tibble(),
-      validated_data = tibble(NULL),
-      is_valid = FALSE
-    )
+    # CHANGED: Keep only UI-specific transient state here
+    moduleState <- reactiveValues()
 
     ## Protocol options by category ----
     protocol_options <- protocol_options_vocabulary()
     protocol_categories <- protocol_categories_vocabulary()
     protocol_names <- unique(protocol_options$Short_Name)
 
-    ## Set initial empty data frame ----
-    moduleState$methods_data <- initialise_methods_tibble()
-
     ## InputValidator for table-level validation ----
     # ! FORMAT-BASED
+    # CHANGED: Reference userData instead of moduleState
+    # CHANGED: Separate rule for each validation check
     iv <- InputValidator$new()
-    iv$add_rule("methods_table_validation", function(value) {
-      if (nrow(moduleState$methods_data) == 0) {
+
+    ## Rule: At least one method required ----
+    iv$add_rule("methods_table_min_rows", function(value) {
+      if (nrow(session$userData$reactiveValues$methodsData) == 0) {
         "At least one method must be added"
-      } else {
-        # Check required fields
-        required_fields <- c("PROTOCOL_CATEGORY", "PROTOCOL_NAME")
+      }
+    })
 
-        for (i in 1:nrow(moduleState$methods_data)) {
-          for (field in required_fields) {
-            value <- moduleState$methods_data[i, field]
-            if (is_empty(value) || value == "") {
-              return(paste("Row", i, "is missing required field:", field))
-            }
-          }
+    ## Rule: Required fields must be present ----
+    iv$add_rule("methods_table_required_fields", function(value) {
+      if (nrow(session$userData$reactiveValues$methodsData) == 0) {
+        return(NULL)
+      }
 
-          # Validate category/protocol combinations
-          category <- moduleState$methods_data[i, "PROTOCOL_CATEGORY"]
-          protocol <- moduleState$methods_data[i, "PROTOCOL_NAME"]
+      required_fields <- c("PROTOCOL_CATEGORY", "PROTOCOL_NAME")
 
-          # Check if protocol is valid for the category
-          if (category %in% names(protocol_options)) {
-            valid_protocols <- protocol_options[[category]]
-            if (!protocol %in% valid_protocols) {
-              return(paste(
-                "Row",
-                i,
-                "has invalid protocol",
-                protocol,
-                "for category",
-                category
-              ))
-            }
+      for (i in 1:nrow(session$userData$reactiveValues$methodsData)) {
+        for (field in required_fields) {
+          value <- session$userData$reactiveValues$methodsData[i, field]
+          if (is_empty(value) || value == "") {
+            return(paste("Row", i, "is missing required field:", field))
           }
         }
-        NULL # All validations passed
       }
+      NULL
+    })
+
+    ## Rule: Protocol must be valid for category ----
+    iv$add_rule("methods_table_protocol_category_match", function(value) {
+      if (nrow(session$userData$reactiveValues$methodsData) == 0) {
+        return(NULL)
+      }
+
+      for (i in 1:nrow(session$userData$reactiveValues$methodsData)) {
+        category <- session$userData$reactiveValues$methodsData[
+          i,
+          "PROTOCOL_CATEGORY"
+        ]
+        protocol <- session$userData$reactiveValues$methodsData[
+          i,
+          "PROTOCOL_NAME"
+        ]
+
+        # Check if protocol is valid for the category
+        if (category %in% names(protocol_options)) {
+          valid_protocols <- protocol_options[[category]]
+          if (!protocol %in% valid_protocols) {
+            return(paste(
+              "Row",
+              i,
+              "has invalid protocol",
+              protocol,
+              "for category",
+              category
+            ))
+          }
+        }
+      }
+      NULL
     })
 
     iv$enable()
@@ -247,93 +266,117 @@ mod_methods_server <- function(id) {
     }) |>
       bindEvent(
         input$protocol_category_select,
-        ignoreInit = FALSE,
-        ignoreNULL = FALSE
+        ignoreInit = FALSE
       )
 
-    ## observe ~bindEvent(add_method): Add method to basket ----
-    # upstream: user clicks input$add_method
-    # downstream: moduleState$methods_data
+    ## observe ~ bindEvent: Add selected method to table ----
+    # upstream: input$add_method, input$protocol_category_select, input$protocol_name_select
+    # downstream: session$userData$reactiveValues$methodsData
     observe({
       category <- input$protocol_category_select
       protocols <- input$protocol_name_select
 
-      if (
-        isTruthy(category) &&
-          isTruthy(protocols) &&
-          length(protocols) > 0 &&
-          all(protocols != "")
-      ) {
-        # Use lapply instead of sapply to avoid issues with the assignment
-        lapply(protocols, function(protocol) {
-          # TODO: This doesn't properly follow our add_row approach for module tibbles.
-          # Add new method (allow duplicates as user might need multiple instances)
-          new_method <- create_method_entry(category, protocol)
-          moduleState$methods_data <<- rbind(
-            # Use <<- for assignment in lapply
-            moduleState$methods_data,
-            new_method
-          )
-          session$userData$reactiveValues$methodsData <- moduleState$methods_data
-        })
+      if (isTruthy(category) && isTruthy(protocols)) {
+        # Create entries for all selected protocols
+        new_entries <- lapply(protocols, function(protocol) {
+          create_method_entry(category, protocol)
+        }) |>
+          bind_rows()
 
-        # Reset form
-        updateSelectInput(
-          session,
-          "protocol_name_select",
-          selected = ""
-        )
-
-        showNotification(
-          glue(
-            "Added {length(protocols)} method(s): {category} → {paste(protocols, collapse = ', ')}"
-          ),
-          type = "message"
-        )
-      } else {
-        showNotification(
-          "Please select both category and protocol(s) before adding",
-          type = "warning"
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$methodsData <- bind_rows(
+          session$userData$reactiveValues$methodsData,
+          new_entries
         )
       }
     }) |>
       bindEvent(input$add_method)
 
-    ## observe: Handle table changes ----
-    # upstream: input$methods_table changes
-    # downstream: moduleState$methods_data
+    ## observe ~ bindEvent: Update methods data from table edits ----
+    # upstream: input$methods_table (HOT edits)
+    # downstream: session$userData$reactiveValues$methodsData
     observe({
-      if (!is.null(input$methods_table)) {
-        updated_data <- hot_to_r(input$methods_table)
-        moduleState$methods_data <- updated_data
-        session$userData$reactiveValues$methodsData <- moduleState$methods_data
+      # CHANGED: Update userData instead of moduleState
+      if (
+        isTruthy(input$methods_table) &&
+          nrow(session$userData$reactiveValues$methodsData) > 0
+      ) {
+        tryCatch(
+          {
+            updated_data <- hot_to_r(input$methods_table)
+
+            # Check if any rows were actually removed (row count decreased)
+            if (
+              nrow(updated_data) <
+                nrow(session$userData$reactiveValues$methodsData)
+            ) {
+              # Get current HOT selection - this might contain row indices
+              # that were marked for deletion
+              session$userData$reactiveValues$methodsData <- updated_data
+            } else {
+              # Normal update - preserve all rows
+              # Update only the editable fields, keep generated fields
+              for (i in 1:nrow(updated_data)) {
+                if (i <= nrow(session$userData$reactiveValues$methodsData)) {
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_CATEGORY"
+                  ] <-
+                    updated_data[i, "PROTOCOL_CATEGORY"]
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_NAME"
+                  ] <-
+                    updated_data[i, "PROTOCOL_NAME"]
+                  session$userData$reactiveValues$methodsData[
+                    i,
+                    "PROTOCOL_COMMENT"
+                  ] <-
+                    updated_data[i, "PROTOCOL_COMMENT"]
+                }
+              }
+            }
+          },
+          error = function(e) {
+            showNotification(
+              paste0(
+                "Error updating methods data from table. Please report to admin. Additional details:",
+                e$message
+              ),
+              type = "error"
+            )
+          }
+        )
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$methods_table, ignoreInit = TRUE, ignoreNULL = TRUE)
 
-    ## observe: Check overall validation status ----
-    # upstream: moduleState$methods_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data
+    ## observe: Check overall validation status and update reactiveValues ----
+    # upstream: session$userData$reactiveValues$methodsData, iv
+    # downstream: session$userData$reactiveValues$methodsDataValid
+    # CHANGED: Update validation status in userData
     observe({
       validation_result <- iv$is_valid()
 
-      if (validation_result && nrow(moduleState$methods_data) > 0) {
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$methods_data
+      if (
+        validation_result &&
+          nrow(session$userData$reactiveValues$methodsData) > 0
+      ) {
+        session$userData$reactiveValues$methodsDataValid <- TRUE
       } else {
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
+        session$userData$reactiveValues$methodsDataValid <- FALSE
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(iv$is_valid(), session$userData$reactiveValues$methodsDataValid)
 
     ## observe ~ bindEvent: Load methods data from LLM extraction ----
     observe({
       methodsDataLLM <- session$userData$reactiveValues$methodsDataLLM
 
+      # CHANGED: Update userData directly instead of moduleState
       # If methodsDataLLM has rows, replace existing data
       if (nrow(methodsDataLLM) > 0) {
-        moduleState$methods_data <- methodsDataLLM
+        session$userData$reactiveValues$methodsData <- methodsDataLLM
       }
     }) |>
       bindEvent(
@@ -343,10 +386,11 @@ mod_methods_server <- function(id) {
       )
 
     ## observe: Update protocol IDs and campaign names ----
-    ## upstream: moduleState$methods_data, session$userData$reactiveValues$campaignData
+    ## upstream: session$userData$reactiveValues$methodsData, session$userData$reactiveValues$campaignData
     ## downstream: methods HOT table and data objects
     observe({
-      if (nrow(moduleState$methods_data) > 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$methodsData) > 0) {
         campaign_name <- get_session_data_safe(
           session,
           "campaignData",
@@ -362,7 +406,7 @@ mod_methods_server <- function(id) {
         )
 
         # Update data with proper protocol IDs and campaign names
-        updated_data <- moduleState$methods_data |>
+        updated_data <- session$userData$reactiveValues$methodsData |>
           group_by(PROTOCOL_CATEGORY) |>
           mutate(sequence = row_number()) |>
           ungroup() |> #there might meant to be a rowwise() here, check master before the pr if necessary...
@@ -380,23 +424,25 @@ mod_methods_server <- function(id) {
           relocate(PROTOCOL_ID)
 
         # Only update if there are actual changes to avoid infinite loops
-        if (!identical(moduleState$methods_data, updated_data)) {
-          moduleState$methods_data <- updated_data
-          session$userData$reactiveValues$methodsData <- moduleState$methods_data
+        # CHANGED: Compare and update within userData
+        if (
+          !identical(session$userData$reactiveValues$methodsData, updated_data)
+        ) {
+          session$userData$reactiveValues$methodsData <- updated_data
         }
       }
     }) |>
       bindEvent(
-        moduleState$methods_data,
+        session$userData$reactiveValues$methodsData,
         session$userData$reactiveValues$campaignData,
         ignoreInit = TRUE
       )
 
     ## observer: receive data from session$userData$reactiveValues$methodsData (import) ----
     ## and update module data
+    # CHANGED: Data is already in userData, just log the event
     observe({
-      moduleState$methods_data <- session$userData$reactiveValues$methodsData
-      print_dev("Assigned saved data to methods moduleData.")
+      print_dev("Loaded saved data into methods userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -408,91 +454,92 @@ mod_methods_server <- function(id) {
     # 4. Outputs ----
 
     ## output: methods_table ----
-    # upstream: moduleState$methods_data
+    # upstream: session$userData$reactiveValues$methodsData
     # downstream: UI table display
     output$methods_table <- renderRHandsontable({
-      if (nrow(moduleState$methods_data) == 0) {
-        # Show empty table structure
-        rhandsontable(
-          initialise_methods_tibble(),
-          selectCallback = TRUE,
-          width = NULL
-        ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
-          hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
-            customOpts = list(
-              # Only include remove_row in the menu
-              "row_above" = NULL,
-              "row_below" = NULL,
-              "remove_row" = list(
-                name = "Remove selected rows"
-              )
-            )
-          )
-      } else {
-        rhandsontable(
-          moduleState$methods_data,
-          selectCallback = TRUE,
-          stretchH = "all",
-          width = NULL
-        ) |>
-          hot_table(overflow = "visible", stretchH = "all") |>
-          hot_col(
-            "PROTOCOL_ID",
-            readOnly = TRUE,
-            renderer = "
+      # CHANGED: Reference userData instead of moduleState
+      # if (nrow(session$userData$reactiveValues$methodsData) == 0) {
+      #   # Show empty table structure
+      #   rhandsontable(
+      #     initialise_methods_tibble(),
+      #     selectCallback = TRUE,
+      #     width = NULL
+      #   ) |>
+      #     hot_table(overflow = "visible", stretchH = "all") |>
+      #     hot_context_menu(
+      #       allowRowEdit = TRUE, # Enable row operations
+      #       allowColEdit = FALSE, # Disable column operations
+      #       customOpts = list(
+      #         # Only include remove_row in the menu
+      #         "row_above" = NULL,
+      #         "row_below" = NULL,
+      #         "remove_row" = list(
+      #           name = "Remove selected rows"
+      #         )
+      #       )
+      #     )
+      # } else {
+      rhandsontable(
+        session$userData$reactiveValues$methodsData,
+        selectCallback = TRUE,
+        stretchH = "all",
+        width = NULL
+      ) |>
+        hot_table(overflow = "visible", stretchH = "all") |>
+        hot_col(
+          "PROTOCOL_ID",
+          readOnly = TRUE,
+          renderer = "
         function(instance, td, row, col, prop, value, cellProperties) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           td.style.backgroundColor = '#f5f5f5';
           td.style.fontStyle = 'italic';
         }
       "
-          ) |>
-          hot_col(
-            "CAMPAIGN_NAME",
-            readOnly = TRUE,
-            renderer = "
+        ) |>
+        hot_col(
+          "CAMPAIGN_NAME",
+          readOnly = TRUE,
+          renderer = "
         function(instance, td, row, col, prop, value, cellProperties) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
           td.style.backgroundColor = '#f5f5f5';
         }
       "
-          ) |>
-          hot_col(
-            "PROTOCOL_CATEGORY",
-            type = "dropdown",
-            source = protocol_categories_vocabulary(),
-            strict = TRUE
-          ) |>
-          hot_col(
-            "PROTOCOL_NAME",
-            type = "dropdown",
-            source = protocol_options_vocabulary(),
-            strict = TRUE
-          ) |>
-          hot_col(
-            "PROTOCOL_COMMENT",
-            type = "text"
-          ) |>
-          hot_context_menu(
-            allowRowEdit = TRUE, # Enable row operations
-            allowColEdit = FALSE, # Disable column operations
-            customOpts = list(
-              # Only include remove_row in the menu
-              "row_above" = NULL,
-              "row_below" = NULL,
-              "remove_row" = list(
-                name = "Remove selected rows"
-              )
+        ) |>
+        hot_col(
+          "PROTOCOL_CATEGORY",
+          type = "dropdown",
+          source = protocol_categories_vocabulary(),
+          strict = TRUE
+        ) |>
+        hot_col(
+          "PROTOCOL_NAME",
+          type = "dropdown",
+          source = protocol_options_vocabulary(),
+          strict = TRUE
+        ) |>
+        hot_col(
+          "PROTOCOL_COMMENT",
+          type = "text"
+        ) |>
+        hot_context_menu(
+          allowRowEdit = TRUE, # Enable row operations
+          allowColEdit = FALSE, # Disable column operations
+          customOpts = list(
+            # Only include remove_row in the menu
+            "row_above" = NULL,
+            "row_below" = NULL,
+            "remove_row" = list(
+              name = "Remove selected rows"
             )
           )
-      }
+        )
+      # }
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, mod_llm output
+    # upstream: session$userData$reactiveValues$methodsDataValid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -508,12 +555,15 @@ mod_methods_server <- function(id) {
         NULL
       }
 
-      validation_status <- if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status instead of moduleState
+      validation_status <- if (
+        session$userData$reactiveValues$methodsDataValid
+      ) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All methods data validated successfully.",
-            nrow(moduleState$methods_data),
+            nrow(session$userData$reactiveValues$methodsData),
             "method(s) ready."
           ),
           class = "validation-status validation-complete"
@@ -530,15 +580,19 @@ mod_methods_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$methodsData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$methodsDataValid &&
+          nrow(session$userData$reactiveValues$methodsData) > 0
+      ) {
         # Format each method as a separate entry
         method_entries <- lapply(
-          1:nrow(moduleState$validated_data),
+          1:nrow(session$userData$reactiveValues$methodsData),
           function(i) {
-            method <- moduleState$validated_data[i, ]
+            method <- session$userData$reactiveValues$methodsData[i, ]
             method_lines <- sapply(names(method), function(name) {
               value <- method[[name]]
               if (is.na(value) || is.null(value) || value == "") {

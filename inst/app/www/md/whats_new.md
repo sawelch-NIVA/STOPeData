@@ -1,9 +1,18 @@
-- Changed all internal data formats to use `tibble()` rather than `list()`). This isn't very exciting from an end user perspective, but enables:
-- Added the ability to download and upload your current progress as a zipped set of CSV files at any time. Currently this is limited to **validated data,** which is not ideal if you're working with a big dataset that takes a long time to validate.
-  - I hope to fix this over the next few days, but I'd appreciate if you could test the current functionality and let me know if you encounter any issues.
-  - If you want to open the file and inspect the CSVs, you can do this. You can also edit them in Excel before reuploading. I tend to bounce between the app and Excel based on the sort of data I'm inputting.
-- Tables now use timed autosave/validation rather than updating every time you change something. This should fix the issues we've had with flickering tables/data loss. Please let me know of any more issues.
-- Aquatic Sediment is now properly available as a subcompartment.
+##### Convenience
+- Download extracted/entered data as a .zip of CSVs, then reupload via the landing page to continue later.
+- The app should now crash less often, and return at least vaguely informative error notifications when something does go wrong.
+- Increased LLM token size limit. We can extract more data, but the cost per paper has doubled to $0.20.
+
+##### Sites
+- When adding sites from the map you can now choose what precision to report coordinates at.
+
+##### Compartments
+- Added *Aquatic Sediment*, *Sludge*, and *Porewater* as subcompartments of *Aquatic*
+
+##### Samples
+- Sample REPLICATE has been changed to SUBSAMPLE and now takes text values. This allows splitting samples into e.g. different sediment core depths, different combinations of tissues and organisms, etc.
+
+##### Measurements
 - w/w dry weight and wet weight units (both conventional SI and ppm/ppb/etc.) can now be selected as options.
-- Sample REPLICATE has been changed to SUBSAMPLE and now takes text values. This allows splitting samples into e.g. different sediment core depths
 - MEASURED_SD has been replaced with UNCERTAINTY_TYPE, UNCERTAINTY_UPPER, UNCERTAINTY_LOWER and MEASURED_N, which allow more precise reporting of uncertainty.
+- EXPERIMENTAL: As part of the extraction process the LLM now scores the paper and its job extracting data from it. I don't know how effective this is, but I'd be interested to hear all your experiences with it.

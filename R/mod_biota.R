@@ -20,7 +20,7 @@ mod_biota_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Enable shinyjs
+    # Enable shinyjs ----
     useShinyjs(),
 
     # Main content card ----
@@ -185,10 +185,8 @@ mod_biota_server <- function(id) {
 
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
+    # CHANGED: Keep only UI-specific transient state here
     moduleState <- reactiveValues(
-      biota_data = tibble(NULL),
-      validated_data = NULL,
-      is_valid = FALSE,
       has_biota_samples = FALSE,
       llm_validation_results = NULL,
       validation_message = "",
@@ -204,7 +202,11 @@ mod_biota_server <- function(id) {
 
     # Rule 1: Check if biota samples expected but no data available
     iv$add_rule("biota_table_has_data", function(value) {
-      if (moduleState$has_biota_samples && nrow(moduleState$biota_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (
+        moduleState$has_biota_samples &&
+          nrow(session$userData$reactiveValues$biotaData) == 0
+      ) {
         moduleState$validation_message <<- "Biota samples detected but no biota data available"
         return("Biota samples detected but no biota data available")
       }
@@ -212,7 +214,11 @@ mod_biota_server <- function(id) {
 
     # Rule 2: Check for missing required fields in any row
     iv$add_rule("biota_table_data_valid", function(value) {
-      if (moduleState$has_biota_samples && nrow(moduleState$biota_data) > 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (
+        moduleState$has_biota_samples &&
+          nrow(session$userData$reactiveValues$biotaData) > 0
+      ) {
         required_biota_fields <- c(
           "SPECIES_GROUP",
           "SAMPLE_SPECIES",
@@ -221,9 +227,9 @@ mod_biota_server <- function(id) {
           "SAMPLE_SPECIES_GENDER"
         )
 
-        for (i in 1:nrow(moduleState$biota_data)) {
+        for (i in 1:nrow(session$userData$reactiveValues$biotaData)) {
           for (field in required_biota_fields) {
-            field_value <- moduleState$biota_data[i, field]
+            field_value <- session$userData$reactiveValues$biotaData[i, field]
             if (
               is.na(field_value) ||
                 field_value == "" ||
@@ -411,7 +417,7 @@ mod_biota_server <- function(id) {
 
     ## observe ~ bindEvent(session$userData$reactiveValues$samplesData): Load biota samples from session data ----
     # upstream: session$userData$reactiveValues$samplesData
-    # downstream: moduleState$biota_data, moduleState$has_biota_samples
+    # downstream: session$userData$reactiveValues$biotaData, moduleState$has_biota_samples
     observe({
       if (!is.null(session$userData$reactiveValues$samplesData)) {
         samples_data <- session$userData$reactiveValues$samplesData
@@ -420,18 +426,23 @@ mod_biota_server <- function(id) {
         moduleState$has_biota_samples <- nrow(biota_samples) > 0
 
         if (moduleState$has_biota_samples) {
+          # CHANGED: Update userData instead of moduleState
           # Only update if we don't already have biota data or if structure changed
           if (
-            nrow(moduleState$biota_data) == 0 ||
+            nrow(session$userData$reactiveValues$biotaData) == 0 ||
               !identical(
                 biota_samples$SAMPLE_ID,
-                moduleState$biota_data$SAMPLE_ID
+                session$userData$reactiveValues$biotaData$SAMPLE_ID
               )
           ) {
-            moduleState$biota_data <- biota_samples
+            session$userData$reactiveValues$biotaData <- biota_samples
+            print_dev(glue(
+              "mod_biota loaded {nrow(biota_samples)} biota samples"
+            ))
           }
         } else {
-          moduleState$biota_data <- initialise_biota_tibble()
+          session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
+          print_dev("mod_biota: No biota samples found")
         }
       }
     }) |>
@@ -444,13 +455,14 @@ mod_biota_server <- function(id) {
 
     ## observe ~ force loading biota samples if the table is stuck ----
     # upstream: session$userData$reactiveValues$samplesData
-    # downstream: moduleState$biota_data, moduleState$has_biota_samples
+    # downstream: session$userData$reactiveValues$biotaData, moduleState$has_biota_samples
     observe({
       if (!is.null(session$userData$reactiveValues$samplesData)) {
         samples_data <- session$userData$reactiveValues$samplesData
         biota_samples <- extract_biota_samples(samples_data)
 
-        moduleState$biota_data <- biota_samples
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$biotaData <- biota_samples
       }
     }) |>
       bindEvent(
@@ -461,7 +473,7 @@ mod_biota_server <- function(id) {
 
     ## observe ~bindEvent(LLM data validates or updates): Load and validate LLM biota ----
     # upstream: session$userData$reactiveValues$llmExtractionComplete
-    # downstream: moduleState$biota_data, moduleState$llm_lookup_validation, moduleState$llm_validation_results
+    # downstream: session$userData$reactiveValues$biotaData, moduleState$llm_lookup_validation, moduleState$llm_validation_results
     observe({
       llm_biota <- session$userData$reactiveValues$biotaDataLLM |> na.omit() # LLM returns a column of all NAs if there are no hits
       if (
@@ -469,8 +481,8 @@ mod_biota_server <- function(id) {
           nrow(llm_biota) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
-        # Load and validate biota
-        moduleState$biota_data <- llm_biota
+        # CHANGED: Load to userData instead of moduleState
+        session$userData$reactiveValues$biotaData <- llm_biota
 
         # Run validation if moduleState$species_options is available
         if (
@@ -478,7 +490,7 @@ mod_biota_server <- function(id) {
             nrow(moduleState$species_options) > 0
         ) {
           validation_result <- validate_species_against_database(
-            moduleState$biota_data,
+            session$userData$reactiveValues$biotaData,
             moduleState$species_options
           )
           moduleState$llm_validation_results <- validation_result
@@ -488,38 +500,36 @@ mod_biota_server <- function(id) {
             append(c("Not reported", "Not relevant"), after = 0)
 
           moduleState$llm_lookup_validation <- TRUE
-          #send to module storage if valid
-          session$userData$reactiveValues$biotadata <- llm_biota
 
           # Show notification based on validation
-          if (validation_result$has_warnings) {
-            showNotification(
-              paste(
-                "Added",
-                nrow(llm_biota),
-                "biota to options (validation warning)"
-              ),
-              type = "warning"
-            )
-          } else {
-            showNotification(
-              paste(
-                "Added",
-                nrow(llm_biota),
-                "biota to options (validated))"
-              ),
-              type = "message"
-            )
-          }
-        } else {
-          showNotification(
-            paste(
-              "Added",
-              nrow(llm_biota),
-              "biota to options (validation not available)"
-            ),
-            type = "message"
-          )
+          #   if (validation_result$has_warnings) {
+          #     showNotification(
+          #       paste(
+          #         "Added",
+          #         nrow(llm_biota),
+          #         "biota to options (validation warning)"
+          #       ),
+          #       type = "warning"
+          #     )
+          #   } else {
+          #     showNotification(
+          #       paste(
+          #         "Added",
+          #         nrow(llm_biota),
+          #         "biota to options (validated))"
+          #       ),
+          #       type = "message"
+          #     )
+          #   }
+          # } else {
+          #   showNotification(
+          #     paste(
+          #       "Added",
+          #       nrow(llm_biota),
+          #       "biota to options (validation not available)"
+          #     ),
+          #     type = "message"
+          #   )
           moduleState$llm_lookup_validation <- FALSE
         }
       }
@@ -531,22 +541,23 @@ mod_biota_server <- function(id) {
       )
 
     ## observe: Handle table changes ----
-    # upstream: autoInvalidate invalidates (every 10 seconds)
-    # downstream: moduleState$biota_data
+    # upstream: input$biota_table changes
+    # downstream: session$userData$reactiveValues$biotaData
     observe({
       req(input$biota_table)
       if (!is.null(input$biota_table) && moduleState$has_biota_samples) {
         updated_data <- hot_to_r(input$biota_table)
-        moduleState$biota_data <- updated_data
+        # CHANGED: Update userData instead of moduleState
+        session$userData$reactiveValues$biotaData <- updated_data
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$biota_table)
 
     ## observer: receive data from session$userData$reactiveValues$biotaData (import) ----
     ## and update module data
+    # CHANGED: Data is already in userData, just log the event
     observe({
-      moduleState$biota_data <- session$userData$reactiveValues$biotaData
-      print_dev("Assigned saved data to biota moduleData.")
+      print_dev("Loaded saved data into biota userData.")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -556,43 +567,42 @@ mod_biota_server <- function(id) {
       )
 
     ## observe: Check validation and update session data ----
-    # upstream: moduleState$biota_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data, session$userData
+    # upstream: session$userData$reactiveValues$biotaData, iv
+    # downstream: session$userData$reactiveValues$biotaDataValid, session$userData$reactiveValues$samplesDataWithBiota
     observe({
       validation_result <- iv$is_valid()
 
       if (!moduleState$has_biota_samples) {
         # No biota samples - validation passes by default
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- NULL
+        # CHANGED: Update userData validation status
+        session$userData$reactiveValues$biotaDataValid <- TRUE
         session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
-        print_dev("mod_biota: No biota samples, validation passes")
-      } else if (validation_result && nrow(moduleState$biota_data) > 0) {
+      } else if (
+        validation_result && nrow(session$userData$reactiveValues$biotaData) > 0
+      ) {
         # Biota samples exist and are valid
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$biota_data
+        # CHANGED: Update userData validation status
+        session$userData$reactiveValues$biotaDataValid <- TRUE
 
         # Merge biota data back into main samples data
         if (!is.null(session$userData$reactiveValues$samplesData)) {
           updated_samples <- merge_biota_into_samples(
             session$userData$reactiveValues$samplesData,
-            moduleState$validated_data
+            session$userData$reactiveValues$biotaData
           )
           session$userData$reactiveValues$samplesDataWithBiota <- updated_samples
-          session$userData$reactiveValues$biotaData <- moduleState$validated_data
           print_dev(glue(
-            "mod_biota validated and merged {nrow(moduleState$validated_data)} biota samples"
+            "mod_biota validated and merged {nrow(session$userData$reactiveValues$biotaData)} biota samples"
           ))
         }
       } else {
         # Biota samples exist but validation failed
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
-        session$userData$reactiveValues$biotaData <- initialise_biota_tibble()
+        # CHANGED: Update userData validation status
+        session$userData$reactiveValues$biotaDataValid <- FALSE
         print_dev("mod_biota: Validation failed")
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$biota_table, session$userData$reactiveValues$biotaData)
 
     # 4. Outputs ----
 
@@ -609,8 +619,15 @@ mod_biota_server <- function(id) {
       }
     })
 
+    ## output: biota_table ----
+    # upstream: session$userData$reactiveValues$biotaData
+    # downstream: UI table display
     output$biota_table <- renderRHandsontable({
-      if (!moduleState$has_biota_samples || nrow(moduleState$biota_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (
+        !moduleState$has_biota_samples ||
+          nrow(session$userData$reactiveValues$biotaData) == 0
+      ) {
         # Show empty table structure
         rhandsontable(
           initialise_biota_tibble(),
@@ -633,7 +650,7 @@ mod_biota_server <- function(id) {
         ))
 
         rhandsontable(
-          moduleState$biota_data,
+          session$userData$reactiveValues$biotaData,
           stretchH = "all",
           selectCallback = TRUE,
           width = NULL,
@@ -690,7 +707,7 @@ mod_biota_server <- function(id) {
             type = "text"
           ) |>
           hot_context_menu(
-            allowRowEdit = FALSE, # Don't allow adding/removing rows
+            allowRowEdit = FALSE,
             allowColEdit = FALSE
           ) |>
           hot_cols(manualColumnResize = TRUE, columnSorting = TRUE)
@@ -714,7 +731,7 @@ mod_biota_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, moduleState$has_biota_samples, mod_llm output
+    # upstream: session$userData$reactiveValues$biotaDataValid, moduleState$has_biota_samples, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -730,18 +747,19 @@ mod_biota_server <- function(id) {
         NULL
       }
 
+      # CHANGED: Reference userData validation status instead of moduleState
       validation_status <- if (!moduleState$has_biota_samples) {
         div(
           bs_icon("info-circle"),
           "No biota samples found. Biota validation not required.",
           class = "validation-status validation-complete"
         )
-      } else if (moduleState$is_valid) {
+      } else if (session$userData$reactiveValues$biotaDataValid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All biota data validated successfully.",
-            nrow(moduleState$biota_data),
+            nrow(session$userData$reactiveValues$biotaData),
             "biota sample(s) ready."
           ),
           class = "validation-status validation-complete"
@@ -758,16 +776,20 @@ mod_biota_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$biotaData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$biotaDataValid &&
+          nrow(session$userData$reactiveValues$biotaData) > 0
+      ) {
         # Format first few biota samples as examples
-        sample_count <- nrow(moduleState$validated_data)
+        sample_count <- nrow(session$userData$reactiveValues$biotaData)
         display_count <- min(3, sample_count)
 
         sample_entries <- lapply(1:display_count, function(i) {
-          sample <- moduleState$validated_data[i, ]
+          sample <- session$userData$reactiveValues$biotaData[i, ]
           # Focus on biota-specific fields
           biota_fields <- c(
             "SAMPLE_ID",

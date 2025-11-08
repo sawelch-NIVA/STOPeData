@@ -21,7 +21,7 @@ mod_references_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # Enable shinyjs
+    # Enable shinyjs ----
     useShinyjs(),
 
     # Main input card ----
@@ -37,7 +37,7 @@ mod_references_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
-          ### DOI lookup placeholder ----
+          ### DOI lookup ----
           div(
             textInput(
               inputId = ns("doi_lookup"),
@@ -66,7 +66,7 @@ mod_references_ui <- function(id) {
                 "Paste BibTeX entry here. Import will overwrite existing field values."
               ),
               placeholder = "Paste BibTeX entry here",
-              rows = 3, # Increased from 1 to accommodate larger entries
+              rows = 3,
               width = "100%"
             ),
             actionButton(
@@ -105,7 +105,7 @@ mod_references_ui <- function(id) {
             inputId = ns("DATA_SOURCE"),
             label = tooltip(
               list("Data Source", bs_icon("info-circle-fill")),
-              "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/ltierature."
+              "Primary: Data were collected as part of the work cited; Secondary: Data were gathered from other sources/literature."
             ),
             choices = c(
               "Primary" = "Primary",
@@ -183,7 +183,7 @@ mod_references_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
-          ### ACCESS_DATE - Required for all  ----
+          ### ACCESS_DATE - Required for all ----
           dateInput(
             inputId = ns("ACCESS_DATE"),
             label = tooltip(
@@ -201,7 +201,7 @@ mod_references_ui <- function(id) {
             inputId = ns("ENTERED_BY"),
             label = tooltip(
               list("Entered by", bs_icon("info-circle-fill")),
-              "Your name or initials. Autofilled from first module if availible."
+              "Your name or initials. Autofilled from first module if available."
             ),
             placeholder = "Your name or initials...",
             width = "100%"
@@ -263,27 +263,6 @@ mod_references_ui <- function(id) {
             width = "100%"
           ),
 
-          ### Dataset-specific fields - COMMENTED OUT ----
-          # textInput(
-          #   inputId = ns("DB_NAME"),
-          #   label = tooltip(
-          #     list("Database Name", bs_icon("info-circle-fill")),
-          #     "Name of the database or dataset"
-          #   ),
-          #   placeholder = "Name of the database/dataset",
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("DB_PROVIDER"),
-          #   label = tooltip(
-          #     list("Database Provider", bs_icon("info-circle-fill")),
-          #     "Organization or entity providing the database"
-          #   ),
-          #   placeholder = "Provider of the database/dataset",
-          #   width = "100%"
-          # ),
-
           ### Optional fields for all types ----
           textInput(
             inputId = ns("DOI"),
@@ -305,16 +284,6 @@ mod_references_ui <- function(id) {
             width = "100%"
           ),
 
-          # textInput(
-          #   inputId = ns("PAGES"),
-          #   label = tooltip(
-          #     list("Pages", bs_icon("info-circle-fill")),
-          #     "Page range or specific pages referenced"
-          #   ),
-          #   placeholder = "e.g., 123-145",
-          #   width = "100%"
-          # ),
-
           textInput(
             inputId = ns("ISBN_ISSN"),
             label = tooltip(
@@ -335,16 +304,6 @@ mod_references_ui <- function(id) {
             width = "100%"
           ),
 
-          # textInput(
-          #   inputId = ns("PUBLISHED_PLACE"),
-          #   label = tooltip(
-          #     list("Published Place", bs_icon("info-circle-fill")),
-          #     "City or location where the work was published"
-          #   ),
-          #   placeholder = "City or location of publication",
-          #   width = "100%"
-          # ),
-
           textInput(
             inputId = ns("DOCUMENT_NUMBER"),
             label = tooltip(
@@ -353,79 +312,7 @@ mod_references_ui <- function(id) {
             ),
             placeholder = "Document identification number if relevant",
             width = "100%"
-          ),
-
-          # textInput(
-          #   inputId = ns("ACCESSION_NUMBER"),
-          #   label = tooltip(
-          #     list("Accession Number", bs_icon("info-circle-fill")),
-          #     "Unique identifier assigned by a database"
-          #   ),
-          #   placeholder = "Database accession number",
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("PMCID"),
-          #   label = tooltip(
-          #     list("PubMed CID", bs_icon("info-circle-fill")),
-          #     "PubMed Central identifier for biomedical literature"
-          #   ),
-          #   placeholder = "PubMed Central ID",
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("SERIES_TITLE"),
-          #   label = tooltip(
-          #     list("Series Title", bs_icon("info-circle-fill")),
-          #     "Title of the publication series if part of one"
-          #   ),
-          #   placeholder = "Title of the series if part of one",
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("SERIES_EDITOR"),
-          #   label = tooltip(
-          #     list("Series Editor", bs_icon("info-circle-fill")),
-          #     "Editor responsible for the publication series"
-          #   ),
-          #   placeholder = "Editor of the series if applicable",
-          #   width = "100%"
-          # ),
-
-          # numericInput(
-          #   inputId = ns("SERIES_VOLUME"),
-          #   label = tooltip(
-          #     list("Series Volume", bs_icon("info-circle-fill")),
-          #     "Volume number within the publication series"
-          #   ),
-          #   value = NA,
-          #   min = 1,
-          #   step = 1,
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("NUMBER_OF_PAGES"),
-          #   label = tooltip(
-          #     list("Number of Pages", bs_icon("info-circle-fill")),
-          #     "Total number of pages in the publication"
-          #   ),
-          #   placeholder = "Total pages",
-          #   width = "100%"
-          # ),
-
-          # textInput(
-          #   inputId = ns("NUMBER_OF_VOLUMES"),
-          #   label = tooltip(
-          #     list("Number of Volumes", bs_icon("info-circle-fill")),
-          #     "Total number of volumes in the work"
-          #   ),
-          #   placeholder = "Number of volumes",
-          #   width = "100%"
-          # )
+          )
         ),
 
         ### REF_COMMENT - Full width text area ----
@@ -478,12 +365,6 @@ mod_references_server <- function(id) {
     ns <- session$ns
 
     # 1. Module setup ----
-    ## reactiveValues: moduleState ----
-    moduleState <- reactiveValues(
-      validated_data = initialise_references_tibble(),
-      is_valid = FALSE
-    )
-
     ## InputValidator$new: iv ----
     iv <- InputValidator$new()
 
@@ -533,37 +414,36 @@ mod_references_server <- function(id) {
 
     # Journal-specific required fields
     iv$add_rule("PERIODICAL_JOURNAL", function(value) {
-      if (input$REFERENCE_TYPE == "journal" && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE == "journal" &&
+          !isTruthy(value)
+      ) {
         "Journal Name is required for journal articles"
       }
     })
 
     # Book-specific required fields
     iv$add_rule("PUBLISHER", function(value) {
-      if (input$REFERENCE_TYPE %in% c("book", "report") && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE %in% c("book", "report") &&
+          !isTruthy(value)
+      ) {
         "Publisher is required for books and reports"
       }
     })
 
     # Report-specific required fields
     iv$add_rule("INSTITUTION", function(value) {
-      if (input$REFERENCE_TYPE == "report" && !isTruthy(value)) {
+      if (
+        isTruthy(input$REFERENCE_TYPE) &&
+          input$REFERENCE_TYPE == "report" &&
+          !isTruthy(value)
+      ) {
         "Institution is required for reports"
       }
     })
-
-    # Dataset-specific required fields - COMMENTED OUT
-    # iv$add_rule("DB_NAME", function(value) {
-    #   if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
-    #     "Database Name is required for datasets"
-    #   }
-    # })
-
-    # iv$add_rule("DB_PROVIDER", function(value) {
-    #   if (input$REFERENCE_TYPE == "dataset" && !isTruthy(value)) {
-    #     "Database Provider is required for datasets"
-    #   }
-    # })
 
     for (field_name in names(reference_character_limits())) {
       limit <- reference_character_limits()[[field_name]]
@@ -591,80 +471,6 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(session$userData$reactiveValues$ENTERED_BY)
 
-    ## observe: conditional field enable/disable based on reference type DISABLED ----
-    # upstream: input$REFERENCE_TYPE
-    # downstream: field enable/disable states
-    # observe({
-    #   ref_type <- input$REFERENCE_TYPE
-
-    #   # Clear non-relevant fields when reference type changes
-    #   if (ref_type != "journal") {
-    #     updateTextInput(session, "PERIODICAL_JOURNAL", value = "")
-    #     updateNumericInput(session, "VOLUME", value = NA)
-    #     updateNumericInput(session, "ISSUE", value = NA)
-    #   }
-
-    #   if (ref_type != "book") {
-    #     if (ref_type != "report") {
-    #       # PUBLISHER is shared between book and report
-    #       updateTextInput(session, "PUBLISHER", value = "")
-    #     }
-    #   }
-
-    #   if (ref_type != "report") {
-    #     updateTextInput(session, "INSTITUTION", value = "")
-    #     if (ref_type != "book") {
-    #       # PUBLISHER is shared between book and report
-    #       updateTextInput(session, "PUBLISHER", value = "")
-    #     }
-    #   }
-
-    #   if (ref_type != "dataset") {
-    #     updateTextInput(session, "DB_NAME", value = "")
-    #     updateTextInput(session, "DB_PROVIDER", value = "")
-    #   }
-
-    #   # Enable/disable fields based on reference type
-    #   # Journal fields
-    #   if (ref_type == "journal") {
-    #     enable("PERIODICAL_JOURNAL")
-    #     enable("VOLUME")
-    #     enable("ISSUE")
-    #   } else {
-    #     disable("PERIODICAL_JOURNAL")
-    #     disable("VOLUME")
-    #     disable("ISSUE")
-    #   }
-
-    #   # Disable PUBLISHER only if dataset
-    #   if (ref_type == "dataset") {
-    #     disable("PUBLISHER")
-    #   } else {
-    #     enable("PUBLISHER")
-    #   }
-
-    #   # Report fields
-    #   if (ref_type == "report") {
-    #     enable("INSTITUTION")
-    #     enable("PUBLISHER")
-    #   } else {
-    #     disable("INSTITUTION")
-    #     if (ref_type != "book") {
-    #       # PUBLISHER shared with book
-    #       disable("PUBLISHER")
-    #     }
-    #   }
-
-    #   # Dataset fields
-    #   if (ref_type == "dataset") {
-    #     enable("DB_NAME")
-    #     enable("DB_PROVIDER")
-    #   } else {
-    #     disable("DB_NAME")
-    #     disable("DB_PROVIDER")
-    #   }
-    # })
-
     ## observe: DOI/PMID lookup functionality ----
     # upstream: input$lookup_doi, input$doi_lookup
     # downstream: all input field updates
@@ -682,11 +488,10 @@ mod_references_server <- function(id) {
       # Show success notification with identifier type
       showNotification(lookup_result$message, type = "default")
 
-      # Map fields to reference fields - reuse the update logic
+      # Map fields to reference fields
       mapped_fields <- lookup_result$data
 
       # Update all input fields with mapped values ----
-      # (This is the same code as in BibTeX import - consider extracting to helper function)
       updateSelectInput(
         session,
         "REFERENCE_TYPE",
@@ -717,62 +522,19 @@ mod_references_server <- function(id) {
         "INSTITUTION",
         value = mapped_fields$INSTITUTION %||% ""
       )
-      # updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")  # COMMENTED OUT
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "DB_PROVIDER",                                                            # COMMENTED OUT
-      #   value = mapped_fields$DB_PROVIDER %||% ""                                 # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
       updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
       updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
-      # updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")      # COMMENTED OUT
       updateTextInput(
         session,
         "ISBN_ISSN",
         value = mapped_fields$ISBN_ISSN %||% ""
       )
       updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "PUBLISHED_PLACE",                                                        # COMMENTED OUT
-      #   value = mapped_fields$PUBLISHED_PLACE %||% ""                             # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
       updateTextInput(
         session,
         "DOCUMENT_NUMBER",
         value = mapped_fields$DOCUMENT_NUMBER %||% ""
       )
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "ACCESSION_NUMBER",                                                       # COMMENTED OUT
-      #   value = mapped_fields$ACCESSION_NUMBER %||% ""                            # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
-      # updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")      # COMMENTED OUT
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "SERIES_TITLE",                                                           # COMMENTED OUT
-      #   value = mapped_fields$SERIES_TITLE %||% ""                                # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "SERIES_EDITOR",                                                          # COMMENTED OUT
-      #   value = mapped_fields$SERIES_EDITOR %||% ""                               # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
-      # updateNumericInput(                                                         # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "SERIES_VOLUME",                                                          # COMMENTED OUT
-      #   value = mapped_fields$SERIES_VOLUME                                       # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "NUMBER_OF_PAGES",                                                        # COMMENTED OUT
-      #   value = mapped_fields$NUMBER_OF_PAGES %||% ""                             # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
-      # updateTextInput(                                                            # COMMENTED OUT
-      #   session,                                                                  # COMMENTED OUT
-      #   "NUMBER_OF_VOLUMES",                                                      # COMMENTED OUT
-      #   value = mapped_fields$NUMBER_OF_VOLUMES %||% ""                           # COMMENTED OUT
-      # )                                                                           # COMMENTED OUT
       updateTextAreaInput(
         session,
         "REF_COMMENT",
@@ -837,62 +599,19 @@ mod_references_server <- function(id) {
         "INSTITUTION",
         value = mapped_fields$INSTITUTION %||% ""
       )
-      # updateTextInput(session, "DB_NAME", value = mapped_fields$DB_NAME %||% "")
-      # updateTextInput(
-      #   session,
-      #   "DB_PROVIDER",
-      #   value = mapped_fields$DB_PROVIDER %||% ""
-      # )
       updateTextInput(session, "DOI", value = mapped_fields$DOI %||% "")
       updateTextInput(session, "URL", value = mapped_fields$URL %||% "")
-      # updateTextInput(session, "PAGES", value = mapped_fields$PAGES %||% "")
       updateTextInput(
         session,
         "ISBN_ISSN",
         value = mapped_fields$ISBN_ISSN %||% ""
       )
       updateTextInput(session, "EDITION", value = mapped_fields$EDITION %||% "")
-      # updateTextInput(
-      #   session,
-      #   "PUBLISHED_PLACE",
-      #   value = mapped_fields$PUBLISHED_PLACE %||% ""
-      # )
       updateTextInput(
         session,
         "DOCUMENT_NUMBER",
         value = mapped_fields$DOCUMENT_NUMBER %||% ""
       )
-      # updateTextInput(
-      #   session,
-      #   "ACCESSION_NUMBER",
-      #   value = mapped_fields$ACCESSION_NUMBER %||% ""
-      # )
-      # updateTextInput(session, "PMCID", value = mapped_fields$PMCID %||% "")
-      # updateTextInput(
-      #   session,
-      #   "SERIES_TITLE",
-      #   value = mapped_fields$SERIES_TITLE %||% ""
-      # )
-      # updateTextInput(
-      #   session,
-      #   "SERIES_EDITOR",
-      #   value = mapped_fields$SERIES_EDITOR %||% ""
-      # )
-      # updateNumericInput(
-      #   session,
-      #   "SERIES_VOLUME",
-      #   value = mapped_fields$SERIES_VOLUME
-      # )
-      # updateTextInput(
-      #   session,
-      #   "NUMBER_OF_PAGES",
-      #   value = mapped_fields$NUMBER_OF_PAGES %||% ""
-      # )
-      # updateTextInput(
-      #   session,
-      #   "NUMBER_OF_VOLUMES",
-      #   value = mapped_fields$NUMBER_OF_VOLUMES %||% ""
-      # )
       updateTextAreaInput(
         session,
         "REF_COMMENT",
@@ -912,7 +631,7 @@ mod_references_server <- function(id) {
 
     ## observe: check validation status and send to session$userData ----
     # upstream: iv
-    # downstream: moduleState$validated_data, moduleState$is_valid
+    # downstream: session$userData$reactiveValues$referenceData, referenceDataValid
     observe({
       if (iv$is_valid()) {
         # Generate REFERENCE_ID
@@ -937,38 +656,23 @@ mod_references_server <- function(id) {
             ISSUE = input$ISSUE %|truthy|% NA,
             PUBLISHER = input$PUBLISHER %|truthy|% NA,
             INSTITUTION = input$INSTITUTION %|truthy|% NA,
-            # DB_NAME = input$DB_NAME %|truthy|% NA,
-            # DB_PROVIDER = input$DB_PROVIDER %|truthy|% NA,
             DOI = input$DOI %|truthy|% NA,
             URL = input$URL %|truthy|% NA,
-            # PAGES = input$PAGES %|truthy|% NA,
             ISBN_ISSN = input$ISBN_ISSN %|truthy|% NA,
             EDITION = input$EDITION %|truthy|% NA,
-            # PUBLISHED_PLACE = input$PUBLISHED_PLACE %|truthy|% NA,
             DOCUMENT_NUMBER = input$DOCUMENT_NUMBER %|truthy|% NA,
-            # ACCESSION_NUMBER = input$ACCESSION_NUMBER %|truthy|% NA,
-            # PMCID = input$PMCID %|truthy|% NA,
-            # SERIES_TITLE = input$SERIES_TITLE %|truthy|% NA,
-            # SERIES_EDITOR = input$SERIES_EDITOR %|truthy|% NA,
-            # SERIES_VOLUME = input$SERIES_VOLUME %|truthy|% NA,
-            # NUMBER_OF_PAGES = input$NUMBER_OF_PAGES %|truthy|% NA,
-            # NUMBER_OF_VOLUMES = input$NUMBER_OF_VOLUMES %|truthy|% NA,
             REF_COMMENT = input$REF_COMMENT %|truthy|% NA
           )
 
-        # update data and UI elements
-        moduleState$validated_data <- validated_data
-        moduleState$is_valid <- TRUE
-        updateTextInput(session, "REFERENCE_ID_DISPLAY", value = reference_id)
+        # CHANGED: Store directly to userData
+        session$userData$reactiveValues$referenceData <- validated_data
+        session$userData$reactiveValues$referenceDataValid <- TRUE
 
-        session$userData$reactiveValues$referenceData <- moduleState$validated_data
-        # print_dev(glue(
-        #   "mod_references is valid: {moduleState$is_valid},
-        #                session$userData$reactiveValues$referenceData: {session$userData$reactiveValues$referenceData}"
-        # ))
+        # Update the displayed reference ID
+        updateTextInput(session, "REFERENCE_ID_DISPLAY", value = reference_id)
       } else {
-        moduleState$validated_data <- NULL
-        moduleState$is_valid <- FALSE
+        # CHANGED: Set validation flag to FALSE
+        session$userData$reactiveValues$referenceDataValid <- FALSE
       }
     })
 
@@ -983,10 +687,10 @@ mod_references_server <- function(id) {
       ) {
         populate_references_from_llm(session, llm_data)
 
-        showNotification(
-          "References form populated.",
-          type = "message"
-        )
+        # showNotification(
+        #   "References form populated.",
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(
@@ -997,21 +701,19 @@ mod_references_server <- function(id) {
       )
 
     ## observer: receive data from session$userData$reactiveValues$referenceData (import) ----
-    ## and update module data
+    ## and update module inputs
     observe({
-      extraction_success <- session$userData$reactiveValues$saveExtractionComplete
-      moduleState$validated_data <- session$userData$reactiveValues$referenceData |>
+      # CHANGED: Data is already in userData, just need to populate the form
+      reference_data <- session$userData$reactiveValues$referenceData |>
         as.list()
-      names(moduleState$validated_data) <- tolower(names(
-        moduleState$validated_data
-      ))
-      # import data is SCREAMING_NAME but module expects snake_case, so we need to conver the list names
+      names(reference_data) <- tolower(names(reference_data))
+      # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
 
       populate_references_from_llm(
         session,
-        moduleState$validated_data
+        reference_data
       )
-      print_dev("Assigned saved data to reference moduleData, updated inputs")
+      print_dev("Populated references form from saved data")
     }) |>
       bindEvent(
         session$userData$reactiveValues$saveExtractionComplete,
@@ -1041,29 +743,18 @@ mod_references_server <- function(id) {
         updateNumericInput(session, "ISSUE", value = NA)
         updateTextInput(session, "PUBLISHER", value = "")
         updateTextInput(session, "INSTITUTION", value = "")
-        # updateTextInput(session, "DB_NAME", value = "")
-        # updateTextInput(session, "DB_PROVIDER", value = "")
         updateTextInput(session, "DOI", value = "")
         updateTextInput(session, "URL", value = "")
-        # updateTextInput(session, "PAGES", value = "")
         updateTextInput(session, "ISBN_ISSN", value = "")
         updateTextInput(session, "EDITION", value = "")
-        # updateTextInput(session, "PUBLISHED_PLACE", value = "")
         updateTextInput(session, "DOCUMENT_NUMBER", value = "")
-        # updateTextInput(session, "ACCESSION_NUMBER", value = "")
-        # updateTextInput(session, "PMCID", value = "")
-        # updateTextInput(session, "SERIES_TITLE", value = "")
-        # updateTextInput(session, "SERIES_EDITOR", value = "")
-        # updateNumericInput(session, "SERIES_VOLUME", value = NA)
-        # updateTextInput(session, "NUMBER_OF_PAGES", value = "")
-        # updateTextInput(session, "NUMBER_OF_VOLUMES", value = "")
         updateTextAreaInput(session, "REF_COMMENT", value = "")
         updateTextInput(session, "doi_lookup", value = "")
         updateTextAreaInput(session, "bibtex_import", value = "")
 
-        # Clear validation state
-        moduleState$validated_data <- initialise_references_tibble()
-        moduleState$is_valid <- FALSE
+        # CHANGED: Clear validation state in userData
+        session$userData$reactiveValues$referenceData <- initialise_references_tibble()
+        session$userData$reactiveValues$referenceDataValid <- FALSE
       } |>
         suppressWarnings()
     ) |>
@@ -1072,10 +763,11 @@ mod_references_server <- function(id) {
     # 3. Outputs ----
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid
+    # upstream: session$userData$reactiveValues$referenceDataValid
     # downstream: UI update
     output$validation_reporter <- renderUI({
-      if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status
+      if (session$userData$reactiveValues$referenceDataValid) {
         div(
           bs_icon("clipboard2-check"),
           "All data validated successfully.",
@@ -1091,22 +783,20 @@ mod_references_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$referenceData (when valid)
     # downstream: UI update
     output$validated_data_display <- renderText(
       {
-        if (isTruthy(moduleState$validated_data)) {
-          printreactiveValues(moduleState$validated_data)
+        # CHANGED: Show data only when valid, reference userData
+        if (
+          session$userData$reactiveValues$referenceDataValid &&
+            nrow(session$userData$reactiveValues$referenceData) > 0
+        ) {
+          printreactiveValues(session$userData$reactiveValues$referenceData)
         } else {
           "# Data object will be created when valid data is entered."
         }
       }
-    )
-
-    ## export: export variables for testing ----
-    exportTestValues(
-      module_data = moduleState$validated_data,
-      module_valid = moduleState$is_valid
     )
   })
 }

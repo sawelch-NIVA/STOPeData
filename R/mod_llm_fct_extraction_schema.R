@@ -136,7 +136,8 @@ create_parameters_schema <- function() {
     type_object(
       .description = "A measured parameter/stressor",
       parameter_name = type_string(
-        description = "Name of the parameter/chemical/stressor measured",
+        description = "Name of the parameter/chemical/stressor measured. If a parameter is reported under multiple names
+         (e.g. Copper and Cu, Paracetamol and Acetaminophen), only return one entry.",
         required = FALSE
       ),
       parameter_type = type_string(
@@ -167,7 +168,7 @@ create_compartments_schema <- function() {
       ),
       environ_compartment_sub = type_string(
         description = as.character(glue(
-          "Sub-compartment: {paste(environ_compartment_subs_vocabulary(), collapse = ', ')}"
+          "Sub-compartment: {paste(environ_compartments_sub_vocabulary(), collapse = ', ')}"
         )),
         required = FALSE
       ),
@@ -254,13 +255,67 @@ create_methods_schema <- function() {
 create_samples_schema <- function() {
   type_array(
     type_object(
-      .description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters. Some of these may be replicated multiple times.",
-      sampling_date = type_string(
+      .description = "Information on the overall sampling strategy of the paper, a (potentially assymetrical) combination of sites, dates, compartments/biota, and measured parameters combined from schema already extracted. 
+      Some of these may be replicated multiple times. It is important to ensure that all reported combinations actually occur in the paper.",
+      sampling_dates = type_string(
         description = "Dates (YYYY-MM-DD) when samples were taken",
+        required = TRUE
+      ),
+      sampling_site_code = type_string(
+        description = "The {site_code} where samples were taken.",
+        required = TRUE
+      ),
+      sampling_site_name = type_string(
+        description = "The {site_name} where samples were taken.",
+        required = TRUE
+      ),
+      sampling_compartment = type_string(
+        description = "The {environ_compartment} > {environ_compartment_sub} > {measured_category} that was sampled.",
+        required = TRUE
+      ),
+      sampling_parameters = type_string(
+        description = "The {parameter_name} measured or analysed, based on the data extracted earlier in the schema.",
+        required = TRUE
+      ),
+      subsample_indices = type_string(
+        description = "Any other sampling dimensions not captured in the schema. this may include tissues, species, core depth, replicates, etc.
+        return either short names or numbers for all valid subsamples per site/parameter/compartment/date combinations as a single comma-separated string (e.g. cod liver, trout liver, cod muscle, crab whole body).",
         required = TRUE
       )
     ),
     description = "Information on the overall sampling strategy of the paper"
+  )
+}
+
+#' Create comemnts schema
+#' @noRd
+create_comments_schema <- function() {
+  type_object(
+    .description = "Commentary and metadata on the information quality of the paper, and of the LLM extraction. For scoring, 1 is worst, 5 is best.",
+    paper_relevance = type_string(
+      description = "A comment on the relevance of the paper to the questions posed in the prompt (2 sentences). Return in the format Score: {1-5}: {text}",
+      required = TRUE
+    ),
+    paper_reliability = type_string(
+      description = "A general assessment of the reliability of the paper. Return in the format Score: {1-5}: {text}",
+      required = TRUE
+    ),
+    paper_data_source = type_string(
+      description = "Where the paper's original data came from (e.g. does the paper describe the generation of data, or its aquisition from another source. Return in the format Score: {1-5}: {text}",
+      required = TRUE
+    ),
+    paper_data_available = type_string(
+      description = "Whether the data analysed in the paper is available, in particular in a good format (CSV), ok format (table with subgroups, summary statistics, etc.), or bad format (heavily transformed data, graphs) 
+      Return in the format Score: {1-5}: {text}. 
+      If the paper is missing any of the following minimum data standards, it should be scored as 1: Specific analysed medium/matrix, specified analyte, sampling location information to at least country/ocean level, sampling date to at least year level, units of measurement.
+      Also if data may be available in supplementary information.",
+      required = TRUE
+    ),
+    extraction_assessement = type_string(
+      description = "An assessment of how confident you the LLM are in the quality of the data extraction process. 
+      Has relevant data been lost? How confident are you that the information you returned matches that reported by the paper? Return in the format Score: {1-5}: {text}",
+      required = TRUE
+    )
   )
 }
 
@@ -276,7 +331,8 @@ create_extraction_schema <- function() {
     compartments = create_compartments_schema(),
     biota = create_biota_schema(),
     methods = create_methods_schema(),
-    samples = create_samples_schema()
+    samples = create_samples_schema(),
+    comments = create_comments_schema()
   )
 }
 
@@ -288,7 +344,7 @@ get_schema_display <- function() {
 
       # Convert to a readable format showing the actual ellmer object structure
       schema_str <- capture.output({
-        print(schema, width = 80)
+        print(schema, width = 1000)
       })
 
       # Join the output lines

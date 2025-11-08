@@ -38,20 +38,26 @@ mod_llm_ui <- function(id) {
           width = "400px",
           fill = FALSE,
           fillable = FALSE,
-
-          ### PDF upload ----
-          div(
-            style = "display: flex; flex-direction: column;",
-            fileInput(
-              inputId = ns("pdf_file"),
-              label = tooltip(
-                list("Upload PDF", bs_icon("info-circle-fill")),
-                "Upload a research paper or report (pdf) containing environmental exposure data"
-              ),
-              accept = ".pdf",
-              width = "100%",
-              buttonLabel = "Browse...",
-            )
+          ### ENTERED_BY
+          textInput(
+            inputId = ns("ENTERED_BY"),
+            label = tooltip(
+              list("Entered By", bs_icon("info-circle-fill")),
+              "Name/contact details."
+            ),
+            value = Sys.getenv("EDATA_USERNAME", unset = ""),
+            placeholder = "Ole Nordman",
+            width = "100%"
+          ),
+          fileInput(
+            inputId = ns("pdf_file"),
+            label = tooltip(
+              list("Upload PDF", bs_icon("info-circle-fill")),
+              "Upload a research paper or report (pdf) containing environmental exposure data"
+            ),
+            accept = ".pdf",
+            width = "100%",
+            buttonLabel = "Browse...",
           ),
 
           ### API key input ----
@@ -63,17 +69,6 @@ mod_llm_ui <- function(id) {
             ),
             value = Sys.getenv("ANTHROPIC_API_KEY", unset = ""),
             placeholder = "sk-ant-...",
-            width = "100%"
-          ),
-          ### ENTERED_BY
-          textInput(
-            inputId = ns("ENTERED_BY"),
-            label = tooltip(
-              list("Entered By", bs_icon("info-circle-fill")),
-              "Name/contact details."
-            ),
-            value = Sys.getenv("EDATA_USERNAME", unset = ""),
-            placeholder = "Ole Nordman",
             width = "100%"
           ),
         ),
@@ -117,8 +112,7 @@ mod_llm_ui <- function(id) {
         ## Extract buttons ----
         layout_columns(
           fill = FALSE,
-          div(
-            style = "display: flex; flex-direction: column;",
+          tooltip(
             input_task_button(
               id = ns("extract_data"),
               label = HTML(paste(
@@ -127,29 +121,18 @@ mod_llm_ui <- function(id) {
               )),
               class = "btn-info"
             ) |>
-              disabled()
-            # todo: this span provides useful information but prevents the button from being disabled
-            # until a pdf is added
-            # span(
-            #   "Per extraction: ~$0.10, 30 seconds",
-            #   class = "text-muted",
-            #   style = "font-size: 0.8rem;"
-            # )
+              disabled(),
+            "Extract data from a .pdf using an LLM. A PDF must be uploaded to enable this function."
           ),
 
-          div(
-            style = "display: flex; flex-direction: column;",
+          tooltip(
             input_task_button(
               id = ns("load_dummy_data"),
               label = "Load Dummy Data",
               icon = icon("flask"),
               class = "btn-info"
             ),
-            span(
-              "For testing/demonstration purposes.",
-              class = "text-muted",
-              style = "font-size: 0.8rem;"
-            )
+            "Load a short dummy dataset for testing or demonstrations, as if you had extracted it from a paper."
           )
         ),
 
@@ -163,21 +146,16 @@ mod_llm_ui <- function(id) {
           id = ns("results_accordion"),
           open = FALSE,
           accordion_panel(
-            title = "Extraction Results",
+            title = "Extraction Results and Comments",
             value = "extraction_results",
             icon = bs_icon("cpu"),
             div(
               verbatimTextOutput(ns("extraction_results")),
-              # Add download button ----
               div(
-                style = "margin-top: 10px;",
-                downloadButton(
-                  outputId = ns("download_extraction"),
-                  label = "Download Results",
-                  class = "btn-secondary btn-sm",
-                  icon = icon("download")
-                ) |>
-                  disabled()
+                h5(
+                  "This is an experiment in getting the LLM to report on its own opinion of the extraction. I don't yet know how good its assessment is, but I'm interested to hear your feedback."
+                ),
+                htmlOutput(ns("extraction_comments"))
               )
             )
           )
@@ -186,13 +164,16 @@ mod_llm_ui <- function(id) {
         ## Action buttons for extracted data  ----
         layout_columns(
           fill = FALSE,
-          input_task_button(
-            id = ns("populate_forms"),
-            label = "Populate Modules",
-            icon = icon("download"),
-            class = "btn-primary"
-          ) |>
-            disabled(),
+          tooltip(
+            (input_task_button(
+              id = ns("populate_forms"),
+              label = "Populate Modules",
+              icon = icon("download"),
+              class = "btn-primary"
+            ) |>
+              disabled()),
+            "Send extracted data to the data entry modules for checking and validation."
+          ),
 
           input_task_button(
             id = ns("clear_extraction"),
@@ -326,7 +307,7 @@ mod_llm_server <- function(id) {
             Sys.setenv(ANTHROPIC_API_KEY = input$api_key)
 
             # Step 3: Test API connectivity
-            incProgress(0.02, detail = "Testing API connection...")
+            incProgress(0.01, detail = "Testing API connection...")
             test_chat <- NULL
             tryCatch(
               {
@@ -352,25 +333,30 @@ mod_llm_server <- function(id) {
             }
 
             # Step 4: Prepare extraction components
-            incProgress(0.03, detail = "Preparing extraction...")
+            incProgress(0.01, detail = "Preparing extraction...")
             chat <- chat_anthropic(
               model = "claude-sonnet-4-20250514",
-              params = params(max_tokens = 4000)
+              params = params(max_tokens = 6000)
             )
 
             extraction_schema <- create_extraction_schema()
             pdf_content <- content_pdf_file(input$pdf_file$datapath)
+            session$userData$reactiveValues$pdfPath = input$pdf_file$datapath
 
             # Step 5: Set up prompts
-            incProgress(0.04, detail = "Configuring extraction...")
-            extraction_prompt <- if (isTruthy(input$extraction_prompt)) {
-              input$extraction_prompt
+            incProgress(0.01, detail = "Configuring extraction...")
+            # should be at 0.05 by now
+            system_prompt <- if (isTruthy(input$system_prompt)) {
+              input$system_prompt
             } else {
               create_extraction_prompt()
             }
 
             # Step 6: Extract data (this is the longest step)
-            incProgress(0.05, detail = "Extracting data...")
+            incProgress(
+              0.01,
+              detail = "Extracting data (I haven't worked out how to fake progress yet so don't be alarmed if this sits at ~10% for 30 seconds)..."
+            )
             result <- chat$chat_structured(
               extraction_prompt,
               pdf_content,
@@ -378,7 +364,7 @@ mod_llm_server <- function(id) {
             )
 
             # Step 7: Get API call metadata
-            incProgress(0.8, detail = "Storing results...")
+            incProgress(0.1, detail = "Storing results...")
 
             # Capture cost information
             api_metadata <- NULL
@@ -386,10 +372,7 @@ mod_llm_server <- function(id) {
               {
                 cost_info <- chat$get_cost(include = "all")
                 api_metadata <- list(
-                  total_cost = cost_info$total_cost,
-                  total_input_tokens = cost_info$total_input_tokens,
-                  total_output_tokens = cost_info$total_output_tokens,
-                  call_count = nrow(cost_info$calls)
+                  total_cost = cost_info
                 )
               },
               error = function(e) {
@@ -410,11 +393,15 @@ mod_llm_server <- function(id) {
             session$userData$reactiveValues$promptLLM <- extraction_prompt
             session$userData$reactiveValues$rawLLM <- result
 
+            if (!is.null(moduleState$structured_data$comments)) {
+              session$userData$reactiveValues$llmExtractionComments <- moduleState$structured_data$comments
+            }
+
             # Step 8: Update session data
-            incProgress(0.9, detail = "Updating data...")
+            incProgress(0.1, detail = "Updating data...")
 
             # Step 9: Enable UI elements
-            incProgress(1.0, detail = "Finalising...")
+            incProgress(0.1, detail = "Finalising...")
             enable("populate_forms")
             enable("clear_extraction")
 
@@ -502,6 +489,7 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$parameters)) {
+            browser()
             parameters_data <- create_parameters_from_llm(
               moduleState$structured_data$parameters,
               session = session
@@ -544,7 +532,7 @@ mod_llm_server <- function(id) {
 
           showNotification(
             "Forms populated with extracted data! Review and correct in each module.",
-            type = "default"
+            type = "message"
           )
         },
         error = function(e) {
@@ -618,15 +606,8 @@ mod_llm_server <- function(id) {
 
         if (!is.null(moduleState$api_metadata)) {
           metadata_text <- paste0(
-            " API usage: $",
-            sprintf("%.4f", moduleState$api_metadata$total_cost),
-            " (",
-            moduleState$api_metadata$total_input_tokens,
-            " input + ",
-            moduleState$api_metadata$total_output_tokens,
-            " output tokens, ",
-            moduleState$api_metadata$call_count,
-            " calls)"
+            " Extraction Cost: ~$",
+            moduleState$api_metadata$total_cost |> round(digits = 2)
           )
           status_text <- paste0(status_text, metadata_text)
         }
@@ -740,6 +721,14 @@ mod_llm_server <- function(id) {
         writeLines(output_lines, file, useBytes = TRUE)
       }
     )
+
+    ## output: extraction commentary ----
+    output$extraction_comments <- renderUI({
+      req(session$userData$reactiveValues$llmExtractionComments)
+      render_extraction_comments(
+        session$userData$reactiveValues$llmExtractionComments
+      )
+    })
   })
 }
 
@@ -768,6 +757,39 @@ clear_llm_data_from_session <- function(session) {
   showNotification(
     "Cleared all LLM extracted data from session",
     type = "message"
+  )
+}
+
+render_extraction_comments <- function(named_list) {
+  tagList(
+    lapply(names(named_list), function(nm) {
+      pretty_name <- c(
+        "paper_relevance" = "Relevance",
+        "paper_reliability" = "Reliability",
+        "paper_data_source" = "Original Data",
+        "paper_data_available" = "Data Availability",
+        "extraction_assessement" = "Extraction Grade"
+      )
+      score_emoji <- c(
+        "Score: 5" = "🟢",
+        "Score: 4" = "🟢",
+        "Score: 3" = "🟡",
+        "Score: 2" = "🟠",
+        "Score: 1" = "🔴"
+      )
+      tags$div(
+        tags$strong(paste0(pretty_name[[nm]], ": ")),
+        score_emoji[[stringr::str_extract(
+          named_list[[nm]],
+          pattern = "Score: [1-5]"
+        )]],
+        stringr::str_replace(
+          string = named_list[[nm]],
+          pattern = "Score: [1-5]",
+          replacement = ""
+        )
+      )
+    })
   )
 }
 

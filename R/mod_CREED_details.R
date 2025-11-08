@@ -33,7 +33,7 @@ mod_CREED_details_ui <- function(id) {
           "Reference citation or source of the dataset being processed."
         ),
         value = "",
-        rows = 1,
+        rows = 2,
         width = "100%"
       ),
 
@@ -320,10 +320,9 @@ mod_CREED_details_server <- function(id) {
     }) |>
       bindEvent(
         input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
         ignoreInit = TRUE
       )
-
-
   })
 }
 

@@ -172,6 +172,7 @@ parse_compartment_selections <- function(
 #' @param environ_compartment_sub Environmental sub-compartment (vectorized)
 #' @param date Sampling date (vectorized)
 #' @param subsample subsample
+#' @importFrom stringr str_to_title str_remove_all
 #' @noRd
 generate_sample_id_with_components <- function(
   site_code,

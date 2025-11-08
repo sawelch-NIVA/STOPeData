@@ -43,6 +43,7 @@ Imports:
     stringi,
     stringr,
     tibble,
+    tools,
     xml2
 Encoding: UTF-8
 LazyData: true

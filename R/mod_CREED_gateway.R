@@ -190,7 +190,12 @@ mod_CREED_gateway_server <- function(id) {
     observe({
       auto_populate_gateway_criteria()
     }) |>
-      bindEvent(input$populate_from_data, ignoreInit = TRUE)
+      bindEvent(
+        input$populate_from_data,
+        # TODO: For some reason check_gateway_availability() and summary() don't work properly at this point - the table hasn't be initialised
+        session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
 
     # 2. Helper functions ----
 
@@ -215,6 +220,7 @@ mod_CREED_gateway_server <- function(id) {
         print_dev(
           "auto_populate_gateway_criteria(): samplesDataWithBiota & samplesData empty, returning tibble(NULL)"
         )
+        x
       }
 
       # Build module_data list from session userData

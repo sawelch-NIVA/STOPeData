@@ -462,38 +462,6 @@ mod_review_server <- function(id) {
       }
     })
 
-    ## output: unit_distribution ----
-    # upstream: filtered_data()
-    # downstream: UI unit distribution plot
-    output$unit_distribution <- renderPlotly({
-      req(filtered_data())
-
-      data <- filtered_data()
-
-      if (nrow(data) == 0) {
-        plot_ly() |>
-          add_text(x = 0.5, y = 0.5, text = "No data") |>
-          layout(title = "No Data")
-      } else {
-        unit_counts <- data |>
-          group_by(MEASURED_UNIT) |>
-          summarise(count = n(), .groups = "drop") |>
-          arrange(desc(count))
-
-        plot_ly(
-          data = unit_counts,
-          x = ~ reorder(MEASURED_UNIT, count),
-          y = ~count,
-          type = "bar"
-        ) |>
-          layout(
-            title = "Distribution of Measurement Units",
-            xaxis = list(title = "Measurement Unit"),
-            yaxis = list(title = "Count")
-          )
-      }
-    })
-
     ## output: quality_summary ----
     # upstream: filtered_data()
     # downstream: UI quality summary text

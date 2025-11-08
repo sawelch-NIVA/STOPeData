@@ -1,34 +1,25 @@
-# Introduction
+# FAQ
 
-# Workflow
+###### Something's gone wrong with the extraction!
+Extraction reporting currently isn't very good. Check your internet connection, whether your PDF is corrupted, and if the Claude service [is up](https://status.claude.com/). If the Raw Data Extraction is showing a lot of `NULL` and `NA` values, this may mean that the paper is too big for the extraction token limit (how much information the LLM can take on at one time). Let me know if that's the case.
 
-## Modules
+###### I can't find the unit/organism/compartment/etc. I need!
+Use the most appropriate available option for now, and let me know.
 
-#### LLM Module
+###### Why can we extract sites, parameter, campaign, etc. data but not actual measurements?
+This is something I'm working on, but it's harder than simple data like the above. 
 
-The LLM (Large Language Model) module takes advantage of the [Anthropic Claude Sonnet 4](https://www.anthropic.com/news/claude-4) LLM to extract scientifically relevant data from an uploaded PDF. When we click "Extract from PDF", the app connects to an Application Programming Interface (API), authenticates itself using an API Key, and then sends the PDF, prompt, and extraction schema to the Claude Server.
+###### A module is showing that my data isn't validated, but I think it is.
+Send me a screenshot + a copy of your files.
 
-There, the LLM generates relevant data based on its training dataset (a massive body of written-language literature), the PDF, and the instructions we've given. This process is generally able to approximate the act of "reading" a PDF well enough for our purposes. However, it should be emphasised that an LLM is not an intelligent entity. Consequently, human, domain-expertise-based validation of results is still vital.
+###### The screen has gone grey/the app has crashed.
+My mistake! But I'm very interested in hearing how this happened and what you were doing when it did. Please let me know ASAP.
 
-Once the Claude API has validated our request, processed our sent documents, and returned a valid reply, we convert it into an R-compatible format and store it in the `moduleState$structuredData` reactive. We also flag that the extraction is complete `moduleState$extraction_complete -> TRUE` and successful `moduleState$extraction_successful -> TRUE`. 
+###### Methods or protocols?
+I'm not really sure. It seems there are methods, protocols and techniques. LibreTexts Chemistry says:
+> A technique is any chemical or physical principle that we can use to study an analyte
+> A method is the application of a technique for a specific analyte in a specific matrix.
+> A procedure is a set of written directions that tell us how to apply a method to a particular sample.
+> Finally, a protocol is a set of stringent guidelines that specify a procedure that an analyst must follow if an agency is to accept the results.
 
-This in turn enables the Populate Forms button. When we click this button we:
-1. Check if each of the campaign, references, sites, parameters, compartments, biota, methods, and samples extracted data objects exist.
-2. If they do, in each case we:
-   1. Clean and standardise the data using the `create_*_from_llm()` family of functions.
-   2. Store the resulting data in `session$userData$reactiveValues$*DataLLM`
-3. Set flags for successful extraction at the app level:
-   1. `session$userData$reactiveValues$llmExtractionComplete <- TRUE`
-   2. `session$userData$reactiveValues$llmExtractionSuccessful <- TRUE`
-
-In turn, each relevant module contains an observer that watches both `session$userData$reactiveValues$llmExtractionComplete` and `session$userData$reactiveValues$*dataLLM`. When either of these variables is invalidated, it triggers the observer to:
-1. Check the incoming `*dataLLM` object to see that it's `!is.null` and contains `>0` rows.
-2. Write the this incoming data to the module at moduleState$*_data
-
-Writing data to modue-specific data storage doesn't directly populate input fields or tables. In the case of the former, data is stored in a separate, hard-coded `input$inputName` object that must be individually updated using a function like `updateTextInput(session, id, value)`, wrapped in an `observe()`.
-
-Tables are updated by a separate observer...
-
-### Campaign
-
-etc
+So I am certainly using the term "protocol" wrong here. But I haven't reworked this section yet because, frankly, I don't know who will be using the app. But I'm open to input.

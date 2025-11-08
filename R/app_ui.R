@@ -31,7 +31,7 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     page_navbar(
-      title = "STOP eData (demo)",
+      title = paste0("STOP eData (", Sys.getenv("EDATA_BUILD"), ")"),
       lang = "en",
       id = "main-page",
       window_title = "eData (demo)",
@@ -41,60 +41,90 @@ app_ui <- function(request) {
         position = "static-top"
       ),
       nav_panel(
-        title = "Landing",
+        title = tooltip(
+          "Landing",
+          "Introduction, What's new, and Quick Start Buttons"
+        ),
         value = "00-landing",
         mod_landing_ui("landing")
       ),
       nav_panel(
-        title = "0. LLM Extract",
+        title = tooltip(
+          "0. LLM Extract",
+          "Extract data from a PDF using the Claude Large Language Model"
+        ),
         value = "00-llm-extract",
         mod_llm_ui("llm_extract"),
         icon = bs_icon("cpu")
       ),
       nav_panel(
-        title = "1. Campaign",
+        title = tooltip(
+          "1. Campaign",
+          "Information on who collected data, when, and why."
+        ),
         value = "01-campaign",
         mod_campaign_ui("campaign"),
         icon = bs_icon("info-square")
       ),
       nav_panel(
-        title = "2. Reference",
+        title = tooltip(
+          "2. Reference",
+          "Citation information for the data source."
+        ),
         value = "02-references",
         mod_references_ui("references"),
         icon = bs_icon("chat-left-quote-fill")
       ),
       nav_panel(
-        title = "3. Sites",
+        title = tooltip(
+          "3. Sites",
+          "Coordinate and area type information on sampling."
+        ),
         value = "03-sites",
         mod_sites_ui("sites"),
         icon = bs_icon("pin-map-fill")
       ),
       nav_panel(
-        title = "4. Parameters",
+        title = tooltip(
+          "4. Parameters",
+          "Stressors, quality parameters, and other measured water parameters."
+        ),
         value = "04-parameters",
         mod_parameters_ui("parameters"),
         icon = bs_icon("flag")
       ),
       nav_panel(
-        title = "5. Compartments",
+        title = tooltip(
+          "5. Compartments",
+          "The ecological and physical nature of the compartment/media sampled"
+        ),
         value = "05-compartments",
         mod_compartments_ui("compartments"),
         icon = bs_icon("box")
       ),
       nav_panel(
-        title = "6. Methods",
+        title = tooltip(
+          "6. Methods",
+          "Techniques used to obtain, process, and analyse the samples"
+        ),
         value = "06-methods",
         mod_methods_ui("methods"),
         icon = bs_icon("wrench-adjustable-circle-fill")
       ),
       nav_panel(
-        title = "7. Samples",
+        title = tooltip(
+          "7. Samples",
+          "How sites, parameters, compartments and dates were combined in the sampling campaign."
+        ),
         value = "07-samples",
         mod_samples_ui("samples"),
         icon = bs_icon("ui-checks-grid")
       ),
       nav_panel(
-        title = "8. Biota",
+        title = tooltip(
+          "8. Biota",
+          "Species and biota data, if relevant."
+        ),
         value = "08-biota",
         mod_biota_ui("biota"),
         icon = HTML(
@@ -104,25 +134,34 @@ app_ui <- function(request) {
         )
       ),
       nav_panel(
-        title = "9. Data",
+        title = tooltip(
+          "9. Data",
+          "Enter measured values, units, and uncertainty."
+        ),
         value = "09-data",
         mod_data_ui("data"),
         icon = bs_icon("app")
       ),
       nav_panel(
-        title = "10. Review",
+        title = tooltip(
+          "10. Review",
+          "Review, visualise, and validate entered data"
+        ),
         value = "10-review",
         mod_review_ui("review"),
         icon = bs_icon("clipboard-data-fill")
       ),
+      # nav_panel(
+      #   title = "11. Export",
+      #   value = "11-export",
+      #   mod_export_ui("export"),
+      #   icon = bs_icon("box-arrow-right")
+      # ),
       nav_panel(
-        title = "11. Export",
-        value = "11-export",
-        mod_export_ui("export"),
-        icon = bs_icon("box-arrow-right")
-      ),
-      nav_panel(
-        title = "12. Quality",
+        title = tooltip(
+          "11. Quality",
+          "Assess the reliability and relevance of extracted data for answering your assessment question."
+        ),
         value = "12-CREED",
         mod_CREED_ui("CREED"),
         icon = bs_icon("award-fill")
@@ -131,16 +170,12 @@ app_ui <- function(request) {
         title = "",
         value = "info",
         mod_information_ui("information"),
-        icon = bs_icon("info-circle")
+        icon = tooltip(
+          bs_icon("info-circle"),
+          "FAQ and References"
+        )
       ),
-      # nav_panel(
-      #   title = "Saved Data",
-      #   value = "save",
-      #   mod_bookmark_manager_ui("session_manager"),
-      #   icon = bs_icon("floppy")
-      # ),
       nav_item(input_dark_mode(id = "darkmode")),
-      nav_item(htmlOutput(outputId = "dbStatus")),
       nav_spacer(),
       footer = tags$span(
         ## Navigation buttons ----
@@ -158,11 +193,16 @@ app_ui <- function(request) {
           ),
 
           # Save Session button
-          input_task_button(
-            id = "download_all_modal",
-            label = "Download All",
-            class = "btn-success",
-            icon = icon("file-zipper")
+          tooltip(
+            input_task_button(
+              id = "download_all_modal",
+              label = HTML(paste(
+                bs_icon("file-earmark-zip"),
+                "Download extraction"
+              )),
+              class = "btn-success",
+            ),
+            "Download all available data and metadata as a zip file. Can be used to manually modify data or continue an extraction later."
           ),
 
           input_task_button(
@@ -184,7 +224,10 @@ app_ui <- function(request) {
             ' and <a href="https://www.niva.no/en/featured-pages/nctp">NCTP</a>.',
             " This app is currently in development and no responsibility is accepted for crashes or data loss. ",
             "App Version: ",
-            golem::get_golem_version()
+            "<em>",
+            golem::get_golem_version(),
+            "</em>",
+            "."
           ))
         )
       )

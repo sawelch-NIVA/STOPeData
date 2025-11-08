@@ -145,7 +145,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
       "",
       "# Structure:"
     )
-    structure_text <- capture.output(str(obj, max.level = 3))
+    structure_text <- capture.output(dput(obj))
 
     return(c(header, structure_text))
   } else if (inherits(obj, "ellmer_schema") || is.object(obj)) {
@@ -173,6 +173,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
   }
 }
 
+# TODO: This does a lot more than CSV. Rename.
 #' Download all data as CSV and TXT files in a ZIP archive
 #'
 #' @description Creates a Shiny downloadHandler that exports all available datasets
@@ -213,8 +214,6 @@ download_all_csv <- function(session, moduleState = NULL) {
     },
 
     content = function(file) {
-      print_dev("mod_export: Starting combined CSV + TXT export...")
-
       rv <- session$userData$reactiveValues
       metadata <- get_export_metadata(session = session)
 
@@ -249,25 +248,28 @@ download_all_csv <- function(session, moduleState = NULL) {
             writeLines(text_content, txt_file)
 
             all_files <- c(all_files, txt_file)
-
-            print_dev(glue(
-              "mod_export: Added {display_name} to combined export (text file, {length(text_content)} lines)"
-            ))
           }
         } else {
           # Handle tabular data
           if (!is.null(data) && nrow(data) > 0) {
             csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
 
-            write_excel_csv(data, file = csv_file, na = "NA")
+            write_excel_csv(data, file = csv_file, na = "")
 
             all_files <- c(all_files, csv_file)
-
-            print_dev(glue(
-              "mod_export: Added {display_name} to combined export ({nrow(data)} rows)"
-            ))
           }
         }
+      }
+
+      # Export PDF if available ----
+      if (!is.null(rv$pdfPath) && file.exists(rv$pdfPath)) {
+        pdf_dest <- file.path(
+          temp_dir,
+          rv$uploaded_pdf_filename %||%
+            glue("{campaign}_MS.pdf")
+        )
+        file.copy(rv$pdfPath, pdf_dest)
+        all_files <- c(all_files, pdf_dest)
       }
 
       # Write metadata file ----
@@ -286,10 +288,6 @@ download_all_csv <- function(session, moduleState = NULL) {
       )
 
       unlink(all_files)
-
-      print_dev(glue(
-        "mod_export: Combined ZIP export complete with {length(moduleState$available_datasets)} datasets"
-      ))
     },
 
     contentType = "application/zip"

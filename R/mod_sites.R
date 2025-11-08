@@ -9,7 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList selectInput numericInput textInput dateInput textAreaInput actionButton tags
+#' @importFrom shiny NS tagList selectInput numericInput textInput dateInput textAreaInput actionButton tags tagAppendAttributes
 #' @importFrom bslib css card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
@@ -29,7 +29,7 @@ mod_sites_ui <- function(id) {
     # Main content layout ----
     layout_column_wrap(
       width = NULL,
-      style = css(grid_template_columns = "3fr 1fr"),
+      style = css(grid_template_columns = "2fr 2fr"),
       fill = TRUE,
       fillable = TRUE,
 
@@ -108,14 +108,11 @@ mod_sites_ui <- function(id) {
           leafletOutput(ns("sites_map"), height = "100%"),
 
           ### Map controls ----
-
-          # Add point button
-          div(
-            style = "margin-top: auto;
-                      margin-bottom: auto;
-                      flex: 1 1 auto;
-                      align-content: space-between;",
-
+          layout_column_wrap(
+            height = "40px",
+            width = "80px",
+            fill = FALSE,
+            fillable = FALSE,
             tooltip(
               input_task_button(
                 id = ns("add_map_point"),
@@ -145,6 +142,19 @@ mod_sites_ui <- function(id) {
               id = "update_selected_coords_tooltip",
               placement = "bottom"
             ),
+            tooltip(
+              numericInput(
+                ns("coord_precision"),
+                label = NULL,
+                value = 3,
+                min = 1,
+                max = 8,
+                step = 1,
+                width = "80px",
+              ) |>
+                tagAppendAttributes(class = 'form-control-sm'),
+              "Set the precision of clicked coordinates. 0 d.p. = 111 km, 1 d.p. = 11.1 km, etc.  "
+            ),
 
             # Hide labels button
             tooltip(
@@ -159,14 +169,14 @@ mod_sites_ui <- function(id) {
               "Click to show/hide site labels on the map",
               id = "toggle_labels_tooltip",
               placement = "bottom",
-            ),
-
-            # Selected coordinates reporter
-            div(
-              style = "display: flex; flex-direction: column; font-size: 0.9em; font-family: ",
-              textOutput(ns("selected_coords")),
-              textOutput(ns("selected_rows_reporter"))
             )
+          ),
+
+          # Selected coordinates reporter
+          div(
+            style = "display: flex; flex-direction: column; font-size: 0.9em; font-family: ",
+            textOutput(ns("selected_coords")),
+            textOutput(ns("selected_rows_reporter"))
           )
         )
       )
@@ -191,7 +201,7 @@ mod_sites_ui <- function(id) {
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu hot_table hot_cell hot_validate_numeric hot_validate_character
 #' @importFrom shinyjs enable disable
 #' @importFrom tibble tibble
-#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions labelOptions clearMarkers setView leafletProxy addCircleMarkers clearGroup
+#' @importFrom leaflet renderLeaflet leaflet addTiles addMarkers mapOptions labelOptions clearMarkers addGraticule setView leafletProxy addCircleMarkers clearGroup
 #' @import ISOcodes
 #' @importFrom dplyr pull
 #' @importFrom bslib update_task_button
@@ -203,9 +213,6 @@ mod_sites_server <- function(id) {
     # 1. Module setup ----
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
-      sites_data = initialise_sites_tibble(),
-      validated_data = initialise_sites_tibble(),
-      is_valid = FALSE,
       selected_rows = NULL,
       next_site_id = 1,
       clicked_coords = NULL,
@@ -215,7 +222,8 @@ mod_sites_server <- function(id) {
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
     iv$add_rule("sites_table_validation", function(value) {
-      if (nrow(moduleState$sites_data) == 0) {
+      # CHANGED: Reference userData instead of moduleState
+      if (nrow(session$userData$reactiveValues$sitesData) == 0) {
         "At least one site must be added"
       } else {
         # Check if all required fields are filled for each row
@@ -232,9 +240,10 @@ mod_sites_server <- function(id) {
           "ENTERED_DATE"
         )
 
-        for (i in 1:nrow(moduleState$sites_data)) {
+        # CHANGED: Reference userData instead of moduleState
+        for (i in 1:nrow(session$userData$reactiveValues$sitesData)) {
           for (field in required_fields) {
-            value <- moduleState$sites_data[i, field]
+            value <- session$userData$reactiveValues$sitesData[i, field]
             if (
               is.na(value) || value == "" || (is.numeric(value) && is.na(value))
             ) {
@@ -243,9 +252,9 @@ mod_sites_server <- function(id) {
           }
 
           # Validate coordinate ranges
-          lat <- moduleState$sites_data[i, "LATITUDE"]
-          lon <- moduleState$sites_data[i, "LONGITUDE"]
-          alt <- moduleState$sites_data[i, "ALTITUDE_VALUE"]
+          lat <- session$userData$reactiveValues$sitesData[i, "LATITUDE"]
+          lon <- session$userData$reactiveValues$sitesData[i, "LONGITUDE"]
+          alt <- session$userData$reactiveValues$sitesData[i, "ALTITUDE_VALUE"]
 
           if (!is.na(lat) && (lat < -90 || lat > 90)) {
             return(paste("Row", i, "has invalid latitude (must be -90 to 90)"))
@@ -323,7 +332,7 @@ mod_sites_server <- function(id) {
 
     ## observe: Add new site(s) ----
     # upstream: user clicks input$add_site
-    # downstream: moduleState$sites_data
+    # downstream: session$userData$reactiveValues$sitesData
     observe({
       num_sites <- input$num_sites
       base_code <- input$base_site_code
@@ -340,8 +349,11 @@ mod_sites_server <- function(id) {
       # Combine into single data frame
       new_sites <- do.call(rbind, new_sites_list)
 
-      # Add to existing data
-      moduleState$sites_data <- rbind(moduleState$sites_data, new_sites)
+      # CHANGED: Add to userData instead of moduleState
+      session$userData$reactiveValues$sitesData <- add_row(
+        session$userData$reactiveValues$sitesData,
+        new_sites
+      )
 
       # Show notification
       if (num_sites == 1) {
@@ -360,27 +372,14 @@ mod_sites_server <- function(id) {
 
     ## observe: Handle table changes ----
     # upstream: input$sites_table changes
-    # downstream: moduleState$sites_data
+    # downstream: session$userData$reactiveValues$sitesData
     observe({
       if (!is.null(input$sites_table)) {
-        # Update sites_data from the table
-        moduleState$sites_data <- hot_to_r(input$sites_table)
+        # CHANGED: Update userData directly from the table
+        session$userData$reactiveValues$sitesData <- hot_to_r(input$sites_table)
       }
     }) |>
-      bindEvent(autoInvalidate())
-
-    ## observer: receive data from session$userData$reactiveValues$sitesData (import) ----
-    ## and update module data
-    observe({
-      moduleState$sites_data <- session$userData$reactiveValues$sitesData
-      print_dev("Assigned saved data to sites moduleData.")
-    }) |>
-      bindEvent(
-        session$userData$reactiveValues$saveExtractionComplete,
-        session$userData$reactiveValues$saveExtractionSuccessful,
-        ignoreInit = TRUE,
-        ignoreNULL = TRUE
-      )
+      bindEvent(input$sites_table)
 
     ## observe: Capture map clicks ----
     # upstream: input$sites_map_click
@@ -389,8 +388,8 @@ mod_sites_server <- function(id) {
       click <- input$sites_map_click
       if (!is.null(click)) {
         moduleState$clicked_coords <- list(
-          lat = click$lat,
-          lng = click$lng
+          lat = round(click$lat, input$coord_precision),
+          lng = round(click$lng, input$coord_precision)
         )
 
         # Update map with clicked point marker
@@ -409,10 +408,10 @@ mod_sites_server <- function(id) {
             popup = paste0(
               "<strong>Clicked Point</strong><br/>",
               "Lat: ",
-              round(click$lat, 6),
+              round(click$lat, input$coord_precision),
               "<br/>",
               "Lng: ",
-              round(click$lng, 6)
+              round(click$lng, input$coord_precision)
             )
           )
       }
@@ -420,7 +419,7 @@ mod_sites_server <- function(id) {
 
     ## observe: Add point from map ----
     # upstream: user clicks input$add_map_point
-    # downstream: moduleState$sites_data
+    # downstream: session$userData$reactiveValues$sitesData
     observe({
       req(moduleState$clicked_coords)
 
@@ -435,8 +434,11 @@ mod_sites_server <- function(id) {
       new_site$LATITUDE <- moduleState$clicked_coords$lat
       new_site$LONGITUDE <- moduleState$clicked_coords$lng
 
-      # Add to existing data
-      moduleState$sites_data <- rbind(moduleState$sites_data, new_site)
+      # CHANGED: Add to userData instead of moduleState
+      session$userData$reactiveValues$sitesData <- rbind(
+        session$userData$reactiveValues$sitesData,
+        new_site
+      )
 
       # Increment next site ID
       moduleState$next_site_id <- moduleState$next_site_id + 1
@@ -452,9 +454,9 @@ mod_sites_server <- function(id) {
       showNotification(
         paste(
           "New site added, Lat:",
-          round(new_site$LATITUDE, 6),
+          round(new_site$LATITUDE, input$coord_precision),
           ", Lng:",
-          round(new_site$LONGITUDE, 6)
+          round(new_site$LONGITUDE, input$coord_precision)
         ),
         type = "message"
       )
@@ -463,20 +465,20 @@ mod_sites_server <- function(id) {
 
     ## observe: Update selected rows with map coordinates ----
     # upstream: user clicks input$update_selected_coords
-    # downstream: moduleState$sites_data
+    # downstream: session$userData$reactiveValues$sitesData
     observe({
       req(moduleState$clicked_coords)
       req(moduleState$selected_rows)
-      req(nrow(moduleState$sites_data) > 0)
+      req(nrow(session$userData$reactiveValues$sitesData) > 0)
 
-      # Update coordinates for all selected rows
+      # CHANGED: Update coordinates in userData
       for (row_idx in moduleState$selected_rows) {
-        if (row_idx <= nrow(moduleState$sites_data)) {
-          moduleState$sites_data[
+        if (row_idx <= nrow(session$userData$reactiveValues$sitesData)) {
+          session$userData$reactiveValues$sitesData[
             row_idx,
             "LATITUDE"
           ] <- moduleState$clicked_coords$lat
-          moduleState$sites_data[
+          session$userData$reactiveValues$sitesData[
             row_idx,
             "LONGITUDE"
           ] <- moduleState$clicked_coords$lng
@@ -527,27 +529,26 @@ mod_sites_server <- function(id) {
       bindEvent(input$toggle_labels)
 
     ## observe: Check overall validation status ----
-    # upstream: moduleState$sites_data, iv
-    # downstream: moduleState$is_valid, moduleState$validated_data
+    # upstream: session$userData$reactiveValues$sitesData, iv
+    # downstream: session$userData$reactiveValues$sitesDataValid
     observe({
       # Trigger validation check
       validation_result <- iv$is_valid()
 
-      if (validation_result && nrow(moduleState$sites_data) > 0) {
-        moduleState$is_valid <- TRUE
-        moduleState$validated_data <- moduleState$sites_data
-
-        session$userData$reactiveValues$sitesData <- moduleState$validated_data
+      # CHANGED: Update validation status in userData
+      if (
+        validation_result && nrow(session$userData$reactiveValues$sitesData) > 0
+      ) {
+        session$userData$reactiveValues$sitesDataValid <- TRUE
       } else {
-        moduleState$is_valid <- FALSE
-        moduleState$validated_data <- NULL
+        session$userData$reactiveValues$sitesDataValid <- FALSE
       }
     }) |>
-      bindEvent(autoInvalidate())
+      bindEvent(input$sites_table, session$userData$reactiveValues$sitesData)
 
     ## observe: Load from LLM data when available ----
     # upstream: session$userData$reactiveValues$sitesDataLLM
-    # downstream: moduleState$sites_data
+    # downstream: session$userData$reactiveValues$sitesData
     observe({
       print_dev("observe~bindEvent: load data from LLM module")
       llm_sites <- session$userData$reactiveValues$sitesDataLLM
@@ -556,21 +557,20 @@ mod_sites_server <- function(id) {
           nrow(llm_sites) > 0 &&
           session$userData$reactiveValues$llmExtractionComplete
       ) {
-        # Replace current sites data with LLM data
-        # This will trigger validation and may show warnings for invalid fields
-        moduleState$sites_data <- llm_sites
+        # CHANGED: Replace userData with LLM data
+        session$userData$reactiveValues$sitesData <- llm_sites
 
         # Update next_site_id counter
         moduleState$next_site_id <- nrow(llm_sites) + 1
 
-        showNotification(
-          paste(
-            "Loaded",
-            nrow(llm_sites),
-            "sites from LLM extraction."
-          ),
-          type = "message"
-        )
+        # showNotification(
+        #   paste(
+        #     "Loaded",
+        #     nrow(llm_sites),
+        #     "sites from LLM extraction."
+        #   ),
+        #   type = "message"
+        # )
       }
     }) |>
       bindEvent(
@@ -584,11 +584,12 @@ mod_sites_server <- function(id) {
     # 4. Outputs ----
 
     ## output: sites_table ----
-    # upstream: moduleState$sites_data
+    # upstream: session$userData$reactiveValues$sitesData
     # downstream: UI table display
     output$sites_table <- renderRHandsontable({
+      # CHANGED: Reference userData instead of moduleState
       rhandsontable(
-        moduleState$sites_data,
+        session$userData$reactiveValues$sitesData,
         stretchH = "all",
         height = 500,
         selectCallback = TRUE,
@@ -756,21 +757,22 @@ mod_sites_server <- function(id) {
     })
 
     ## output: sites_map ----
-    # upstream: moduleState$sites_data
+    # upstream: session$userData$reactiveValues$sitesData
     # downstream: UI map display
     output$sites_map <- renderLeaflet({
       map <- leaflet() |>
         addTiles() |>
         mapOptions(zoomToLimits = "always") # don't adjust zoom level when we add a point
 
+      # CHANGED: Reference userData instead of moduleState
       # Add markers for sites with valid coordinates
-      if (nrow(moduleState$sites_data) > 0) {
+      if (nrow(session$userData$reactiveValues$sitesData) > 0) {
         # Convert to numeric, handling potential character values
         lat_numeric <- suppressWarnings(as.numeric(
-          moduleState$sites_data$LATITUDE
+          session$userData$reactiveValues$sitesData$LATITUDE
         ))
         lng_numeric <- suppressWarnings(as.numeric(
-          moduleState$sites_data$LONGITUDE
+          session$userData$reactiveValues$sitesData$LONGITUDE
         ))
 
         # Check for valid coordinates
@@ -784,7 +786,9 @@ mod_sites_server <- function(id) {
           lng_numeric <= 180 # Valid longitude range
 
         if (any(valid_coords)) {
-          valid_sites <- moduleState$sites_data[valid_coords, ]
+          valid_sites <- session$userData$reactiveValues$sitesData[
+            valid_coords,
+          ]
           valid_lat <- lat_numeric[valid_coords]
           valid_lng <- lng_numeric[valid_coords]
 
@@ -800,7 +804,7 @@ mod_sites_server <- function(id) {
               lat = valid_lat,
               label = valid_sites$SITE_CODE,
               labelOptions = labelOptions(
-                noHide = moduleState$show_labels, # Change this line
+                noHide = moduleState$show_labels, # Still uses moduleState for UI state
                 textOnly = FALSE,
                 textsize = "12px"
               )
@@ -819,10 +823,10 @@ mod_sites_server <- function(id) {
       } else {
         paste(
           "Lat:",
-          round(moduleState$clicked_coords$lat, 6),
+          round(moduleState$clicked_coords$lat, input$coord_precision),
           "Lng:",
-          round(moduleState$clicked_coords$lng, 6),
-          "(WGS84, 6 s.f.)"
+          round(moduleState$clicked_coords$lng, input$coord_precision),
+          "(WGS84)"
         )
       }
     })
@@ -846,7 +850,7 @@ mod_sites_server <- function(id) {
     })
 
     ## output: validation_reporter ----
-    # upstream: moduleState$is_valid, mod_llm output
+    # upstream: session$userData$reactiveValues$sitesDataValid, mod_llm output
     # downstream: UI validation status
     output$validation_reporter <- renderUI({
       llm_indicator <- if (
@@ -862,12 +866,13 @@ mod_sites_server <- function(id) {
         NULL
       }
 
-      validation_status <- if (moduleState$is_valid) {
+      # CHANGED: Reference userData validation status instead of moduleState
+      validation_status <- if (session$userData$reactiveValues$sitesDataValid) {
         div(
           bs_icon("clipboard2-check"),
           paste(
             "All site data validated successfully.",
-            nrow(moduleState$sites_data),
+            nrow(session$userData$reactiveValues$sitesData),
             "site(s) ready."
           ),
           class = "validation-status validation-complete"
@@ -884,41 +889,38 @@ mod_sites_server <- function(id) {
     })
 
     ## output: validated_data_display ----
-    # upstream: moduleState$validated_data
+    # upstream: session$userData$reactiveValues$sitesData (when valid)
     # downstream: UI data display
     output$validated_data_display <- renderText({
-      if (isTruthy(moduleState$validated_data)) {
+      # CHANGED: Show data only when valid, reference userData
+      if (
+        session$userData$reactiveValues$sitesDataValid &&
+          nrow(session$userData$reactiveValues$sitesData) > 0
+      ) {
         # Format each site as a separate entry
-        site_entries <- lapply(1:nrow(moduleState$validated_data), function(i) {
-          site <- moduleState$validated_data[i, ]
-          site_lines <- sapply(names(site), function(name) {
-            value <- site[[name]]
-            if (is.na(value) || is.null(value) || value == "") {
-              paste0("  ", name, " = NA")
-            } else if (is.character(value)) {
-              paste0("  ", name, " = '", value, "'")
-            } else {
-              paste0("  ", name, " = ", as.character(value))
-            }
-          })
-          paste0("Site ", i, ":\n", paste(site_lines, collapse = "\n"))
-        })
+        site_entries <- lapply(
+          1:nrow(session$userData$reactiveValues$sitesData),
+          function(i) {
+            site <- session$userData$reactiveValues$sitesData[i, ]
+            site_lines <- sapply(names(site), function(name) {
+              value <- site[[name]]
+              if (is.na(value) || is.null(value) || value == "") {
+                paste0("  ", name, " = NA")
+              } else if (is.character(value)) {
+                paste0("  ", name, " = '", value, "'")
+              } else {
+                paste0("  ", name, " = ", as.character(value))
+              }
+            })
+            paste0("Site ", i, ":\n", paste(site_lines, collapse = "\n"))
+          }
+        )
 
         paste(site_entries, collapse = "\n\n")
       } else {
         "# Sites data will appear here when valid sites are added"
       }
     })
-
-    # 5. Return ----
-    ## return: validated data for other modules ----
-    # upstream: moduleState$validated_data
-    # downstream: app_server.R
-    return(
-      reactive({
-        moduleState$validated_data %|truthy|% NULL
-      })
-    )
   })
 }
 

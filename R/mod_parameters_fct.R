@@ -48,7 +48,7 @@ create_new_parameter <- function(param_type, entered_by) {
       PARAMETER_NAME = "",
       PARAMETER_NAME_SUB = "",
       INCHIKEY_SD = "",
-      PUBCHEM_CID = "",
+      PUBCHEM_CID = NA_integer_,
       CAS_RN = "",
       ENTERED_BY = entered_by,
       PARAMETER_COMMENT = ""
@@ -101,7 +101,7 @@ create_existing_parameter <- function(
       PARAMETER_NAME = param_data$PARAMETER_NAME %||% param_name,
       PARAMETER_NAME_SUB = param_data$PARAMETER_NAME_SUB %||% "",
       INCHIKEY_SD = param_data$INCHIKEY_SD %||% "",
-      PUBCHEM_CID = param_data$PUBCHEM_CID %||% "",
+      PUBCHEM_CID = param_data$PUBCHEM_CID |> as.integer() %||% NA_integer_,
       CAS_RN = param_data$CAS_RN %||% "",
       ENTERED_BY = param_data$ENTERED_BY %||% "Not found",
       PARAMETER_COMMENT = ""

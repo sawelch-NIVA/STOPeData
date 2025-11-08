@@ -23,7 +23,7 @@ the protocol category. Will be abbreviated and cleaned for ID generation.}
 within the same category. Defaults to 1. Will be zero-padded to 2 digits.}
 
 \item{campaign_name}{Character vector. Name of the campaign/study.
-Will be abbreviated to first 3 alphanumeric characters. Defaults to "".}
+Will be abbreviated to first 10 alphanumeric characters. Defaults to "".}
 }
 \value{
 Character vector of protocol IDs with format:
@@ -34,7 +34,7 @@ Character vector of protocol IDs with format:
     A (Analytical), X (Unknown)
   - SequenceNumber: Zero-padded 2-digit number
   - AbbreviatedName: Up to 15 alphanumeric characters (optional)
-  - CampaignAbbrev: Up to 3 alphanumeric characters (optional)
+  - CampaignAbbrev: Up to 10 alphanumeric characters (optional)
 }
 \description{
 Generates a standardised protocol identifier based on protocol type, name,
@@ -51,14 +51,14 @@ The function handles edge cases gracefully:
 \examples{
 # Single protocol
 generate_protocol_id("Sampling Protocol", "Water Sample", 1, "MyStudy")
-# Returns: "S01_WaterSample_MyS"
+# Returns: "S01_WaterSample_MyStudy"
 
 # Multiple protocols (vectorised)
 types <- c("Sampling Protocol", "Analytical Protocol")
 names <- c("Water Sample", "LC-MS Analysis")
 sequences <- c(1, 2)
 generate_protocol_id(types, names, sequences, "Study2024")
-# Returns: c("S01_WaterSample_Stu", "A02_LCMSAnalysis_Stu")
+# Returns: c("S01_WaterSample_Study2024", "A02_LCMSAnalysis_Study2024")
 
 }
 \concept{protocol_functions}

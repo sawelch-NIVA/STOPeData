@@ -3635,7 +3635,7 @@
       "description": {
         "Package": "stringr",
         "Title": "Simple, Consistent Wrappers for Common String Operations",
-        "Version": "1.5.1",
+        "Version": "1.5.2",
         "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\", \"cph\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
         "Description": "A consistent, simple and easy to use set of wrappers around\n    the fantastic 'stringi' package. All function and argument names (and\n    positions) are consistent, all functions deal with \"NA\"'s and zero\n    length vectors in the same way, and the output from one function is\n    easy to feed into the input of another.",
         "License": "MIT + file LICENSE",
@@ -3649,14 +3649,14 @@
         "Config/testthat/edition": "3",
         "Encoding": "UTF-8",
         "LazyData": "true",
-        "RoxygenNote": "7.2.3",
+        "RoxygenNote": "7.3.2",
         "NeedsCompilation": "no",
-        "Packaged": "2023-11-14 15:03:52 UTC; hadleywickham",
+        "Packaged": "2025-09-03 22:57:02 UTC; hadleywickham",
         "Author": "Hadley Wickham [aut, cre, cph],\n  Posit Software, PBC [cph, fnd]",
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2023-11-14 23:10:02 UTC",
-        "Built": "R 4.4.1; ; 2024-09-02 01:35:30 UTC; windows"
+        "Date/Publication": "2025-09-08 12:00:02 UTC",
+        "Built": "R 4.5.2; ; 2025-11-01 02:01:38 UTC; windows"
       }
     },
     "sys": {
@@ -4449,7 +4449,28 @@
       "checksum": "18a900f66cfecd3f76f3f328de44a6c9"
     },
     "DESCRIPTION": {
-      "checksum": "4467d71f9bbe8825a4d13dad6829b6d9"
+      "checksum": "8792a60072d3a628553c8ec617faec1d"
+    },
+    "images/edata_logo_small.png": {
+      "checksum": "98ea3decde73bb83d10d6aa8094c8ab4"
+    },
+    "images/efve.png": {
+      "checksum": "ceb3ca7c4c80ee64d2d351b4c14c1f2c"
+    },
+    "images/mod_biota_screenshot.png": {
+      "checksum": "769258698baa6e61ec6419594449923d"
+    },
+    "images/mod_creed_screenshot.png": {
+      "checksum": "d086c924f7f26b9f40f588621acd580b"
+    },
+    "images/mod_params_screenshot.png": {
+      "checksum": "ea6405e29eba2f6bd3ae8288edac6ca5"
+    },
+    "images/mod_sites_screenshot.png": {
+      "checksum": "2ee36b35647dc7970a4f5f9665c70107"
+    },
+    "images/stopsquarecropped.png": {
+      "checksum": "e587c508ab443df90f3b25ecb37d33ea"
     },
     "inst/app/www/app_mapp.png": {
       "checksum": "b5232485c3abd1cc46a5c26f7ecb47a9"
@@ -4458,13 +4479,13 @@
       "checksum": "81560d1b906a530c87fa0acbb2f5cca4"
     },
     "inst/app/www/md/citations.md": {
-      "checksum": "6996df3f2eda54f743a0ff603fb6558a"
+      "checksum": "b0cce1a9e8921cac103ad96263077bd1"
     },
     "inst/app/www/md/extraction_prompt.md": {
-      "checksum": "d25503a85110f1d9bc089190eecca91a"
+      "checksum": "548197c1c11f493d7f8e19b48e993f60"
     },
     "inst/app/www/md/intro_biota.md": {
-      "checksum": "32242cb29f5b951a0c69765d572c5018"
+      "checksum": "d67aa055b20bdd912fbeb011f91f78e4"
     },
     "inst/app/www/md/intro_campaign.md": {
       "checksum": "44da7de8ac9b247b4eb8dfc5433969a6"
@@ -4476,19 +4497,19 @@
       "checksum": "fd674bb03154b09cbbadf7bfbd30079a"
     },
     "inst/app/www/md/intro_data.md": {
-      "checksum": "50fc39474301bc5c46a665645b073b84"
+      "checksum": "0ed2c9aaa0c5b313acfbcb8592daf02e"
     },
     "inst/app/www/md/intro_landing.md": {
-      "checksum": "cce4102c63e786590dbe095758f27071"
+      "checksum": "3c286e03db630a6536b25523dc292ef4"
     },
     "inst/app/www/md/intro_llm.md": {
       "checksum": "5af119f14574494faf93509542981d41"
     },
     "inst/app/www/md/intro_methods.md": {
-      "checksum": "6ea7ff4184f1cc9ee3cba32747adfd73"
+      "checksum": "b53cb35b8f885d679c304f5058784f32"
     },
     "inst/app/www/md/intro_parameters.md": {
-      "checksum": "ec9910b84fea134adb7da9a3226c2665"
+      "checksum": "e69411ac00c71dd72a1b45424ce616f4"
     },
     "inst/app/www/md/intro_references.md": {
       "checksum": "42d9dfcb03d912d4ad2fa114ab275790"
@@ -4497,16 +4518,22 @@
       "checksum": "b857eb5d738ee6bb3c4bfd986ae5b997"
     },
     "inst/app/www/md/intro_samples.md": {
-      "checksum": "5790f81f5649c1ed4bf42c608bea3ea2"
+      "checksum": "1d16eb772a0a47f7fc031acb43d785dd"
     },
     "inst/app/www/md/intro_sites.md": {
-      "checksum": "0d3c16a0ecf6f396045e900973362b0b"
+      "checksum": "45d9e75f4d146d1fbdc279aa65302d7c"
     },
     "inst/app/www/md/manual.md": {
-      "checksum": "e5a74cc4856ec01dc3ef47377729a3ba"
+      "checksum": "080748972def3ec151cbc3161fbfa59b"
     },
     "inst/app/www/md/package_citations.md": {
       "checksum": "17a00d49fc13c55895f33bd9020a57c1"
+    },
+    "inst/app/www/md/whats_new.md": {
+      "checksum": "601445b210860a7467943d0820c66dc8"
+    },
+    "inst/app/www/sound/beep-329314.mp3": {
+      "checksum": "7c3432089726003225333c61aa977233"
     },
     "inst/app/www/styles.css": {
       "checksum": "21dfd6444f8a34acfcd93ae0839f99d6"
@@ -4539,7 +4566,7 @@
       "checksum": "c7ea6a0c6fc27fd141201991857536f1"
     },
     "inst/data/clean/unit_conversion_factors.csv": {
-      "checksum": "337441817db6fd685b206c8c28f12f03"
+      "checksum": "75fde2db2c843c97fa84461eb94229ce"
     },
     "inst/data/raw/ClassyFire_2025-02_Readme.txt": {
       "checksum": "9e4a41b7e75be8563098270e5c34acaf"
@@ -4554,10 +4581,10 @@
       "checksum": "dc490ab3b643cf8c555c3b1178a3e9fe"
     },
     "inst/golem-config.yml": {
-      "checksum": "16b16fad83a64801542dc750422078c6"
+      "checksum": "1fe0099427407f3fd1fc5fa08a1f54f2"
     },
     "NAMESPACE": {
-      "checksum": "1c6b476baa1c833dfc0333a907a32d73"
+      "checksum": "905dc6546db9365df741970a813b5b94"
     },
     "protocols.csv": {
       "checksum": "c0a6a8f3ca8401ad79e8a4974b8984aa"
@@ -4569,40 +4596,52 @@
       "checksum": "b067a7fb25461b90c16e004d6b199d09"
     },
     "R/app_server.R": {
-      "checksum": "9ff062b244da1f700a7571903b5f5a80"
+      "checksum": "09026da482569e94bcb41c1b022adc1c"
     },
     "R/app_ui.R": {
-      "checksum": "ad70a70d76c3042dd27603245f8ce6c7"
+      "checksum": "793781953d13cf99fc1b6c92fccca891"
+    },
+    "R/fct_download.R": {
+      "checksum": "5bb29de9b4f2e664402d193299336296"
     },
     "R/fct_dummy_data.R": {
-      "checksum": "33dd71d0739e099b7e1079a715aa7f9f"
+      "checksum": "96b22fadaf3d1a18595b34e46e8cb75c"
+    },
+    "R/fct_formats.R": {
+      "checksum": "ca42f4a63cd4c82d38b307037200664f"
     },
     "R/fct_load_js.R": {
-      "checksum": "fc69884a4553422c763b1d90fb7ec788"
+      "checksum": "ad8cbbaa07d10995decaabb2a1b92315"
+    },
+    "R/fct_upload.R": {
+      "checksum": "09c62abfd778e8c5b07399920c2b945b"
     },
     "R/mod_biota.R": {
-      "checksum": "5947d9fd2df38548db72745bca6bd028"
+      "checksum": "a4b3418db8325bc3dab62db8e388d7fa"
     },
     "R/mod_bookmark_manager.R": {
-      "checksum": "094c4760ae802e58da54242de886b14d"
+      "checksum": "e9d9dcdd343c334c6dca20be5157ae0b"
     },
     "R/mod_campaign.R": {
-      "checksum": "ca6455a6061de0b543b1676b4d925fe6"
+      "checksum": "77420a282b86dcaf57bad3eacdafe658"
     },
     "R/mod_compartments.R": {
-      "checksum": "02f9d228e7dde418451bd18601d5c34b"
+      "checksum": "c7dc83973827daf1871557dc1ea5590a"
+    },
+    "R/mod_compartments_fct_.R": {
+      "checksum": "403100fcfac3dd0ac059f07edb18ad2e"
     },
     "R/mod_CREED.R": {
-      "checksum": "0f7a709d5e14b3d9456de347dea214b9"
+      "checksum": "d5c34c33ad8f561a31195ddc44d7bbff"
     },
     "R/mod_CREED_details.R": {
-      "checksum": "0ccba3387f21fe414befd462ae82d361"
+      "checksum": "e6f8e56d1865faeb52337a746356b25a"
     },
     "R/mod_CREED_fct_helpers.R": {
-      "checksum": "6df2bbbfa4f3987c763538e866aebd57"
+      "checksum": "fef423f61e83e791739ebabaf8ca4cde"
     },
     "R/mod_CREED_gateway.R": {
-      "checksum": "94a2c4e686a0375d15b515628d7a2d8f"
+      "checksum": "ee5e83cf5beb72e88b26a0f02ee4a814"
     },
     "R/mod_CREED_purpose.R": {
       "checksum": "d72afb227008b766987ed2517295ffd5"
@@ -4611,88 +4650,76 @@
       "checksum": "d56c00c9e8fac1db598a400059f3cd52"
     },
     "R/mod_CREED_reliability.R": {
-      "checksum": "55788ef6214493441b23a74b3bcb9e8d"
+      "checksum": "8906ee538d529b2b30d938dc68d6187d"
     },
     "R/mod_data.R": {
-      "checksum": "df9733f126612f341113e269c9784f2c"
-    },
-    "R/mod_data_fct_utils.R": {
-      "checksum": "2020e0e68bc6513765108d29ffe79ad5"
+      "checksum": "5666080ff31c3817566996d7e40ab479"
     },
     "R/mod_export.R": {
-      "checksum": "b60065e0c96127f430442c7b517b6194"
+      "checksum": "7a0127685deb884b041541c9a476ab0d"
     },
     "R/mod_information.R": {
       "checksum": "2b46e0d770ad2bd3282ee59932bb3cb4"
     },
     "R/mod_landing.R": {
-      "checksum": "fdbece0a3de74cde965b1a685af6055b"
+      "checksum": "0cdd19e08c50850b1a03ac7e6ee5974f"
     },
     "R/mod_llm.R": {
-      "checksum": "a62918086de345e73d60d33e81f94444"
+      "checksum": "f30dade1c924a57fbe9da09e80a3204d"
     },
     "R/mod_llm_fct_extraction_schema.R": {
-      "checksum": "51f97890c99abb2cc7badab82b9db847"
+      "checksum": "fe63ea2981cf49ec314568328cb32024"
     },
     "R/mod_llm_fct_populate.R": {
-      "checksum": "3da0f569df95bc37d5b2bec9ab69692f"
+      "checksum": "2dec2cd51ed4d06cf3a9de8f48ce7bff"
     },
     "R/mod_llm_fct_validate.R": {
-      "checksum": "ba7ccaa134ee0c037d40419daa383156"
+      "checksum": "ca666beb1acddb3cab07bc7084099715"
     },
     "R/mod_methods.R": {
-      "checksum": "210ae6f0af8f24cd49dd4bb5ccac526e"
+      "checksum": "0394a61a4f2a474dddc1749ab415b983"
+    },
+    "R/mod_methods_fct_id.R": {
+      "checksum": "3f02978e239436a6f33dceace1ecbc48"
     },
     "R/mod_parameters.R": {
-      "checksum": "5433ebe42be9bb1c64ba82fee254ab4d"
+      "checksum": "b55d7773c28dc3a290c638855ec54076"
     },
     "R/mod_parameters_fct.R": {
-      "checksum": "892e18544b3267cb632e28952c6dcca9"
+      "checksum": "a07709c4dae77f5a69a7af1029866657"
     },
     "R/mod_references.R": {
-      "checksum": "28e699a7667a22653b881f5df7d06c3b"
+      "checksum": "92181314470dab78d2b11b2ac1954f4e"
     },
     "R/mod_references_fct_bibtex.R": {
-      "checksum": "cd3b46ea4999097e60ee1acf12bd89c2"
+      "checksum": "2b6fdf29ddff71a6917d55fc508a018b"
     },
     "R/mod_references_fct_crossref.R": {
       "checksum": "f9de943c2787d00cb906677b3a226c3c"
     },
     "R/mod_review.R": {
-      "checksum": "838770d4304b920eb1422a8bc2002f79"
+      "checksum": "ac05757902aeac12626e983cc9d8c64a"
     },
     "R/mod_samples.R": {
-      "checksum": "d6dad5870eb7f94022e9f9ff3ae6140a"
+      "checksum": "f8b51e1016f0406969f8ccdcd64b62b2"
     },
     "R/mod_samples_fct.R": {
-      "checksum": "c16721e54197d7d08333452d0d1a23a6"
+      "checksum": "65f0f7fd7bf56039baf091e293e14494"
     },
     "R/mod_sites.R": {
-      "checksum": "5e446556be8a93afa2198026d1a83851"
+      "checksum": "09814c1424045613633209251ea120fb"
     },
     "R/run_app.R": {
       "checksum": "084fd90485fd84c334cff75bcebd3631"
     },
+    "R/utils_get_data_safe.R": {
+      "checksum": "b519c820faf9d16da8548122a59806a6"
+    },
     "R/utils_utilities.R": {
-      "checksum": "9849a031eed7099c7d66dea866f4a419"
+      "checksum": "1688aa34c6aa89bf0c11af490d57d526"
     },
     "renv.lock": {
-      "checksum": "e9f5597733757be5c7cab9c7d763fc5d"
-    },
-    "shiny_bookmarks/6104f836c841c4dd/input.rds": {
-      "checksum": "6876ef4cd712ff8954cab82078e5b664"
-    },
-    "shiny_bookmarks/6104f836c841c4dd/values.rds": {
-      "checksum": "690179f37df33d0211196ddeec2756d8"
-    },
-    "shiny_bookmarks/bookmark_metadata.rds": {
-      "checksum": "ffbdde1388835a6d02dbd006b4cf6e7c"
-    },
-    "shiny_bookmarks/e97735ed5fe93d71/input.rds": {
-      "checksum": "f88c5c801879ed6051582beb91288de7"
-    },
-    "shiny_bookmarks/e97735ed5fe93d71/values.rds": {
-      "checksum": "4b0d58fe4255ec3d2b4625881c08d672"
+      "checksum": "47814bdf4005126a7ce35650868823b1"
     }
   },
   "users": null

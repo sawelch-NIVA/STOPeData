@@ -24,59 +24,63 @@ mod_landing_ui <- function(id) {
           fillable = TRUE,
           ## Info accordion ----
           info_accordion(
-            content_file = "inst/app/www/md/intro_landing.md"
+            title = "Getting Started",
+            content_file = "inst/app/www/md/intro_landing.md",
+            div(
+              "Instructions and tooltips (",
+              tooltip(
+                bs_icon("info-circle-fill"),
+                "Mouse over icons like this for more information"
+              ),
+              ", mouse over for more information) are available on each page. For an FAQ and more details instructions, go to the Info tab (",
+              bs_icon("info-circle"),
+              ")."
+            )
           ),
+          h5("Quick Start Buttons"),
           layout_column_wrap(
-            width = "300px",
+            width = "400px",
             min_height = "200px",
             fill = FALSE,
-            div(
-              style = "display: flex; flex-direction: column; align-items: center;",
-              h6("Enter data manually."),
-              input_task_button(
-                id = ns("narrative_manual"),
-                label = "Enter data manually...",
-                icon = icon("keyboard"),
-                width = "300px",
-                type = "info"
-              )
-            ),
-            div(
-              style = "display: flex; flex-direction: column; align-items: center;",
-              h6("Extract data using an LLM."),
+            tooltip(
               input_task_button(
                 id = ns("narrative_llm"),
                 label = HTML(paste(
                   bs_icon("cpu"),
-                  "Extract using LLM..."
+                  "Extract with LLM"
                 )),
-                width = "300px",
+                width = "350px",
                 type = "primary",
-              )
+              ),
+              "Extract data from a PDF using a Large Language Model. Generally faster and more efficient."
             ),
-            div(
-              style = "display: flex; flex-direction: column; align-items: center;",
-              h6("Upload session data and continue an earlier entry"),
+            tooltip(
+              input_task_button(
+                id = ns("narrative_manual"),
+                label = HTML(paste(
+                  bs_icon("keyboard"),
+                  "Extract data manually"
+                )),
+                width = "350px",
+                type = "info"
+              ),
+              "Extract data from a source manually. Less efficient, but may be necessary under some circumstances."
+            ),
+
+            tooltip(
               input_task_button(
                 id = ns("upload_zip"),
-                label = "Upload session data",
-                icon = icon("table"),
-                width = "300px",
+                label = HTML(paste(
+                  bs_icon("file-earmark-zip"),
+                  "Continue an extraction"
+                )),
+                width = "350px",
                 type = "success"
-              )
+              ),
+
+              "Continue an earlier extraction by uploading a .zip save file."
             )
-            # div(
-            #   style = "display: flex; flex-direction: column; align-items: center;",
-            #   h6("Load dummy data for testing purposes."),
-            #   input_task_button(
-            #     id = ns("test_dummy"),
-            #     label = "Test with dummy data",
-            #     icon = icon("vial-circle-check"),
-            #     type = "warning",
-            #     width = "300px"
-            #   )
-            # )
-          )
+          ),
         )
       ),
       card(
@@ -90,17 +94,7 @@ mod_landing_ui <- function(id) {
               title = paste0("Version ", golem::get_golem_version()),
               content_file = "inst/app/www/md/whats_new.md"
             ),
-            br(),
-            tags$figure(
-              tags$figcaption(
-                "Illustration of STOP eData app workflow:"
-              ),
-              tags$img(
-                style = "max-width: 100%",
-                src = "www/app_mapp.png",
-                alt = "Illustration of STOP eData app workflow."
-              )
-            )
+            br()
           )
         )
       )
@@ -143,32 +137,6 @@ mod_landing_server <- function(id, parent_session) {
       )
     }) |>
       bindEvent(input$narrative_manual)
-
-    ## observe: Navigate to structured import when button clicked (future) ----
-    # Upstream: input$structured button click
-    # Downstream: Updates main navbar to appropriate tab (TBD)
-    # Note: Currently disabled - will need to define target tab when implemented
-    observe({
-      # TODO: Define target tab for structured data import
-      # updateNavbarPage(
-      #   session = parent_session,
-      #   inputId = "main-page",
-      #   selected = "XX-structured"
-      # )
-    }) |>
-      bindEvent(input$structured)
-
-    ## observe: Load dummy data for testing ----
-    # Upstream: input$test_dummy button click
-    # Downstream: Session reactiveValues populated with dummy data, navigate to campaign
-    observe({
-      populate_session_with_dummy_data(
-        session = session,
-        navigate_to = "01-campaign",
-        parent_session = parent_session
-      )
-    }) |>
-      bindEvent(input$test_dummy)
   })
 }
 
