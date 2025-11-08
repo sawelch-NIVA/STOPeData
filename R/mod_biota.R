@@ -346,7 +346,7 @@ mod_biota_server <- function(id) {
 
       filtered_species <- filtered_species |>
         mutate(
-          pretty_name = paste0(SPECIES_NAME, " (", SPECIES_COMMON_NAME, ")")
+          pretty_name = glue("{SPECIES_NAME} ({SPECIES_COMMON_NAME})")
         ) |>
         pull(
           var = SPECIES_NAME,
@@ -363,10 +363,6 @@ mod_biota_server <- function(id) {
         selected = intersect(current_selected, filtered_species),
         server = TRUE
       )
-
-      print_dev(glue(
-        "mod_biota filtered to {length(filtered_species)} species for group: {input$species_group_filter}"
-      ))
     }) |>
       bindEvent(input$species_group_filter)
 
@@ -410,7 +406,6 @@ mod_biota_server <- function(id) {
         selected = character(0)
       )
       moduleState$study_species <- character(0)
-      print_dev("mod_biota: Cleared all selected species")
     }) |>
       bindEvent(input$clear_species)
 
@@ -434,13 +429,9 @@ mod_biota_server <- function(id) {
               )
           ) {
             moduleState$biota_data <- biota_samples
-            print_dev(glue(
-              "mod_biota loaded {nrow(biota_samples)} biota samples"
-            ))
           }
         } else {
           moduleState$biota_data <- initialise_biota_tibble()
-          print_dev("mod_biota: No biota samples found")
         }
       }
     }) |>
@@ -460,9 +451,6 @@ mod_biota_server <- function(id) {
         biota_samples <- extract_biota_samples(samples_data)
 
         moduleState$biota_data <- biota_samples
-        print_dev(glue(
-          "mod_biota loaded {nrow(biota_samples)} biota samples"
-        ))
       }
     }) |>
       bindEvent(
