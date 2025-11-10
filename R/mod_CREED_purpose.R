@@ -19,7 +19,8 @@ mod_CREED_purpose_ui <- function(id) {
     # Info section ----
     # Purpose statement section ----
     p(
-      "Describe the objective for which the usability of the dataset is assessed, including any required dataset thresholds.",
+      "Describe the objective for which the usability of the dataset is assessed, including any required dataset thresholds. 
+      CREED Relevance Questions (RV01 - RV11) are based on the study purpose. Reliability Questions (RB01 - RB19) are common across all studies.",
       class = "text-muted"
     ),
     textAreaInput(
@@ -204,9 +205,7 @@ mod_CREED_purpose_ui <- function(id) {
     ),
 
     # RV3 ----
-    h5(
-      "RV3: The study area and number of locations sampled was suitable for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[3]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -214,21 +213,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[3]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                3
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  3
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV3_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[3]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                3
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  3
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV4 ----
-    h5(
-      "RV4: The rationale for selection of sampling locations was provided and it is suitable for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[4]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -236,21 +277,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[4]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                4
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  4
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV4_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[4]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                4
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  4
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV5 ----
-    h5(
-      "RV5: The samples were collected over a time scale that was appropriate for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[5]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -258,21 +341,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[5]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                5
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  5
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV5_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[5]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                5
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  5
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV6 ----
-    h5(
-      "RV6: Over the timespan, the sampling frequency was appropriate for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[6]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -280,21 +405,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[6]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                6
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  6
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV6_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[6]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                6
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  6
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV7 ----
-    h5(
-      "RV7: Conditions during sampling events were documented and relevant for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[7]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -302,21 +469,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[7]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                7
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  7
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV7_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[7]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                7
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  7
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV8 ----
-    h5(
-      "RV8: The analyte(s) reported was/were appropriate for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[8]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -324,19 +533,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[8]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                8
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  8
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV8_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[8]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                8
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  8
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV9 ----
-    h5("RV9: The method was sensitive enough for the given purpose."),
+    h5(copper_CREED_purpose_statement()$criteria[[9]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -344,21 +597,63 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[9]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                9
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  9
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV9_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[9]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                9
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  9
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV10 ----
-    h5(
-      "RV10: The summary statistics provided were appropriate for the given purpose."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[10]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -366,21 +661,65 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[
+            10
+          ]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                10
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  10
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV10_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[10]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                10
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  10
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 
     # RV11 ----
-    h5(
-      "RV11: All supporting parameters that were needed to achieve the given purpose were provided."
-    ),
+    h5(copper_CREED_purpose_statement()$criteria[[11]]$name),
     layout_columns(
       col_widths = c(6, 6),
       textAreaInput(
@@ -388,14 +727,60 @@ mod_CREED_purpose_ui <- function(id) {
         label = "Partly Met (minimum requirements)",
         placeholder = "Enter minimum threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[
+            11
+          ]]$partly_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                11
+              ]]$partly_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  11
+                ]]$partly_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       ),
       textAreaInput(
         inputId = ns("RV11_fully_met"),
         label = "Fully Met (optimal requirements)",
         placeholder = "Enter optimal threshold for this criterion...",
         rows = 3,
-        width = "100%"
+        width = "100%",
+        value = paste(
+          copper_CREED_purpose_statement()$criteria[[11]]$fully_met$description,
+          if (
+            length(
+              copper_CREED_purpose_statement()$criteria[[
+                11
+              ]]$fully_met$requirements
+            ) >
+              0
+          ) {
+            paste(
+              paste(
+                copper_CREED_purpose_statement()$criteria[[
+                  11
+                ]]$fully_met$requirements,
+                collapse = "\n- "
+              )
+            )
+          } else {
+            ""
+          }
+        )
       )
     ),
 

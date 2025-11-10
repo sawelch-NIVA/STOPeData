@@ -358,7 +358,7 @@ mod_llm_server <- function(id) {
               detail = "Extracting data (I haven't worked out how to fake progress yet so don't be alarmed if this sits at ~10% for 30 seconds)..."
             )
             result <- chat$chat_structured(
-              extraction_prompt,
+              system_prompt,
               pdf_content,
               type = extraction_schema
             )
@@ -390,7 +390,7 @@ mod_llm_server <- function(id) {
 
             # Also save outputs to server data so we can download them later if needed
             session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
-            session$userData$reactiveValues$promptLLM <- extraction_prompt
+            session$userData$reactiveValues$promptLLM <- system_prompt
             session$userData$reactiveValues$rawLLM <- result
 
             if (!is.null(moduleState$structured_data$comments)) {
@@ -489,7 +489,6 @@ mod_llm_server <- function(id) {
           }
 
           if (!is.null(moduleState$structured_data$parameters)) {
-            browser()
             parameters_data <- create_parameters_from_llm(
               moduleState$structured_data$parameters,
               session = session

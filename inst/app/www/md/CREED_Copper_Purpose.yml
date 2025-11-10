@@ -3,7 +3,7 @@ study_purpose: |
 
 criteria:
   - id: RV1
-    name: "RV1: The sampling medium/matrix was appropriate for the given purpose"
+    name: "RV1: Was the sampling medium/matrix appropriate for  the given purpose?"
     partly_met:
       description: "Not applicable"
       requirements: []
@@ -14,9 +14,9 @@ criteria:
         - "Not exclusively human-relevant (e.g. not indoor air)"
 
   - id: RV2
-    name: "RV2: The sample collection method was adequate for the given purpose"
+    name: "RV2: Was the sample collection method adequate for the given purpose?"
     partly_met:
-      description: "Paper reports vague sampling method without quantifying parameters"
+      description: "Paper reports general sampling method appropriate to medium, without quantifying parameters"
       requirements:
         - "Depth not specified"
         - "Sampling period not specified"
@@ -27,7 +27,7 @@ criteria:
         - "Degree of specificity and quantification necessary to repeat the study"
 
   - id: RV3
-    name: "RV3: The study area and number of locations sampled was suitable for the given purpose"
+    name: "RV3: Were the study area and number of locations sampled  suitable for the given purpose?"
     partly_met:
       description: "Study reports areas at low resolution"
       requirements:
@@ -46,7 +46,7 @@ criteria:
         - "Recent events that may affect pollution load reported"
 
   - id: RV4
-    name: "RV4: The rationale for selection of sampling locations was provided and it is suitable for the given purpose"
+    name: "RV4: Was the rationale for selection of sampling locations  provided and is it suitable for the given purpose?"
     partly_met:
       description: "Study reports vague goals and reason for sampling area"
       requirements: []
@@ -57,7 +57,7 @@ criteria:
         - "Proper context (historical, etc.) for site selection are reported"
 
   - id: RV5
-    name: "RV5: The samples were collected over a time scale that was appropriate for the given purpose"
+    name: "RV5: Were the samples collected over a time scale that was appropriate for the given purpose?"
     partly_met:
       description: "Sampling was conducted as a one-off event"
       requirements:
@@ -67,6 +67,33 @@ criteria:
       requirements:
         - "Multiple sampling events over time, OR"
         - "Similar sites were sampled with appropriate justification for this similarity"
+
+  - id: RV6
+    name: "RV6: Over the timespan, was the sampling frequency appropriate for the given purpose?"
+    partly_met:
+      description: "See RV5."
+      requirements:
+    fully_met:
+      description: "See RV5."
+      requirements:
+
+  - id: RV7
+    name: "RV7: Were conditions during sampling events documented and relevant for the given purpose?"
+    partly_met:
+      description: "Paper reports any relevant conditions, etc. that may have affected sampling sites."
+      requirements:
+    fully_met:
+      description: "Paper reports any relevant conditions to a high level of detail and with evidence-based reasoning as to how they may have affected sampling."
+      requirements:
+
+  - id: RV8
+    name: "RV8: Was/were the analyte(s) reported appropriate for the given purpose?"
+    partly_met:
+      description: "Paper reports total copper concentrations (e.g. acid-extractable fraction)."
+      requirements:
+    fully_met:
+      description: "Paper reports relevant copper fractions (e.g. bioavailable, sediment-associated, etc.)."
+      requirements:
 
   - id: RV9
     name: "RV9: The method was sensitive enough for the given purpose"

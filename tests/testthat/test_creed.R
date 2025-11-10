@@ -18,7 +18,13 @@ create_dummy_module_data <- function() {
     ),
 
     compartments = tibble(
-      ENVIRON_COMPARTMENT = c("Sediment", "Sediment", "Water", "Sediment")
+      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Aquatic", "Terrestrial"),
+      ENVIRON_COMPARTMENT_SUB = c(
+        "Aquatic Sediment",
+        "Porewater",
+        "Wastewater",
+        "Biological Residue"
+      )
     ),
 
     sites = tibble(
@@ -39,10 +45,18 @@ create_dummy_module_data <- function() {
     measurements = tibble(
       PARAMETER_NAME = c("Copper", "Lead", "Copper", "Zinc"),
       MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
+      MEASURED_VALUE = c(15.3, 8.45, 2.1, 12.678),
       LOQ_VALUE = c(0.5, 1.0, 0.1, 0.8),
       LOQ_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
       LOD_VALUE = c(0.2, 0.4, 0.05, 0.3),
-      LOD_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg")
+      LOD_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
+      UNCERTAINTY_TYPE = c("SD", "SD", "CI", "Range"),
+      MEASUREMENT_COMMENT = c(
+        "High quality measurement",
+        "Baseline sample",
+        NA_character_,
+        "Good precision"
+      )
     ),
 
     methods = tibble(
@@ -50,13 +64,22 @@ create_dummy_module_data <- function() {
         "Sampling Protocol",
         "Sampling Protocol",
         "Analytical Protocol",
-        "Analytical Protocol"
+        "Analytical Protocol",
+        "Fractionation Protocol"
       ),
       PROTOCOL_NAME = c(
         "Surface sediment grab",
         "Water column sampling",
         "ICP-MS analysis",
-        "AAS analysis"
+        "AAS analysis",
+        "Sequential extraction"
+      ),
+      PROTOCOL_COMMENT = c(
+        "I picked up sand with my bare hands.",
+        "Mouth pipetting.",
+        "Threw it at the wall to see what happens.",
+        "Set it on fire to see what happens.",
+        "Multi-step acid digestion process"
       )
     )
   )
@@ -390,9 +413,11 @@ test_that("summarise_CREED_details handles NA dates correctly", {
 test_that("summarise_CREED_details deduplicates values correctly", {
   session_data <- create_session_data()
   # Add duplicate compartment
-  session_data$compartmentsData <- rbind(
+  session_data$compartmentsData <- add_row(
     session_data$compartmentsData,
-    tibble(ENVIRON_COMPARTMENT = "Sediment", stringsAsFactors = FALSE)
+    tibble(
+      ENVIRON_COMPARTMENT = "Aquatic"
+    )
   )
 
   result <- summarise_CREED_details(session_data)
@@ -401,4 +426,172 @@ test_that("summarise_CREED_details deduplicates values correctly", {
   # Should not have "Sediment" repeated multiple times in output
   sediment_count <- length(gregexpr("Sediment", medium)[[1]])
   expect_lte(sediment_count, 2) # Once in the value, once in potential plural
+})
+
+# test-creed-reliability-functions.R ----
+
+test_that("summarise_CREED_reliability correctly summarizes compartments and protocols for RB1", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb1_value <- result$value[result$field == "RB1"]
+
+  # Should contain compartments
+  expect_true(grepl("compartment", rb1_value))
+  expect_true(grepl("Sediment", rb1_value))
+
+  # Should contain protocol information
+  expect_true(grepl("protocol", rb1_value))
+})
+
+test_that("summarise_CREED_reliability correctly summarizes sites for RB4", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb4_value <- result$value[result$field == "RB4"]
+
+  expect_true(grepl("4 sites", rb4_value))
+  expect_true(grepl("Norway", rb4_value))
+  expect_true(grepl("Oslo Fjord", rb4_value))
+})
+
+test_that("summarise_CREED_reliability correctly calculates date range for RB5", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb5_value <- result$value[result$field == "RB5"]
+
+  expect_true(grepl("2023-01-15", rb5_value))
+  expect_true(grepl("2023-09-05", rb5_value))
+  expect_true(grepl("to", rb5_value))
+})
+
+test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2, RB3, RB13", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb2_value <- result$value[result$field == "RB2"]
+  rb3_value <- result$value[result$field == "RB3"]
+  rb13_value <- result$value[result$field == "RB13"]
+
+  # All three should be identical
+  expect_equal(rb2_value, rb3_value)
+  expect_equal(rb2_value, rb13_value)
+
+  # Should contain sampling protocol info
+  expect_true(grepl("sampling protocol", rb2_value))
+})
+
+test_that("summarise_CREED_reliability reuses analytical protocol summary for RB6, RB10, RB11, RB12", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb6_value <- result$value[result$field == "RB6"]
+  rb10_value <- result$value[result$field == "RB10"]
+  rb11_value <- result$value[result$field == "RB11"]
+  rb12_value <- result$value[result$field == "RB12"]
+
+  # All four should be identical
+  expect_equal(rb6_value, rb10_value)
+  expect_equal(rb6_value, rb11_value)
+  expect_equal(rb6_value, rb12_value)
+
+  # Should contain analytical protocol info
+  expect_true(grepl("analytical protocol", rb6_value))
+})
+
+test_that("summarise_CREED_reliability calculates LOD/LOQ for RB7", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb7_value <- result$value[result$field == "RB7"]
+
+  expect_true(grepl("LOQ:", rb7_value))
+  expect_true(grepl("LOD:", rb7_value))
+  expect_true(grepl("0.1 to 1", rb7_value)) # LOQ range
+})
+
+test_that("summarise_CREED_reliability calculates significant figures for RB15", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  rb15_value <- result$value[result$field == "RB15"]
+
+  expect_true(grepl("significant figure", rb15_value))
+})
+
+test_that("summarise_CREED_reliability leaves blank fields empty for RB8, RB16, RB17, RB19", {
+  session_data <- create_session_data()
+  result <- summarise_CREED_reliability(session_data)
+
+  expect_equal(result$value[result$field == "RB8"], "")
+  expect_equal(result$value[result$field == "RB16"], "")
+  expect_equal(result$value[result$field == "RB17"], "")
+  expect_equal(result$value[result$field == "RB19"], "")
+})
+
+test_that("summarise_CREED_reliability handles missing data gracefully", {
+  session_data <- list(
+    compartmentsData = NULL,
+    methodsData = NULL,
+    sitesData = NULL,
+    samplesData = NULL,
+    measurementsData = NULL
+  )
+
+  result <- summarise_CREED_reliability(session_data)
+
+  # Should still return 19 rows
+  expect_equal(nrow(result), 19)
+
+  # Non-empty fields should say "Relevant data not found"
+  non_empty_fields <- c(
+    "RB1",
+    "RB2",
+    "RB3",
+    "RB4",
+    "RB5",
+    "RB6",
+    "RB7",
+    "RB9",
+    "RB10",
+    "RB11",
+    "RB12",
+    "RB13",
+    "RB14",
+    "RB15",
+    "RB18"
+  )
+  for (field in non_empty_fields) {
+    expect_equal(
+      result$value[result$field == field],
+      "Relevant data not found"
+    )
+  }
+})
+
+test_that("summarise_CREED_reliability handles uncertainty types for RB14 and RB18", {
+  session_data <- create_session_data()
+  # Add uncertainty data
+  session_data$measurementsData$UNCERTAINTY_TYPE <- c("SD", "SD", "CI", "SD")
+  session_data$measurementsData$MEASUREMENT_COMMENT <- c(
+    "Good",
+    "Fair",
+    NA,
+    "Good"
+  )
+
+  result <- summarise_CREED_reliability(session_data)
+
+  rb14_value <- result$value[result$field == "RB14"]
+  rb18_value <- result$value[result$field == "RB18"]
+
+  # RB14 should have both uncertainty types and comments
+  expect_true(grepl("Uncertainty types", rb14_value))
+  expect_true(grepl("Measurement comments", rb14_value))
+
+  # RB18 should have only uncertainty types
+  expect_true(grepl("Uncertainty types", rb18_value))
+  expect_true(grepl("SD", rb18_value))
+  expect_true(grepl("CI", rb18_value))
 })

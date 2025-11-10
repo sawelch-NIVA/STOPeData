@@ -47,12 +47,12 @@ app_server <- function(input, output, session) {
       measurementsData = initialise_measurements_tibble(),
       measurementsDataValid = FALSE,
       creedData = list(
-        purpose_statement = tibble(NULL),
-        dataset_details = tibble(NULL),
-        gateway_criteria = tibble(NULL),
-        reliability_criteria = tibble(NULL),
-        relevance_criteria = tibble(NULL),
-        CREED_output = tibble(NULL)
+        purposeStatement = tibble(NULL),
+        datasetDetails = tibble(NULL),
+        gatewayCriteria = tibble(NULL),
+        reliabilityCriteria = tibble(NULL),
+        relevanceCriteria = tibble(NULL),
+        creedOutput = tibble(NULL)
       ),
       creedGetData = 0, # watched by multiple observers in nested CREED modules. +1 every time we input$get_data in mod_CREED
 

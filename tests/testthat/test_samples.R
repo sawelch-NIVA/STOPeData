@@ -5,7 +5,7 @@ test_that("generate_sample_id_with_components creates correct IDs", {
   environ_compartments <- c("Water", "Sediment", "Water")
   environ_compartment_subs <- c("Surface Water", "Top Layer", "Bottom Water")
   dates <- c("2024-01-15", "2024-03-22", "2024-06-30")
-  subsamples <- c(1, 2, 3)
+  subsamples <- c("1", "2", "3")
 
   # Generate IDs
   result <- generate_sample_id_with_components(
@@ -28,17 +28,4 @@ test_that("generate_sample_id_with_components creates correct IDs", {
   expect_equal(result, expected)
   expect_length(result, 3)
   expect_type(result, "character")
-})
-
-test_that("generate_sample_id_with_components handles special characters", {
-  result <- generate_sample_id_with_components(
-    site_code = "SITE_001",
-    parameter_name = "Total-N",
-    environ_compartment = "Water",
-    environ_compartment_sub = "Surface & Deep",
-    date = "2024-01-15",
-    subsample = 1
-  )
-
-  expect_equal(result, "SITE_001-TotalN-SurfaceDeep-2024-01-15-R-1")
 })

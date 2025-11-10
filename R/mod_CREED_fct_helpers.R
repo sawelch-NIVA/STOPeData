@@ -480,13 +480,8 @@ create_criterion_section <- function(
         h6(
           HTML(paste(
             bs_icon("award-fill", class = icon_class),
-            paste0(
-              criterion_id,
-              ": ",
-              title,
-              " (",
-              tools::toTitleCase(type_text),
-              ")"
+            glue(
+              "{criterion_id}: {title} ({tools::toTitleCase(type_text)}"
             )
           ))
         ),
@@ -495,11 +490,15 @@ create_criterion_section <- function(
           description
         )
       ),
-      selectInput(
-        inputId = ns(paste0(criterion_id, "_score")),
-        label = "Score:",
-        choices = CREED_choices(),
-        width = "200px"
+      div(
+        style = "min-width: 150px;",
+
+        selectInput(
+          inputId = ns(paste0(criterion_id, "_score")),
+          label = "Score:",
+          choices = CREED_choices(),
+          width = "150px",
+        )
       )
     ),
 
@@ -620,18 +619,8 @@ create_conditional_criterion <- function(
 #' @noRd
 auto_populate_reliability_fields <- function(user_data) {
   # Create module_data structure from userData
-  module_data <- list(
-    campaign = user_data$campaignData,
-    references = user_data$referenceData,
-    sites = user_data$sitesData,
-    parameters = user_data$parametersData,
-    compartments = user_data$compartmentsData,
-    samples = user_data$samplesData,
-    methods = user_data$methodsData,
-    measurements = user_data$measurementsData
-  )
 
-  summaries <- summarise_CREED_details(module_data)
+  summaries <- summarise_CREED_reliability(module_data)
 
   # Map to reliability-specific fields
   list(
@@ -653,16 +642,6 @@ auto_populate_reliability_fields <- function(user_data) {
 #' @noRd
 auto_populate_relevance_fields <- function(user_data) {
   # Same pattern as above
-  module_data <- list(
-    campaign = user_data$campaignData,
-    references = user_data$referenceData,
-    sites = user_data$sitesData,
-    parameters = user_data$parametersData,
-    compartments = user_data$compartmentsData,
-    samples = user_data$samplesData,
-    methods = user_data$methodsData,
-    measurements = user_data$measurementsData
-  )
 
   summaries <- summarise_CREED_details(module_data)
 
@@ -699,4 +678,445 @@ CREED_choices <- function() {
 #' @importFrom yaml read_yaml
 copper_CREED_purpose_statement <- function() {
   read_yaml("inst/app/www/md/CREED_Copper_Purpose.yml")
+}
+
+#' @title summarise user-entered data for the CREED reliability criteria reporting
+#' @description summarise session user data into pretty strings for CREED reliability criteria
+#' @param sessionData session$userData$reactiveValues object
+#' @return tibble of Reliability criteria fields ("field") and pretty strings ("value")
+#' @export
+summarise_CREED_reliability <- function(sessionData) {
+  # Helper function to check if a dataset exists and has content
+  dataset_exists <- function(dataset) {
+    isTruthy(dataset) && !all(is.na(dataset))
+  }
+
+  # Check existence of each dataset once ----
+  has_compartments <- dataset_exists(sessionData$compartmentsData)
+  has_methods <- dataset_exists(sessionData$methodsData)
+  has_sites <- dataset_exists(sessionData$sitesData)
+  has_samples <- dataset_exists(sessionData$samplesData)
+  has_measurements <- dataset_exists(sessionData$measurementsData)
+
+  # RB1: Compartments and sampling/fractionation protocols ----
+  RB1_value <- if (has_compartments || has_methods) {
+    parts <- c()
+
+    # Compartments section
+    if (has_compartments) {
+      comp_data <- sessionData$compartmentsData
+      valid_comps <- comp_data[
+        !is.na(comp_data$ENVIRON_COMPARTMENT) &
+          comp_data$ENVIRON_COMPARTMENT != "",
+      ]
+
+      if (nrow(valid_comps) > 0) {
+        comp_strings <- sapply(seq_len(nrow(valid_comps)), function(i) {
+          comp <- valid_comps$ENVIRON_COMPARTMENT[i]
+          subcomp <- valid_comps$ENVIRON_COMPARTMENT_SUB[i]
+          if (!is.na(subcomp) && subcomp != "") {
+            glue("{comp} ({subcomp})")
+          } else {
+            comp
+          }
+        })
+        parts <- c(
+          parts,
+          glue(
+            "{nrow(valid_comps)} compartment{if(nrow(valid_comps) > 1) 's' else ''}: ",
+            "{paste(comp_strings, collapse = '; ')}"
+          )
+        )
+      }
+    }
+
+    # Sampling protocols section
+    if (has_methods) {
+      sampling_protocols <- sessionData$methodsData[
+        sessionData$methodsData$PROTOCOL_CATEGORY == "Sampling Protocol" &
+          !is.na(sessionData$methodsData$PROTOCOL_NAME) &
+          sessionData$methodsData$PROTOCOL_NAME != "",
+      ]
+
+      if (nrow(sampling_protocols) > 0) {
+        protocol_strings <- sapply(
+          seq_len(nrow(sampling_protocols)),
+          function(i) {
+            name <- sampling_protocols$PROTOCOL_NAME[i]
+            comment <- sampling_protocols$PROTOCOL_COMMENT[i]
+            if (!is.na(comment) && comment != "") {
+              glue("{name}: ({comment})")
+            } else {
+              name
+            }
+          }
+        )
+        parts <- c(
+          parts,
+          glue(
+            "\n{nrow(sampling_protocols)} sampling protocol{if(nrow(sampling_protocols) > 1) 's' else ''}:\n",
+            "{paste(protocol_strings, collapse = '\n')}"
+          )
+        )
+      }
+
+      # Fractionation protocols section
+      frac_protocols <- sessionData$methodsData[
+        sessionData$methodsData$PROTOCOL_CATEGORY == "Fractionation Protocol" &
+          !is.na(sessionData$methodsData$PROTOCOL_NAME) &
+          sessionData$methodsData$PROTOCOL_NAME != "",
+      ]
+
+      if (nrow(frac_protocols) > 0) {
+        frac_strings <- sapply(seq_len(nrow(frac_protocols)), function(i) {
+          name <- frac_protocols$PROTOCOL_NAME[i]
+          comment <- frac_protocols$PROTOCOL_COMMENT[i]
+          if (!is.na(comment) && comment != "") {
+            glue("{name}: ({comment})")
+          } else {
+            name
+          }
+        })
+        parts <- c(
+          parts,
+          glue(
+            "\n{nrow(frac_protocols)} fractionation protocol{if(nrow(frac_protocols) > 1) 's' else ''}:\n",
+            "{paste(frac_strings, collapse = '\n')}"
+          )
+        )
+      }
+    }
+
+    if (length(parts) > 0) {
+      paste(parts, collapse = "\n\n")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB2 & RB3: All details for Sampling Protocols ----
+  sampling_protocols_value <- if (has_methods) {
+    sampling_protocols <- sessionData$methodsData[
+      sessionData$methodsData$PROTOCOL_CATEGORY == "Sampling Protocol" &
+        !is.na(sessionData$methodsData$PROTOCOL_NAME) &
+        sessionData$methodsData$PROTOCOL_NAME != "",
+    ]
+
+    if (nrow(sampling_protocols) > 0) {
+      protocol_strings <- sapply(
+        seq_len(nrow(sampling_protocols)),
+        function(i) {
+          name <- sampling_protocols$PROTOCOL_NAME[i]
+          comment <- sampling_protocols$PROTOCOL_COMMENT[i]
+          if (!is.na(comment) && comment != "") {
+            glue("{name}: ({comment})")
+          } else {
+            name
+          }
+        }
+      )
+      glue(
+        "{nrow(sampling_protocols)} sampling protocol{if(nrow(sampling_protocols) > 1) 's' else ''}:\n",
+        "{paste(protocol_strings, collapse = '\n')}"
+      )
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB4: Summary of all sites ----
+  RB4_value <- if (has_sites) {
+    n_sites <- nrow(sessionData$sitesData)
+    countries <- summarize_multiple(
+      sessionData$sitesData$COUNTRY,
+      "Countries"
+    )
+    areas <- summarize_multiple(sessionData$sitesData$AREA, "Areas")
+    glue("{n_sites} sites. {countries}; {areas}")
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB5: Sampling dates ----
+  RB5_value <- if (has_samples) {
+    calculate_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB6, RB10, RB11, RB12: All details for Analysis Protocols ----
+  analysis_protocols_value <- if (has_methods) {
+    analysis_protocols <- sessionData$methodsData[
+      sessionData$methodsData$PROTOCOL_CATEGORY == "Analytical Protocol" &
+        !is.na(sessionData$methodsData$PROTOCOL_NAME) &
+        sessionData$methodsData$PROTOCOL_NAME != "",
+    ]
+
+    if (nrow(analysis_protocols) > 0) {
+      protocol_strings <- sapply(
+        seq_len(nrow(analysis_protocols)),
+        function(i) {
+          name <- analysis_protocols$PROTOCOL_NAME[i]
+          comment <- analysis_protocols$PROTOCOL_COMMENT[i]
+          if (!is.na(comment) && comment != "") {
+            glue("{name}: ({comment})")
+          } else {
+            name
+          }
+        }
+      )
+      glue(
+        "{nrow(analysis_protocols)} analytical protocol{if(nrow(analysis_protocols) > 1) 's' else ''}:\n",
+        "{paste(protocol_strings, collapse = '\n')}"
+      )
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB7: LOD/LOQ information ----
+  RB7_value <- if (has_measurements) {
+    loq_values <- sessionData$measurementsData$LOQ_VALUE[
+      !is.na(sessionData$measurementsData$LOQ_VALUE)
+    ]
+    lod_values <- sessionData$measurementsData$LOD_VALUE[
+      !is.na(sessionData$measurementsData$LOD_VALUE)
+    ]
+
+    info_parts <- c()
+    if (length(loq_values) > 0) {
+      loq_range <- glue("{min(loq_values)} to {max(loq_values)}")
+      loq_unit <- sessionData$measurementsData$LOQ_UNIT[
+        !is.na(sessionData$measurementsData$LOQ_UNIT)
+      ][1]
+      info_parts <- c(info_parts, glue("LOQ: {loq_range} {loq_unit}"))
+    }
+    if (length(lod_values) > 0) {
+      lod_range <- glue("{min(lod_values)} to {max(lod_values)}")
+      lod_unit <- sessionData$measurementsData$LOD_UNIT[
+        !is.na(sessionData$measurementsData$LOD_UNIT)
+      ][1]
+      info_parts <- c(info_parts, glue("LOD: {lod_range} {lod_unit}"))
+    }
+
+    if (length(info_parts) > 0) {
+      paste(info_parts, collapse = "; ")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB8: None ----
+  RB8_value <- ""
+
+  # RB9: All protocols with names and comments ----
+  RB9_value <- if (has_methods) {
+    all_protocols <- sessionData$methodsData[
+      !is.na(sessionData$methodsData$PROTOCOL_NAME) &
+        sessionData$methodsData$PROTOCOL_NAME != "",
+    ]
+
+    if (nrow(all_protocols) > 0) {
+      protocol_strings <- sapply(seq_len(nrow(all_protocols)), function(i) {
+        name <- all_protocols$PROTOCOL_NAME[i]
+        comment <- all_protocols$PROTOCOL_COMMENT[i]
+        category <- all_protocols$PROTOCOL_CATEGORY[i]
+
+        if (!is.na(comment) && comment != "") {
+          glue("{category} - {name}: ({comment})")
+        } else {
+          glue("{category} - {name}")
+        }
+      })
+      glue(
+        "{nrow(all_protocols)} protocol{if(nrow(all_protocols) > 1) 's' else ''}:\n",
+        "{paste(protocol_strings, collapse = '\n')}"
+      )
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB13: All details for Sampling Protocols (same as RB2/RB3) ----
+  RB13_value <- sampling_protocols_value
+
+  # RB14: UNCERTAINTY_TYPE or MEASUREMENT_COMMENT ----
+  RB14_value <- if (has_measurements) {
+    uncertainty_types <- sessionData$measurementsData$UNCERTAINTY_TYPE[
+      !is.na(sessionData$measurementsData$UNCERTAINTY_TYPE) &
+        sessionData$measurementsData$UNCERTAINTY_TYPE != ""
+    ]
+    measurement_comments <- sessionData$measurementsData$MEASUREMENT_COMMENT[
+      !is.na(sessionData$measurementsData$MEASUREMENT_COMMENT) &
+        sessionData$measurementsData$MEASUREMENT_COMMENT != ""
+    ]
+
+    parts <- c()
+    if (length(uncertainty_types) > 0) {
+      unique_types <- unique(uncertainty_types)
+      parts <- c(
+        parts,
+        glue(
+          "Uncertainty types: {paste(unique_types, collapse = ', ')}"
+        )
+      )
+    }
+    if (length(measurement_comments) > 0) {
+      unique_comments <- unique(measurement_comments)
+      parts <- c(
+        parts,
+        glue(
+          "Measurement comments: {paste(unique_comments, collapse = ', ')}"
+        )
+      )
+    }
+
+    if (length(parts) > 0) {
+      paste(parts, collapse = "; ")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB15: Number of sig figs in MEASURED_VALUE ----
+  RB15_value <- if (has_measurements) {
+    measured_values <- sessionData$measurementsData$MEASURED_VALUE[
+      !is.na(sessionData$measurementsData$MEASURED_VALUE)
+    ]
+
+    if (length(measured_values) > 0) {
+      # Calculate significant figures for each value
+      sig_figs <- sapply(measured_values, function(x) {
+        # Convert to character to count significant figures
+        x_char <- as.character(x)
+        # Remove leading zeros and decimal point for counting
+        x_char <- gsub("^0+\\.", "0.", x_char)
+        x_char <- gsub("\\.", "", x_char)
+        x_char <- gsub("^0+", "", x_char)
+        nchar(x_char)
+      })
+
+      min_sf <- min(sig_figs)
+      max_sf <- max(sig_figs)
+
+      if (min_sf == max_sf) {
+        glue("{min_sf} significant figures")
+      } else {
+        glue("{min_sf} to {max_sf} significant figures")
+      }
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB16, RB17, RB19: None ----
+  RB16_value <- ""
+  RB17_value <- ""
+  RB19_value <- ""
+
+  # RB18: UNCERTAINTY_TYPE ----
+  RB18_value <- if (has_measurements) {
+    uncertainty_types <- sessionData$measurementsData$UNCERTAINTY_TYPE[
+      !is.na(sessionData$measurementsData$UNCERTAINTY_TYPE) &
+        sessionData$measurementsData$UNCERTAINTY_TYPE != ""
+    ]
+
+    if (length(uncertainty_types) > 0) {
+      unique_types <- unique(uncertainty_types)
+      glue("Uncertainty types: {paste(unique_types, collapse = ', ')}")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # Build tibble from extracted values ----
+  tibble(
+    field = c(
+      "RB1",
+      "RB2",
+      "RB3",
+      "RB4",
+      "RB5",
+      "RB6",
+      "RB7",
+      "RB8",
+      "RB9",
+      "RB10",
+      "RB11",
+      "RB12",
+      "RB13",
+      "RB14",
+      "RB15",
+      "RB16",
+      "RB17",
+      "RB18",
+      "RB19"
+    ),
+    value = c(
+      RB1_value,
+      sampling_protocols_value,
+      sampling_protocols_value,
+      RB4_value,
+      RB5_value,
+      analysis_protocols_value,
+      RB7_value,
+      RB8_value,
+      RB9_value,
+      analysis_protocols_value,
+      analysis_protocols_value,
+      analysis_protocols_value,
+      RB13_value,
+      RB14_value,
+      RB15_value,
+      RB16_value,
+      RB17_value,
+      RB18_value,
+      RB19_value
+    )
+  )
+}
+
+
+#' Auto-populate Reliability Fields
+#'
+#' @description Creates named list for auto-populating reliability criteria fields
+#' @param sessionData session$userData$reactiveValues object
+#' @return Named list of reliability field data for updating inputs
+#' @noRd
+autopop_reliability_fields <- function(sessionData) {
+  # Get summaries from the main function
+  summaries <- summarise_CREED_reliability(sessionData)
+
+  # Create named list for input updates
+  # Only include non-empty fields (skip RB8, RB16, RB17, RB19)
+  field_list <- list()
+
+  for (i in seq_len(nrow(summaries))) {
+    field_id <- summaries$field[i]
+    value <- summaries$value[i]
+
+    # Skip empty fields
+    if (value != "") {
+      input_name <- paste0(field_id, "_relevant_data")
+      field_list[[input_name]] <- value
+    }
+  }
+
+  return(field_list)
 }

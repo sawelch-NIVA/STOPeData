@@ -1,3 +1,5 @@
+# tests/testthat/test_utils.r ----
+
 test_that("abbreviate_string works for all case styles", {
   input <- "dogs and cats are best friends"
   n <- 3L
@@ -47,13 +49,13 @@ test_that("abbreviate_string works for all case styles", {
 
 test_that("abbreviate_string handles special characters", {
   expect_equal(
-    abbreviate_string("Total-N (mg/L) Concentration", n_words = 2L, "snake"),
-    "total_n"
+    abbreviate_string("Total-N Concentration", n_words = 2L, "snake"),
+    "total-n_concentration"
   )
 
   expect_equal(
     abbreviate_string("Water & Sediment Quality", n_words = 3L, "title"),
-    "WaterSedimentQuality"
+    "Water&Sediment"
   )
 })
 

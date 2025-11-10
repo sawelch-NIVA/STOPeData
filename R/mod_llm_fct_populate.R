@@ -128,6 +128,7 @@ populate_references_from_llm <- function(session, llm_references_data) {
 
   # doing this here is a little crude but currently the above
   # observer isn't triggered by llm extract
+  browser()
   reference_id <- generate_reference_id(
     date = llm_references_data$year,
     author = llm_references_data$author,

@@ -312,6 +312,47 @@ mod_CREED_reliability_server <- function(id) {
     }) |>
       bindEvent(input$populate_from_data)
 
+    ## observe: Auto-populate relevant data fields ----
+    # upstream: input$populate_from_data OR session$userData$reactiveValues$creedGetData
+    # downstream: All RB*_relevant_data inputs
+    observe({
+      req(session$userData$reactiveValues)
+
+      tryCatch(
+        {
+          # Get auto-populated field values
+          field_updates <- autopop_reliability_fields(
+            session$userData$reactiveValues
+          )
+
+          # Update each field
+          for (field_name in names(field_updates)) {
+            updateTextAreaInput(
+              session,
+              field_name,
+              value = field_updates[[field_name]]
+            )
+          }
+
+          showNotification(
+            "Relevant data fields populated from dataset",
+            type = "success"
+          )
+        },
+        error = function(e) {
+          showNotification(
+            paste("Auto-populate failed:", e$message),
+            type = "error"
+          )
+        }
+      )
+    }) |>
+      bindEvent(
+        input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
+
     ## observe: test ----
     observe({
       print("Hello!")

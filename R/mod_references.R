@@ -709,10 +709,12 @@ mod_references_server <- function(id) {
       names(reference_data) <- tolower(names(reference_data))
       # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
 
+      browser()
       populate_references_from_llm(
         session,
         reference_data
       )
+      # this causes an error downstream with str_to_title
       print_dev("Populated references form from saved data")
     }) |>
       bindEvent(
