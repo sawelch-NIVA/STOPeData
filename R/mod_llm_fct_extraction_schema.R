@@ -6,32 +6,34 @@
 #' @importFrom glue glue
 #' @noRd
 create_campaign_schema <- function() {
-  type_object(
-    .description = "Basic study/campaign information",
-    campaign_name = type_string(
-      description = "Identifier for the study/campaign (max 100 chars)",
-      required = FALSE
-    ),
-    campaign_name_short = type_string(
-      description = "Abbreviated form of the Identifier for the study/campaign (max 20 char, no spaces or underscores). 
+  type_array(
+    type_object(
+      .description = "Basic study/campaign information",
+      campaign_name = type_string(
+        description = "Identifier for the study/campaign (max 100 chars)",
+        required = FALSE
+      ),
+      campaign_name_short = type_string(
+        description = "Abbreviated form of the Identifier for the study/campaign (max 20 char, no spaces or underscores). 
       Should be specific to location, study, and date as much as possible",
-      required = FALSE
-    ),
-    campaign_start_date = type_string(
-      description = "Study start date in YYYY-MM-DD format",
-      required = FALSE
-    ),
-    campaign_end_date = type_string(
-      description = "Study end date in YYYY-MM-DD format",
-      required = FALSE
-    ),
-    organisation = type_string(
-      description = "Organization that conducted the study (max 50 chars)",
-      required = FALSE
-    ),
-    campaign_comment = type_string(
-      description = "Additional study details or notes (max 1000 chars)",
-      required = FALSE
+        required = FALSE
+      ),
+      campaign_start_date = type_string(
+        description = "Study start date in YYYY-MM-DD format",
+        required = FALSE
+      ),
+      campaign_end_date = type_string(
+        description = "Study end date in YYYY-MM-DD format",
+        required = FALSE
+      ),
+      organisation = type_string(
+        description = "Organization that conducted the study (max 50 chars)",
+        required = FALSE
+      ),
+      campaign_comment = type_string(
+        description = "Additional study details or notes (max 1000 chars)",
+        required = FALSE
+      )
     )
   )
 }
@@ -39,39 +41,41 @@ create_campaign_schema <- function() {
 #' Create references schema
 #' @noRd
 create_references_schema <- function() {
-  type_object(
-    .description = "Bibliographic information about this document",
-    author = type_string(
-      description = "Authors in format: Last1, First1; Last2, First2 (max 1000 chars)",
-      required = FALSE
-    ),
-    title = type_string(
-      description = "Document title (max 1000 chars)",
-      required = FALSE
-    ),
-    year = type_integer(
-      description = "Publication year (1800-2026)",
-      required = FALSE
-    ),
-    periodical_journal = type_string(
-      description = "Journal name for articles",
-      required = FALSE
-    ),
-    volume = type_integer(
-      description = "Journal volume number",
-      required = FALSE
-    ),
-    issue = type_integer(
-      description = "Journal issue number",
-      required = FALSE
-    ),
-    publisher = type_string(
-      description = "Publisher name",
-      required = FALSE
-    ),
-    doi = type_string(
-      description = "Digital Object Identifier",
-      required = FALSE
+  type_array(
+    type_object(
+      .description = "Bibliographic information about this document. Return NA if not found.",
+      author = type_string(
+        description = "Authors in format: Last1, First1; Last2, First2 (max 1000 chars)",
+        required = FALSE
+      ),
+      title = type_string(
+        description = "Document title (max 1000 chars). Return NA if not found.",
+        required = FALSE
+      ),
+      year = type_integer(
+        description = "Publication year (1800-2026). Return NA if not found.",
+        required = FALSE
+      ),
+      periodical_journal = type_string(
+        description = "Journal name for articles. Return NA if not found.",
+        required = FALSE
+      ),
+      volume = type_integer(
+        description = "Journal volume number. Return NA if not found.",
+        required = FALSE
+      ),
+      issue = type_integer(
+        description = "Journal issue number. Return NA if not found.",
+        required = FALSE
+      ),
+      publisher = type_string(
+        description = "Publisher name. Return NA if not found.",
+        required = FALSE
+      ),
+      doi = type_string(
+        description = "Digital Object Identifier. Return NA if not found.",
+        required = FALSE
+      )
     )
   )
 }

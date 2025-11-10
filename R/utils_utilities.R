@@ -120,7 +120,7 @@ info_accordion <- function(title = "Instructions", content_file, ...) {
 #'
 #' @return Character. The abbreviated and formatted string.
 #'
-#' @importFrom stringr str_to_title
+#' @importFrom stringr str_to_title str_split
 #'
 #' @examples
 #' abbreviate_string("Total Phosphorus Concentration", n_words = 2L, "snake")
@@ -151,7 +151,7 @@ abbreviate_string <- function(
   n_words <- as.integer(n_words)
   string <- as.character(string)
 
-  words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", string), "\\s+")
+  words <- str_split(string, pattern = "\\s")[[1]]
   words <- words[nchar(words) > 0] # Remove empty strings
 
   # Take first n words

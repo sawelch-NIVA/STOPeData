@@ -18,7 +18,7 @@
 #' @export
 create_dummy_data <- function(uppercase_columns = FALSE) {
   dummy_data <- list(
-    campaign = list(
+    campaign = tibble(
       # TODO: Actually, should this be a tibble? Need to coordinate with other stuff.
       campaign_name = "Dummy campaign, 1997",
       campaign_name_short = "DummyCampaign1997",
@@ -27,7 +27,7 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       organisation = "NIVA",
       campaign_comment = "A madeup NIVA study."
     ),
-    references = list(
+    references = tibble(
       author = "Welch, S.",
       title = "Study madeup",
       year = 1998L,
@@ -35,7 +35,7 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       volume = 43L,
       issue = 2L,
       publisher = "NIVA Library",
-      doi = NULL
+      doi = NA_character_
     ),
     sites = tibble(
       site_code = "NIVA-001",
@@ -43,7 +43,8 @@ create_dummy_data <- function(uppercase_columns = FALSE) {
       latitude = 59.924634,
       longitude = 10.792297,
       country = "Norway",
-      site_geographic_feature = "Coastal fjord"
+      site_geographic_feature = "Coastal, fjord",
+      site_geographic_feature_sub = "Water column"
     ),
     parameters = tibble(
       parameter_name = c("Silver"),

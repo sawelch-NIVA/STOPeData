@@ -357,7 +357,7 @@ mod_references_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput updateSelectInput bindEvent
 #' @importFrom shinyjs enable disable
-#' @importFrom tibble tibble
+#' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr add_row
 #' @export
 mod_references_server <- function(id) {
@@ -682,8 +682,8 @@ mod_references_server <- function(id) {
     observe({
       llm_data <- session$userData$reactiveValues$referenceDataLLM
       if (
-        !is.null(llm_data) &&
-          session$userData$reactiveValues$llmExtractionComplete
+        nrow(llm_data) > 0 &&
+          session$userData$reactiveValues$llmExtractionSuccessful
       ) {
         populate_references_from_llm(session, llm_data)
 
@@ -695,7 +695,7 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(
         session$userData$reactiveValues$referenceDataLLM,
-        session$userData$reactiveValues$llmExtractionComplete,
+        session$userData$reactiveValues$llmExtractionSuccessful,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )

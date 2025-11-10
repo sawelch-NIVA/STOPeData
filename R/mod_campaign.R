@@ -556,7 +556,7 @@ mod_campaign_server <- function(id) {
       bindEvent(
         label = "mod_campaign_populate_llm",
         session$userData$reactiveValues$campaignDataLLM,
-        session$userData$reactiveValues$llmExtractionComplete,
+        session$userData$reactiveValues$llmExtractionSuccessful,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )

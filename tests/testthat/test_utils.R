@@ -53,7 +53,7 @@ test_that("abbreviate_string handles special characters", {
 
   expect_equal(
     abbreviate_string("Water & Sediment Quality", n_words = 3L, "title"),
-    "WaterSedimentQuality"
+    "Water&Sediment"
   )
 })
 

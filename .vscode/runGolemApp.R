@@ -13,6 +13,7 @@ setwd(path)
 
 if (devmode) {
   shiny::devmode()
+  options(shiny.devmode.verbose = FALSE)
 } else {
   options(shiny.autoreload = TRUE)
 }
