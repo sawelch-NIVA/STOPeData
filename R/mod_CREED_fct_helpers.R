@@ -1,4 +1,10 @@
-#' Create Bibliography Reference
+### -----------------------------------------
+### ----------- CREED Functions -------------
+### -----------------------------------------
+
+# Non-reactive data processing ----
+
+' Create Bibliography Reference
 #'
 #' @description Creates a formatted bibliographic reference from reference data
 #' @param ref_data Reference data frame
@@ -120,8 +126,8 @@ generate_units_summary <- function(measurement_data, parameters_data) {
   if (
     is.null(measurement_data) ||
       is.null(parameters_data) ||
-      nrow(measurement_data < 0) ||
-      nrow(parameters_data < 0)
+      nrow(measurement_data) < 0 ||
+      nrow(parameters_data) < 0
   ) {
     return("Relevant data not found")
   }
@@ -212,7 +218,6 @@ get_gateway_summaries <- function(module_data) {
 #' @return Named list of TRUE/FALSE values
 #' @noRd
 check_gateway_availability <- function(module_data) {
-  browser()
   list(
     medium = !is.null(module_data$compartments) &&
       any(
@@ -253,156 +258,6 @@ check_gateway_availability <- function(module_data) {
         any(
           !is.na(module_data$references$DOI) & module_data$references$DOI != ""
         ))
-  )
-}
-
-#' Create CREED Criterion Section
-#'
-#' @description Creates a standardized UI section for CREED assessment criteria
-#' @param ns Namespace function from the calling module
-#' @param criterion_id Character string ID for the criterion (e.g., "RV01", "RB1")
-#' @param title Character string title for the criterion
-#' @param type Character string type, either "required" or "recommended"
-#' @param description Character string description of the criterion
-#' @return Shiny div element containing the complete criterion section
-#' @noRd
-#' @importFrom shiny div selectInput p strong h4 HTML
-#' @importFrom bslib layout_columns
-#' @importFrom bsicons bs_icon
-#' @importFrom tools toTitleCase
-create_criterion_section <- function(
-  ns,
-  criterion_id,
-  title,
-  type,
-  description
-) {
-  icon_class <- if (type == "required") {
-    "CREED-required"
-  } else {
-    "CREED-recommended"
-  }
-  type_text <- if (type == "required") "Required" else "Recommended"
-
-  div(
-    style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
-
-    # Header with title and dropdown ----
-    div(
-      style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
-      div(
-        style = "flex-grow: 1; margin-right: 20px;",
-        h6(
-          HTML(paste(
-            bs_icon("award-fill", class = icon_class),
-            paste0(
-              criterion_id,
-              ": ",
-              title,
-              " (",
-              tools::toTitleCase(type_text),
-              ")"
-            )
-          ))
-        ),
-        p(
-          strong("Criterion: "),
-          description
-        )
-      ),
-      selectInput(
-        inputId = ns(paste0(criterion_id, "_score")),
-        label = "Score:",
-        choices = CREED_choices(),
-        width = "200px"
-      )
-    ),
-
-    # Two-column layout for data and justification ----
-    layout_column_wrap(
-      width = "400px",
-      create_relevant_data_input(ns, criterion_id),
-      create_limitations_input(ns, criterion_id)
-    )
-  )
-}
-
-#' Create Relevant Data Input Field
-#'
-#' @description Creates a text area input for relevant data extraction
-#' @param ns Namespace function from the calling module
-#' @param criterion_id Character string ID for the criterion
-#' @return Shiny div element containing the relevant data input
-#' @noRd
-#' @importFrom shiny div textAreaInput
-#' @importFrom bslib tooltip
-#' @importFrom bsicons bs_icon
-create_relevant_data_input <- function(ns, criterion_id) {
-  div(
-    textAreaInput(
-      inputId = ns(paste0(criterion_id, "_relevant_data")),
-      label = tooltip(
-        list(
-          "Relevant Data",
-          bs_icon("arrow-down-circle-fill", class = "text-primary")
-        ),
-        "Data extracted from your dataset that is relevant to this criterion."
-      ),
-      value = "",
-      rows = 3,
-      width = "100%"
-    )
-  )
-}
-
-#' Create Limitations Input Field
-#'
-#' @description Creates a text area input for relevance limitations/restrictions
-#' @param ns Namespace function from the calling module
-#' @param criterion_id Character string ID for the criterion
-#' @return Shiny text area input for limitations
-#' @noRd
-#' @importFrom shiny textAreaInput
-create_limitations_input <- function(ns, criterion_id) {
-  textAreaInput(
-    inputId = ns(paste0(criterion_id, "_limitations")),
-    label = "Relevance Limitations/Restrictions (free text)",
-    placeholder = "Describe any limitations or restrictions relevant to this criterion...",
-    rows = 3,
-    width = "100%"
-  )
-}
-
-#' CREED Assessment Scoring Choices
-#'
-#' @description Returns the standardized CREED assessment scoring options
-#' @return Named character vector with CREED scoring choices
-#' @noRd
-CREED_choices <- function() {
-  c(
-    "Not Met" = "not_met",
-    "Fully Met" = "fully",
-    "Partly Met" = "partly",
-    "Not Reported" = "not_reported",
-    "Not Relevant" = "not_relevant"
-  )
-}
-
-#' Create Justification Input Field
-#'
-#' @description Creates a text area input for criterion scoring justification
-#' @param ns Namespace function from the calling module
-#' @param criterion_id Character string ID for the criterion
-#' @return Shiny text area input for justification
-#' @noRd
-#' @importFrom shiny textAreaInput
-create_justification_input <- function(ns, criterion_id) {
-  textAreaInput(
-    inputId = ns(paste0(criterion_id, "_justification")),
-    label = "Justification (free text)",
-    placeholder = "Provide justification for your scoring...",
-    rows = 3,
-    width = "100%"
   )
 }
 
@@ -582,6 +437,146 @@ summarise_CREED_details <- function(sessionData) {
   )
 }
 
+############################
+# Reactive/UI Functions ----
+############################
+
+#' Create CREED Criterion Section
+#'
+#' @description Creates a standardized UI section for CREED assessment criteria
+#' @param ns Namespace function from the calling module
+#' @param criterion_id Character string ID for the criterion (e.g., "RV01", "RB1")
+#' @param title Character string title for the criterion
+#' @param type Character string type, either "required" or "recommended"
+#' @param description Character string description of the criterion
+#' @return Shiny div element containing the complete criterion section
+#' @noRd
+#' @importFrom shiny div selectInput p strong h4 HTML
+#' @importFrom bslib layout_columns
+#' @importFrom bsicons bs_icon
+#' @importFrom tools toTitleCase
+create_criterion_section <- function(
+  ns,
+  criterion_id,
+  title,
+  type,
+  description
+) {
+  icon_class <- if (type == "required") {
+    "CREED-required"
+  } else {
+    "CREED-recommended"
+  }
+  type_text <- if (type == "required") "Required" else "Recommended"
+
+  div(
+    style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+    # Header with title and dropdown ----
+    div(
+      style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+      div(
+        style = "flex-grow: 1; margin-right: 20px;",
+        h6(
+          HTML(paste(
+            bs_icon("award-fill", class = icon_class),
+            paste0(
+              criterion_id,
+              ": ",
+              title,
+              " (",
+              tools::toTitleCase(type_text),
+              ")"
+            )
+          ))
+        ),
+        p(
+          strong("Criterion: "),
+          description
+        )
+      ),
+      selectInput(
+        inputId = ns(paste0(criterion_id, "_score")),
+        label = "Score:",
+        choices = CREED_choices(),
+        width = "200px"
+      )
+    ),
+
+    # Two-column layout for data and justification ----
+    layout_column_wrap(
+      width = "400px",
+      create_relevant_data_input(ns, criterion_id),
+      create_limitations_input(ns, criterion_id)
+    )
+  )
+}
+
+#' Create Relevant Data Input Field
+#'
+#' @description Creates a text area input for relevant data extraction
+#' @param ns Namespace function from the calling module
+#' @param criterion_id Character string ID for the criterion
+#' @return Shiny div element containing the relevant data input
+#' @noRd
+#' @importFrom shiny div textAreaInput
+#' @importFrom bslib tooltip
+#' @importFrom bsicons bs_icon
+create_relevant_data_input <- function(ns, criterion_id) {
+  div(
+    textAreaInput(
+      inputId = ns(paste0(criterion_id, "_relevant_data")),
+      label = tooltip(
+        list(
+          "Relevant Data",
+          bs_icon("arrow-down-circle-fill", class = "text-primary")
+        ),
+        "Data extracted from your dataset that is relevant to this criterion."
+      ),
+      value = "",
+      rows = 3,
+      width = "100%"
+    )
+  )
+}
+
+#' Create Limitations Input Field
+#'
+#' @description Creates a text area input for relevance limitations/restrictions
+#' @param ns Namespace function from the calling module
+#' @param criterion_id Character string ID for the criterion
+#' @return Shiny text area input for limitations
+#' @noRd
+#' @importFrom shiny textAreaInput
+create_limitations_input <- function(ns, criterion_id) {
+  textAreaInput(
+    inputId = ns(paste0(criterion_id, "_limitations")),
+    label = "Relevance Limitations/Restrictions (free text)",
+    placeholder = "Describe any limitations or restrictions relevant to this criterion...",
+    rows = 3,
+    width = "100%"
+  )
+}
+
+
+#' Create Justification Input Field
+#'
+#' @description Creates a text area input for criterion scoring justification
+#' @param ns Namespace function from the calling module
+#' @param criterion_id Character string ID for the criterion
+#' @return Shiny text area input for justification
+#' @noRd
+#' @importFrom shiny textAreaInput
+create_justification_input <- function(ns, criterion_id) {
+  textAreaInput(
+    inputId = ns(paste0(criterion_id, "_justification")),
+    label = "Justification (free text)",
+    placeholder = "Provide justification for your scoring...",
+    rows = 3,
+    width = "100%"
+  )
+}
+
 #' Create Conditional Criterion Section
 #'
 #' @description Creates a criterion section that can be conditionally disabled
@@ -680,6 +675,24 @@ auto_populate_relevance_fields <- function(user_data) {
     RV08_relevant_data = summaries$analytes,
     RV09_relevant_data = summaries$loq_info
     # Add other mappings
+  )
+}
+
+
+# Data Helpers/Storage Functions ----
+
+#' CREED Assessment Scoring Choices
+#'
+#' @description Returns the standardized CREED assessment scoring options
+#' @return Named character vector with CREED scoring choices
+#' @noRd
+CREED_choices <- function() {
+  c(
+    "Not Met" = "not_met",
+    "Fully Met" = "fully",
+    "Partly Met" = "partly",
+    "Not Reported" = "not_reported",
+    "Not Relevant" = "not_relevant"
   )
 }
 
