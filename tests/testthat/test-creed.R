@@ -392,7 +392,7 @@ test_that("summarise_CREED_details deduplicates values correctly", {
   # Add duplicate compartment
   session_data$compartmentsData <- rbind(
     session_data$compartmentsData,
-    tibble(ENVIRON_COMPARTMENT = "Sediment", stringsAsFactors = FALSE)
+    tibble(ENVIRON_COMPARTMENT = "Sediment")
   )
 
   result <- summarise_CREED_details(session_data)

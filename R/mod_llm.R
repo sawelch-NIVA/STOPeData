@@ -252,8 +252,8 @@ mod_llm_server <- function(id) {
       # disable buttons where simultaneous running could cause problems
       disable("extract_data")
 
-      # Create dummy data structure using external function (lowercase for LLM)
-      dummy_data <- create_dummy_data(uppercase_columns = FALSE)
+      # Create dummy data structure using external function
+      dummy_data <- create_dummy_data(uppercase_columns = TRUE)
 
       # Store results in module state (for LLM-specific behavior)
       session$userData$reactiveValues$llmExtractionComplete <- TRUE
