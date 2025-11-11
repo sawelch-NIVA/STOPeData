@@ -481,7 +481,7 @@ create_criterion_section <- function(
           HTML(paste(
             bs_icon("award-fill", class = icon_class),
             glue(
-              "{criterion_id}: {title} ({tools::toTitleCase(type_text)}"
+              "{criterion_id}: {title} ({tools::toTitleCase(type_text)})"
             )
           ))
         ),
@@ -516,24 +516,29 @@ create_criterion_section <- function(
 #' @description Creates a text area input for relevant data extraction
 #' @param ns Namespace function from the calling module
 #' @param criterion_id Character string ID for the criterion
+#' @param autofill Boolean for presence of blue autofill tooltip/icon
 #' @return Shiny div element containing the relevant data input
 #' @noRd
 #' @importFrom shiny div textAreaInput
 #' @importFrom bslib tooltip
 #' @importFrom bsicons bs_icon
-create_relevant_data_input <- function(ns, criterion_id) {
+create_relevant_data_input <- function(ns, criterion_id, autofill = TRUE) {
   div(
     textAreaInput(
       inputId = ns(paste0(criterion_id, "_relevant_data")),
       label = tooltip(
         list(
           "Relevant Data",
-          bs_icon("arrow-down-circle-fill", class = "text-primary")
+          if (isTRUE(autofill)) {
+            bs_icon("arrow-down-circle-fill", class = "text-primary")
+          } else {
+            ""
+          }
         ),
         "Data extracted from your dataset that is relevant to this criterion."
       ),
       value = "",
-      rows = 3,
+      rows = 5,
       width = "100%"
     )
   )
@@ -552,7 +557,7 @@ create_limitations_input <- function(ns, criterion_id) {
     inputId = ns(paste0(criterion_id, "_limitations")),
     label = "Relevance Limitations/Restrictions (free text)",
     placeholder = "Describe any limitations or restrictions relevant to this criterion...",
-    rows = 3,
+    rows = 5,
     width = "100%"
   )
 }
@@ -608,29 +613,6 @@ create_conditional_criterion <- function(
       note,
       is_conditional = TRUE
     )
-  )
-}
-
-#' Auto-populate Reliability Fields
-#'
-#' @description Wrapper for reliability-specific auto-population
-#' @param user_data session$userData$reactiveValues object
-#' @return Named list of reliability field data
-#' @noRd
-auto_populate_reliability_fields <- function(user_data) {
-  # Create module_data structure from userData
-
-  summaries <- summarise_CREED_reliability(module_data)
-
-  # Map to reliability-specific fields
-  list(
-    RB1_relevant_data = summaries$medium,
-    RB2_relevant_data = summaries$sampling_methods,
-    RB4_relevant_data = summaries$study_area,
-    RB5_relevant_data = summaries$sampling_period,
-    RB6_relevant_data = summaries$analytes,
-    RB7_relevant_data = summaries$loq_info
-    # Add other mappings as needed
   )
 }
 
@@ -915,7 +897,7 @@ summarise_CREED_reliability <- function(sessionData) {
   }
 
   # RB8: None ----
-  RB8_value <- ""
+  RB8_value <- "Relevant data not collected by app. Please complete manually."
 
   # RB9: All protocols with names and comments ----
   RB9_value <- if (has_methods) {
@@ -1024,9 +1006,9 @@ summarise_CREED_reliability <- function(sessionData) {
   }
 
   # RB16, RB17, RB19: None ----
-  RB16_value <- ""
-  RB17_value <- ""
-  RB19_value <- ""
+  RB16_value <- "Relevant data not collected by app. Please complete manually."
+  RB17_value <- "Relevant data not collected by app. Please complete manually."
+  RB19_value <- "Relevant data not collected by app. Please complete manually."
 
   # RB18: UNCERTAINTY_TYPE ----
   RB18_value <- if (has_measurements) {
@@ -1091,8 +1073,6 @@ summarise_CREED_reliability <- function(sessionData) {
     )
   )
 }
-
-
 #' Auto-populate Reliability Fields
 #'
 #' @description Creates named list for auto-populating reliability criteria fields

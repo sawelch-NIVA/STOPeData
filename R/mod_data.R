@@ -566,7 +566,11 @@ mod_data_server <- function(id, parent_session) {
     # upstream: ainput$save_table_data
     # downstream: session$userData$reactiveValues$measurementsData
     observe({
-      if (!is.null(input$measurement_table) && moduleState$data_entry_ready) {
+      if (
+        !is.null(input$measurement_table) &&
+          moduleState$data_entry_ready &&
+          nrow(session$userData$reactiveValues$measurementsData) > 0
+      ) {
         updated_data <- hot_to_r(input$measurement_table)
 
         # CHANGED: Update userData directly

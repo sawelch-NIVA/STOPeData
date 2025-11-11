@@ -159,16 +159,7 @@ mod_CREED_gateway_ui <- function(id) {
         label = "Yes",
         value = FALSE
       )
-    ),
-
-    # Save button ----
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ) |>
-      shinyjs::disabled() # TODO: Remove save button?
+    )
   )
 }
 

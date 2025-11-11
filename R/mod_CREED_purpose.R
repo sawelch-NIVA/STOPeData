@@ -912,7 +912,7 @@ mod_CREED_purpose_server <- function(id) {
 
     #       showNotification(
     #         "Purpose data imported successfully",
-    #         type = "success"
+    #         type = "message"
     #       )
     #     },
     #     error = function(e) {
