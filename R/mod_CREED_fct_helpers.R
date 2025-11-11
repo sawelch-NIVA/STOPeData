@@ -994,9 +994,13 @@ summarise_CREED_reliability <- function(sessionData) {
       max_sf <- max(sig_figs)
 
       if (min_sf == max_sf) {
-        glue("{min_sf} significant figures")
+        glue(
+          "Measured parameter values reported to {min_sf} significant figures"
+        )
       } else {
-        glue("{min_sf} to {max_sf} significant figures")
+        glue(
+          "Measured parameter values reported to {min_sf} to {max_sf} significant figures"
+        )
       }
     } else {
       "Relevant data not found"
