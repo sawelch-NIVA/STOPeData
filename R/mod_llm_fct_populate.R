@@ -128,7 +128,6 @@ populate_references_from_llm <- function(session, llm_references_data) {
 
   # doing this here is a little crude but currently the above
   # observer isn't triggered by llm extract
-  browser()
   reference_id <- generate_reference_id(
     date = llm_references_data$year,
     author = llm_references_data$author,
@@ -367,7 +366,6 @@ create_parameters_from_llm <- function(
         ))
       },
       PARAMETER_TYPE_SUB = if (!is.null(db_match)) {
-        browser()
         db_match$PARAMETER_TYPE_SUB
       } else {
         "Not reported"

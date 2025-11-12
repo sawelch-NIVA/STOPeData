@@ -295,7 +295,6 @@ mod_CREED_reliability_server <- function(id) {
     observe({
       print("hello I am button")
       # Get auto-populated data directly from userData
-      browser()
       auto_data <- summarise_CREED_reliability(session$userData$reactiveValues)
 
       # Update relevant_data fields

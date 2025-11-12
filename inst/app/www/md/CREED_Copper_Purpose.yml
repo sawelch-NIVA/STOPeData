@@ -100,15 +100,13 @@ criteria:
     partly_met:
       description: "Basic analytical methods used"
       requirements:
-        - "AAS (Atomic Absorption Spectroscopy)"
-        - "Acid digestion"
-      notes: "Consult with Kuria for specific requirements"
+        - "Flame Atomic Absorption Spectroscopy"
+        - "Inductively Coupled Plasma Optical Emission Spectroscopy"
     fully_met:
       description: "Advanced analytical methods used"
       requirements:
-        - "Fractionation performed"
+        - "GFAAS (Graphite Furnace Atomic Adsorption Spectroscopy)"
         - "ICP-MS (Inductively Coupled Plasma Mass Spectrometry)"
-      notes: "Consult with Kuria for specific requirements"
 
   - id: RV10
     name: "RV10: The summary statistics provided were appropriate for the given purpose"
