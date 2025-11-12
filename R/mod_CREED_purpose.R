@@ -88,6 +88,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[1]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -98,10 +99,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   1
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -117,6 +119,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[1]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -127,10 +130,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   1
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -152,6 +156,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[2]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -162,10 +167,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   2
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -181,6 +187,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[2]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -191,10 +198,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   2
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -216,6 +224,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[3]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -226,10 +235,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   3
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -245,6 +255,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[3]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -255,10 +266,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   3
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -280,6 +292,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[4]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -290,10 +303,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   4
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -309,6 +323,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[4]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -319,10 +334,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   4
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -344,6 +360,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[5]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -354,10 +371,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   5
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -373,6 +391,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[5]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -383,10 +402,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   5
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -408,6 +428,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[6]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -418,10 +439,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   6
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -437,6 +459,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[6]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -447,10 +470,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   6
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -472,6 +496,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[7]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -482,10 +507,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   7
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -501,6 +527,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[7]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -511,10 +538,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   7
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -536,6 +564,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[8]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -546,10 +575,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   8
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -565,6 +595,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[8]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -575,10 +606,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   8
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -600,6 +632,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[9]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -610,10 +643,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   9
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -629,6 +663,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[9]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -639,10 +674,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   9
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -666,6 +702,7 @@ mod_CREED_purpose_ui <- function(id) {
           copper_CREED_purpose_statement()$criteria[[
             10
           ]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -676,10 +713,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   10
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -695,6 +733,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[10]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -705,10 +744,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   10
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -732,6 +772,7 @@ mod_CREED_purpose_ui <- function(id) {
           copper_CREED_purpose_statement()$criteria[[
             11
           ]]$partly_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -742,10 +783,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   11
                 ]]$partly_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -761,6 +803,7 @@ mod_CREED_purpose_ui <- function(id) {
         width = "100%",
         value = paste(
           copper_CREED_purpose_statement()$criteria[[11]]$fully_met$description,
+          "\n",
           if (
             length(
               copper_CREED_purpose_statement()$criteria[[
@@ -771,10 +814,11 @@ mod_CREED_purpose_ui <- function(id) {
           ) {
             paste(
               paste(
+                "- ",
                 copper_CREED_purpose_statement()$criteria[[
                   11
                 ]]$fully_met$requirements,
-                collapse = "\n- "
+                collapse = "\n"
               )
             )
           } else {
@@ -853,16 +897,13 @@ mod_CREED_purpose_server <- function(id) {
       purpose_data$current <- data
 
       # Store in session for other modules to access
-      if (is.null(session$userData$reactiveValues)) {
-        session$userData$reactiveValues <- list()
-      }
       session$userData$reactiveValues$creedPurpose <- data
     }) |>
       bindEvent(
         input$purpose_statement,
         c(lapply(criterion_ids, function(x) input[[paste0(x, "_partly_met")]])),
         c(lapply(criterion_ids, function(x) input[[paste0(x, "_fully_met")]])),
-        ignoreInit = TRUE,
+        ignoreInit = FALSE,
         ignoreNULL = FALSE
       )
 

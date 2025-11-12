@@ -511,6 +511,58 @@ create_criterion_section <- function(
   )
 }
 
+#' Create Threshold Display Boxes
+#'
+#' @description Creates threshold display boxes for CREED purpose criteria
+#' @param criterion_id Character string ID for the criterion (e.g., "RV1")
+#' @param creed_purpose List containing CREED purpose YAML data
+#' @return Shiny layout_column_wrap element with threshold boxes, or NULL if data not found
+#' @noRd
+#' @importFrom shiny div p h5
+#' @importFrom bslib layout_column_wrap
+create_threshold_boxes <- function(criterion_id, creed_purpose) {
+  browser()
+  # Validate inputs
+  if (
+    is.null(creed_purpose) ||
+      length(creed_purpose) == 0 ||
+      is.null(creed_purpose$thresholds) ||
+      length(creed_purpose$thresholds) == 0
+  ) {
+    return("couldn't find creed_purpose data")
+  }
+
+  # Find the criterion in the YAML data
+  criterion_data <- creed_purpose$thresholds[[criterion_id]]
+
+  # Return NULL if criterion not found
+  if (is.null(criterion_data)) {
+    return("couldn't find criterion_data")
+  }
+
+  # Build threshold display boxes
+  layout_column_wrap(
+    width = "400px",
+    fillable = FALSE,
+    fill = FALSE,
+
+    # Partly Met box ----
+    div(
+      class = "alert alert-secondary",
+      h5("Partly Met:"),
+      HTML(gsub("\n", "<br>", criterion_data$partly_met)),
+      style = "margin-bottom: -20px !important;"
+    ),
+
+    # Fully Met box ----
+    div(
+      class = "alert alert-secondary",
+      h5("Fully Met:"),
+      HTML(gsub("\n", "<br>", criterion_data$fully_met))
+    )
+  )
+}
+
 #' Create Relevant Data Input Field
 #'
 #' @description Creates a text area input for relevant data extraction
