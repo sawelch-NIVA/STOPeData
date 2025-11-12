@@ -8,6 +8,7 @@
 #' @importFrom shinyjs enable disable hide show
 #' @importFrom htmltools HTML
 #' @importFrom purrr map_chr
+#' @importFrom future plan
 #' @importFrom tools file_ext
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
@@ -81,6 +82,9 @@ app_server <- function(input, output, session) {
       saveExtractionSuccessful = FALSE
     )
   }
+
+  # set multisession for futures
+  plan("multisession", workers = 2)
 
   ## ReactiveValues: moduleState ----
   # upstream: session start

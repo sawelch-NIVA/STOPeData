@@ -198,6 +198,8 @@ mod_llm_ui <- function(id) {
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
 #' @importFrom utils str
 #' @importFrom tibble as_tibble
+#' @importFrom promises %...>% %...!%
+#' @importFrom future future
 #' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -353,71 +355,108 @@ mod_llm_server <- function(id) {
               create_extraction_prompt()
             }
 
-            # Step 6: Extract data (this is the longest step)
+            # Step 6: Extract data asynchronously
             incProgress(
               0.01,
-              detail = "Extracting data (I haven't worked out how to fake progress yet so don't be alarmed if this sits at ~10% for 30 seconds)..."
-            )
-            result <- chat$chat_structured(
-              extraction_prompt,
-              pdf_content,
-              type = extraction_schema
+              detail = "Extracting data (this may take 20-60 seconds)..."
             )
 
-            # Step 7: Get API call metadata
-            incProgress(0.1, detail = "Storing results...")
-
-            # Capture cost information
-            api_metadata <- NULL
-            tryCatch(
-              {
-                cost_info <- chat$get_cost(include = "all")
-                api_metadata <- list(
-                  total_cost = cost_info
-                )
-              },
-              error = function(e) {
-                print_dev(paste("Could not retrieve cost info:", e$message))
-              }
-            )
-
-            # Store results
-            session$userData$reactiveValues$llmExtractionComplete <- TRUE
-            moduleState$extraction_successful <- TRUE
-            # TODO: Are we still getting results returned as lists containing NULL. This causes problems with as_tibble()
-            moduleState$structured_data <- result
-            moduleState$raw_extraction <- result
-            moduleState$error_message <- NULL
-            moduleState$api_metadata <- api_metadata
-
-            # Also save outputs to server data so we can download them later if needed
-            session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
-            session$userData$reactiveValues$promptLLM <- extraction_prompt
-            session$userData$reactiveValues$rawLLM <- result
-
-            if (!is.null(moduleState$structured_data$comments)) {
-              session$userData$reactiveValues$llmExtractionComments <- moduleState$structured_data$comments
+            # Capture what we need to pass to the future
+            api_key <- input$api_key
+            pdf_path <- input$pdf_file$datapath
+            prompt <- if (isTruthy(input$extraction_prompt)) {
+              input$extraction_prompt
+            } else {
+              create_extraction_prompt()
             }
 
-            # Step 8: Update session data
-            incProgress(0.1, detail = "Updating data...")
+            # Start the async extraction
+            future({
+              # Set API key in THIS process
+              Sys.setenv(ANTHROPIC_API_KEY = api_key)
 
-            # Step 9: Enable UI elements
-            incProgress(0.1, detail = "Finalising...")
-            enable("populate_forms")
-            enable("clear_extraction")
+              # Create chat object in THIS process
+              chat <- chat_anthropic(
+                model = "claude-sonnet-4-20250514",
+                params = params(max_tokens = 6000)
+              )
 
-            # Final success notification
-            showNotification(
-              "PDF extraction completed successfully!",
-              type = "message"
-            )
+              # Load PDF content
+              pdf_content <- content_pdf_file(pdf_path)
 
-            # Open extraction accordion for review
-            accordion_panel_open(
-              id = "results_accordion",
-              values = "extraction_results"
-            )
+              # Create schema
+              extraction_schema <- create_extraction_schema()
+
+              # Do the extraction
+              result <- chat$chat_structured(
+                prompt,
+                pdf_content,
+                type = extraction_schema
+              )
+
+              # Get cost info while we're in the same process
+              api_metadata <- tryCatch(
+                {
+                  cost_info <- chat$get_cost(include = "all")
+                  list(total_cost = cost_info)
+                },
+                error = function(e) {
+                  NULL
+                }
+              )
+
+              # Return both result and metadata
+              list(
+                extraction = result,
+                metadata = api_metadata
+              )
+            }) %...>%
+              # This callback runs when extraction completes
+              (function(result) {
+                # Step 7: Store all results
+                moduleState$raw_extraction <- output$extraction
+                moduleState$structured_data <- output$extraction
+                moduleState$api_metadata <- output$metadata
+
+                session$userData$reactiveValues$llmExtractionComplete <- TRUE
+                moduleState$extraction_successful <- TRUE
+                moduleState$error_message <- NULL
+
+                session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
+                session$userData$reactiveValues$promptLLM <- extraction_prompt
+                session$userData$reactiveValues$rawLLM <- output$extraction
+
+                if (!is.null(result$comments)) {
+                  session$userData$reactiveValues$llmExtractionComments <- output$extraction$comments
+                }
+
+                # Step 10: Enable UI elements
+                enable("populate_forms")
+                enable("clear_extraction")
+
+                # Success notification
+                showNotification(
+                  "PDF extraction completed successfully!",
+                  type = "message"
+                )
+
+                accordion_panel_open(
+                  id = "results_accordion",
+                  values = "extraction_results"
+                )
+              }) %...!%
+              # Error handler
+              (function(e) {
+                session$userData$reactiveValues$llmExtractionComplete <- TRUE
+                moduleState$extraction_successful <- FALSE
+                moduleState$error_message <- e$message
+                moduleState$structured_data <- NULL
+
+                showNotification(
+                  paste("Extraction failed:", e$message),
+                  type = "error"
+                )
+              })
           },
           error = function(e) {
             session$userData$reactiveValues$llmExtractionComplete <- TRUE
