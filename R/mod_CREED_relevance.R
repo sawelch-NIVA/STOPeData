@@ -558,5 +558,47 @@ mod_CREED_relevance_server <- function(id) {
         }
       })
     })
+    # -----------------
+
+    ## observe: Auto-populate relevant data fields ----
+    # upstream: input$populate_from_data OR session$userData$reactiveValues$creedGetData
+    # downstream: All RV*_relevant_data inputs
+    observe({
+      req(session$userData$reactiveValues)
+
+      tryCatch(
+        {
+          # Get auto-populated field values
+          field_updates <- autopop_relevance_fields(
+            session$userData$reactiveValues
+          )
+
+          # Update each field
+          for (field_name in names(field_updates)) {
+            updateTextAreaInput(
+              session,
+              field_name,
+              value = field_updates[[field_name]]
+            )
+          }
+
+          showNotification(
+            "Relevant data fields populated from dataset",
+            type = "message"
+          )
+        },
+        error = function(e) {
+          showNotification(
+            paste("Auto-populate failed:", e$message),
+            type = "error"
+          )
+        }
+      )
+    }) |>
+      bindEvent(
+        input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
   })
 }

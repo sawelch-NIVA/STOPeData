@@ -100,7 +100,7 @@ create_session_data <- function() {
 
 # Tests: Helper functions ----
 
-test_that("create_bibliography_reference works with complete data", {
+test_that("summarise_reference works with complete data", {
   ref_data <- tibble(
     AUTHOR = "Smith, J.",
     YEAR = 2023,
@@ -110,7 +110,7 @@ test_that("create_bibliography_reference works with complete data", {
     DOI = "10.1234/test"
   )
 
-  result <- create_bibliography_reference(ref_data)
+  result <- summarise_reference(ref_data)
 
   expect_type(result, "character")
   expect_true(grepl("Smith, J.", result))
@@ -120,7 +120,7 @@ test_that("create_bibliography_reference works with complete data", {
   expect_true(grepl("10.1234/test", result))
 })
 
-test_that("create_bibliography_reference handles missing fields", {
+test_that("summarise_reference handles missing fields", {
   ref_data <- tibble(
     AUTHOR = "Smith, J.",
     YEAR = NA_integer_,
@@ -130,16 +130,16 @@ test_that("create_bibliography_reference handles missing fields", {
     DOI = NA_character_
   )
 
-  result <- create_bibliography_reference(ref_data)
+  result <- summarise_reference(ref_data)
 
   expect_type(result, "character")
   expect_true(grepl("Smith, J.", result))
 })
 
-test_that("create_bibliography_reference handles NULL or empty data", {
-  expect_equal(create_bibliography_reference(NULL), "Relevant data not found")
+test_that("summarise_reference handles NULL or empty data", {
+  expect_equal(summarise_reference(NULL), "Relevant data not found")
   expect_equal(
-    create_bibliography_reference(tibble()),
+    summarise_reference(tibble()),
     "Relevant data not found"
   )
 })
@@ -178,9 +178,9 @@ test_that("summarize_multiple handles NULL and empty values", {
   expect_equal(summarize_multiple(c(NA, "")), "Relevant data not found")
 })
 
-test_that("calculate_date_range works with date range", {
+test_that("summarise_date_range works with date range", {
   dates <- as.Date(c("2023-01-15", "2023-06-20", "2023-03-10"))
-  result <- calculate_date_range(dates)
+  result <- summarise_date_range(dates)
 
   expect_type(result, "character")
   expect_true(grepl("2023-01-15", result))
@@ -188,20 +188,20 @@ test_that("calculate_date_range works with date range", {
   expect_true(grepl("to", result))
 })
 
-test_that("calculate_date_range handles single date", {
+test_that("summarise_date_range handles single date", {
   dates <- as.Date("2023-01-15")
-  result <- calculate_date_range(dates)
+  result <- summarise_date_range(dates)
 
   expect_equal(result, "2023-01-15")
   expect_false(grepl("to", result))
 })
 
-test_that("calculate_date_range handles NULL and NA", {
-  expect_equal(calculate_date_range(NULL), "Relevant data not found")
-  expect_equal(calculate_date_range(as.Date(NA)), "Relevant data not found")
+test_that("summarise_date_range handles NULL and NA", {
+  expect_equal(summarise_date_range(NULL), "Relevant data not found")
+  expect_equal(summarise_date_range(as.Date(NA)), "Relevant data not found")
 })
 
-test_that("generate_units_summary works with valid data", {
+test_that("summarise_measured_units works with valid data", {
   measurement_data <- tibble(
     PARAMETER_NAME = c("Copper", "Lead", "Copper"),
     MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L")
@@ -211,7 +211,7 @@ test_that("generate_units_summary works with valid data", {
     PARAMETER_NAME = c("Copper", "Lead")
   )
 
-  result <- generate_units_summary(measurement_data, parameters_data)
+  result <- summarise_measured_units(measurement_data, parameters_data)
 
   expect_type(result, "character")
   expect_true(grepl("Copper", result))
@@ -219,9 +219,9 @@ test_that("generate_units_summary works with valid data", {
   expect_true(grepl("µg/L", result))
 })
 
-test_that("generate_units_summary handles NULL data", {
+test_that("summarise_measured_units handles NULL data", {
   expect_equal(
-    generate_units_summary(NULL, NULL),
+    summarise_measured_units(NULL, NULL),
     "Relevant data not found"
   )
 })
