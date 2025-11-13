@@ -231,10 +231,10 @@ mod_CREED_reliability_ui <- function(id) {
     ),
 
     ## Action buttons and status ----
-    input_task_button(
-      id = ns("calc_scores"),
-      label = "Calculate Reliability Score"
-    )
+    # input_task_button(
+    #   id = ns("calc_scores"),
+    #   label = "Calculate Reliability Score"
+    # )
     # input_task_button(
     #   id = ns("save_assessment"),
     #   label = "Save Section",
@@ -332,7 +332,7 @@ mod_CREED_reliability_server <- function(id) {
           }
 
           showNotification(
-            "Relevant data fields populated from dataset",
+            "Reliability data fields populated from dataset",
             type = "message"
           )
         },

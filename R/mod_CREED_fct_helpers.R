@@ -39,7 +39,6 @@ get_gateway_summaries <- function(module_data) {
       "Relevant data not found"
     },
 
-    # TODO: pretty sure this doesn't work cos we changed the unit/param table structure
     units = summarise_measured_units(
       module_data$measurements,
       module_data$parameters
@@ -509,30 +508,6 @@ create_conditional_criterion <- function(
   )
 }
 
-#' Auto-populate Relevance Fields
-#'
-#' @description Wrapper for relevance-specific auto-population
-#' @param user_data session$userData$reactiveValues object
-#' @return Named list of relevance field data
-#' @noRd
-auto_populate_relevance_fields <- function(user_data) {
-  # Same pattern as above
-
-  summaries <- summarise_CREED_details(module_data)
-
-  # Map to relevance-specific fields
-  list(
-    RV01_relevant_data = summaries$medium,
-    RV02_relevant_data = summaries$sampling_methods,
-    RV03_relevant_data = summaries$study_area,
-    RV05_relevant_data = summaries$sampling_period,
-    RV08_relevant_data = summaries$analytes,
-    RV09_relevant_data = summaries$loq_info
-    # Add other mappings
-  )
-}
-
-
 # Data Helpers/Storage Functions ----
 
 #' @importFrom yaml read_yaml
@@ -557,6 +532,7 @@ summarise_CREED_reliability <- function(sessionData) {
   has_methods <- dataset_exists(sessionData$methodsData)
   has_sites <- dataset_exists(sessionData$sitesData)
   has_samples <- dataset_exists(sessionData$samplesData)
+  has_biota <- dataset_exists(sessionData$samplesDataWithBiota)
   has_measurements <- dataset_exists(sessionData$measurementsData)
 
   # RB1: Compartments and sampling/fractionation protocols ----
@@ -571,11 +547,26 @@ summarise_CREED_reliability <- function(sessionData) {
       }
     }
 
-    # Sampling and fractionation protocols
+    # Biota section
+    if (has_biota) {
+      biota_summary <- summarise_biota(
+        sessionData$samplesDataWithBiota,
+        SPECIES_GROUP = FALSE,
+        SAMPLE_SPECIES = TRUE,
+        SAMPLE_TISSUE = TRUE,
+        SAMPLE_SPECIES_LIFESTAGE = TRUE,
+        SAMPLE_SPECIES_GENDER = TRUE
+      )
+      if (biota_summary != "Relevant data not found") {
+        parts <- c(parts, biota_summary)
+      }
+    }
+
+    # Sampling, extraction, fractionation protocols
     if (has_methods) {
       protocol_summary <- summarise_protocols(
         sessionData$methodsData,
-        c("Sampling Protocol", "Fractionation Protocol")
+        c("Sampling Protocol", "Fractionation Protocol", "Extraction Protocol")
       )
       if (protocol_summary != "Relevant data not found") {
         parts <- c(parts, protocol_summary)
@@ -591,14 +582,27 @@ summarise_CREED_reliability <- function(sessionData) {
     "Relevant data not found"
   }
 
-  # RB2 & RB3 & RB13: Sampling Protocols ----
+  # RB2 & & RB13: Sampling Protocols ----
   sampling_protocols_value <- summarise_protocols(
     sessionData$methodsData,
     "Sampling Protocol"
   )
 
+  # RB: Sampling & Extraction Protocols ----
+  RB3_value <- summarise_protocols(
+    sessionData$methodsData,
+    c("Sampling Protocol", "Extraction Protocol")
+  )
+
   # RB4: Summary of all sites ----
-  RB4_value <- summarise_sites(sessionData$sitesData)
+  RB4_value <- summarise_sites(
+    sessionData$sitesData,
+    COUNTRY = TRUE,
+    AREA = TRUE,
+    SITE_GEOGRAPHIC_FEATURE = TRUE,
+    SITE_GEOGRAPHIC_FEATURE_SUB = TRUE,
+    PRECISION = TRUE
+  )
 
   # RB5: Sampling dates ----
   RB5_value <- if (has_samples) {
@@ -663,7 +667,7 @@ summarise_CREED_reliability <- function(sessionData) {
     ~field , ~value                   ,
     "RB1"  , RB1_value                ,
     "RB2"  , sampling_protocols_value ,
-    "RB3"  , sampling_protocols_value ,
+    "RB3"  , RB3_value                ,
     "RB4"  , RB4_value                ,
     "RB5"  , RB5_value                ,
     "RB6"  , analysis_protocols_value ,

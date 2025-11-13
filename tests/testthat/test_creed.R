@@ -153,15 +153,13 @@ test_that("summarise_CREED_reliability correctly calculates date range for RB5",
   expect_true(grepl("to", rb5_value))
 })
 
-test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2, RB3, RB13", {
+test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2, RB13", {
   result <- summarise_CREED_reliability(sessionData)
 
   rb2_value <- result$value[result$field == "RB2"]
-  rb3_value <- result$value[result$field == "RB3"]
   rb13_value <- result$value[result$field == "RB13"]
 
   # All three should be identical
-  expect_equal(rb2_value, rb3_value)
   expect_equal(rb2_value, rb13_value)
 
   # Should contain sampling protocol info

@@ -74,3 +74,57 @@ test_that("summarise_sites handles coordinate precision correctly", {
   result <- summarise_sites(test_coords, PRECISION = TRUE)
   expect_match(result, "Lowest coordinate precision: 1")
 })
+
+# Test: summarise_date_range ----
+test_that("summarise_date_range handles various date inputs correctly", {
+  # Single date
+  single_date <- as.Date("2024-01-15")
+  expect_equal(
+    summarise_date_range(single_date),
+    "2024-01-15 (n=1)"
+  )
+
+  # Date range with duplicates
+  date_range <- as.Date(c(
+    "2024-01-15",
+    "2024-01-15",
+    "2024-01-20",
+    "2024-03-20"
+  ))
+  expect_equal(
+    summarise_date_range(date_range),
+    "2024-01-15 to 2024-03-20 (n=3, 65 days)"
+  )
+
+  # All same date (multiple entries)
+  same_dates <- rep(as.Date("2024-01-15"), 5)
+  expect_equal(
+    summarise_date_range(same_dates),
+    "2024-01-15 (n=1)"
+  )
+
+  # NULL input
+  expect_equal(
+    summarise_date_range(NULL),
+    "Relevant data not found"
+  )
+
+  # Empty vector
+  expect_equal(
+    summarise_date_range(as.Date(character(0))),
+    "Relevant data not found"
+  )
+
+  # All NA values
+  expect_equal(
+    summarise_date_range(as.Date(c(NA, NA, NA))),
+    "Relevant data not found"
+  )
+
+  # Mix of valid and NA dates
+  mixed_dates <- as.Date(c("2024-01-15", NA, "2024-02-15"))
+  expect_equal(
+    summarise_date_range(mixed_dates),
+    "2024-01-15 to 2024-02-15 (n=2, 31 days)"
+  )
+})

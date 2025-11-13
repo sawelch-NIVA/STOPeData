@@ -27,12 +27,12 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong("1. Does the study specify which medium/matrix is sampled?"),
         bs_icon("arrow-down-circle-fill", class = "text-primary"),
 
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_medium_summary"), inline = TRUE)
         )
@@ -48,12 +48,12 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong("2. Does the study specify which unique analyte is measured?"),
         bs_icon("arrow-down-circle-fill", class = "text-primary"),
 
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_analyte_summary"), inline = TRUE)
         )
@@ -69,7 +69,7 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong(
           "3. Does the study specify where samples were collected?"
         ),
@@ -79,7 +79,7 @@ mod_CREED_gateway_ui <- function(id) {
           "At a minimum, there is enough information for the given purpose (e.g., country)."
         ),
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_location_summary"), inline = TRUE)
         )
@@ -95,7 +95,7 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong(
           "4. Does the study indicate when samples were collected?"
         ),
@@ -105,7 +105,7 @@ mod_CREED_gateway_ui <- function(id) {
           "At a minimum, there is enough information for the given purpose (e.g., sampling year)."
         ),
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_year_summary"), inline = TRUE)
         )
@@ -121,12 +121,12 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong("5. Does the study specify units of measurement?"),
         bs_icon("arrow-down-circle-fill", class = "text-primary"),
 
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_units_summary"), inline = TRUE)
         )
@@ -142,14 +142,14 @@ mod_CREED_gateway_ui <- function(id) {
     div(
       style = "display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 1px solid #dee2e6;",
       div(
-        style = "flex-grow: 1; margin-right: 15px;",
+        style = "margin-right: 15px;",
         strong(
           "6. Does the study cite the source of data and/or is a suitable bibliographic reference available for the study?"
         ),
         bs_icon("arrow-down-circle-fill", class = "text-primary"),
 
         div(
-          style = "background-color: #f8f9fa; padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
+          style = "background-color: var(--bg-lighter); padding: 6px; margin-top: 6px; border-radius: 4px; font-size: 0.9em;",
           strong("Relevant data: "),
           textOutput(ns("gateway_citation_summary"), inline = TRUE)
         )

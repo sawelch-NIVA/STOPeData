@@ -10,8 +10,8 @@ summarise_date_range(dates)
 \item{dates}{Vector of dates}
 }
 \value{
-Character string with date range
+Character string with date range, sample count, and interval in days
 }
 \description{
-Creates a date range string from vector of dates
+Creates a date range string from vector of dates with count and interval
 }

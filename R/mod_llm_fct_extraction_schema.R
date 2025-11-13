@@ -27,11 +27,15 @@ create_campaign_schema <- function() {
         required = FALSE
       ),
       organisation = type_string(
-        description = "Organization that conducted the study (max 50 chars)",
+        description = "Organisation that conducted the study (max 50 chars)",
         required = FALSE
       ),
       campaign_comment = type_string(
         description = "Additional study details or notes (max 1000 chars)",
+        required = FALSE
+      ),
+      campaign_rationale = type_string(
+        description = "The rationale given for the study or sampling campaign. Max 500 chars.",
         required = FALSE
       )
     )
@@ -247,7 +251,7 @@ create_methods_schema <- function() {
         required = FALSE
       ),
       protocol_comment = type_string(
-        description = "Additional details about the method, including a more specific description of the method (applicance name, reagents, etc)., ideally transcribed from source without modification.",
+        description = "Additional details about the method, including a more specific description of the method (applicance name, reagents, use of SRM, lab spike samples, lab replicates, control recoveries, method blanks, field blanks, or field QC)., ideally transcribed from source without modification.",
         required = FALSE
       )
     )

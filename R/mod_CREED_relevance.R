@@ -486,12 +486,17 @@ mod_CREED_relevance_ui <- function(id) {
 
       # Dynamic threshold boxes ----
       uiOutput(ns("RV11_thresholds")),
-    ),
-    input_task_button(
-      id = ns("calc_scores"),
-      label = "Calculate Reliability Score"
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV11"),
+        create_limitations_input(ns, "RV11")
+      )
     )
   )
+  # input_task_button(
+  #   id = ns("calc_scores"),
+  #   label = "Calculate Reliability Score"
+  # )
 }
 
 #' CREED_relevance Server Functions
@@ -562,7 +567,7 @@ mod_CREED_relevance_server <- function(id) {
           }
 
           showNotification(
-            "Relevant data fields populated from dataset",
+            "Relevance data fields populated from dataset",
             type = "message"
           )
         },

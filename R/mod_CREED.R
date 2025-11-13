@@ -167,16 +167,6 @@ mod_CREED_ui <- function(id) {
         ),
 
         uiOutput(ns("creed_scores_display")),
-
-        ## Final Report ----
-        div(
-          style = "margin: 20px 0;",
-          h5("6. Generate Final Report"),
-          p(
-            "Work in progress.",
-            class = "text-muted"
-          )
-        )
       )
     )
   )
@@ -189,6 +179,7 @@ mod_CREED_ui <- function(id) {
 #' @importFrom glue glue
 #' @importFrom golem print_dev
 #' @importFrom shinyjs enable disable
+#' @importFrom dplyr add_row
 
 #' @export
 mod_CREED_server <- function(id) {
@@ -199,7 +190,8 @@ mod_CREED_server <- function(id) {
     ## ReactiveValues: moduleState ----
     moduleState <- reactiveValues(
       ready_for_assessment = FALSE,
-      assessment_saved = FALSE
+      assessment_saved = FALSE,
+      creed_scores_pretty = tibble(NULL)
     )
 
     # Call sub-module servers ----
@@ -294,7 +286,6 @@ mod_CREED_server <- function(id) {
             nrow(session$userData$reactiveValues$creedReliability) > 1 &&
               nrow(session$userData$reactiveValues$creedRelevance) > 1
           ) {
-            browser()
             reliability_data <- session$userData$reactiveValues$creedReliability
             relevance_data <- session$userData$reactiveValues$creedRelevance
 
@@ -328,7 +319,7 @@ mod_CREED_server <- function(id) {
               max(na.rm = TRUE)
 
             # Map scores back to categories
-            score_categories <- c(
+            reliability_categories <- c(
               "1" = "Reliable without restrictions",
               "2" = "Reliable with restrictions",
               "3" = "Not assignable",
@@ -343,10 +334,10 @@ mod_CREED_server <- function(id) {
             )
 
             # Create results tibble
-            creed_scores <- tibble(
+            moduleState$creed_scores_pretty <- tibble(
               level = c("Silver", "Gold"),
               reliability_score = c(reliability_silver, reliability_gold),
-              reliability_category = score_categories[as.character(c(
+              reliability_category = reliability_categories[as.character(c(
                 reliability_silver,
                 reliability_gold
               ))],
@@ -358,9 +349,30 @@ mod_CREED_server <- function(id) {
             )
 
             # Store results
-            session$userData$reactiveValues$creedScores <- creed_scores
+            ref_id <- if (
+              nrow(session$userData$reactiveValues$referenceData) > 0
+            ) {
+              session$userData$reactiveValues$referenceData$REFERENCE_ID
+            } else {
+              "Reference ID Not Found"
+            }
 
-            golem::print_dev(creed_scores)
+            session$userData$reactiveValues$creedScores <- initialise_CREED_scores_tibble() |>
+              add_row(
+                REFERENCE_ID = ref_id,
+                SILVER_RELIABILITY = reliability_categories[as.character(c(
+                  reliability_silver
+                ))],
+                SILVER_RELEVANCE = relevance_categories[as.character(c(
+                  relevance_silver
+                ))],
+                GOLD_RELIABILITY = reliability_categories[as.character(c(
+                  reliability_gold
+                ))],
+                GOLD_RELEVANCE = relevance_categories[as.character(c(
+                  relevance_gold
+                ))]
+              )
 
             showNotification(
               "CREED scores calculated successfully",
@@ -436,7 +448,7 @@ mod_CREED_server <- function(id) {
     # upstream: session$userData$reactiveValues$creedScores
     # downstream: UI display
     output$creed_scores_display <- renderUI({
-      scores <- session$userData$reactiveValues$creedScores
+      scores <- moduleState$creed_scores_pretty
 
       tagList(
         h5("CREED Assessment Results"),
@@ -451,12 +463,18 @@ mod_CREED_server <- function(id) {
           ),
           tags$tbody(
             tags$tr(
-              tags$td(strong("Silver")),
+              tags$td(
+                bs_icon("award-fill", class = "CREED-requited"),
+                strong("Silver")
+              ),
               tags$td(scores$reliability_category[1]),
               tags$td(scores$relevance_category[1])
             ),
             tags$tr(
-              tags$td(strong("Gold")),
+              tags$td(
+                bs_icon("award-fill", class = "CREED-recommended"),
+                strong("Gold")
+              ),
               tags$td(scores$reliability_category[2]),
               tags$td(scores$relevance_category[2])
             )

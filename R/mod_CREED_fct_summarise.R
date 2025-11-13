@@ -177,6 +177,7 @@ summarise_sites <- function(
   paste(summary_parts, collapse = ". ")
 }
 
+
 #' @title Calculate coordinate precision
 #' @description Determines the minimum decimal places across latitude and longitude
 #' @param latitude Numeric vector of latitudes
@@ -445,9 +446,9 @@ summarise_multiple <- function(values, prefix = "", max_display = 10) {
 
 #' Calculate Date Range
 #'
-#' @description Creates a date range string from vector of dates
+#' @description Creates a date range string from vector of dates with count and interval
 #' @param dates Vector of dates
-#' @return Character string with date range
+#' @return Character string with date range, sample count, and interval in days
 #' @export
 summarise_date_range <- function(dates) {
   if (is.null(dates) || length(dates) == 0) {
@@ -459,13 +460,28 @@ summarise_date_range <- function(dates) {
     return("Relevant data not found")
   }
 
+  # Get count of unique dates
+  n_unique <- length(unique(valid_dates))
+
   min_date <- min(valid_dates)
   max_date <- max(valid_dates)
 
   if (min_date == max_date) {
-    return(as.character(min_date))
+    return(paste0(as.character(min_date), " (n=", n_unique, ")"))
   } else {
-    return(paste(min_date, "to", max_date))
+    # Calculate interval in days
+    interval_days <- as.numeric(difftime(max_date, min_date, units = "days"))
+
+    return(paste0(
+      min_date,
+      " to ",
+      max_date,
+      " (n=",
+      n_unique,
+      ", ",
+      interval_days,
+      " days)"
+    ))
   }
 }
 

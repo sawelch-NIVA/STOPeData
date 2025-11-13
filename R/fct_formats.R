@@ -43,7 +43,7 @@ initialise_userData <- function() {
     datasetDetails = tibble(NULL),
     creedRelevance = tibble(NULL),
     creedReliability = tibble(NULL),
-    creedScores = tibble(NULL),
+    creedScores = initialise_CREED_scores_tibble(),
     creedReport = "",
 
     # CREED reactive objects that just exist to trigger reactivity. Probably bad coding!
@@ -134,6 +134,78 @@ initialise_biota_tibble <- function() {
     SAMPLE_SPECIES_GENDER = character(),
     BIOTA_COMMENT = character()
   )
+}
+
+#' @title Summarise biota data
+#' @description Creates a summary string of biota including species, tissues, and life stages
+#' @param biotaData The biota dataset
+#' @param SPECIES_GROUP Logical. Include species group summary?
+#' @param SAMPLE_SPECIES Logical. Include sample species summary?
+#' @param SAMPLE_TISSUE Logical. Include tissue type summary?
+#' @param SAMPLE_SPECIES_LIFESTAGE Logical. Include life stage summary?
+#' @param SAMPLE_SPECIES_GENDER Logical. Include gender summary?
+#' @return Character string summarising biota, or "Relevant data not found"
+#' @export
+summarise_biota <- function(
+  biotaData,
+  SPECIES_GROUP = FALSE,
+  SAMPLE_SPECIES = FALSE,
+  SAMPLE_TISSUE = FALSE,
+  SAMPLE_SPECIES_LIFESTAGE = FALSE,
+  SAMPLE_SPECIES_GENDER = FALSE
+) {
+  # Helper function to check if a dataset exists and has content ----
+  dataset_exists <- function(dataset) {
+    isTruthy(dataset) && !all(is.na(dataset))
+  }
+
+  if (!dataset_exists(biotaData)) {
+    return("Relevant data not found")
+  }
+
+  # Build summary components ----
+  summary_parts <- character(0)
+
+  # Always include number of biota samples
+  n_biota <- nrow(biotaData)
+  summary_parts <- c(summary_parts, glue("{n_biota} biota samples"))
+
+  # Conditional summaries ----
+  if (SPECIES_GROUP && "SPECIES_GROUP" %in% names(biotaData)) {
+    species_groups <- summarise_multiple(
+      biotaData$SPECIES_GROUP,
+      "Species groups"
+    )
+    summary_parts <- c(summary_parts, species_groups)
+  }
+
+  if (SAMPLE_SPECIES && "SAMPLE_SPECIES" %in% names(biotaData)) {
+    species <- summarise_multiple(biotaData$SAMPLE_SPECIES, "Species")
+    summary_parts <- c(summary_parts, species)
+  }
+
+  if (SAMPLE_TISSUE && "SAMPLE_TISSUE" %in% names(biotaData)) {
+    tissues <- summarise_multiple(biotaData$SAMPLE_TISSUE, "Tissue types")
+    summary_parts <- c(summary_parts, tissues)
+  }
+
+  if (
+    SAMPLE_SPECIES_LIFESTAGE && "SAMPLE_SPECIES_LIFESTAGE" %in% names(biotaData)
+  ) {
+    lifestages <- summarise_multiple(
+      biotaData$SAMPLE_SPECIES_LIFESTAGE,
+      "Life stages"
+    )
+    summary_parts <- c(summary_parts, lifestages)
+  }
+
+  if (SAMPLE_SPECIES_GENDER && "SAMPLE_SPECIES_GENDER" %in% names(biotaData)) {
+    genders <- summarise_multiple(biotaData$SAMPLE_SPECIES_GENDER, "Genders")
+    summary_parts <- c(summary_parts, genders)
+  }
+
+  # Combine all parts ----
+  paste(summary_parts, collapse = ". ")
 }
 
 #' Initialize Compartments Data Tibble
@@ -245,7 +317,6 @@ initialise_references_tibble <- function() {
 #' @export
 initialise_samples_tibble <- function() {
   # TODO: Implemented.
-
   tibble(
     SITE_CODE = character(),
     SITE_NAME = character(),
@@ -272,7 +343,6 @@ initialise_samples_tibble <- function() {
 #' @export
 initialise_sites_tibble <- function() {
   # TODO: Implemented
-
   tibble(
     SITE_CODE = character(),
     SITE_NAME = character(),
@@ -329,6 +399,25 @@ initialise_measurements_tibble <- function() {
     PARAMETER_TYPE = character(),
     MEASURED_TYPE = character(),
     MEASUREMENT_COMMENT = character()
+  )
+}
+
+#' Initialize CREED Scores Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for CREED scores.
+#'
+#' @return A tibble with 0 rows and standardised CREED columns
+#' @importFrom tibble tibble
+#' @export
+# Fix: Not Implemented.
+
+initialise_CREED_scores_tibble <- function() {
+  tibble(
+    REFERENCE_ID = character(),
+    SILVER_RELIABILITY = character(),
+    SILVER_RELEVANCE = character(),
+    GOLD_RELIABILITY = character(),
+    GOLD_RELEVANCE = character()
   )
 }
 
