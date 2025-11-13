@@ -194,7 +194,9 @@ calculate_coordinate_precision <- function(latitude, longitude) {
     }
 
     # Convert to character and count digits after decimal point
-    x_char <- format(x, scientific = FALSE, trim = TRUE)
+    x_char <- sapply(x, FUN = function(x) {
+      format(x, scientific = FALSE, trim = TRUE)
+    })
     decimal_parts <- sub("^[^.]*\\.?", "", x_char)
 
     # Count characters (handling cases with no decimal point)
@@ -356,7 +358,7 @@ summarise_sig_figs <- function(values) {
 
 # Non-reactive data processing ----
 
-' Create Bibliography Reference
+#' Summarise mod_reference data into a single string
 #'
 #' @description Creates a formatted bibliographic reference from reference data
 #' @param ref_data Reference data frame

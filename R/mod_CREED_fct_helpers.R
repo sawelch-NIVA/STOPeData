@@ -338,7 +338,7 @@ create_criterion_section <- function(
         selectInput(
           inputId = ns(paste0(criterion_id, "_score")),
           label = "Score:",
-          choices = CREED_choices(),
+          choices = CREED_choices_vocabulary(),
           width = "150px",
         )
       )
@@ -534,21 +534,6 @@ auto_populate_relevance_fields <- function(user_data) {
 
 
 # Data Helpers/Storage Functions ----
-
-#' CREED Assessment Scoring Choices
-#'
-#' @description Returns the standardized CREED assessment scoring options
-#' @return Named character vector with CREED scoring choices
-#' @noRd
-CREED_choices <- function() {
-  c(
-    "Not Met" = "not_met",
-    "Fully Met" = "fully",
-    "Partly Met" = "partly",
-    "Not Reported" = "not_reported",
-    "Not Relevant" = "not_relevant"
-  )
-}
 
 #' @importFrom yaml read_yaml
 copper_CREED_purpose_statement <- function() {
@@ -753,10 +738,18 @@ summarise_CREED_relevance <- function(sessionData) {
   )
 
   # RV5: Range of sampling dates
-  RV5_value <- summarise_date_range()
+  RV5_value <- if (has_samples) {
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
 
   # RV6: Sampling frequency. Folded into RV5.
-  RV6_value <- summarise_date_range()
+  RV6_value <- if (has_samples) {
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
 
   # RV7: Temporal conditions. Not recorded in app.
   RV7_value <- manual_completion_message()

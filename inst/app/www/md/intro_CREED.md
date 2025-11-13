@@ -1,7 +1,7 @@
 This module provides a Criteria for Reporting and Evaluating Exposure Datasets
 (CREED) assessment (version 1), based on [Di Paolo *et al.*,
 2024.](https://academic.oup.com/ieam/article/20/4/1019/7821760) The Dataset
-Details section summarizes key characteristics of your dataset that are relevant
+Details section summarises key characteristics of your dataset that are relevant
 for quality evaluation. Fields are auto-populated where possible from your
 imported data. **This module is currently hardcoded for exposure assessment of copper, 
 and the data summarised may not be relevant for other pollutants (especially non-metals).**

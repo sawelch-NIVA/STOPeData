@@ -109,7 +109,7 @@ mod_CREED_reliability_ui <- function(id) {
         selectInput(
           inputId = ns("RB8_score"),
           label = "Score:",
-          choices = CREED_choices(),
+          choices = CREED_choices_vocabulary(),
           width = "150px"
         )
       ),

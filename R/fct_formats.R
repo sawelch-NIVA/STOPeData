@@ -955,3 +955,18 @@ parameter_unit_vocabulary <- function(select_column = NULL) {
 measured_flags_vocabulary <- function() {
   c("", "< LOQ", "< LOD")
 }
+
+
+#' CREED Assessment Scoring Choices
+#'
+#' @description Returns the standardised CREED assessment scoring options
+#' @return Named character vector with CREED scoring choices
+CREED_choices_vocabulary <- function() {
+  c(
+    "Not Met" = "not_met",
+    "Fully Met" = "fully",
+    "Partly Met" = "partly",
+    "Not Reported" = "not_reported",
+    "Not Relevant" = "not_relevant"
+  )
+}

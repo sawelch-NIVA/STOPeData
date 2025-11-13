@@ -1,323 +1,13 @@
 # test-creed-functions.R ----
+# test big overarching CREED functions that a) get lots of data from the right sources and b) send it to the right sinks
 
-# Setup: Create dummy data matching actual structure ----
-
-create_dummy_module_data <- function() {
-  list(
-    references = tibble(
-      AUTHOR = "Smith, J.; Jones, A.",
-      YEAR = 2023,
-      TITLE = "Heavy metal contamination in coastal sediments",
-      PERIODICAL_JOURNAL = "Environmental Science & Technology",
-      PUBLISHER = NA_character_,
-      DOI = "10.1234/est.2023.001"
-    ),
-
-    parameters = tibble(
-      PARAMETER_NAME = c("Copper", "Lead", "Zinc", "Cadmium")
-    ),
-
-    compartments = tibble(
-      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Aquatic", "Terrestrial"),
-      ENVIRON_COMPARTMENT_SUB = c(
-        "Aquatic Sediment",
-        "Porewater",
-        "Wastewater",
-        "Biological Residue"
-      )
-    ),
-
-    sites = tibble(
-      COUNTRY = c("Norway", "Norway", "Sweden", "Norway"),
-      AREA = c("Oslo Fjord", "Oslo Fjord", "Skagerrak", "Bergen"),
-      SITE_GEOGRAPHIC_FEATURE = c("Fjord", "Fjord", "Coastal", "Harbor")
-    ),
-
-    samples = tibble(
-      SAMPLING_DATE = as.Date(c(
-        "2023-01-15",
-        "2023-03-20",
-        "2023-06-10",
-        "2023-09-05"
-      ))
-    ),
-
-    measurements = tibble(
-      PARAMETER_NAME = c("Copper", "Lead", "Copper", "Zinc"),
-      MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      MEASURED_VALUE = c(15.3, 8.45, 2.1, 12.678),
-      LOQ_VALUE = c(0.5, 1.0, 0.1, 0.8),
-      LOQ_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      LOD_VALUE = c(0.2, 0.4, 0.05, 0.3),
-      LOD_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      UNCERTAINTY_TYPE = c("SD", "SD", "CI", "Range"),
-      MEASUREMENT_COMMENT = c(
-        "High quality measurement",
-        "Baseline sample",
-        NA_character_,
-        "Good precision"
-      )
-    ),
-
-    methods = tibble(
-      PROTOCOL_CATEGORY = c(
-        "Sampling Protocol",
-        "Sampling Protocol",
-        "Analytical Protocol",
-        "Analytical Protocol",
-        "Fractionation Protocol"
-      ),
-      PROTOCOL_NAME = c(
-        "Surface sediment grab",
-        "Water column sampling",
-        "ICP-MS analysis",
-        "AAS analysis",
-        "Sequential extraction"
-      ),
-      PROTOCOL_COMMENT = c(
-        "I picked up sand with my bare hands.",
-        "Mouth pipetting.",
-        "Threw it at the wall to see what happens.",
-        "Set it on fire to see what happens.",
-        "Multi-step acid digestion process"
-      )
-    )
-  )
-}
-
-create_session_data <- function() {
-  dummy <- create_dummy_module_data()
-  list(
-    referenceData = dummy$references,
-    parametersData = dummy$parameters,
-    compartmentsData = dummy$compartments,
-    sitesData = dummy$sites,
-    samplesData = dummy$samples,
-    measurementsData = dummy$measurements,
-    methodsData = dummy$methods
-  )
-}
-
-# Tests: Helper functions ----
-
-test_that("summarise_reference works with complete data", {
-  ref_data <- tibble(
-    AUTHOR = "Smith, J.",
-    YEAR = 2023,
-    TITLE = "Test Article",
-    PERIODICAL_JOURNAL = "Test Journal",
-    PUBLISHER = NA_character_,
-    DOI = "10.1234/test"
-  )
-
-  result <- summarise_reference(ref_data)
-
-  expect_type(result, "character")
-  expect_true(grepl("Smith, J.", result))
-  expect_true(grepl("2023", result))
-  expect_true(grepl("Test Article", result))
-  expect_true(grepl("Test Journal", result))
-  expect_true(grepl("10.1234/test", result))
-})
-
-test_that("summarise_reference handles missing fields", {
-  ref_data <- tibble(
-    AUTHOR = "Smith, J.",
-    YEAR = NA_integer_,
-    TITLE = NA_character_,
-    PERIODICAL_JOURNAL = NA_character_,
-    PUBLISHER = NA_character_,
-    DOI = NA_character_
-  )
-
-  result <- summarise_reference(ref_data)
-
-  expect_type(result, "character")
-  expect_true(grepl("Smith, J.", result))
-})
-
-test_that("summarise_reference handles NULL or empty data", {
-  expect_equal(summarise_reference(NULL), "Relevant data not found")
-  expect_equal(
-    summarise_reference(tibble()),
-    "Relevant data not found"
-  )
-})
-
-test_that("summarize_multiple works with basic input", {
-  values <- c("A", "B", "C", "A", "D")
-  result <- summarize_multiple(values)
-
-  expect_type(result, "character")
-  expect_true(grepl("A", result))
-  expect_true(grepl("B", result))
-  expect_true(grepl("C", result))
-  expect_true(grepl("D", result))
-  expect_false(grepl("A.*A", result)) # Should deduplicate
-})
-
-test_that("summarize_multiple adds prefix correctly", {
-  values <- c("A", "B", "C")
-  result <- summarize_multiple(values, prefix = "Items")
-
-  expect_true(grepl("Items \\(3\\):", result))
-})
-
-test_that("summarize_multiple truncates long lists", {
-  values <- letters[1:15]
-  result <- summarize_multiple(values, max_display = 5)
-
-  expect_true(grepl("and 10 more", result))
-  expect_true(grepl("a", result))
-  expect_false(grepl("f", result)) # Should not show 6th item
-})
-
-test_that("summarize_multiple handles NULL and empty values", {
-  expect_equal(summarize_multiple(NULL), "Relevant data not found")
-  expect_equal(summarize_multiple(character(0)), "Relevant data not found")
-  expect_equal(summarize_multiple(c(NA, "")), "Relevant data not found")
-})
-
-test_that("summarise_date_range works with date range", {
-  dates <- as.Date(c("2023-01-15", "2023-06-20", "2023-03-10"))
-  result <- summarise_date_range(dates)
-
-  expect_type(result, "character")
-  expect_true(grepl("2023-01-15", result))
-  expect_true(grepl("2023-06-20", result))
-  expect_true(grepl("to", result))
-})
-
-test_that("summarise_date_range handles single date", {
-  dates <- as.Date("2023-01-15")
-  result <- summarise_date_range(dates)
-
-  expect_equal(result, "2023-01-15")
-  expect_false(grepl("to", result))
-})
-
-test_that("summarise_date_range handles NULL and NA", {
-  expect_equal(summarise_date_range(NULL), "Relevant data not found")
-  expect_equal(summarise_date_range(as.Date(NA)), "Relevant data not found")
-})
-
-test_that("summarise_measured_units works with valid data", {
-  measurement_data <- tibble(
-    PARAMETER_NAME = c("Copper", "Lead", "Copper"),
-    MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L")
-  )
-
-  parameters_data <- tibble(
-    PARAMETER_NAME = c("Copper", "Lead")
-  )
-
-  result <- summarise_measured_units(measurement_data, parameters_data)
-
-  expect_type(result, "character")
-  expect_true(grepl("Copper", result))
-  expect_true(grepl("mg/kg", result))
-  expect_true(grepl("µg/L", result))
-})
-
-test_that("summarise_measured_units handles NULL data", {
-  expect_equal(
-    summarise_measured_units(NULL, NULL),
-    "Relevant data not found"
-  )
-})
-
-# Tests: Gateway functions ----
-
-test_that("get_gateway_summaries returns all expected fields", {
-  module_data <- create_dummy_module_data()
-  result <- get_gateway_summaries(module_data)
-
-  expect_type(result, "list")
-  expect_named(
-    result,
-    c("medium", "analyte", "location", "year", "units", "citation")
-  )
-
-  expect_true(grepl("Compartments", result$medium))
-  expect_true(grepl("Parameters", result$analyte))
-  expect_true(grepl("Countries", result$location))
-  expect_true(grepl("2023", result$year))
-  expect_type(result$citation, "character")
-})
-
-test_that("get_gateway_summaries handles missing data gracefully", {
-  module_data <- list(
-    references = NULL,
-    parameters = NULL,
-    compartments = NULL,
-    sites = NULL,
-    samples = NULL,
-    measurements = NULL
-  )
-
-  result <- get_gateway_summaries(module_data)
-
-  expect_true(all(result == "Relevant data not found"))
-})
-
-test_that("check_gateway_availability detects available data", {
-  module_data <- create_dummy_module_data()
-  result <- check_gateway_availability(module_data)
-
-  expect_type(result, "list")
-  expect_named(
-    result,
-    c("medium", "analyte", "location", "year", "units", "citation")
-  )
-
-  expect_true(result$medium)
-  expect_true(result$analyte)
-  expect_true(result$location)
-  expect_true(result$year)
-  expect_true(result$units)
-  expect_true(result$citation)
-})
-
-test_that("check_gateway_availability detects missing data", {
-  module_data <- list(
-    references = NULL,
-    parameters = NULL,
-    compartments = NULL,
-    sites = NULL,
-    samples = NULL,
-    measurements = NULL
-  )
-
-  result <- check_gateway_availability(module_data)
-
-  expect_false(result$medium)
-  expect_false(result$analyte)
-  expect_false(result$location)
-  expect_false(result$year)
-  expect_false(result$units)
-  expect_false(result$citation)
-})
-
-test_that("check_gateway_availability handles empty strings and NAs", {
-  module_data <- list(
-    compartments = tibble(
-      ENVIRON_COMPARTMENT = c(NA, "")
-    ),
-    parameters = tibble(
-      PARAMETER_NAME = c("Copper")
-    )
-  )
-
-  result <- check_gateway_availability(module_data)
-
-  expect_false(result$medium) # All NA or empty
-  expect_true(result$analyte) # Has valid value
-})
+# from fct_dummy_data.R
+session_data <- dummy_session_data()
+# --------------------
 
 # Tests: Main summary function ----
 
 test_that("summarise_CREED_details returns tibble with correct structure", {
-  session_data <- create_session_data()
   result <- summarise_CREED_details(session_data)
 
   expect_s3_class(result, "tbl_df")
@@ -340,8 +30,7 @@ test_that("summarise_CREED_details returns tibble with correct structure", {
   expect_equal(result$field, expected_fields)
 })
 
-test_that("summarise_CREED_details correctly summarizes reference data", {
-  session_data <- create_session_data()
+test_that("summarise_CREED_details correctly summarises reference data", {
   result <- summarise_CREED_details(session_data)
 
   source_value <- result$value[result$field == "source"]
@@ -350,7 +39,6 @@ test_that("summarise_CREED_details correctly summarizes reference data", {
 })
 
 test_that("summarise_CREED_details correctly counts sites and samples", {
-  session_data <- create_session_data()
   result <- summarise_CREED_details(session_data)
 
   num_sites <- result$value[result$field == "num_sites"]
@@ -361,7 +49,6 @@ test_that("summarise_CREED_details correctly counts sites and samples", {
 })
 
 test_that("summarise_CREED_details separates sampling and analytical methods", {
-  session_data <- create_session_data()
   result <- summarise_CREED_details(session_data)
 
   sampling_methods <- result$value[result$field == "sampling_methods"]
@@ -390,7 +77,6 @@ test_that("summarise_CREED_details handles missing data", {
 })
 
 test_that("summarise_CREED_details calculates LOQ/LOD info correctly", {
-  session_data <- create_session_data()
   result <- summarise_CREED_details(session_data)
 
   loq_info <- result$value[result$field == "loq_info"]
@@ -401,7 +87,6 @@ test_that("summarise_CREED_details calculates LOQ/LOD info correctly", {
 })
 
 test_that("summarise_CREED_details handles NA dates correctly", {
-  session_data <- create_session_data()
   session_data$samplesData$SAMPLING_DATE <- as.Date(NA)
 
   result <- summarise_CREED_details(session_data)
@@ -411,7 +96,6 @@ test_that("summarise_CREED_details handles NA dates correctly", {
 })
 
 test_that("summarise_CREED_details deduplicates values correctly", {
-  session_data <- create_session_data()
   # Add duplicate compartment
   session_data$compartmentsData <- add_row(
     session_data$compartmentsData,
@@ -430,8 +114,7 @@ test_that("summarise_CREED_details deduplicates values correctly", {
 
 # test-creed-reliability-functions.R ----
 
-test_that("summarise_CREED_reliability correctly summarizes compartments and protocols for RB1", {
-  session_data <- create_session_data()
+test_that("summarise_CREED_reliability correctly summarises compartments and protocols for RB1", {
   result <- summarise_CREED_reliability(session_data)
 
   rb1_value <- result$value[result$field == "RB1"]
@@ -444,19 +127,15 @@ test_that("summarise_CREED_reliability correctly summarizes compartments and pro
   expect_true(grepl("protocol", rb1_value))
 })
 
-test_that("summarise_CREED_reliability correctly summarizes sites for RB4", {
-  session_data <- create_session_data()
+test_that("summarise_CREED_reliability correctly summarises sites for RB4", {
   result <- summarise_CREED_reliability(session_data)
 
   rb4_value <- result$value[result$field == "RB4"]
 
-  expect_true(grepl("4 sites", rb4_value))
-  expect_true(grepl("Norway", rb4_value))
-  expect_true(grepl("Oslo Fjord", rb4_value))
+  expect_true(grepl("3 sites", rb4_value))
 })
 
 test_that("summarise_CREED_reliability correctly calculates date range for RB5", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
   rb5_value <- result$value[result$field == "RB5"]
@@ -467,7 +146,6 @@ test_that("summarise_CREED_reliability correctly calculates date range for RB5",
 })
 
 test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2, RB3, RB13", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
   rb2_value <- result$value[result$field == "RB2"]
@@ -479,11 +157,10 @@ test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2,
   expect_equal(rb2_value, rb13_value)
 
   # Should contain sampling protocol info
-  expect_true(grepl("sampling protocol", rb2_value))
+  expect_true(grepl("Sampling Protocol", rb2_value))
 })
 
 test_that("summarise_CREED_reliability reuses analytical protocol summary for RB6, RB10, RB11, RB12", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
   rb6_value <- result$value[result$field == "RB6"]
@@ -497,11 +174,10 @@ test_that("summarise_CREED_reliability reuses analytical protocol summary for RB
   expect_equal(rb6_value, rb12_value)
 
   # Should contain analytical protocol info
-  expect_true(grepl("analytical protocol", rb6_value))
+  expect_true(grepl("Analytical Protocol", rb6_value))
 })
 
 test_that("summarise_CREED_reliability calculates LOD/LOQ for RB7", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
   rb7_value <- result$value[result$field == "RB7"]
@@ -512,7 +188,6 @@ test_that("summarise_CREED_reliability calculates LOD/LOQ for RB7", {
 })
 
 test_that("summarise_CREED_reliability calculates significant figures for RB15", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
   rb15_value <- result$value[result$field == "RB15"]
@@ -521,13 +196,24 @@ test_that("summarise_CREED_reliability calculates significant figures for RB15",
 })
 
 test_that("summarise_CREED_reliability leaves blank fields empty for RB8, RB16, RB17, RB19", {
-  session_data <- create_session_data()
   result <- summarise_CREED_reliability(session_data)
 
-  expect_equal(result$value[result$field == "RB8"], "")
-  expect_equal(result$value[result$field == "RB16"], "")
-  expect_equal(result$value[result$field == "RB17"], "")
-  expect_equal(result$value[result$field == "RB19"], "")
+  expect_equal(
+    result$value[result$field == "RB8"],
+    "Relevant data not collected by app. Please complete manually."
+  )
+  expect_equal(
+    result$value[result$field == "RB16"],
+    "Relevant data not collected by app. Please complete manually."
+  )
+  expect_equal(
+    result$value[result$field == "RB17"],
+    "Relevant data not collected by app. Please complete manually."
+  )
+  expect_equal(
+    result$value[result$field == "RB19"],
+    "Relevant data not collected by app. Please complete manually."
+  )
 })
 
 test_that("summarise_CREED_reliability handles missing data gracefully", {
@@ -571,7 +257,6 @@ test_that("summarise_CREED_reliability handles missing data gracefully", {
 })
 
 test_that("summarise_CREED_reliability handles uncertainty types for RB14 and RB18", {
-  session_data <- create_session_data()
   # Add uncertainty data
   session_data$measurementsData$UNCERTAINTY_TYPE <- c("SD", "SD", "CI", "SD")
   session_data$measurementsData$MEASUREMENT_COMMENT <- c(

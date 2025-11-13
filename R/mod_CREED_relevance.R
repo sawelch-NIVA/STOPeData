@@ -48,7 +48,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV1_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -90,7 +90,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV2_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -134,7 +134,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV3_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -176,7 +176,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV4_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -220,7 +220,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV5_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -262,7 +262,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV6_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -304,7 +304,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV7_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -348,7 +348,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV8_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -390,7 +390,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV9_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -434,7 +434,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV10_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
@@ -478,7 +478,7 @@ mod_CREED_relevance_ui <- function(id) {
           selectInput(
             inputId = ns("RV11_score"),
             label = "Score:",
-            choices = CREED_choices(),
+            choices = CREED_choices_vocabulary(),
             width = "150px"
           )
         )
