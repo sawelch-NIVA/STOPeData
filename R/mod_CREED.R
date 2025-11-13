@@ -25,7 +25,21 @@ mod_CREED_ui <- function(id) {
       card_body(
         ## Info accordion ----
         info_accordion(
-          content_file = "inst/app/www/md/intro_CREED.md"
+          title = "CREED",
+          content_file = "inst/app/www/md/intro_CREED.md",
+          div(
+            "Required criteria (",
+            tooltip(
+              bs_icon("award-fill", class = "CREED-required"),
+              "Required for Silver level scoring"
+            ),
+            ") are needed for Silver level scoring. Recommended criteria (",
+            tooltip(
+              bs_icon("award-fill", class = "CREED-recommended"),
+              "Additional requirements for Gold level scoring"
+            ),
+            ") are additional requirements for Gold level scoring."
+          )
         ),
 
         div(
@@ -143,6 +157,16 @@ mod_CREED_ui <- function(id) {
           style = "margin-top: 15px;",
           uiOutput(ns("status_reporter"))
         ),
+        input_task_button(
+          id = ns("calculate_scores"),
+          label = list(
+            "Calculate CREED Scores",
+            bs_icon("award-fill")
+          ),
+          class = "btn-success"
+        ),
+
+        uiOutput(ns("creed_scores_display")),
 
         ## Final Report ----
         div(
@@ -216,9 +240,9 @@ mod_CREED_server <- function(id) {
         ignoreInit = FALSE
       )
 
-    ## observe ~bindEvent(save_assessment): Save CREED assessment ----
-    # upstream: user clicks input$save_assessment
-    # downstream: moduleState$dataset_details, session$userData$reactiveValues$creedData
+    ## observe ~bindEvent(get_data): Get data from session ----
+    # upstream: user clicks input$get_data
+    # downstream: we get the by triggering a bunch of observers downstream
     observe(
       {
         tryCatch(
@@ -237,6 +261,128 @@ mod_CREED_server <- function(id) {
       }
     ) |>
       bindEvent(input$get_data)
+
+    ## observe ~bindEvent(input$calculate_scores): Get data from session ----
+    # upstream: user clicks input$get_data
+    # downstream: we get the by triggering a bunch of observers downstream
+    observe(
+      {
+        tryCatch(
+          {
+            session$userData$reactiveValues$creedCalculateScores <- session$userData$reactiveValues$creedCalculateScores +
+              1
+          },
+          error = function(e) {
+            showNotification(
+              paste("CREED Score Calculation failed:", e$message),
+              type = "error"
+            )
+          }
+        )
+        # this triggers score calculation
+      }
+    ) |>
+      bindEvent(input$calculate_scores)
+
+    ## observe: Calculate CREED silver and gold scores ----
+    # upstream: session$userData$reactiveValues$creedRelevance, creedReliability
+    # downstream: session$userData$reactiveValues$creedData$creedScores
+    observe({
+      tryCatch(
+        {
+          if (
+            nrow(session$userData$reactiveValues$creedData$creedReliability) >
+              1 &&
+              nrow(session$userData$reactiveValues$creedData$creedRelevance) > 1
+          ) {
+            browser()
+            reliability_data <- session$userData$reactiveValues$creedData$creedReliability
+            relevance_data <- session$userData$reactiveValues$creedData$creedRelevance
+
+            # Add numeric score column
+            reliability_data <- reliability_data |>
+              mutate(numeric_score = as.integer(score))
+
+            relevance_data <- relevance_data |>
+              mutate(numeric_score = as.integer(score))
+
+            # Calculate Silver levels (Required criteria)
+            reliability_silver <- reliability_data |>
+              filter(required_recommended == "Required") |>
+              pull(numeric_score) |>
+              max(na.rm = TRUE)
+
+            relevance_silver <- relevance_data |>
+              filter(required_recommended == "Required") |>
+              pull(numeric_score) |>
+              max(na.rm = TRUE)
+
+            # Calculate Gold levels (Recommended criteria)
+            reliability_gold <- reliability_data |>
+              filter(required_recommended == "Recommended") |>
+              pull(numeric_score) |>
+              max(na.rm = TRUE)
+
+            relevance_gold <- relevance_data |>
+              filter(required_recommended == "Recommended") |>
+              pull(numeric_score) |>
+              max(na.rm = TRUE)
+
+            # Map scores back to categories
+            score_categories <- c(
+              "1" = "Reliable without restrictions",
+              "2" = "Reliable with restrictions",
+              "3" = "Not assignable",
+              "4" = "Not usable"
+            )
+
+            relevance_categories <- c(
+              "1" = "Relevant without restrictions",
+              "2" = "Relevant with restrictions",
+              "3" = "Not assignable",
+              "4" = "Not usable"
+            )
+
+            # Create results tibble
+            creed_scores <- tibble(
+              level = c("Silver", "Gold"),
+              reliability_score = c(reliability_silver, reliability_gold),
+              reliability_category = score_categories[as.character(c(
+                reliability_silver,
+                reliability_gold
+              ))],
+              relevance_score = c(relevance_silver, relevance_gold),
+              relevance_category = relevance_categories[as.character(c(
+                relevance_silver,
+                relevance_gold
+              ))]
+            )
+
+            # Store results
+            session$userData$reactiveValues$creedData$creedScores <- creed_scores
+
+            golem::print_dev(creed_scores)
+
+            showNotification(
+              "CREED scores calculated successfully",
+              type = "message"
+            )
+          }
+        },
+        error = function(e) {
+          showNotification(
+            paste("CREED Score Calculation failed:", e$message),
+            type = "error"
+          )
+        }
+      )
+    }) |>
+      bindEvent(
+        # only run once we have the data upstream
+        (nrow(session$userData$reactiveValues$creedData$creedReliability) > 1 &&
+          nrow(session$userData$reactiveValues$creedData$creedRelevance) > 1),
+        ignoreInit = TRUE
+      )
 
     # 4. Outputs ----
 
@@ -270,6 +416,7 @@ mod_CREED_server <- function(id) {
     ## output: status_reporter ----
     # upstream: moduleState$assessment_saved
     # downstream: UI status display
+    # FIXME: We don't actually track assessment_saved anymore, so this reporter will never change.
     output$status_reporter <- renderUI({
       if (moduleState$assessment_saved) {
         div(
@@ -280,10 +427,43 @@ mod_CREED_server <- function(id) {
       } else {
         div(
           bs_icon("info-circle"),
-          "Review dataset details above and click 'Save Assessment' when ready.",
+          "Review dataset details above and click 'Calculate Score' when ready.",
           class = "validation-status validation-info"
         )
       }
+    })
+
+    ## output: Display CREED scores ----
+    # upstream: session$userData$reactiveValues$creedScores
+    # downstream: UI display
+    output$creed_scores_display <- renderUI({
+      scores <- session$userData$reactiveValues$creedData$creedScores
+
+      tagList(
+        h5("CREED Assessment Results"),
+        tags$table(
+          class = "table table-sm",
+          tags$thead(
+            tags$tr(
+              tags$th("Level"),
+              tags$th("Reliability"),
+              tags$th("Relevance")
+            )
+          ),
+          tags$tbody(
+            tags$tr(
+              tags$td(strong("Silver")),
+              tags$td(scores$reliability_category[1]),
+              tags$td(scores$relevance_category[1])
+            ),
+            tags$tr(
+              tags$td(strong("Gold")),
+              tags$td(scores$reliability_category[2]),
+              tags$td(scores$relevance_category[2])
+            )
+          )
+        )
+      )
     })
   })
 }

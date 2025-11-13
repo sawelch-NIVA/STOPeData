@@ -49,12 +49,14 @@ app_server <- function(input, output, session) {
       creedData = list(
         purposeStatement = tibble(NULL),
         datasetDetails = tibble(NULL),
-        gatewayCriteria = tibble(NULL),
-        reliabilityCriteria = tibble(NULL),
         relevanceCriteria = tibble(NULL),
-        creedOutput = tibble(NULL)
+        creedRelevance = tibble(NULL),
+        creedReliability = tibble(NULL),
+        creedScores = tibble(NULL),
+        creedReport = ""
       ),
       creedGetData = 0, # watched by multiple observers in nested CREED modules. +1 every time we input$get_data in mod_CREED
+      creedCalculateScores = 0, # same
 
       # LLM extracted data and metadata ----
       schemaLLM = "",

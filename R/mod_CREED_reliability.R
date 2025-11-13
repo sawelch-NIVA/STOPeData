@@ -228,13 +228,13 @@ mod_CREED_reliability_ui <- function(id) {
       title = "Supporting Data Quality (if supporting parameters are required for the purpose)",
       type = "recommended",
       description = "If any supporting parameters are required for the assessment purpose, then were the supporting parameter data provided, and were their methods and data quality addressed?"
-    )
+    ),
 
     ## Action buttons and status ----
-    # input_task_button(
-    #   id = ns("calc_scores"),
-    #   label = "Calculate Reliability Score"
-    # ),
+    input_task_button(
+      id = ns("calc_scores"),
+      label = "Calculate Reliability Score"
+    )
     # input_task_button(
     #   id = ns("save_assessment"),
     #   label = "Save Section",
@@ -293,7 +293,6 @@ mod_CREED_reliability_server <- function(id) {
     # upstream: button populate_from_data
     # downstream: reliability input fields
     observe({
-      print("hello I am button")
       # Get auto-populated data directly from userData
       auto_data <- summarise_CREED_reliability(session$userData$reactiveValues)
 
@@ -420,9 +419,13 @@ mod_CREED_reliability_server <- function(id) {
 
       # Store in reactiveValues and session
       reliability_scores$data <- scores_data
-      session$userData$reactiveValues$creedReliability <- scores_data
+      session$userData$reactiveValues$creedData$creedReliability <- scores_data
     }) |>
-      bindEvent(input$calc_scores, ignoreInit = TRUE)
+      bindEvent(
+        input$calc_scores,
+        session$userData$reactiveValues$creedCalculateScores,
+        ignoreInit = TRUE
+      )
   })
 }
 

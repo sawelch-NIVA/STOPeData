@@ -25,7 +25,7 @@ update_sites_selectize <- function(session, sites_data) {
     }
   }
 
-  updateSelectizeInput(
+  updatePickerInput(
     session,
     "sites_select",
     choices = choices,
@@ -64,7 +64,7 @@ update_parameters_selectize <- function(session, parameters_data) {
     }
   }
 
-  updateSelectizeInput(
+  updatePickerInput(
     session,
     "parameters_select",
     choices = choices,
@@ -114,7 +114,7 @@ update_compartments_selectize <- function(session, compartments_data) {
     }
   }
 
-  updateSelectizeInput(
+  updatePickerInput(
     session,
     "compartments_select",
     choices = choices,

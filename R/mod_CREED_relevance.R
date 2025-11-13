@@ -486,31 +486,10 @@ mod_CREED_relevance_ui <- function(id) {
 
       # Dynamic threshold boxes ----
       uiOutput(ns("RV11_thresholds")),
-
-      # Two-column layout for data and justification ----
-      layout_column_wrap(
-        width = "400px",
-        create_relevant_data_input(ns, "RV11"),
-        create_limitations_input(ns, "RV11")
-      )
     ),
-
-    ## Action buttons and status ----
     input_task_button(
       id = ns("calc_scores"),
-      label = "Calculate Relevance Score"
-    ),
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ),
-
-    div(
-      style = "margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;",
-      h6("Completion Status"),
-      uiOutput(ns("completion_status"))
+      label = "Calculate Reliability Score"
     )
   )
 }
@@ -598,6 +577,96 @@ mod_CREED_relevance_server <- function(id) {
       bindEvent(
         input$populate_from_data,
         session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
+
+    # FIXME: This list format absolutely sucks.
+    ## observe: Collect relevance scores ----
+    # upstream: button calc_scores
+    # downstream: relevance_scores, session$userData
+    observe({
+      # Define all relevance criteria with their properties
+      criteria_config <- list(
+        RV1 = list(
+          title = "Sample Medium/Matrix",
+          type = "Required"
+        ),
+        RV2 = list(
+          title = "Collection Method/Sample Type",
+          type = "Recommended"
+        ),
+        RV3 = list(
+          title = "Study Area",
+          type = "Required"
+        ),
+        RV4 = list(
+          title = "Site Type",
+          type = "Recommended"
+        ),
+        RV5 = list(
+          title = "Sampling Timespan",
+          type = "Required"
+        ),
+        RV6 = list(
+          title = "Sampling Frequency",
+          type = "Required"
+        ),
+        RV7 = list(
+          title = "Temporal Conditions",
+          type = "Recommended"
+        ),
+        RV8 = list(
+          title = "Analyte",
+          type = "Required"
+        ),
+        RV9 = list(
+          title = "Sensitivity/LOD/LOQ",
+          type = "Required"
+        ),
+        RV10 = list(
+          title = "Summary Statistics Type",
+          type = "Recommended"
+        ),
+        RV11 = list(
+          title = "Supporting Parameters",
+          type = "Recommended"
+        )
+      )
+
+      # Collect scores for completed criteria
+      scores_data <- tibble(
+        criterion_id = character(0),
+        criterion_title = character(0),
+        required_recommended = character(0),
+        score = character(0),
+        limitations = character(0)
+      )
+
+      # Loop through all criteria
+      for (criterion_id in names(criteria_config)) {
+        score_input <- input[[paste0(criterion_id, "_score")]]
+        limitations_input <- input[[paste0(criterion_id, "_limitations")]]
+
+        if (isTruthy(score_input) && score_input != "") {
+          scores_data <- rbind(
+            scores_data,
+            tibble(
+              criterion_id = criterion_id,
+              criterion_title = criteria_config[[criterion_id]]$title,
+              required_recommended = criteria_config[[criterion_id]]$type,
+              score = score_input,
+              limitations = limitations_input %||% ""
+            )
+          )
+        }
+      }
+
+      # Store in session
+      session$userData$reactiveValues$creedData$creedRelevance <- scores_data
+    }) |>
+      bindEvent(
+        input$calc_scores,
+        session$userData$reactiveValues$creedCalculateScores,
         ignoreInit = TRUE
       )
   })

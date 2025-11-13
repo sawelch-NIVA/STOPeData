@@ -757,7 +757,7 @@ summarise_CREED_relevance <- function(sessionData) {
   # RV8: Stressors, fractionation protocols
   RV8_value <- summarise_protocols(
     sessionData$methodsData,
-    "Fractionation Protocol",
+    categories = "Fractionation Protocol"
   )
 
   # RV9: LODs, LOQs, Analytical Protocols
@@ -812,7 +812,7 @@ summarise_CREED_relevance <- function(sessionData) {
   # RV11: Fractionation protocol
   RV11_value <- summarise_protocols(
     sessionData$methodsData,
-    "Fractionation Protocol",
+    "Fractionation Protocol"
   )
 
   # Build tibble from extracted values ----

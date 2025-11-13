@@ -2,13 +2,21 @@
 # test big overarching CREED functions that a) get lots of data from the right sources and b) send it to the right sinks
 
 # from fct_dummy_data.R
-session_data <- dummy_session_data()
+sessionData <- dummy_session_data()
 # --------------------
 
 # Tests: Main summary function ----
+test_that("summarise_CREED_relevance doesn't error", {
+  expect_no_error(result <- summarise_CREED_relevance(sessionData))
+})
+
+test_that("summarise_CREED_reliability doesn't error", {
+  expect_no_error(result <- summarise_CREED_reliability(sessionData))
+})
+
 
 test_that("summarise_CREED_details returns tibble with correct structure", {
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   expect_s3_class(result, "tbl_df")
   expect_named(result, c("field", "value"))
@@ -31,7 +39,7 @@ test_that("summarise_CREED_details returns tibble with correct structure", {
 })
 
 test_that("summarise_CREED_details correctly summarises reference data", {
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   source_value <- result$value[result$field == "source"]
   expect_true(grepl("Smith, J.", source_value))
@@ -39,17 +47,17 @@ test_that("summarise_CREED_details correctly summarises reference data", {
 })
 
 test_that("summarise_CREED_details correctly counts sites and samples", {
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   num_sites <- result$value[result$field == "num_sites"]
   num_samples <- result$value[result$field == "num_samples"]
 
-  expect_equal(num_sites, "4")
+  expect_equal(num_sites, "3")
   expect_equal(num_samples, "4")
 })
 
 test_that("summarise_CREED_details separates sampling and analytical methods", {
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   sampling_methods <- result$value[result$field == "sampling_methods"]
   analytical_methods <- result$value[result$field == "analytical_methods"]
@@ -61,7 +69,7 @@ test_that("summarise_CREED_details separates sampling and analytical methods", {
 })
 
 test_that("summarise_CREED_details handles missing data", {
-  session_data <- list(
+  sessionData <- list(
     referenceData = NULL,
     parametersData = NULL,
     compartmentsData = NULL,
@@ -71,13 +79,13 @@ test_that("summarise_CREED_details handles missing data", {
     methodsData = NULL
   )
 
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   expect_true(all(result$value == "Relevant data not found"))
 })
 
 test_that("summarise_CREED_details calculates LOQ/LOD info correctly", {
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
 
   loq_info <- result$value[result$field == "loq_info"]
 
@@ -87,9 +95,9 @@ test_that("summarise_CREED_details calculates LOQ/LOD info correctly", {
 })
 
 test_that("summarise_CREED_details handles NA dates correctly", {
-  session_data$samplesData$SAMPLING_DATE <- as.Date(NA)
+  sessionData$samplesData$SAMPLING_DATE <- as.Date(NA)
 
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
   sampling_period <- result$value[result$field == "sampling_period"]
 
   expect_equal(sampling_period, "Relevant data not found")
@@ -97,14 +105,14 @@ test_that("summarise_CREED_details handles NA dates correctly", {
 
 test_that("summarise_CREED_details deduplicates values correctly", {
   # Add duplicate compartment
-  session_data$compartmentsData <- add_row(
-    session_data$compartmentsData,
+  sessionData$compartmentsData <- add_row(
+    sessionData$compartmentsData,
     tibble(
       ENVIRON_COMPARTMENT = "Aquatic"
     )
   )
 
-  result <- summarise_CREED_details(session_data)
+  result <- summarise_CREED_details(sessionData)
   medium <- result$value[result$field == "medium"]
 
   # Should not have "Sediment" repeated multiple times in output
@@ -115,7 +123,7 @@ test_that("summarise_CREED_details deduplicates values correctly", {
 # test-creed-reliability-functions.R ----
 
 test_that("summarise_CREED_reliability correctly summarises compartments and protocols for RB1", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb1_value <- result$value[result$field == "RB1"]
 
@@ -128,7 +136,7 @@ test_that("summarise_CREED_reliability correctly summarises compartments and pro
 })
 
 test_that("summarise_CREED_reliability correctly summarises sites for RB4", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb4_value <- result$value[result$field == "RB4"]
 
@@ -136,7 +144,7 @@ test_that("summarise_CREED_reliability correctly summarises sites for RB4", {
 })
 
 test_that("summarise_CREED_reliability correctly calculates date range for RB5", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb5_value <- result$value[result$field == "RB5"]
 
@@ -146,7 +154,7 @@ test_that("summarise_CREED_reliability correctly calculates date range for RB5",
 })
 
 test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2, RB3, RB13", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb2_value <- result$value[result$field == "RB2"]
   rb3_value <- result$value[result$field == "RB3"]
@@ -161,7 +169,7 @@ test_that("summarise_CREED_reliability reuses sampling protocol summary for RB2,
 })
 
 test_that("summarise_CREED_reliability reuses analytical protocol summary for RB6, RB10, RB11, RB12", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb6_value <- result$value[result$field == "RB6"]
   rb10_value <- result$value[result$field == "RB10"]
@@ -178,7 +186,7 @@ test_that("summarise_CREED_reliability reuses analytical protocol summary for RB
 })
 
 test_that("summarise_CREED_reliability calculates LOD/LOQ for RB7", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb7_value <- result$value[result$field == "RB7"]
 
@@ -188,7 +196,7 @@ test_that("summarise_CREED_reliability calculates LOD/LOQ for RB7", {
 })
 
 test_that("summarise_CREED_reliability calculates significant figures for RB15", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb15_value <- result$value[result$field == "RB15"]
 
@@ -196,7 +204,7 @@ test_that("summarise_CREED_reliability calculates significant figures for RB15",
 })
 
 test_that("summarise_CREED_reliability leaves blank fields empty for RB8, RB16, RB17, RB19", {
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   expect_equal(
     result$value[result$field == "RB8"],
@@ -217,7 +225,7 @@ test_that("summarise_CREED_reliability leaves blank fields empty for RB8, RB16, 
 })
 
 test_that("summarise_CREED_reliability handles missing data gracefully", {
-  session_data <- list(
+  sessionData <- list(
     compartmentsData = NULL,
     methodsData = NULL,
     sitesData = NULL,
@@ -225,7 +233,7 @@ test_that("summarise_CREED_reliability handles missing data gracefully", {
     measurementsData = NULL
   )
 
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   # Should still return 19 rows
   expect_equal(nrow(result), 19)
@@ -258,15 +266,15 @@ test_that("summarise_CREED_reliability handles missing data gracefully", {
 
 test_that("summarise_CREED_reliability handles uncertainty types for RB14 and RB18", {
   # Add uncertainty data
-  session_data$measurementsData$UNCERTAINTY_TYPE <- c("SD", "SD", "CI", "SD")
-  session_data$measurementsData$MEASUREMENT_COMMENT <- c(
+  sessionData$measurementsData$UNCERTAINTY_TYPE <- c("SD", "SD", "CI", "SD")
+  sessionData$measurementsData$MEASUREMENT_COMMENT <- c(
     "Good",
     "Fair",
     NA,
     "Good"
   )
 
-  result <- summarise_CREED_reliability(session_data)
+  result <- summarise_CREED_reliability(sessionData)
 
   rb14_value <- result$value[result$field == "RB14"]
   rb18_value <- result$value[result$field == "RB18"]

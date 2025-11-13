@@ -963,10 +963,10 @@ measured_flags_vocabulary <- function() {
 #' @return Named character vector with CREED scoring choices
 CREED_choices_vocabulary <- function() {
   c(
-    "Not Met" = "not_met",
-    "Fully Met" = "fully",
-    "Partly Met" = "partly",
-    "Not Reported" = "not_reported",
-    "Not Relevant" = "not_relevant"
+    "Not Met" = 4,
+    "Fully Met" = 1,
+    "Partly Met" = 2,
+    "Not Reported" = 3,
+    "Not Relevant" = 1
   )
 }
