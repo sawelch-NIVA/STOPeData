@@ -86,7 +86,7 @@ mod_CREED_reliability_ui <- function(id) {
       div(
         style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
         div(
-          style = "flex-grow: 1; margin-right: 20px;",
+          style = "flex-grow: 0; margin-right: 20px;",
           h6(
             HTML(paste(
               bs_icon("award-fill", class = "CREED-required"),
@@ -109,8 +109,8 @@ mod_CREED_reliability_ui <- function(id) {
         selectInput(
           inputId = ns("RB8_score"),
           label = "Score:",
-          choices = CREED_choices(),
-          width = "200px"
+          choices = CREED_choices_vocabulary(),
+          width = "150px"
         )
       ),
       layout_columns(
@@ -234,19 +234,19 @@ mod_CREED_reliability_ui <- function(id) {
     input_task_button(
       id = ns("calc_scores"),
       label = "Calculate Reliability Score"
-    ),
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ),
-
-    div(
-      style = "margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;",
-      h6("Completion Status"),
-      uiOutput(ns("completion_status"))
     )
+    # input_task_button(
+    #   id = ns("save_assessment"),
+    #   label = "Save Section",
+    #   icon = icon("save"),
+    #   class = "btn-success"
+    # ),
+
+    # div(
+    #   style = "margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;",
+    #   h6("Completion Status"),
+    #   uiOutput(ns("completion_status"))
+    # )
   )
 }
 
@@ -293,11 +293,8 @@ mod_CREED_reliability_server <- function(id) {
     # upstream: button populate_from_data
     # downstream: reliability input fields
     observe({
-      print("hello I am button")
       # Get auto-populated data directly from userData
-      auto_data <- auto_populate_reliability_fields(
-        session$userData$reactiveValues
-      )
+      auto_data <- summarise_CREED_reliability(session$userData$reactiveValues)
 
       # Update relevant_data fields
       for (field_name in names(auto_data)) {
@@ -312,18 +309,85 @@ mod_CREED_reliability_server <- function(id) {
     }) |>
       bindEvent(input$populate_from_data)
 
-    ## observe: test ----
+    ## observe: Auto-populate relevant data fields ----
+    # upstream: input$populate_from_data OR session$userData$reactiveValues$creedGetData
+    # downstream: All RB*_relevant_data inputs
     observe({
-      print("Hello!")
+      req(session$userData$reactiveValues)
+
+      tryCatch(
+        {
+          # Get auto-populated field values
+          field_updates <- autopop_reliability_fields(
+            session$userData$reactiveValues
+          )
+
+          # Update each field
+          for (field_name in names(field_updates)) {
+            updateTextAreaInput(
+              session,
+              field_name,
+              value = field_updates[[field_name]]
+            )
+          }
+
+          showNotification(
+            "Relevant data fields populated from dataset",
+            type = "message"
+          )
+        },
+        error = function(e) {
+          showNotification(
+            paste("Auto-populate failed:", e$message),
+            type = "error"
+          )
+        }
+      )
     }) |>
-      bindEvent(input$save_assessment)
+      bindEvent(
+        input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
 
     ## observe: Collect reliability scores ----
-    # upstream: button
+    # upstream: button calc_scores
     # downstream: reliability_scores, session$userData
     observe({
-      # Define all reliability criteria
-      criteria_ids <- paste0("RB", 1:19)
+      # Define all reliability criteria with their properties
+      criteria_config <- list(
+        RB1 = list(title = "Sample Medium/Matrix", type = "Required"),
+        RB2 = list(
+          title = "Collection Method/Sample Type",
+          type = "Recommended"
+        ),
+        RB3 = list(title = "Sample Handling", type = "Recommended"),
+        RB4 = list(title = "Site Location", type = "Required"),
+        RB5 = list(title = "Date and Time", type = "Required"),
+        RB6 = list(title = "Analyte(s) Measured", type = "Required"),
+        RB7 = list(
+          title = "Limit of Detection and/or Limit of Quantification",
+          type = "Required"
+        ),
+        RB8 = list(
+          title = "Accreditation/Quality Management System",
+          type = "Required"
+        ),
+        RB9 = list(title = "Method", type = "Required"),
+        RB10 = list(title = "Lab Blank Contamination", type = "Recommended"),
+        RB11 = list(title = "Recovery/Accuracy", type = "Recommended"),
+        RB12 = list(title = "Reproducibility/Precision", type = "Recommended"),
+        RB13 = list(title = "Field QC", type = "Recommended"),
+        RB14 = list(title = "Calculations", type = "Recommended"),
+        RB15 = list(title = "Significant Figures", type = "Recommended"),
+        RB16 = list(title = "Outliers", type = "Recommended"),
+        RB17 = list(title = "Censored Data", type = "Required"),
+        RB18 = list(
+          title = "Summary Statistics Procedures",
+          type = "Recommended"
+        ),
+        RB19 = list(title = "Supporting Data Quality", type = "Recommended")
+      )
 
       # Collect scores for completed criteria
       scores_data <- tibble(
@@ -334,70 +398,34 @@ mod_CREED_reliability_server <- function(id) {
         justification = character(0)
       )
 
-      # RB1
-      if (!isTruthy(input$RB1_score) && input$RB1_score != "") {
-        scores_data <- rbind(
-          scores_data,
-          tibble(
-            criterion_id = "RB1",
-            criterion_title = "Sample Medium/Matrix",
-            required_recommended = "Required",
-            score = input$RB1_score,
-            justification = input$RB1_justification %||% ""
-          )
-        )
-      }
+      # Loop through all criteria
+      for (criterion_id in names(criteria_config)) {
+        score_input <- input[[paste0(criterion_id, "_score")]]
+        justification_input <- input[[paste0(criterion_id, "_justification")]]
 
-      # RB2
-      if (!isTruthy(input$RB2_score) && input$RB2_score != "") {
-        scores_data <- rbind(
-          scores_data,
-          tibble(
-            criterion_id = "RB2",
-            criterion_title = "Collection Method/Sample Type",
-            required_recommended = "Recommended",
-            score = input$RB2_score,
-            justification = input$RB2_justification %||% ""
+        if (isTruthy(score_input) && score_input != "") {
+          scores_data <- rbind(
+            scores_data,
+            tibble(
+              criterion_id = criterion_id,
+              criterion_title = criteria_config[[criterion_id]]$title,
+              required_recommended = criteria_config[[criterion_id]]$type,
+              score = score_input,
+              justification = justification_input %||% ""
+            )
           )
-        )
+        }
       }
-
-      # Continue for other criteria...
-      # (Pattern established - would continue for RB3-RB19)
 
       # Store in reactiveValues and session
       reliability_scores$data <- scores_data
-      session$userData$reactiveValues$creedReliabilityScores <- scores_data
+      session$userData$reactiveValues$creedReliability <- scores_data
     }) |>
-      bindEvent(input$calc_scores, ignoreInit = TRUE)
-
-    # 3. Outputs ----
-
-    ## output: completion_status ----
-    # upstream: reliability_scores$data
-    # downstream: UI completion display
-    output$completion_status <- renderUI({
-      if (
-        !isTruthy(reliability_scores$data) || nrow(reliability_scores$data) == 0
-      ) {
-        div(
-          bs_icon("exclamation-triangle", class = "text-warning"),
-          "No criteria completed yet",
-          class = "text-muted"
-        )
-      } else {
-        completed <- nrow(reliability_scores$data)
-        total <- 19 # Total number of criteria
-
-        div(
-          bs_icon("check-circle", class = "text-success"),
-          paste("Completed:", completed, "of", total, "criteria"),
-          if (completed == total) {
-            span(" - All criteria complete!", class = "text-success")
-          }
-        )
-      }
-    })
+      bindEvent(
+        input$calc_scores,
+        session$userData$reactiveValues$creedCalculateScores,
+        ignoreInit = TRUE
+      )
   })
 }
 

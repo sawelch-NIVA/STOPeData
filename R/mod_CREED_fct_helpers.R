@@ -2,164 +2,6 @@
 ### ----------- CREED Functions -------------
 ### -----------------------------------------
 
-# Non-reactive data processing ----
-
-' Create Bibliography Reference
-#'
-#' @description Creates a formatted bibliographic reference from reference data
-#' @param ref_data Reference data frame
-#' @return Character string with formatted reference
-#' @noRd
-create_bibliography_reference <- function(ref_data) {
-  if (is.null(ref_data) || nrow(ref_data) == 0) {
-    return("Relevant data not found")
-  }
-
-  # Basic format: Author (Year). Title. Journal/Source.
-  ref_parts <- c()
-
-  if (!is.na(ref_data$AUTHOR) && ref_data$AUTHOR != "") {
-    ref_parts <- c(ref_parts, ref_data$AUTHOR)
-  }
-
-  if (!is.na(ref_data$YEAR)) {
-    ref_parts <- c(ref_parts, paste0("(", ref_data$YEAR, ")"))
-  }
-
-  if (!is.na(ref_data$TITLE) && ref_data$TITLE != "") {
-    ref_parts <- c(ref_parts, ref_data$TITLE)
-  }
-
-  if (
-    !is.na(ref_data$PERIODICAL_JOURNAL) && ref_data$PERIODICAL_JOURNAL != ""
-  ) {
-    ref_parts <- c(ref_parts, ref_data$PERIODICAL_JOURNAL)
-  } else if (!is.na(ref_data$PUBLISHER) && ref_data$PUBLISHER != "") {
-    ref_parts <- c(ref_parts, ref_data$PUBLISHER)
-  }
-
-  if (!is.na(ref_data$DOI) && ref_data$DOI != "") {
-    ref_parts <- c(ref_parts, paste0("(", ref_data$DOI, ")"))
-  }
-
-  if (length(ref_parts) > 0) {
-    return(paste(ref_parts, collapse = ". "))
-  } else {
-    return("Reference data incomplete")
-  }
-}
-
-#' Summarize Multiple Values
-#'
-#' @description Creates a summary string from multiple values
-#' @param values Vector of values to summarize
-#' @param prefix Optional prefix for output
-#' @param max_display Maximum items to display before truncating
-#' @return Character string summary
-#' @noRd
-summarize_multiple <- function(values, prefix = "", max_display = 10) {
-  if (is.null(values) || length(values) == 0) {
-    return("Relevant data not found")
-  }
-
-  unique_values <- unique(values[!is.na(values) & values != ""])
-
-  if (length(unique_values) == 0) {
-    return("Relevant data not found")
-  }
-
-  if (length(unique_values) <= max_display) {
-    result <- paste(unique_values, collapse = ", ")
-  } else {
-    displayed <- paste(unique_values[1:max_display], collapse = ", ")
-    result <- paste0(
-      displayed,
-      " (and ",
-      length(unique_values) - max_display,
-      " more)"
-    )
-  }
-
-  if (prefix != "" && length(unique_values) > 1) {
-    result <- paste0(prefix, " (", length(unique_values), "): ", result)
-  } else if (prefix != "") {
-    result <- paste0(prefix, ": ", result)
-  }
-
-  return(result)
-}
-
-#' Calculate Date Range
-#'
-#' @description Creates a date range string from vector of dates
-#' @param dates Vector of dates
-#' @return Character string with date range
-#' @noRd
-calculate_date_range <- function(dates) {
-  if (is.null(dates) || length(dates) == 0) {
-    return("Relevant data not found")
-  }
-
-  valid_dates <- dates[!is.na(dates)]
-  if (length(valid_dates) == 0) {
-    return("Relevant data not found")
-  }
-
-  min_date <- min(valid_dates)
-  max_date <- max(valid_dates)
-
-  if (min_date == max_date) {
-    return(as.character(min_date))
-  } else {
-    return(paste(min_date, "to", max_date))
-  }
-}
-
-#' Generate Units Summary by Parameter
-#'
-#' @description Creates a summary of measurement units grouped by parameter name
-#' @param measurement_data Measurement data frame
-#' @param parameters_data Parameters data frame
-#' @return Character string with units grouped by parameter
-#' @noRd
-generate_units_summary <- function(measurement_data, parameters_data) {
-  if (
-    is.null(measurement_data) ||
-      is.null(parameters_data) ||
-      nrow(measurement_data) < 0 ||
-      nrow(parameters_data) < 0
-  ) {
-    return("Relevant data not found")
-  }
-
-  # Join measurement data with parameter names
-  merged_data <- merge(
-    measurement_data,
-    parameters_data,
-    by = "PARAMETER_NAME",
-    all.x = TRUE
-  )
-
-  # Group units by parameter
-  param_units <- split(
-    merged_data$MEASURED_UNIT[!is.na(merged_data$MEASURED_UNIT)],
-    merged_data$PARAMETER_NAME[!is.na(merged_data$MEASURED_UNIT)]
-  )
-
-  if (length(param_units) == 0) {
-    return("Relevant data not found")
-  }
-
-  # Create summary for each parameter
-  param_summaries <- lapply(names(param_units), function(param) {
-    unique_units <- unique(param_units[[param]])
-    paste0(param, ": ", paste(unique_units, collapse = ", "))
-  })
-
-  return(paste(param_summaries, collapse = "; "))
-}
-
-
 #' Get All Gateway Data Summaries
 #'
 #' @description Gets all gateway criteria data summaries
@@ -169,7 +11,7 @@ generate_units_summary <- function(measurement_data, parameters_data) {
 get_gateway_summaries <- function(module_data) {
   list(
     medium = if (!is.null(module_data$compartments)) {
-      summarize_multiple(
+      summarise_multiple(
         module_data$compartments$ENVIRON_COMPARTMENT,
         "Compartments"
       )
@@ -178,33 +20,33 @@ get_gateway_summaries <- function(module_data) {
     },
 
     analyte = if (!is.null(module_data$parameters)) {
-      summarize_multiple(module_data$parameters$PARAMETER_NAME, "Parameters")
+      summarise_multiple(module_data$parameters$PARAMETER_NAME, "Parameters")
     } else {
       "Relevant data not found"
     },
 
     location = if (!is.null(module_data$sites)) {
-      countries <- summarize_multiple(module_data$sites$COUNTRY, "Countries")
-      areas <- summarize_multiple(module_data$sites$AREA, "Areas")
+      countries <- summarise_multiple(module_data$sites$COUNTRY, "Countries")
+      areas <- summarise_multiple(module_data$sites$AREA, "Areas")
       paste(countries, areas, sep = "; ")
     } else {
       "Relevant data not found"
     },
 
     year = if (!is.null(module_data$samples)) {
-      calculate_date_range(module_data$samples$SAMPLING_DATE)
+      summarise_date_range(module_data$samples$SAMPLING_DATE)
     } else {
       "Relevant data not found"
     },
 
     # TODO: pretty sure this doesn't work cos we changed the unit/param table structure
-    units = generate_units_summary(
+    units = summarise_measured_units(
       module_data$measurements,
       module_data$parameters
     ),
 
     citation = if (!is.null(module_data$references)) {
-      create_bibliography_reference(module_data$references)
+      summarise_reference(module_data$references)
     } else {
       "Relevant data not found"
     }
@@ -283,13 +125,13 @@ summarise_CREED_details <- function(sessionData) {
 
   # Extract values into intermediate variables
   source_value <- if (has_reference) {
-    create_bibliography_reference(sessionData$referenceData)
+    summarise_reference(sessionData$referenceData)
   } else {
     "Relevant data not found"
   }
 
   analytes_value <- if (has_parameters) {
-    summarize_multiple(
+    summarise_multiple(
       sessionData$parametersData$PARAMETER_NAME,
       "Parameters"
     )
@@ -298,7 +140,7 @@ summarise_CREED_details <- function(sessionData) {
   }
 
   medium_value <- if (has_compartments) {
-    summarize_multiple(
+    summarise_multiple(
       sessionData$compartmentsData$ENVIRON_COMPARTMENT,
       "Compartments"
     )
@@ -307,11 +149,11 @@ summarise_CREED_details <- function(sessionData) {
   }
 
   study_area_value <- if (has_sites) {
-    countries <- summarize_multiple(
+    countries <- summarise_multiple(
       sessionData$sitesData$COUNTRY,
       "Countries"
     )
-    areas <- summarize_multiple(sessionData$sitesData$AREA, "Areas")
+    areas <- summarise_multiple(sessionData$sitesData$AREA, "Areas")
     paste(countries, areas, sep = "; ")
   } else {
     "Relevant data not found"
@@ -324,7 +166,7 @@ summarise_CREED_details <- function(sessionData) {
   }
 
   site_types_value <- if (has_sites) {
-    summarize_multiple(
+    summarise_multiple(
       sessionData$sitesData$SITE_GEOGRAPHIC_FEATURE,
       "Site Types"
     )
@@ -339,7 +181,7 @@ summarise_CREED_details <- function(sessionData) {
   }
 
   sampling_period_value <- if (has_samples) {
-    calculate_date_range(sessionData$samplesData$SAMPLING_DATE)
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
   } else {
     "Relevant data not found"
   }
@@ -349,7 +191,7 @@ summarise_CREED_details <- function(sessionData) {
       sessionData$methodsData$PROTOCOL_CATEGORY == "Sampling Protocol",
     ]
     if (nrow(sampling_only) > 0) {
-      summarize_multiple(sampling_only$PROTOCOL_NAME, "Sampling Protocols")
+      summarise_multiple(sampling_only$PROTOCOL_NAME, "Sampling Protocols")
     } else {
       "Relevant data not found"
     }
@@ -362,7 +204,7 @@ summarise_CREED_details <- function(sessionData) {
       sessionData$methodsData$PROTOCOL_CATEGORY == "Analytical Protocol",
     ]
     if (nrow(analytical_only) > 0) {
-      summarize_multiple(
+      summarise_multiple(
         analytical_only$PROTOCOL_NAME,
         "Analytical Protocols"
       )
@@ -480,13 +322,8 @@ create_criterion_section <- function(
         h6(
           HTML(paste(
             bs_icon("award-fill", class = icon_class),
-            paste0(
-              criterion_id,
-              ": ",
-              title,
-              " (",
-              tools::toTitleCase(type_text),
-              ")"
+            glue(
+              "{criterion_id}: {title} ({tools::toTitleCase(type_text)})"
             )
           ))
         ),
@@ -495,11 +332,15 @@ create_criterion_section <- function(
           description
         )
       ),
-      selectInput(
-        inputId = ns(paste0(criterion_id, "_score")),
-        label = "Score:",
-        choices = CREED_choices(),
-        width = "200px"
+      div(
+        style = "min-width: 150px;",
+
+        selectInput(
+          inputId = ns(paste0(criterion_id, "_score")),
+          label = "Score:",
+          choices = CREED_choices_vocabulary(),
+          width = "150px",
+        )
       )
     ),
 
@@ -512,29 +353,85 @@ create_criterion_section <- function(
   )
 }
 
+#' Create Threshold Display Boxes
+#'
+#' @description Creates threshold display boxes for CREED purpose criteria
+#' @param criterion_id Character string ID for the criterion (e.g., "RV1")
+#' @param creed_purpose List containing CREED purpose YAML data
+#' @return Shiny layout_column_wrap element with threshold boxes, or NULL if data not found
+#' @noRd
+#' @importFrom shiny div p h5
+#' @importFrom bslib layout_column_wrap
+create_threshold_boxes <- function(criterion_id, creed_purpose) {
+  # Validate inputs
+  if (
+    is.null(creed_purpose) ||
+      length(creed_purpose) == 0 ||
+      is.null(creed_purpose$thresholds) ||
+      length(creed_purpose$thresholds) == 0
+  ) {
+    return("couldn't find creed_purpose data")
+  }
+
+  # Find the criterion in the YAML data
+  criterion_data <- creed_purpose$thresholds[[criterion_id]]
+
+  # Return NULL if criterion not found
+  if (is.null(criterion_data)) {
+    return("couldn't find criterion_data")
+  }
+
+  # Build threshold display boxes
+  layout_column_wrap(
+    width = "400px",
+    fillable = FALSE,
+    fill = FALSE,
+
+    # Partly Met box ----
+    div(
+      class = "alert alert-secondary",
+      h5("Partly Met:"),
+      HTML(gsub("\n", "<br>", criterion_data$partly_met)),
+      style = "margin-bottom: -20px !important;"
+    ),
+
+    # Fully Met box ----
+    div(
+      class = "alert alert-secondary",
+      h5("Fully Met:"),
+      HTML(gsub("\n", "<br>", criterion_data$fully_met))
+    )
+  )
+}
+
 #' Create Relevant Data Input Field
 #'
 #' @description Creates a text area input for relevant data extraction
 #' @param ns Namespace function from the calling module
 #' @param criterion_id Character string ID for the criterion
+#' @param autofill Boolean for presence of blue autofill tooltip/icon
 #' @return Shiny div element containing the relevant data input
 #' @noRd
 #' @importFrom shiny div textAreaInput
 #' @importFrom bslib tooltip
 #' @importFrom bsicons bs_icon
-create_relevant_data_input <- function(ns, criterion_id) {
+create_relevant_data_input <- function(ns, criterion_id, autofill = TRUE) {
   div(
     textAreaInput(
       inputId = ns(paste0(criterion_id, "_relevant_data")),
       label = tooltip(
         list(
           "Relevant Data",
-          bs_icon("arrow-down-circle-fill", class = "text-primary")
+          if (isTRUE(autofill)) {
+            bs_icon("arrow-down-circle-fill", class = "text-primary")
+          } else {
+            ""
+          }
         ),
         "Data extracted from your dataset that is relevant to this criterion."
       ),
       value = "",
-      rows = 3,
+      rows = 5,
       width = "100%"
     )
   )
@@ -553,7 +450,7 @@ create_limitations_input <- function(ns, criterion_id) {
     inputId = ns(paste0(criterion_id, "_limitations")),
     label = "Relevance Limitations/Restrictions (free text)",
     placeholder = "Describe any limitations or restrictions relevant to this criterion...",
-    rows = 3,
+    rows = 5,
     width = "100%"
   )
 }
@@ -612,39 +509,6 @@ create_conditional_criterion <- function(
   )
 }
 
-#' Auto-populate Reliability Fields
-#'
-#' @description Wrapper for reliability-specific auto-population
-#' @param user_data session$userData$reactiveValues object
-#' @return Named list of reliability field data
-#' @noRd
-auto_populate_reliability_fields <- function(user_data) {
-  # Create module_data structure from userData
-  module_data <- list(
-    campaign = user_data$campaignData,
-    references = user_data$referenceData,
-    sites = user_data$sitesData,
-    parameters = user_data$parametersData,
-    compartments = user_data$compartmentsData,
-    samples = user_data$samplesData,
-    methods = user_data$methodsData,
-    measurements = user_data$measurementsData
-  )
-
-  summaries <- summarise_CREED_details(module_data)
-
-  # Map to reliability-specific fields
-  list(
-    RB1_relevant_data = summaries$medium,
-    RB2_relevant_data = summaries$sampling_methods,
-    RB4_relevant_data = summaries$study_area,
-    RB5_relevant_data = summaries$sampling_period,
-    RB6_relevant_data = summaries$analytes,
-    RB7_relevant_data = summaries$loq_info
-    # Add other mappings as needed
-  )
-}
-
 #' Auto-populate Relevance Fields
 #'
 #' @description Wrapper for relevance-specific auto-population
@@ -653,16 +517,6 @@ auto_populate_reliability_fields <- function(user_data) {
 #' @noRd
 auto_populate_relevance_fields <- function(user_data) {
   # Same pattern as above
-  module_data <- list(
-    campaign = user_data$campaignData,
-    references = user_data$referenceData,
-    sites = user_data$sitesData,
-    parameters = user_data$parametersData,
-    compartments = user_data$compartmentsData,
-    samples = user_data$samplesData,
-    methods = user_data$methodsData,
-    measurements = user_data$measurementsData
-  )
 
   summaries <- summarise_CREED_details(module_data)
 
@@ -681,22 +535,355 @@ auto_populate_relevance_fields <- function(user_data) {
 
 # Data Helpers/Storage Functions ----
 
-#' CREED Assessment Scoring Choices
-#'
-#' @description Returns the standardized CREED assessment scoring options
-#' @return Named character vector with CREED scoring choices
-#' @noRd
-CREED_choices <- function() {
-  c(
-    "Not Met" = "not_met",
-    "Fully Met" = "fully",
-    "Partly Met" = "partly",
-    "Not Reported" = "not_reported",
-    "Not Relevant" = "not_relevant"
-  )
-}
-
 #' @importFrom yaml read_yaml
 copper_CREED_purpose_statement <- function() {
   read_yaml("inst/app/www/md/CREED_Copper_Purpose.yml")
+}
+
+
+#' @title summarise user-entered data for the CREED reliability criteria reporting
+#' @description summarise session user data into pretty strings for CREED reliability criteria
+#' @param sessionData session$userData$reactiveValues object
+#' @return tibble of Reliability criteria fields ("field") and pretty strings ("value")
+#' @export
+summarise_CREED_reliability <- function(sessionData) {
+  # Helper function to check if a dataset exists and has content
+  dataset_exists <- function(dataset) {
+    isTruthy(dataset) && !all(is.na(dataset))
+  }
+
+  # Check existence of each dataset once ----
+  has_compartments <- dataset_exists(sessionData$compartmentsData)
+  has_methods <- dataset_exists(sessionData$methodsData)
+  has_sites <- dataset_exists(sessionData$sitesData)
+  has_samples <- dataset_exists(sessionData$samplesData)
+  has_measurements <- dataset_exists(sessionData$measurementsData)
+
+  # RB1: Compartments and sampling/fractionation protocols ----
+  RB1_value <- if (has_compartments || has_methods) {
+    parts <- c()
+
+    # Compartments section
+    if (has_compartments) {
+      comp_summary <- summarise_compartments(sessionData$compartmentsData)
+      if (comp_summary != "Relevant data not found") {
+        parts <- c(parts, comp_summary)
+      }
+    }
+
+    # Sampling and fractionation protocols
+    if (has_methods) {
+      protocol_summary <- summarise_protocols(
+        sessionData$methodsData,
+        c("Sampling Protocol", "Fractionation Protocol")
+      )
+      if (protocol_summary != "Relevant data not found") {
+        parts <- c(parts, protocol_summary)
+      }
+    }
+
+    if (length(parts) > 0) {
+      paste(parts, collapse = "\n\n")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB2 & RB3 & RB13: Sampling Protocols ----
+  sampling_protocols_value <- summarise_protocols(
+    sessionData$methodsData,
+    "Sampling Protocol"
+  )
+
+  # RB4: Summary of all sites ----
+  RB4_value <- summarise_sites(sessionData$sitesData)
+
+  # RB5: Sampling dates ----
+  RB5_value <- if (has_samples) {
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
+
+  # RB6, RB10, RB11, RB12: Analytical Protocols ----
+  analysis_protocols_value <- summarise_protocols(
+    sessionData$methodsData,
+    "Analytical Protocol"
+  )
+
+  # RB7: LOD/LOQ information ----
+  RB7_value <- summarise_lod_loq(sessionData$measurementsData)
+
+  # RB8: Manual completion ----
+  RB8_value <- manual_completion_message()
+
+  # RB9: All protocols ----
+  RB9_value <- summarise_protocols(
+    sessionData$methodsData,
+    c(
+      "Sampling Protocol",
+      "Fractionation Protocol",
+      "Analytical Protocol",
+      "Extraction Protocol"
+    )
+  )
+
+  # RB14: UNCERTAINTY_TYPE and MEASUREMENT_COMMENT ----
+  RB14_value <- summarise_uncertainty_comments(sessionData$measurementsData)
+
+  # RB15: Significant figures ----
+  RB15_value <- summarise_sig_figs(sessionData$measurementsData$MEASURED_VALUE)
+
+  # RB16, RB17, RB19: Manual completion ----
+  RB16_value <- manual_completion_message()
+  RB17_value <- manual_completion_message()
+  RB19_value <- manual_completion_message()
+
+  # RB18: UNCERTAINTY_TYPE only ----
+  RB18_value <- if (has_measurements) {
+    uncertainty_types <- sessionData$measurementsData$UNCERTAINTY_TYPE[
+      !is.na(sessionData$measurementsData$UNCERTAINTY_TYPE) &
+        sessionData$measurementsData$UNCERTAINTY_TYPE != ""
+    ]
+
+    if (length(uncertainty_types) > 0) {
+      unique_types <- unique(uncertainty_types)
+      glue("Uncertainty types: {paste(unique_types, collapse = ', ')}")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # Build tibble from extracted values ----
+  tribble(
+    ~field , ~value                   ,
+    "RB1"  , RB1_value                ,
+    "RB2"  , sampling_protocols_value ,
+    "RB3"  , sampling_protocols_value ,
+    "RB4"  , RB4_value                ,
+    "RB5"  , RB5_value                ,
+    "RB6"  , analysis_protocols_value ,
+    "RB7"  , RB7_value                ,
+    "RB8"  , RB8_value                ,
+    "RB9"  , RB9_value                ,
+    "RB10" , analysis_protocols_value ,
+    "RB11" , analysis_protocols_value ,
+    "RB12" , analysis_protocols_value ,
+    "RB13" , sampling_protocols_value ,
+    "RB14" , RB14_value               ,
+    "RB15" , RB15_value               ,
+    "RB16" , RB16_value               ,
+    "RB17" , RB17_value               ,
+    "RB18" , RB18_value               ,
+    "RB19" , RB19_value
+  )
+}
+
+#' @title summarise user-entered data for the CREED relevance criteria reporting
+#' @description summarise session user data into pretty strings for CREED relevance criteria
+#' @param sessionData session$userData$reactiveValues object
+#' @return tibble of Relevance criteria fields ("field") and pretty strings ("value")
+#' @export
+summarise_CREED_relevance <- function(sessionData) {
+  # Helper function to check if a dataset exists and has content
+  dataset_exists <- function(dataset) {
+    isTruthy(dataset) && !all(is.na(dataset))
+  }
+
+  # Check existence of each dataset once ----
+  has_compartments <- dataset_exists(sessionData$compartmentsData)
+  has_methods <- dataset_exists(sessionData$methodsData)
+  has_sites <- dataset_exists(sessionData$sitesData)
+  has_samples <- dataset_exists(sessionData$samplesData)
+  has_measurements <- dataset_exists(sessionData$measurementsData)
+
+  # RV1 Compartments & subcompartments
+  RV1_value <- if (has_compartments) {
+    parts <- c()
+    comp_summary <- summarise_compartments(sessionData$compartmentsData)
+    if (comp_summary != "Relevant data not found") {
+      parts <- c(parts, comp_summary)
+    }
+  }
+
+  # RV2 Sampling Protocols
+  RV2_value <- if (has_methods) {
+    parts <- c()
+    protocol_summary <- summarise_protocols(
+      sessionData$methodsData,
+      c("Sampling Protocol")
+    )
+    if (protocol_summary != "Relevant data not found") {
+      parts <- c(parts, protocol_summary)
+    }
+  }
+
+  # RV3: Site number, country, area, lat/long precision
+  RV3_value <- summarise_sites(
+    sessionData$sitesData,
+    COUNTRY = TRUE,
+    AREA = TRUE,
+    PRECISION = TRUE
+  )
+
+  # RV4: Site geo feature
+  RV4_value <- summarise_sites(
+    sessionData$sitesData,
+    SITE_GEOGRAPHIC_FEATURE = TRUE,
+    SITE_GEOGRAPHIC_FEATURE_SUB = TRUE
+  )
+
+  # RV5: Range of sampling dates
+  RV5_value <- if (has_samples) {
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
+
+  # RV6: Sampling frequency. Folded into RV5.
+  RV6_value <- if (has_samples) {
+    summarise_date_range(sessionData$samplesData$SAMPLING_DATE)
+  } else {
+    "Relevant data not found"
+  }
+
+  # RV7: Temporal conditions. Not recorded in app.
+  RV7_value <- manual_completion_message()
+
+  # RV8: Stressors, fractionation protocols
+  RV8_value <- summarise_protocols(
+    sessionData$methodsData,
+    categories = "Fractionation Protocol"
+  )
+
+  # RV9: LODs, LOQs, Analytical Protocols
+  RV9_value <- if (has_measurements || has_methods) {
+    parts <- c()
+
+    # Compartments section
+    if (has_measurements) {
+      lodloq_summary <- summarise_lod_loq(sessionData$measurementsData)
+      if (lodloq_summary != "Relevant data not found") {
+        parts <- c(parts, lodloq_summary)
+      }
+    }
+
+    # Analytical protocols
+    if (has_methods) {
+      protocol_summary <- summarise_protocols(
+        sessionData$methodsData,
+        "Analytical Protocol"
+      )
+      if (protocol_summary != "Relevant data not found") {
+        parts <- c(parts, protocol_summary)
+      }
+    }
+
+    if (length(parts) > 0) {
+      paste(parts, collapse = "\n\n")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RV10: UNCERTAINTY_TYPE
+  RV10_value <- if (has_measurements) {
+    uncertainty_types <- sessionData$measurementsData$UNCERTAINTY_TYPE[
+      !is.na(sessionData$measurementsData$UNCERTAINTY_TYPE) &
+        sessionData$measurementsData$UNCERTAINTY_TYPE != ""
+    ]
+
+    if (length(uncertainty_types) > 0) {
+      unique_types <- unique(uncertainty_types)
+      glue("Uncertainty types: {paste(unique_types, collapse = ', ')}")
+    } else {
+      "Relevant data not found"
+    }
+  } else {
+    "Relevant data not found"
+  }
+
+  # RV11: Fractionation protocol
+  RV11_value <- summarise_protocols(
+    sessionData$methodsData,
+    "Fractionation Protocol"
+  )
+
+  # Build tibble from extracted values ----
+  tribble(
+    ~field , ~value     ,
+    "RV1"  , RV1_value  ,
+    "RV2"  , RV2_value  ,
+    "RV3"  , RV3_value  ,
+    "RV4"  , RV4_value  ,
+    "RV5"  , RV5_value  ,
+    "RV6"  , RV6_value  ,
+    "RV7"  , RV7_value  ,
+    "RV8"  , RV8_value  ,
+    "RV9"  , RV9_value  ,
+    "RV10" , RV10_value ,
+    "RV11" , RV11_value
+  )
+}
+
+
+#' Auto-populate Reliability Fields
+#'
+#' @description Creates named list for auto-populating reliability criteria fields
+#' @param sessionData session$userData$reactiveValues object
+#' @return Named list of reliability field data for updating inputs
+#' @noRd
+autopop_reliability_fields <- function(sessionData) {
+  # Get summaries from the main function
+  summaries <- summarise_CREED_reliability(sessionData)
+
+  # Create named list for input updates
+  # Only include non-empty fields (skip RB8, RB16, RB17, RB19)
+  field_list <- list()
+
+  for (i in seq_len(nrow(summaries))) {
+    field_id <- summaries$field[i]
+    value <- summaries$value[i]
+
+    # Skip empty fields
+    if (value != "") {
+      input_name <- paste0(field_id, "_relevant_data")
+      field_list[[input_name]] <- value
+    }
+  }
+
+  return(field_list)
+}
+
+#' Auto-populate Reliability Fields
+#'
+#' @description Creates named list for auto-populating reliability criteria fields
+#' @param sessionData session$userData$reactiveValues object
+#' @return Named list of reliability field data for updating inputs
+#' @noRd
+autopop_relevance_fields <- function(sessionData) {
+  # Get summaries from the main function
+  summaries <- summarise_CREED_relevance(sessionData)
+
+  # Create named list for input updates
+  field_list <- list()
+
+  for (i in seq_len(nrow(summaries))) {
+    field_id <- summaries$field[i]
+    value <- summaries$value[i]
+
+    # Skip empty fields
+    if (value != "") {
+      input_name <- paste0(field_id, "_relevant_data")
+      field_list[[input_name]] <- value
+    }
+  }
+
+  return(field_list)
 }

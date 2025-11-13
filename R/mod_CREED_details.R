@@ -246,17 +246,17 @@ mod_CREED_details_server <- function(id) {
     # upstream: user clicks populate_from_data
     # downstream: all auto-populated textAreaInput fields
     observe({
-      session$userData$reactiveValues$creedData$datasetDetails <- summarise_CREED_details(
+      session$userData$reactiveValues$datasetDetails <- summarise_CREED_details(
         session$userData$reactiveValues
       )
       # print_dev(
       #   "writing dataset details to session data, auto-populating relevant inputs)"
       # )
-      # print_dev(dput(session$userData$reactiveValues$creedData$datasetDetails))
+      # print_dev(dput(session$userData$reactiveValues$datasetDetails))
 
       # Update UI fields
       # Avoid writing out the whole layered call every time
-      dataset_details <- session$userData$reactiveValues$creedData$datasetDetails
+      dataset_details <- session$userData$reactiveValues$datasetDetails
       # convert to list for easier access
       dataset_details <- setNames(dataset_details$value, dataset_details$field)
 

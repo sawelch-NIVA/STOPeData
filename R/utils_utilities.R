@@ -151,8 +151,8 @@ abbreviate_string <- function(
   n_words <- as.integer(n_words)
   string <- as.character(string)
 
-  words <- str_split(string, pattern = "\\s")[[1]] # Extract vector from list
-  words <- words[nchar(words) > 0] # Remove empty strings
+  words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", string), "\\s+")
+  words <- words[[nchar(words) > 0]] # Remove empty strings
 
   # Take first n words
   selected_words <- head(words, n_words)
@@ -175,7 +175,7 @@ abbreviate_string <- function(
     "screamingsnake" = paste(toupper(selected_words), collapse = "_"),
     "camel" = {
       camel_words <- selected_words
-      # Capitalize first letter of each word
+      # Capitalise first letter of each word
       camel_words <- paste0(
         toupper(substr(camel_words, 1, 1)),
         tolower(substr(camel_words, 2, nchar(camel_words)))

@@ -6,6 +6,78 @@
 # Last Updated 2025.10.30
 
 # -----------------------
+# ---- userData ----
+# -----------------------
+
+# making this
+initialise_userData <- function() {
+  list(
+    ENTERED_BY = character(0),
+    autosave_enabled = FALSE,
+
+    # Standard validated data ----
+    # All userData and module_state$data data is stored in a tabular (tibble) format centrally, even for campaign and reference (which currently only have one row)
+    # This means we can use a consistent set of functions to check for presence (nrow(tibble) > 0), and not have any nasty surprises when we expect one and get the other
+    # Data entry modules
+    sitesData = initialise_sites_tibble(),
+    sitesDataValid = FALSE,
+    parametersData = initialise_parameters_tibble(),
+    parametersDataValid = FALSE,
+    compartmentsData = initialise_compartments_tibble(),
+    compartmentsDataValid = FALSE,
+    referenceData = initialise_references_tibble(),
+    referenceDataValid = FALSE,
+    campaignData = initialise_campaign_tibble(),
+    campaignDataValid = FALSE,
+    methodsData = initialise_methods_tibble(),
+    methodsDataValid = FALSE,
+    samplesData = initialise_samples_tibble(),
+    samplesDataValid = FALSE,
+    biotaData = initialise_biota_tibble(),
+    biotaDataValid = FALSE,
+    samplesDataWithBiota = tibble(NULL),
+    measurementsData = initialise_measurements_tibble(),
+    measurementsDataValid = FALSE,
+
+    # CREED Data
+    datasetDetails = tibble(NULL),
+    creedRelevance = tibble(NULL),
+    creedReliability = tibble(NULL),
+    creedScores = tibble(NULL),
+    creedReport = "",
+
+    # CREED reactive objects that just exist to trigger reactivity. Probably bad coding!
+    creedGetData = 0, # watched by multiple observers in nested CREED modules. +1 every time we input$get_data in mod_CREED
+    creedCalculateScores = 0, # same
+
+    # LLM extracted data and metadata ----
+    schemaLLM = "",
+    promptLLM = "",
+    rawLLM = "",
+    pdfPath = NULL,
+    campaignDataLLM = tibble(NULL),
+    referenceDataLLM = tibble(NULL),
+    sitesDataLLM = tibble(NULL),
+    parametersDataLLM = tibble(NULL),
+    compartmentsDataLLM = tibble(NULL),
+    methodsDataLLM = tibble(NULL),
+    samplesDataLLM = tibble(NULL),
+    biotaDataLLM = tibble(NULL),
+    samplesDataLLM = tibble(NULL),
+
+    # LLM extraction status flags ----
+    llmExtractionComplete = FALSE,
+    llmExtractionSuccessful = FALSE,
+    llmExtractionComments = tibble(NULL),
+
+    # Import data from save status flags ----
+    saveExtractionComplete = FALSE,
+    saveExtractionSuccessful = FALSE
+  )
+}
+
+
+# -----------------------
 # ---- TABLE FORMATS ----
 # -----------------------
 
@@ -954,4 +1026,19 @@ parameter_unit_vocabulary <- function(select_column = NULL) {
 #' @export
 measured_flags_vocabulary <- function() {
   c("", "< LOQ", "< LOD")
+}
+
+
+#' CREED Assessment Scoring Choices
+#'
+#' @description Returns the standardised CREED assessment scoring options
+#' @return Named character vector with CREED scoring choices
+CREED_choices_vocabulary <- function() {
+  c(
+    "Not Met" = 4,
+    "Fully Met" = 1,
+    "Partly Met" = 2,
+    "Not Reported" = 3,
+    "Not Relevant" = 1
+  )
 }

@@ -392,7 +392,7 @@ mod_llm_server <- function(id) {
 
             # Also save outputs to server data so we can download them later if needed
             session$userData$reactiveValues$schemaLLM <- create_extraction_schema()
-            session$userData$reactiveValues$promptLLM <- extraction_prompt
+            session$userData$reactiveValues$promptLLM <- system_prompt
             session$userData$reactiveValues$rawLLM <- result
 
             if (!is.null(moduleState$structured_data$comments)) {

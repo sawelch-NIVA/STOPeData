@@ -707,7 +707,6 @@ mod_references_server <- function(id) {
       reference_data <- session$userData$reactiveValues$referenceData |>
         rename_with(.fn = function(x) toupper(x))
       # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
-
       populate_references_from_llm(
         session,
         reference_data

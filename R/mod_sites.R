@@ -550,7 +550,6 @@ mod_sites_server <- function(id) {
     # upstream: session$userData$reactiveValues$sitesDataLLM
     # downstream: session$userData$reactiveValues$sitesData
     observe({
-      print_dev("observe~bindEvent: load data from LLM module")
       llm_sites <- session$userData$reactiveValues$sitesDataLLM
       if (
         !is.null(llm_sites) &&

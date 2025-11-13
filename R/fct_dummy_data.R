@@ -190,3 +190,107 @@ populate_session_with_dummy_data <- function(
 
   print_dev("Dummy data population complete")
 }
+
+# Setup: Create dummy data matching actual structure ----
+create_dummy_module_data <- function() {
+  list(
+    references = tibble(
+      AUTHOR = "Smith, J.; Jones, A.",
+      YEAR = 2023,
+      TITLE = "Heavy metal contamination in coastal sediments",
+      PERIODICAL_JOURNAL = "Environmental Science & Technology",
+      PUBLISHER = NA_character_,
+      DOI = "10.1234/est.2023.001"
+    ),
+
+    parameters = tibble(
+      PARAMETER_NAME = c("Copper", "Lead", "Zinc", "Cadmium")
+    ),
+
+    compartments = tibble(
+      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Aquatic", "Terrestrial"),
+      ENVIRON_COMPARTMENT_SUB = c(
+        "Aquatic Sediment",
+        "Porewater",
+        "Wastewater",
+        "Biological Residue"
+      )
+    ),
+
+    sites = tibble(
+      SITE_ID = c("S1", "S2", "S3"),
+      COUNTRY = c("Norway", "Norway", "Sweden"),
+      AREA = c("Oslo", "Bergen", "Stockholm"),
+      SITE_GEOGRAPHIC_FEATURE = c("Fjord", "Fjord", "Lake"),
+      SITE_GEOGRAPHIC_FEATURE_SUB = c("Inner", "Outer", "Shallow"),
+      LATITUDE = c(59.9139, 60.3913, 59.3293),
+      LONGITUDE = c(10.7522, 5.3221, 18.0686)
+    ),
+
+    samples = tibble(
+      SAMPLING_DATE = as.Date(c(
+        "2023-01-15",
+        "2023-03-20",
+        "2023-06-10",
+        "2023-09-05"
+      ))
+    ),
+
+    measurements = tibble(
+      PARAMETER_NAME = c("Copper", "Lead", "Copper", "Zinc"),
+      MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
+      MEASURED_VALUE = c(15.3, 8.45, 2.1, 12.678),
+      LOQ_VALUE = c(0.5, 1.0, 0.1, 0.8),
+      LOQ_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
+      LOD_VALUE = c(0.2, 0.4, 0.05, 0.3),
+      LOD_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
+      UNCERTAINTY_TYPE = c("SD", "SD", "CI", "Range"),
+      MEASUREMENT_COMMENT = c(
+        "High quality measurement",
+        "Baseline sample",
+        NA_character_,
+        "Good precision"
+      )
+    ),
+
+    methods = tibble(
+      PROTOCOL_CATEGORY = c(
+        "Sampling Protocol",
+        "Sampling Protocol",
+        "Analytical Protocol",
+        "Analytical Protocol",
+        "Fractionation Protocol",
+        "Extraction Protocol"
+      ),
+      PROTOCOL_NAME = c(
+        "Surface sediment grab",
+        "Water column sampling",
+        "ICP-MS analysis",
+        "AAS analysis",
+        "Sequential extraction",
+        "Washing"
+      ),
+      PROTOCOL_COMMENT = c(
+        "I picked up sand with my bare hands.",
+        "Mouth pipetting.",
+        "Threw it at the wall to see what happens.",
+        "Set it on fire to see what happens.",
+        "Multi-step acid digestion process",
+        "Ran under the tap for ten minutes. Used non-organic dishsoap."
+      )
+    )
+  )
+}
+
+dummy_session_data <- function() {
+  dummy <- create_dummy_module_data()
+  list(
+    referenceData = dummy$references,
+    parametersData = dummy$parameters,
+    compartmentsData = dummy$compartments,
+    sitesData = dummy$sites,
+    samplesData = dummy$samples,
+    measurementsData = dummy$measurements,
+    methodsData = dummy$methods
+  )
+}

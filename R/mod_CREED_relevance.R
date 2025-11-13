@@ -23,132 +23,473 @@ mod_CREED_relevance_ui <- function(id) {
     ),
     ## Media criteria ----
 
-    ### RV01: Sample Medium/Matrix ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV01",
-      title = "Sample Medium/Matrix",
-      type = "required",
-      description = "Was the sampling medium/matrix appropriate for the given purpose?"
+    # RV1: Was the sampling medium/matrix appropriate ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV1: Was the sampling medium/matrix appropriate? (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Was the sampling medium/matrix appropriate for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV1_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV1_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV1"),
+        create_limitations_input(ns, "RV1")
+      )
     ),
 
-    ### RV02: Collection Method/Sample Type ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV02",
-      title = "Collection Method/Sample Type",
-      type = "recommended",
-      description = "Was the sample collection method (e.g., grab, depth- and width-integrated, discrete, composite, or time-integrated samples, or continuous monitoring) adequate for the given purpose?"
+    ### RV2: Collection Method/Sample Type ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-recommended"),
+              "RV2: Collection Method/Sample Type (Recommended)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Was the sample collection method adequate for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV2_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV2_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV2"),
+        create_limitations_input(ns, "RV2")
+      )
     ),
 
     ## Spatial criteria ----
 
-    ### RV03: Study Area ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV03",
-      title = "Study Area",
-      type = "required",
-      description = "Were the study area and number of locations sampled suitable for the given purpose?"
+    ### RV3: Study Area ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV3: Study Area (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Were the study area and number of locations sampled suitable for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV3_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV3_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV3"),
+        create_limitations_input(ns, "RV3")
+      )
     ),
 
-    ### RV04: Site Type ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV04",
-      title = "Site Type",
-      type = "recommended",
-      description = "Was the rationale for selection of sampling locations provided and was it suitable for the given purpose?"
+    ### RV4: Site Type ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-recommended"),
+              "RV4: Site Type (Recommended)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Was the rationale for selection of sampling locations provided and was it suitable for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV4_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV4_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV4"),
+        create_limitations_input(ns, "RV4")
+      )
     ),
 
     ## Temporal criteria ----
 
-    ### RV05: Sampling Timespan ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV05",
-      title = "Sampling Timespan",
-      type = "required",
-      description = "Were the samples collected over a time scale that was appropriate for the given purpose?"
+    ### RV5: Sampling Timespan ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV5: Sampling Timespan (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Were the samples collected over a time scale that was appropriate for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV5_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV5_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV5"),
+        create_limitations_input(ns, "RV5")
+      )
     ),
 
-    ### RV06: Sampling Frequency ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV06",
-      title = "Sampling Frequency",
-      type = "required",
-      description = "Over the timespan, was the sampling frequency appropriate for the given purpose?"
+    ### RV6: Sampling Frequency ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV6: Sampling Frequency (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Over the timespan, was the sampling frequency appropriate for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV6_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV6_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV6"),
+        create_limitations_input(ns, "RV6")
+      )
     ),
 
-    ### RV07: Temporal Conditions ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV07",
-      title = "Temporal Conditions",
-      type = "recommended",
-      description = "Were conditions during sampling events documented and relevant for the given purpose (e.g., baseflow, storm events, planned/unplanned discharges, etc.)?"
+    ### RV7: Temporal Conditions ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-recommended"),
+              "RV7: Temporal Conditions (Recommended)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Were conditions during sampling events documented and relevant for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV7_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV7_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV7"),
+        create_limitations_input(ns, "RV7")
+      )
     ),
 
     ## Analytical criteria ----
 
-    ### RV08: Analyte ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV08",
-      title = "Analyte",
-      type = "required",
-      description = "Was/were the reported analyte(s) appropriate for the given purpose?"
+    ### RV8: Analyte ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV8: Analyte (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "Was/were the reported analyte(s) appropriate for the given purpose?"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV8_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV8_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV8"),
+        create_limitations_input(ns, "RV8")
+      )
     ),
 
-    ### RV09: Sensitivity/LOD/LOQ ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV09",
-      title = "Sensitivity/LOD/LOQ",
-      type = "required",
-      description = "Was the method sensitive enough for the given purpose (i.e., were the LOD and/or LOQ below the benchmarks or metrics to which concentrations in the dataset will be compared)?"
+    ### RV9: Sensitivity/LOD/LOQ ----
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV9: Sensitivity/LOD/LOQ (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "The method was sensitive enough for the given purpose"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV9_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV9_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV9"),
+        create_limitations_input(ns, "RV9")
+      )
     ),
 
     ## Data Handling and Statistics criteria ----
 
     ### RV10: Summary Statistics Type ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV10",
-      title = "Summary Statistics Type",
-      type = "recommended",
-      description = "If dataset contains summary statistics: Were the summary statistics provided (e.g., median, geometric mean, arithmetic mean, percentiles) appropriate for the given purpose?"
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
+
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-recommended"),
+              "RV10: Summary Statistics Type (Recommended)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "The summary statistics provided were appropriate for the given purpose"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV10_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV10_thresholds")),
+
+      # Two-column layout for data and justification ----
+      layout_column_wrap(
+        width = "400px",
+        create_relevant_data_input(ns, "RV10"),
+        create_limitations_input(ns, "RV10")
+      )
     ),
 
     ## Supporting Parameters criteria ----
 
     ### RV11: Supporting Parameters ----
-    create_criterion_section(
-      ns,
-      criterion_id = "RV11",
-      title = "Supporting Parameters",
-      type = "required",
-      description = "If supporting parameters are required for the purpose: Were
-      all supporting parameters provided that were needed to achieve the given purpose?"
-    ),
+    div(
+      style = "margin: 5px 0; padding: 15px 0; border-bottom: 1px solid #dee2e6;",
 
-    ## Action buttons and status ----
+      # Header with title and dropdown ----
+      div(
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;",
+        div(
+          style = "flex-grow: 1; margin-right: 20px;",
+          h6(
+            HTML(paste(
+              bs_icon("award-fill", class = "CREED-required"),
+              "RV11: Supporting Parameters (Required)"
+            ))
+          ),
+          p(
+            strong("Criterion: "),
+            "All supporting parameters that were needed to achieve the given purpose were provided"
+          )
+        ),
+        div(
+          style = "min-width: 150px;",
+          selectInput(
+            inputId = ns("RV11_score"),
+            label = "Score:",
+            choices = CREED_choices_vocabulary(),
+            width = "150px"
+          )
+        )
+      ),
+
+      # Dynamic threshold boxes ----
+      uiOutput(ns("RV11_thresholds")),
+    ),
     input_task_button(
       id = ns("calc_scores"),
-      label = "Calculate Relevance Score"
-    ),
-    input_task_button(
-      id = ns("save_assessment"),
-      label = "Save Section",
-      icon = icon("save"),
-      class = "btn-success"
-    ),
-
-    div(
-      style = "margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;",
-      h6("Completion Status"),
-      uiOutput(ns("completion_status"))
+      label = "Calculate Reliability Score"
     )
   )
 }
@@ -166,11 +507,167 @@ mod_CREED_relevance_server <- function(id) {
     # - Score calculation and validation
     # - Data storage in session$userData
     # - Completion status tracking
+
+    # Render threshold boxes for all RV criteria ----
+    criterion_ids <- c(
+      "RV1",
+      "RV2",
+      "RV3",
+      "RV4",
+      "RV5",
+      "RV6",
+      "RV7",
+      "RV8",
+      "RV9",
+      "RV10",
+      "RV11"
+    )
+
+    lapply(criterion_ids, function(criterion_id) {
+      output_name <- paste0(criterion_id, "_thresholds")
+
+      output[[output_name]] <- renderUI({
+        if (is.null(session$userData$reactiveValues$creedPurpose)) {
+          div("Awaiting purpose data.", class = "text-muted")
+        } else {
+          create_threshold_boxes(
+            criterion_id = criterion_id,
+            creed_purpose = session$userData$reactiveValues$creedPurpose
+          )
+        }
+      })
+    })
+    # -----------------
+
+    ## observe: Auto-populate relevant data fields ----
+    # upstream: input$populate_from_data OR session$userData$reactiveValues$creedGetData
+    # downstream: All RV*_relevant_data inputs
+    observe({
+      req(session$userData$reactiveValues)
+
+      tryCatch(
+        {
+          # Get auto-populated field values
+          field_updates <- autopop_relevance_fields(
+            session$userData$reactiveValues
+          )
+
+          # Update each field
+          for (field_name in names(field_updates)) {
+            updateTextAreaInput(
+              session,
+              field_name,
+              value = field_updates[[field_name]]
+            )
+          }
+
+          showNotification(
+            "Relevant data fields populated from dataset",
+            type = "message"
+          )
+        },
+        error = function(e) {
+          showNotification(
+            paste("Auto-populate failed:", e$message),
+            type = "error"
+          )
+        }
+      )
+    }) |>
+      bindEvent(
+        input$populate_from_data,
+        session$userData$reactiveValues$creedGetData,
+        ignoreInit = TRUE
+      )
+
+    # FIXME: This list format absolutely sucks.
+    ## observe: Collect relevance scores ----
+    # upstream: button calc_scores
+    # downstream: relevance_scores, session$userData
+    observe({
+      # Define all relevance criteria with their properties
+      criteria_config <- list(
+        RV1 = list(
+          title = "Sample Medium/Matrix",
+          type = "Required"
+        ),
+        RV2 = list(
+          title = "Collection Method/Sample Type",
+          type = "Recommended"
+        ),
+        RV3 = list(
+          title = "Study Area",
+          type = "Required"
+        ),
+        RV4 = list(
+          title = "Site Type",
+          type = "Recommended"
+        ),
+        RV5 = list(
+          title = "Sampling Timespan",
+          type = "Required"
+        ),
+        RV6 = list(
+          title = "Sampling Frequency",
+          type = "Required"
+        ),
+        RV7 = list(
+          title = "Temporal Conditions",
+          type = "Recommended"
+        ),
+        RV8 = list(
+          title = "Analyte",
+          type = "Required"
+        ),
+        RV9 = list(
+          title = "Sensitivity/LOD/LOQ",
+          type = "Required"
+        ),
+        RV10 = list(
+          title = "Summary Statistics Type",
+          type = "Recommended"
+        ),
+        RV11 = list(
+          title = "Supporting Parameters",
+          type = "Recommended"
+        )
+      )
+
+      # Collect scores for completed criteria
+      scores_data <- tibble(
+        criterion_id = character(0),
+        criterion_title = character(0),
+        required_recommended = character(0),
+        score = character(0),
+        limitations = character(0)
+      )
+
+      # Loop through all criteria
+      for (criterion_id in names(criteria_config)) {
+        score_input <- input[[paste0(criterion_id, "_score")]]
+        limitations_input <- input[[paste0(criterion_id, "_limitations")]]
+
+        if (isTruthy(score_input) && score_input != "") {
+          scores_data <- rbind(
+            scores_data,
+            tibble(
+              criterion_id = criterion_id,
+              criterion_title = criteria_config[[criterion_id]]$title,
+              required_recommended = criteria_config[[criterion_id]]$type,
+              score = score_input,
+              limitations = limitations_input %||% ""
+            )
+          )
+        }
+      }
+
+      # Store in session
+      session$userData$reactiveValues$creedRelevance <- scores_data
+    }) |>
+      bindEvent(
+        input$calc_scores,
+        session$userData$reactiveValues$creedCalculateScores,
+        ignoreInit = TRUE
+      )
   })
 }
-
-## To be copied in the UI ----
-# mod_CREED_relevance_ui("CREED_relevance_1")
-
-## To be copied in the server ----
-# mod_CREED_relevance_server("CREED_relevance_1")

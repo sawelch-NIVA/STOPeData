@@ -9,11 +9,12 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput updateSelectizeInput
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectInput
 #' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom rhandsontable rHandsontableOutput
+#' @importFrom shinyWidgets pickerInput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom tibble tibble
 #' @export
@@ -38,7 +39,7 @@ mod_parameters_ui <- function(id) {
           fill = FALSE,
           fillable = FALSE,
 
-          selectizeInput(
+          pickerInput(
             inputId = ns("parameter_type_select"),
             label = tooltip(
               list("Parameter Type", bs_icon("info-circle-fill")),
@@ -55,7 +56,7 @@ mod_parameters_ui <- function(id) {
             multiple = FALSE
           ),
 
-          selectizeInput(
+          pickerInput(
             inputId = ns("parameter_subtype_select"),
             label = tooltip(
               list("Parameter Subtype", bs_icon("info-circle-fill")),
@@ -68,7 +69,7 @@ mod_parameters_ui <- function(id) {
           )
         ),
 
-        selectizeInput(
+        pickerInput(
           inputId = ns("parameter_name_select"),
           label = tooltip(
             list("Parameter Name", bs_icon("info-circle-fill")),
@@ -173,6 +174,7 @@ mod_parameters_ui <- function(id) {
 #' @importFrom purrr negate
 #' @importFrom tibble tibble
 #' @importFrom stats setNames
+#' @importFrom shinyWidgets updatePickerInput
 #' @export
 mod_parameters_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -310,12 +312,11 @@ mod_parameters_server <- function(id) {
           setNames(available_subtypes, available_subtypes)
         )
 
-        updateSelectizeInput(
+        updatePickerInput(
           session,
           "parameter_subtype_select",
           choices = subtype_choices,
-          selected = "Show all",
-          server = TRUE
+          selected = "Show all"
         )
       }
     }) |>
@@ -336,7 +337,7 @@ mod_parameters_server <- function(id) {
           session_parameters = moduleState$session_parameters
         )
 
-        updateSelectizeInput(
+        updatePickerInput(
           session,
           "parameter_name_select",
           choices = available_names,
@@ -344,8 +345,7 @@ mod_parameters_server <- function(id) {
             available_names[1]
           } else {
             ""
-          },
-          server = TRUE # server-side selectize for better performance
+          }
         )
       }
     }) |>

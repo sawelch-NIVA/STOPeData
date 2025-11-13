@@ -9,12 +9,12 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList selectizeInput dateInput actionButton
+#' @importFrom shiny NS tagList dateInput actionButton
 #' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip input_task_button
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs enable disable
-#' @importFrom shinyWidgets airDatepickerInput
+#' @importFrom shinyWidgets airDatepickerInput pickerInput
 #' @importFrom golem get_golem_wd
 mod_samples_ui <- function(id) {
   ns <- NS(id)
@@ -39,7 +39,7 @@ mod_samples_ui <- function(id) {
 
           ## Sites selection ----
           div(
-            selectizeInput(
+            pickerInput(
               inputId = ns("sites_select"),
               label = tooltip(
                 list("Sites", bs_icon("info-circle-fill")),
@@ -71,7 +71,7 @@ mod_samples_ui <- function(id) {
 
           ## Parameters selection ----
           div(
-            selectizeInput(
+            pickerInput(
               inputId = ns("parameters_select"),
               label = tooltip(
                 list("Parameters", bs_icon("info-circle-fill")),
@@ -103,7 +103,7 @@ mod_samples_ui <- function(id) {
 
           ## Compartments selection ----
           div(
-            selectizeInput(
+            pickerInput(
               inputId = ns("compartments_select"),
               label = tooltip(
                 list("Compartments", bs_icon("info-circle-fill")),
@@ -221,10 +221,10 @@ mod_samples_ui <- function(id) {
 #'
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
-#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification updateSelectizeInput
+#' @importFrom shiny moduleServer reactive reactiveValues observe renderText renderUI showNotification
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_context_menu hot_col
 #' @importFrom shinyjs enable disable disabled
-#' @importFrom shinyWidgets updateAirDateInput
+#' @importFrom shinyWidgets updateAirDateInput updatePickerInput
 #' @importFrom purrr is_empty
 #' @importFrom glue glue
 #' @importFrom tibble as_tibble add_row
@@ -477,7 +477,7 @@ mod_samples_server <- function(id) {
             isTruthy(moduleState$available_sites) &&
               nrow(moduleState$available_sites) > 0
           ) {
-            updateSelectizeInput(
+            updatePickerInput(
               session,
               "sites_select",
               selected = session$userData$reactiveValues$sitesData$SITE_CODE
@@ -526,7 +526,7 @@ mod_samples_server <- function(id) {
     observe({
       tryCatch(
         {
-          updateSelectizeInput(
+          updatePickerInput(
             session,
             "sites_select",
             selected = character(0)
@@ -571,7 +571,7 @@ mod_samples_server <- function(id) {
             isTruthy(moduleState$available_parameters) &&
               nrow(moduleState$available_parameters) > 0
           ) {
-            updateSelectizeInput(
+            updatePickerInput(
               session,
               "parameters_select",
               selected = session$userData$reactiveValues$parametersData$PARAMETER_NAME
@@ -620,7 +620,7 @@ mod_samples_server <- function(id) {
     observe({
       tryCatch(
         {
-          updateSelectizeInput(
+          updatePickerInput(
             session,
             "parameters_select",
             selected = character(0)
@@ -671,7 +671,7 @@ mod_samples_server <- function(id) {
               session$userData$reactiveValues$compartmentsData$ENVIRON_COMPARTMENT_SUB,
               sep = " | "
             )
-            updateSelectizeInput(
+            updatePickerInput(
               session,
               "compartments_select",
               selected = comp_values
@@ -720,7 +720,7 @@ mod_samples_server <- function(id) {
     observe({
       tryCatch(
         {
-          updateSelectizeInput(
+          updatePickerInput(
             session,
             "compartments_select",
             selected = character(0)
