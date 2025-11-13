@@ -357,7 +357,7 @@ mod_references_ui <- function(id) {
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe renderText updateTextInput updateDateInput updateNumericInput updateTextAreaInput updateSelectInput bindEvent
 #' @importFrom shinyjs enable disable
-#' @importFrom tibble tibble
+#' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr add_row
 #' @export
 mod_references_server <- function(id) {
@@ -682,8 +682,8 @@ mod_references_server <- function(id) {
     observe({
       llm_data <- session$userData$reactiveValues$referenceDataLLM
       if (
-        !is.null(llm_data) &&
-          session$userData$reactiveValues$llmExtractionComplete
+        nrow(llm_data) > 0 &&
+          session$userData$reactiveValues$llmExtractionSuccessful
       ) {
         populate_references_from_llm(session, llm_data)
 
@@ -695,7 +695,7 @@ mod_references_server <- function(id) {
     }) |>
       bindEvent(
         session$userData$reactiveValues$referenceDataLLM,
-        session$userData$reactiveValues$llmExtractionComplete,
+        session$userData$reactiveValues$llmExtractionSuccessful,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )
@@ -705,8 +705,7 @@ mod_references_server <- function(id) {
     observe({
       # CHANGED: Data is already in userData, just need to populate the form
       reference_data <- session$userData$reactiveValues$referenceData |>
-        as.list()
-      names(reference_data) <- tolower(names(reference_data))
+        rename_with(.fn = function(x) toupper(x))
       # import data is SCREAMING_NAME but module expects snake_case, so we need to convert the list names
       populate_references_from_llm(
         session,

@@ -197,6 +197,7 @@ mod_llm_ui <- function(id) {
 #' @importFrom golem print_dev
 #' @importFrom ellmer chat_anthropic params content_pdf_file type_object type_string type_integer type_number type_array
 #' @importFrom utils str
+#' @importFrom tibble as_tibble
 #' @export
 mod_llm_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -251,8 +252,8 @@ mod_llm_server <- function(id) {
       # disable buttons where simultaneous running could cause problems
       disable("extract_data")
 
-      # Create dummy data structure using external function (lowercase for LLM)
-      dummy_data <- create_dummy_data(uppercase_columns = FALSE)
+      # Create dummy data structure using external function
+      dummy_data <- create_dummy_data(uppercase_columns = TRUE)
 
       # Store results in module state (for LLM-specific behavior)
       session$userData$reactiveValues$llmExtractionComplete <- TRUE
@@ -346,8 +347,8 @@ mod_llm_server <- function(id) {
             # Step 5: Set up prompts
             incProgress(0.01, detail = "Configuring extraction...")
             # should be at 0.05 by now
-            system_prompt <- if (isTruthy(input$system_prompt)) {
-              input$system_prompt
+            extraction_prompt <- if (isTruthy(input$extraction_prompt)) {
+              input$extraction_prompt
             } else {
               create_extraction_prompt()
             }
@@ -383,6 +384,7 @@ mod_llm_server <- function(id) {
             # Store results
             session$userData$reactiveValues$llmExtractionComplete <- TRUE
             moduleState$extraction_successful <- TRUE
+            # TODO: Are we still getting results returned as lists containing NULL. This causes problems with as_tibble()
             moduleState$structured_data <- result
             moduleState$raw_extraction <- result
             moduleState$error_message <- NULL
@@ -475,7 +477,8 @@ mod_llm_server <- function(id) {
             #   session,
             #   moduleState$structured_data$references
             # )
-            session$userData$reactiveValues$referenceDataLLM <- moduleState$structured_data$references
+            session$userData$reactiveValues$referenceDataLLM <- moduleState$structured_data$references |>
+              as_tibble()
           }
 
           # Create structured data for table-based modules and store in session

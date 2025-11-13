@@ -484,8 +484,7 @@ update_combination_preview <- function(
 #' @noRd
 dummy_sites <- tibble(
   SITE_CODE = c("SITE_001", "SITE_002", "SITE_003"),
-  SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C"),
-  stringsAsFactors = FALSE
+  SITE_NAME = c("River Site A", "Lake Site B", "Coastal Site C")
 )
 
 #' dummy_parameters ----
@@ -497,8 +496,7 @@ dummy_parameters <- tibble(
     "Stressor",
     "Quality parameter",
     "Quality parameter"
-  ),
-  stringsAsFactors = FALSE
+  )
 )
 
 #' dummy_compartments ----
@@ -510,6 +508,5 @@ dummy_compartments <- tibble(
     "Marine/Salt Water",
     "Soil A Horizon (Topsoil)"
   ),
-  MEASURED_CATEGORY = c("External", "External", "External"),
-  stringsAsFactors = FALSE
+  MEASURED_CATEGORY = c("External", "External", "External")
 )

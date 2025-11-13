@@ -406,6 +406,9 @@ mod_data_server <- function(id, parent_session) {
         return(initialise_measurements_tibble())
       }
 
+      # TODO: This is an awful fix but will work for now
+      samplesData$PARAMETER_NAME <- "Copper"
+
       # get available methods
       available_methods <- session$userData$reactiveValues$methodsData
       # make each first available method the default for new combos
@@ -441,6 +444,7 @@ mod_data_server <- function(id, parent_session) {
           select(PARAMETER_NAME, PARAMETER_TYPE, MEASURED_TYPE) |>
           # we need to be a little bit careful to avoid including parameters that the user hasn't specifically
           # added in mod_samples
+          # apparently under some circumstances this can return multiple PARAMETER_NAMES
           filter(PARAMETER_NAME %in% samplesData$PARAMETER_NAME |> unique()),
         by = "PARAMETER_NAME"
       ) |>
@@ -534,6 +538,7 @@ mod_data_server <- function(id, parent_session) {
 
         session$userData$reactiveValues$measurementsData <- new_combinations
 
+        # TODO: This also fires way too often, when modulesStatus() definitely shouldn't be returning true. Why?
         print_dev(glue(
           "mod_data: All modules validated, created {nrow(session$userData$reactiveValues$measurementsData)} measurement combinations"
         ))

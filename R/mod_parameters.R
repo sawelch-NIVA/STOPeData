@@ -190,6 +190,8 @@ mod_parameters_server <- function(id) {
       llm_lookup_validation = FALSE
     )
 
+    chemical_parameters <- dummy_parameters_vocabulary()
+
     ## InputValidator for table-level validation ----
     iv <- InputValidator$new()
     iv$add_rule("parameters_table_validation", function(value) {
@@ -409,7 +411,7 @@ mod_parameters_server <- function(id) {
       }
     }) |>
       bindEvent(
-        session$userData$reactiveValues$llmExtractionComplete,
+        session$userData$reactiveValues$llmExtractionSuccessful,
         ignoreInit = TRUE,
         ignoreNULL = FALSE
       )

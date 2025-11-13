@@ -208,7 +208,7 @@ app_server <- function(input, output, session) {
             h4("Import Previously Exported Session Data"),
             p(
               "Select a ZIP file that was previously exported from this application. The ZIP should contain CSV files and metadata text files. 
-              The importer recognises data types by file name, so please don't modify the 'Campaign__Date_Module' formatting."
+              The importer recognises data types by file name, so please don't modify the 'Campaign_Date_Module' formatting."
             ),
 
             fileInput(

@@ -151,7 +151,7 @@ abbreviate_string <- function(
   n_words <- as.integer(n_words)
   string <- as.character(string)
 
-  words <- str_split(string, pattern = "\\s")[[1]]
+  words <- strsplit(gsub("[^A-Za-z0-9 ]", " ", string), "\\s+")
   words <- words[nchar(words) > 0] # Remove empty strings
 
   # Take first n words
@@ -174,9 +174,15 @@ abbreviate_string <- function(
     "title" = paste(str_to_title(selected_words), collapse = ""),
     "screamingsnake" = paste(toupper(selected_words), collapse = "_"),
     "camel" = {
-      camel_words <- str_to_title(selected_words)
+      camel_words <- selected_words
+      # Capitalize first letter of each word
+      camel_words <- paste0(
+        toupper(substr(camel_words, 1, 1)),
+        tolower(substr(camel_words, 2, nchar(camel_words)))
+      )
+      # Make first word lowercase
       camel_words[1] <- tolower(camel_words[1])
-      paste(camel_words, collapse = "")
+      paste0(camel_words, collapse = "")
     }
   )
 

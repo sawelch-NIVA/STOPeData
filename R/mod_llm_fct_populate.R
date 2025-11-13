@@ -109,14 +109,21 @@ populate_campaign_from_llm <- function(session, llm_campaign_data) {
 #' @noRd
 # ! FORMAT-BASED
 populate_references_from_llm <- function(session, llm_references_data) {
-  if (is.null(llm_references_data)) {
+  if (is.null(llm_references_data) || nrow(llm_references_data) < 1) {
     return()
   }
+
+  # make the tibble use upper case titles if it doesn't already
+  llm_references_data <- llm_references_data |>
+    rename_with(.fn = function(x) {
+      toupper(x)
+    })
+
   # Determine reference type based on available fields
   ref_type <- "journal" # Default
-  if (!is.null(llm_references_data$periodical_journal)) {
+  if (!is.null(llm_references_data$PERIODICAL_JOURNAL)) {
     ref_type <- "journal"
-  } else if (!is.null(llm_references_data$publisher)) {
+  } else if (!is.null(llm_references_data$PUBLISHER)) {
     ref_type <- "book"
   }
 
@@ -128,11 +135,29 @@ populate_references_from_llm <- function(session, llm_references_data) {
 
   # doing this here is a little crude but currently the above
   # observer isn't triggered by llm extract
-  reference_id <- generate_reference_id(
-    date = llm_references_data$year,
-    author = llm_references_data$author,
-    title = llm_references_data$title
-  )
+
+  reference_id <- if (
+    !is.null(llm_references_data$REFERENCE_ID) &&
+      nchar(llm_references_data$REFERENCE_ID) > 0
+  ) {
+    llm_references_data$REFERENCE_ID
+  } else {
+    tryCatch(
+      {
+        generate_reference_id(
+          date = llm_references_data$YEAR,
+          author = llm_references_data$AUTHOR,
+          title = llm_references_data$TITLE
+        )
+      },
+      error = function(e) {
+        showNotification(
+          paste0("Error generating reference ID: ", e$message),
+          type = "error"
+        )
+      }
+    )
+  }
 
   if (!is.null(reference_id)) {
     updateTextInput(
@@ -142,25 +167,25 @@ populate_references_from_llm <- function(session, llm_references_data) {
     )
   }
 
-  if (!is.null(llm_references_data$author)) {
+  if (!is.null(llm_references_data$AUTHOR)) {
     updateTextAreaInput(
       session,
       "AUTHOR",
-      value = llm_references_data$author
+      value = llm_references_data$AUTHOR
     )
   }
 
-  if (!is.null(llm_references_data$title)) {
+  if (!is.null(llm_references_data$TITLE)) {
     updateTextAreaInput(
       session,
       "TITLE",
-      value = llm_references_data$title
+      value = llm_references_data$TITLE
     )
   }
 
-  if (!is.null(llm_references_data$year)) {
+  if (!is.null(llm_references_data$YEAR)) {
     # Validate year is within acceptable range
-    year <- as.numeric(llm_references_data$year)
+    year <- as.numeric(llm_references_data$YEAR)
     if (!is.na(year) && year >= 1800 && year <= 2026) {
       updateNumericInput(
         session,
@@ -170,43 +195,43 @@ populate_references_from_llm <- function(session, llm_references_data) {
     }
   }
 
-  if (!is.null(llm_references_data$periodical_journal)) {
+  if (!is.null(llm_references_data$PERIODICAL_JOURNAL)) {
     updateTextInput(
       session,
       "PERIODICAL_JOURNAL",
-      value = llm_references_data$periodical_journal
+      value = llm_references_data$PERIODICAL_JOURNAL
     )
   }
 
-  if (!is.null(llm_references_data$volume)) {
+  if (!is.null(llm_references_data$VOLUME)) {
     updateNumericInput(
       session,
       "VOLUME",
-      value = as.numeric(llm_references_data$volume)
+      value = as.numeric(llm_references_data$VOLUME)
     )
   }
 
-  if (!is.null(llm_references_data$issue)) {
+  if (!is.null(llm_references_data$ISSUE)) {
     updateNumericInput(
       session,
       "ISSUE",
-      value = as.numeric(llm_references_data$issue)
+      value = as.numeric(llm_references_data$ISSUE)
     )
   }
 
-  if (!is.null(llm_references_data$publisher)) {
+  if (!is.null(llm_references_data$PUBLISHER)) {
     updateTextInput(
       session,
       "PUBLISHER",
-      value = llm_references_data$publisher
+      value = llm_references_data$PUBLISHER
     )
   }
 
-  if (!is.null(llm_references_data$doi)) {
+  if (!is.null(llm_references_data$DOI)) {
     updateTextInput(
       session,
       "DOI",
-      value = llm_references_data$doi
+      value = llm_references_data$DOI
     )
   }
 
