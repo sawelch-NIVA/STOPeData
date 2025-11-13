@@ -116,10 +116,105 @@ get_dataset_display_name <- function(dataset_name) {
     measurementsData = "Measurements",
     schemaLLM = "LLM_Schema",
     promptLLM = "LLM_Prompt",
-    rawLLM = "LLM_Raw_Response"
+    rawLLM = "LLM_Raw_Response",
+    creedScores = "CREED_Score"
   )
 
   display_names[[dataset_name]] %||% dataset_name
+}
+
+# Function: Check Available Datasets ----
+#' Check which datasets contain data and get their dimensions
+#'
+#' @param dataset_names Character vector of dataset names to check
+#' @param rv Reactive values object (or named list) containing the datasets
+#'
+#' @return List with three elements:
+#'   - available_datasets: character vector of dataset names with data
+#'   - dataset_dimensions: named list of lists with rows/cols for each available dataset
+#'   - export_ready: logical indicating if any datasets are available
+check_available_datasets <- function(rv) {
+  available <- character(0)
+  dimensions <- list()
+
+  for (dataset in downloadable_tabular_datasets()) {
+    data <- rv[[dataset]]
+
+    if (dataset %in% downloadable_text_datasets()) {
+      # Handle text/object data - check if it exists and has content
+      has_content <- FALSE
+      char_count <- 0
+
+      if (!is.null(data)) {
+        if (is.character(data) && length(data) > 0 && nchar(data[1]) > 0) {
+          has_content <- TRUE
+          char_count <- nchar(data[1])
+        } else if (is.list(data) && length(data) > 0) {
+          # For lists (like rawLLM), check if it has any content
+          has_content <- TRUE
+          char_count <- nchar(paste(
+            capture.output(str(data)),
+            collapse = "\n"
+          ))
+        } else if (inherits(data, "ellmer_schema") || is.object(data)) {
+          # For schema objects or other objects
+          has_content <- TRUE
+          char_count <- nchar(paste(
+            capture.output(print(data)),
+            collapse = "\n"
+          ))
+        }
+      }
+
+      if (has_content) {
+        available <- c(available, dataset)
+        dimensions[[dataset]] <- list(
+          type = "text",
+          chars = char_count
+        )
+      }
+    } else {
+      # Handle tabular data
+      if (!is.null(data) && nrow(data) > 0) {
+        available <- c(available, dataset)
+        dimensions[[dataset]] <- list(
+          type = "tabular",
+          rows = nrow(data),
+          cols = ncol(data)
+        )
+      }
+    }
+  }
+
+  list(
+    available_datasets = available,
+    dataset_dimensions = dimensions,
+    export_ready = length(available) > 0
+  )
+}
+
+# Function: Extract Campaign Name ----
+#' Extract campaign name from campaign data for use in filenames
+#'
+#' @param campaign_data Data frame containing campaign information
+#'
+#' @return Character string of campaign name, or NULL if not found/invalid
+extract_campaign_name <- function(campaign_data) {
+  if (is.null(campaign_data) || nrow(campaign_data) == 0) {
+    return(NULL)
+  }
+
+  if (!"CAMPAIGN_NAME" %in% names(campaign_data)) {
+    return(NULL)
+  }
+
+  campaign_name <- campaign_data$CAMPAIGN_NAME[1]
+
+  if (is.na(campaign_name) || campaign_name == "") {
+    return(NULL)
+  }
+
+  campaign_name
 }
 
 #' Convert object to human-readable text
@@ -173,7 +268,28 @@ object_to_text <- function(obj, dataset_name = "unknown") {
   }
 }
 
-# TODO: This does a lot more than CSV. Rename.
+# just in one place for easier reuse
+downloadable_tabular_datasets <- function() {
+  c(
+    "sitesData",
+    "parametersData",
+    "compartmentsData",
+    "referenceData",
+    "campaignData",
+    "methodsData",
+    "samplesData",
+    "biotaData",
+    "measurementsData",
+    "creedScores"
+  )
+}
+
+# just in one place for easier reuse
+downloadable_text_datasets <- function() {
+  c("schemaLLM", "promptLLM", "rawLLM")
+}
+
+
 #' Download all data as CSV and TXT files in a ZIP archive
 #'
 #' @description Creates a Shiny downloadHandler that exports all available datasets
@@ -187,7 +303,7 @@ object_to_text <- function(obj, dataset_name = "unknown") {
 #' @importFrom zip zip
 #' @importFrom readr write_excel_csv
 #' @export
-download_all_csv <- function(session, moduleState = NULL) {
+download_all_data <- function(session, moduleState = NULL) {
   if (is.null(moduleState) || is.null(session)) {
     stop(
       "moduleState & session reactive objects must be supplied to create CSVs"

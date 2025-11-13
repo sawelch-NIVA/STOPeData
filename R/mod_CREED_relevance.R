@@ -662,7 +662,7 @@ mod_CREED_relevance_server <- function(id) {
       }
 
       # Store in session
-      session$userData$reactiveValues$creedData$creedRelevance <- scores_data
+      session$userData$reactiveValues$creedRelevance <- scores_data
     }) |>
       bindEvent(
         input$calc_scores,

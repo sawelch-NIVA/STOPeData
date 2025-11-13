@@ -286,18 +286,17 @@ mod_CREED_server <- function(id) {
 
     ## observe: Calculate CREED silver and gold scores ----
     # upstream: session$userData$reactiveValues$creedRelevance, creedReliability
-    # downstream: session$userData$reactiveValues$creedData$creedScores
+    # downstream: session$userData$reactiveValues$creedScores
     observe({
       tryCatch(
         {
           if (
-            nrow(session$userData$reactiveValues$creedData$creedReliability) >
-              1 &&
-              nrow(session$userData$reactiveValues$creedData$creedRelevance) > 1
+            nrow(session$userData$reactiveValues$creedReliability) > 1 &&
+              nrow(session$userData$reactiveValues$creedRelevance) > 1
           ) {
             browser()
-            reliability_data <- session$userData$reactiveValues$creedData$creedReliability
-            relevance_data <- session$userData$reactiveValues$creedData$creedRelevance
+            reliability_data <- session$userData$reactiveValues$creedReliability
+            relevance_data <- session$userData$reactiveValues$creedRelevance
 
             # Add numeric score column
             reliability_data <- reliability_data |>
@@ -359,7 +358,7 @@ mod_CREED_server <- function(id) {
             )
 
             # Store results
-            session$userData$reactiveValues$creedData$creedScores <- creed_scores
+            session$userData$reactiveValues$creedScores <- creed_scores
 
             golem::print_dev(creed_scores)
 
@@ -379,8 +378,8 @@ mod_CREED_server <- function(id) {
     }) |>
       bindEvent(
         # only run once we have the data upstream
-        (nrow(session$userData$reactiveValues$creedData$creedReliability) > 1 &&
-          nrow(session$userData$reactiveValues$creedData$creedRelevance) > 1),
+        (nrow(session$userData$reactiveValues$creedReliability) > 1 &&
+          nrow(session$userData$reactiveValues$creedRelevance) > 1),
         ignoreInit = TRUE
       )
 
@@ -437,7 +436,7 @@ mod_CREED_server <- function(id) {
     # upstream: session$userData$reactiveValues$creedScores
     # downstream: UI display
     output$creed_scores_display <- renderUI({
-      scores <- session$userData$reactiveValues$creedData$creedScores
+      scores <- session$userData$reactiveValues$creedScores
 
       tagList(
         h5("CREED Assessment Results"),

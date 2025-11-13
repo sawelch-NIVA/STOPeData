@@ -18,69 +18,13 @@ app_server <- function(input, output, session) {
 
   ## ReactiveValues: initialise reactiveValues in session$userData to store data ----
   # upstream: session start
-  # downstream: session$userData$reactiveValues with initialized data structures
+  # downstream: session$userData$reactiveValues initialised to store all user data and app state flags
+  # see fct_formats() for the data structure of the module. it feels a bit hacky doing it this way but
+  # we a) avoid overly long reactivity chains and b) can easily initialise the data object for tests
   if (!is.reactivevalues(session$userData$reactiveValues)) {
-    session$userData$reactiveValues <- reactiveValues(
-      ENTERED_BY = character(0),
-      autosave_enabled = FALSE,
-
-      # Standard validated data ----
-      # All userData and module_state$data data is stored in a tabular (tibble) format centrally, even for campaign and reference (which currently only have one row)
-      # This means we can use a consistent set of functions to check for presence (nrow(tibble) > 0), and not have any nasty surprises when we expect one and get the other
-      sitesData = initialise_sites_tibble(),
-      sitesDataValid = FALSE,
-      parametersData = initialise_parameters_tibble(),
-      parametersDataValid = FALSE,
-      compartmentsData = initialise_compartments_tibble(),
-      compartmentsDataValid = FALSE,
-      referenceData = initialise_references_tibble(),
-      referenceDataValid = FALSE,
-      campaignData = initialise_campaign_tibble(),
-      campaignDataValid = FALSE,
-      methodsData = initialise_methods_tibble(),
-      methodsDataValid = FALSE,
-      samplesData = initialise_samples_tibble(),
-      samplesDataValid = FALSE,
-      biotaData = initialise_biota_tibble(),
-      biotaDataValid = FALSE,
-      samplesDataWithBiota = tibble(NULL),
-      measurementsData = initialise_measurements_tibble(),
-      measurementsDataValid = FALSE,
-      creedData = list(
-        purposeStatement = tibble(NULL),
-        datasetDetails = tibble(NULL),
-        relevanceCriteria = tibble(NULL),
-        creedRelevance = tibble(NULL),
-        creedReliability = tibble(NULL),
-        creedScores = tibble(NULL),
-        creedReport = ""
-      ),
-      creedGetData = 0, # watched by multiple observers in nested CREED modules. +1 every time we input$get_data in mod_CREED
-      creedCalculateScores = 0, # same
-
-      # LLM extracted data and metadata ----
-      schemaLLM = "",
-      promptLLM = "",
-      rawLLM = "",
-      pdfPath = NULL,
-      campaignDataLLM = tibble(NULL),
-      referenceDataLLM = tibble(NULL),
-      sitesDataLLM = tibble(NULL),
-      parametersDataLLM = tibble(NULL),
-      compartmentsDataLLM = tibble(NULL),
-      methodsDataLLM = tibble(NULL),
-      samplesDataLLM = tibble(NULL),
-      biotaDataLLM = tibble(NULL),
-      samplesDataLLM = tibble(NULL),
-
-      # LLM extraction status flags ----
-      llmExtractionComplete = FALSE,
-      llmExtractionSuccessful = FALSE,
-      llmExtractionComments = tibble(NULL),
-
-      # Import data from save status flags ----
-      saveExtractionComplete = FALSE,
-      saveExtractionSuccessful = FALSE
+    session$userData$reactiveValues <- do.call(
+      shiny::reactiveValues,
+      initialise_userData()
     )
   }
 
@@ -293,94 +237,23 @@ app_server <- function(input, output, session) {
   observe({
     rv <- session$userData$reactiveValues
 
-    # Define all possible datasets
-    dataset_names <- c(
-      "sitesData",
-      "parametersData",
-      "compartmentsData",
-      "referenceData",
-      "campaignData",
-      "methodsData",
-      "samplesData",
-      "biotaData",
-      "measurementsData",
-      "schemaLLM",
-      "promptLLM",
-      "rawLLM"
-    )
-
-    # Define which datasets are text/object files vs tabular
-    text_datasets <- c("schemaLLM", "promptLLM", "rawLLM")
-
     # Check which datasets have data and store dimensions
     available <- character(0)
     dimensions <- list()
 
-    for (dataset in dataset_names) {
-      data <- rv[[dataset]]
+    dataset_check <- check_available_datasets(rv)
 
-      if (dataset %in% text_datasets) {
-        # Handle text/object data - check if it exists and has content
-        has_content <- FALSE
-        char_count <- 0
+    moduleState$available_datasets <- dataset_check$available_datasets
+    moduleState$dataset_dimensions <- dataset_check$dataset_dimensions
+    moduleState$export_ready <- dataset_check$export_ready
 
-        if (!is.null(data)) {
-          if (is.character(data) && length(data) > 0 && nchar(data[1]) > 0) {
-            has_content <- TRUE
-            char_count <- nchar(data[1])
-          } else if (is.list(data) && length(data) > 0) {
-            # For lists (like rawLLM), check if it has any content
-            has_content <- TRUE
-            char_count <- nchar(paste(
-              capture.output(str(data)),
-              collapse = "\n"
-            ))
-          } else if (inherits(data, "ellmer_schema") || is.object(data)) {
-            # For schema objects or other objects
-            has_content <- TRUE
-            char_count <- nchar(paste(
-              capture.output(print(data)),
-              collapse = "\n"
-            ))
-          }
-        }
-
-        if (has_content) {
-          available <- c(available, dataset)
-          dimensions[[dataset]] <- list(
-            type = "text",
-            chars = char_count
-          )
-        }
-      } else {
-        # Handle tabular data
-        if (!is.null(data) && nrow(data) > 0) {
-          available <- c(available, dataset)
-          dimensions[[dataset]] <- list(
-            type = "tabular",
-            rows = nrow(data),
-            cols = ncol(data)
-          )
-        }
-      }
-    }
-
-    moduleState$available_datasets <- available
-    moduleState$dataset_dimensions <- dimensions
-    moduleState$export_ready <- length(available) > 0
-
-    # Get campaign name for filename
-    if (!is.null(rv$campaignData) && nrow(rv$campaignData) > 0) {
-      if ("CAMPAIGN_NAME" %in% names(rv$campaignData)) {
-        campaign_name <- rv$campaignData$CAMPAIGN_NAME[1]
-        if (!is.na(campaign_name) && campaign_name != "") {
-          moduleState$campaign_name <- campaign_name
-        }
-      }
+    campaign_name <- extract_campaign_name(rv$campaignData)
+    if (!is.null(campaign_name)) {
+      moduleState$campaign_name <- campaign_name
     }
 
     print_dev(glue(
-      "mod_export: {length(available)} datasets available: {paste(available, collapse = ', ')}"
+      "mod_export: {length(dataset_check$available_datasets)} datasets available: {paste(dataset_check$available_datasets, collapse = ', ')}"
     ))
   }) |>
     bindEvent(input$download_all_modal)
@@ -541,7 +414,7 @@ app_server <- function(input, output, session) {
           class = "btn-secondary"
         ),
         downloadButton(
-          outputId = "download_all_csv",
+          outputId = "download_all_data",
           label = "Download Data Files", # Changed from "Download CSV Files"
           class = "btn-primary",
           icon = icon("download")
@@ -618,7 +491,7 @@ app_server <- function(input, output, session) {
   ## Output: download handler for all CSV files ----
   # upstream: moduleState reactive values
   # downstream: ZIP file download containing all data as CSV
-  output$download_all_csv <- download_all_csv(
+  output$download_all_data <- download_all_data(
     session = session,
     moduleState = moduleState
   )

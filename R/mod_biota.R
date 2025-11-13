@@ -9,7 +9,8 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList selectizeInput actionButton
+#' @importFrom shiny NS tagList actionButton
+#' @importFrom shinyWidgets pickerInput
 #' @importFrom bslib card card_body accordion accordion_panel tooltip layout_columns
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
@@ -45,7 +46,7 @@ mod_biota_ui <- function(id) {
           layout_columns(
             col_widths = c(4, 8),
 
-            selectizeInput(
+            pickerInput(
               ns("species_group_filter"),
               label = tooltip(
                 list(
@@ -60,7 +61,7 @@ mod_biota_ui <- function(id) {
               multiple = FALSE
             ),
 
-            selectizeInput(
+            pickerInput(
               ns("study_species_selector"),
               label = tooltip(
                 list(
@@ -170,8 +171,9 @@ mod_biota_ui <- function(id) {
 #' @noRd
 #' @importFrom shinyvalidate InputValidator sv_required
 #' @importFrom shiny moduleServer reactive reactiveValues observe
-#' renderText renderUI showNotification updateSelectizeInput isTruthy
+#' renderText renderUI showNotification isTruthy
 #' @importFrom rhandsontable renderRHandsontable rhandsontable hot_to_r hot_col hot_context_menu
+#' @importFrom shinyWidgets updatePickerInput
 #' @importFrom shinyjs enable disable
 #' @importFrom glue glue
 #' @importFrom readr read_csv
@@ -362,12 +364,11 @@ mod_biota_server <- function(id) {
       # Update species selector with filtered choices, keeping current selections
       current_selected <- input$study_species_selector %||% character(0)
 
-      updateSelectizeInput(
+      updatePickerInput(
         session,
         "study_species_selector",
         choices = sort(filtered_species),
-        selected = intersect(current_selected, filtered_species),
-        server = TRUE
+        selected = intersect(current_selected, filtered_species)
       )
     }) |>
       bindEvent(input$species_group_filter)
@@ -406,7 +407,7 @@ mod_biota_server <- function(id) {
     # upstream: input$clear_species
     # downstream: moduleState$study_species, input$study_species_selector
     observe({
-      updateSelectizeInput(
+      updatePickerInput(
         session,
         "study_species_selector",
         selected = character(0)

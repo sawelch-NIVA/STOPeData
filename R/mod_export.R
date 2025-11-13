@@ -436,7 +436,7 @@ mod_export_server <- function(id) {
     )
 
     # download all csv button we turn into a function in fct_download
-    output$download_allcsv <- download_all_csv(
+    output$download_allcsv <- download_all_data(
       session = session,
       moduleState = moduleState
     )

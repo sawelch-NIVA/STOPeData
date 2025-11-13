@@ -419,7 +419,7 @@ mod_CREED_reliability_server <- function(id) {
 
       # Store in reactiveValues and session
       reliability_scores$data <- scores_data
-      session$userData$reactiveValues$creedData$creedReliability <- scores_data
+      session$userData$reactiveValues$creedReliability <- scores_data
     }) |>
       bindEvent(
         input$calc_scores,
