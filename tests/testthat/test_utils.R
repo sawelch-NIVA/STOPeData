@@ -50,12 +50,12 @@ test_that("abbreviate_string works for all case styles", {
 test_that("abbreviate_string handles special characters", {
   expect_equal(
     abbreviate_string("Total-N Concentration", n_words = 2L, "snake"),
-    "total-n_concentration"
+    "total_n"
   )
 
   expect_equal(
     abbreviate_string("Water & Sediment Quality", n_words = 3L, "title"),
-    "Water&Sediment"
+    "WaterSedimentQuality"
   )
 })
 

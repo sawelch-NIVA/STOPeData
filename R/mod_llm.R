@@ -359,7 +359,7 @@ mod_llm_server <- function(id) {
               detail = "Extracting data (I haven't worked out how to fake progress yet so don't be alarmed if this sits at ~10% for 30 seconds)..."
             )
             result <- chat$chat_structured(
-              system_prompt,
+              extraction_prompt,
               pdf_content,
               type = extraction_schema
             )
