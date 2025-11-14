@@ -464,7 +464,7 @@ mod_CREED_server <- function(id) {
           tags$tbody(
             tags$tr(
               tags$td(
-                bs_icon("award-fill", class = "CREED-requited"),
+                bs_icon("award-fill", class = "CREED-required"),
                 strong("Silver")
               ),
               tags$td(scores$reliability_category[1]),

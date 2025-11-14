@@ -100,8 +100,8 @@ criteria:
     partly_met:
       description: "Basic analytical methods used"
       requirements:
-        - "Flame Atomic Absorption Spectroscopy"
-        - "Inductively Coupled Plasma Optical Emission Spectroscopy"
+        - "FAAS (Flame Atomic Absorption Spectroscopy)"
+        - "ICP-OES (Inductively Coupled Plasma Optical Emission Spectroscopy)"
     fully_met:
       description: "Advanced analytical methods used"
       requirements:
