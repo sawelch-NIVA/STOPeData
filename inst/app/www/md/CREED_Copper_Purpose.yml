@@ -89,7 +89,7 @@ criteria:
   - id: RV8
     name: "RV8: Was/were the analyte(s) reported appropriate for the given purpose?"
     partly_met:
-      description: "Paper reports total copper concentrations (e.g. acid-extractable fraction)."
+      description: "Paper reports total copper concentrations (e.g. acid-extractable fraction) or dissolved copper concentrations (0.45/0.22µm filtration and acid extraction)."
       requirements:
     fully_met:
       description: "Paper reports relevant copper fractions (e.g. bioavailable, sediment-associated, etc.)."

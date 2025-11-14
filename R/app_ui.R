@@ -198,7 +198,7 @@ app_ui <- function(request) {
               id = "download_all_modal",
               label = HTML(paste(
                 bs_icon("file-earmark-zip"),
-                "Download extraction"
+                "Download all data"
               )),
               class = "btn-success",
             ),

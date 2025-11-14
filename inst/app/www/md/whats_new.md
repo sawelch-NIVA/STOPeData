@@ -16,3 +16,7 @@
 - w/w dry weight and wet weight units (both conventional SI and ppm/ppb/etc.) can now be selected as options.
 - MEASURED_SD has been replaced with UNCERTAINTY_TYPE, UNCERTAINTY_UPPER, UNCERTAINTY_LOWER and MEASURED_N, which allow more precise reporting of uncertainty.
 - EXPERIMENTAL: As part of the extraction process the LLM now scores the paper and its job extracting data from it. I don't know how effective this is, but I'd be interested to hear all your experiences with it.
+
+##### CREED
+- CREED assessment is now possible in the Quality module. Currently it uses a set of Relevance criteria specific to Copper concentrations in Arctic and Near-Arctic compartments (EXPECT Project), but in the future this will be tweakable.
+- The final assessment results are displayed as a table and can be downloaded using the regular button.
