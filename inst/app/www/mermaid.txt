@@ -1,0 +1,164 @@
+erDiagram
+	direction TB
+	CAMPAIGN {
+		string CAMPAIGN_NAME_SHORT  ""  
+		string CAMPAIGN_NAME PK ""  
+		date CAMPAIGN_START_DATE  ""  
+		date CAMPAIGN_END_DATE  ""  
+		string RELIABILITY_SCORE  ""  
+		string RELIABILITY_EVAL_SYS  ""  
+		date CONFIDENTIALITY_EXPIRY_DATE  ""  
+		string ORGANISATION  ""  
+		string ENTERED_BY  ""  
+		date ENTERED_DATE  ""  
+		string CAMPAIGN_COMMENT  ""  
+	}
+
+	SITES {
+		string SITE_CODE PK ""  
+		string SITE_NAME  ""  
+		string SITE_GEOGRAPHIC_FEATURE  ""  
+		string SITE_GEOGRAPHIC_FEATURE_SUB  ""  
+		string COUNTRY  ""  
+		string AREA  ""  
+		numeric LATITUDE  ""  
+		numeric LONGITUDE  ""  
+		string SITE_COORDINATE_SYSTEM  ""  
+		numeric ALTITUDE_VALUE  ""  
+		string ALTITUDE_UNIT  ""  
+		string ENTERED_BY  ""  
+		string ENTERED_DATE  ""  
+		string SITE_COMMENT  ""  
+	}
+
+	PARAMETERS {
+		string PARAMETER_TYPE  ""  
+		string PARAMETER_TYPE_SUB  ""  
+		string MEASURED_TYPE  ""  
+		string PARAMETER_NAME PK ""  
+		string PARAMETER_NAME_SUB  ""  
+		string INCHIKEY_SD  ""  
+		integer PUBCHEM_CID  ""  
+		string CAS_RN  ""  
+		string ENTERED_BY  ""  
+		string PARAMETER_COMMENT  ""  
+	}
+
+	COMPARTMENTS {
+		string ENVIRON_COMPARTMENT  ""  
+		string ENVIRON_COMPARTMENT_SUB  ""  
+		string MEASURED_CATEGORY  ""  
+	}
+
+	SAMPLES {
+		string SAMPLE_ID PK ""  
+		string SITE_CODE FK ""  
+		string SITE_NAME  ""  
+		string PARAMETER_NAME FK ""  
+		string PARAMETER_TYPE  ""  
+		string ENVIRON_COMPARTMENT  ""  
+		string ENVIRON_COMPARTMENT_SUB  ""  
+		string MEASURED_CATEGORY  ""  
+		string SAMPLING_DATE  ""  
+		string SUBSAMPLE  ""  
+		string SUBSAMPLE_ID  ""  
+	}
+
+	BIOTA {
+		string SAMPLE_ID FK ""  
+		string SITE_CODE  ""  
+		string PARAMETER_NAME  ""  
+		string ENVIRON_COMPARTMENT  ""  
+		string ENVIRON_COMPARTMENT_SUB  ""  
+		string MEASURED_CATEGORY  ""  
+		string SAMPLING_DATE  ""  
+		string SUBSAMPLE  ""  
+		string SPECIES_GROUP  ""  
+		string SAMPLE_SPECIES  ""  
+		string SAMPLE_TISSUE  ""  
+		string SAMPLE_SPECIES_LIFESTAGE  ""  
+		string SAMPLE_SPECIES_GENDER  ""  
+		string BIOTA_COMMENT  ""  
+	}
+
+	METHODS {
+		string PROTOCOL_ID PK ""  
+		string CAMPAIGN_NAME FK ""  
+		string PROTOCOL_CATEGORY  ""  
+		string PROTOCOL_NAME  ""  
+		string PROTOCOL_COMMENT  ""  
+	}
+
+	MEASUREMENTS {
+		string SITE_CODE FK ""  
+		string PARAMETER_NAME FK ""  
+		string SAMPLING_DATE  ""  
+		string ENVIRON_COMPARTMENT_SUB  ""  
+		string SUBSAMPLE  ""  
+		string MEASURED_FLAG  ""  
+		numeric MEASURED_VALUE  ""  
+		string UNCERTAINTY_TYPE  ""  
+		numeric UNCERTAINTY_UPPER  ""  
+		numeric UNCERTAINTY_LOWER  ""  
+		string MEASURED_UNIT  ""  
+		numeric MEASURED_N  ""  
+		numeric LOQ_VALUE  ""  
+		string LOQ_UNIT  ""  
+		numeric LOD_VALUE  ""  
+		string LOD_UNIT  ""  
+		string SAMPLING_PROTOCOL FK ""  
+		string EXTRACTION_PROTOCOL FK ""  
+		string FRACTIONATION_PROTOCOL FK ""  
+		string ANALYTICAL_PROTOCOL FK ""  
+		string REFERENCE_ID FK ""  
+		string SAMPLE_ID  ""  
+		string ENVIRON_COMPARTMENT  ""  
+		string PARAMETER_TYPE  ""  
+		string MEASURED_TYPE  ""  
+		string MEASUREMENT_COMMENT  ""  
+	}
+
+	REFERENCES {
+		string REFERENCE_ID PK ""  
+		string REFERENCE_TYPE  ""  
+		string DATA_SOURCE  ""  
+		string AUTHOR  ""  
+		string TITLE  ""  
+		integer YEAR  ""  
+		date ACCESS_DATE  ""  
+		string PERIODICAL_JOURNAL  ""  
+		integer VOLUME  ""  
+		integer ISSUE  ""  
+		string PUBLISHER  ""  
+		string INSTITUTION  ""  
+		string DOI  ""  
+		string URL  ""  
+		string ISBN_ISSN  ""  
+		string EDITION  ""  
+		string DOCUMENT_NUMBER  ""  
+		string REF_COMMENT  ""  
+	}
+
+	CREED_SCORES {
+		string REFERENCE_ID FK ""  
+		string SILVER_RELIABILITY  ""  
+		string SILVER_RELEVANCE  ""  
+		string GOLD_RELIABILITY  ""  
+		string GOLD_RELEVANCE  ""  
+	}
+
+	SITES||--o{SAMPLES:"has"
+	PARAMETERS||--o{SAMPLES:"measured_in"
+	SAMPLES||--o|BIOTA:"extends"
+	SAMPLES||--o{MEASUREMENTS:"generates"
+	SITES||--o{MEASUREMENTS:"location"
+	PARAMETERS||--o{MEASUREMENTS:"parameter"
+	METHODS||--o{MEASUREMENTS:"sampling_protocol"
+	METHODS||--o{MEASUREMENTS:"extraction_protocol"
+	METHODS||--o{MEASUREMENTS:"fractionation_protocol"
+	METHODS||--o{MEASUREMENTS:"analytical_protocol"
+	CAMPAIGN||--o{METHODS:"defines"
+	REFERENCES||--o{MEASUREMENTS:"documents"
+	REFERENCES||--o|CREED_SCORES:"assessed_by"
+	COMPARTMENTS}|--|{SAMPLES:"combinatorics"
+

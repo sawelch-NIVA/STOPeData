@@ -2,8 +2,10 @@
 # Doing this in one place makes it easier (but not easy) to keep things consistent.
 # The plan is that eventually all functions that are dependent on table format will
 # be based in some way on these functions. That may prove to be impractical. But it's a start.
+# I also mention a bunch of database TABLES. These don't actually exist yet, but are
+# useful for understanding the structure of the data
 # eData DRF Version - Not Tracked
-# Last Updated 2025.10.30
+# Last Updated 2025.11.17
 
 # -----------------------
 # ---- userData ----
@@ -81,7 +83,7 @@ initialise_userData <- function() {
 # ---- TABLE FORMATS ----
 # -----------------------
 
-#' Initialize Campaign Data Tibble
+#' Initialise Campaign Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for campaign data.
 #' Campaigns represent sampling projects or studies with metadata about timing,
@@ -91,7 +93,7 @@ initialise_userData <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_campaign_tibble <- function() {
-  # TODO: Implemented.
+  # Creates the CAMAPIGN table
   tibble(
     CAMPAIGN_NAME_SHORT = character(),
     CAMPAIGN_NAME = character(),
@@ -107,7 +109,7 @@ initialise_campaign_tibble <- function() {
   )
 }
 
-#' Initialize Biota Data Tibble
+#' Initialise Biota Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for biota data.
 #' Biota data extends sample information with species-specific details including
@@ -117,7 +119,7 @@ initialise_campaign_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_biota_tibble <- function() {
-  # TODO: Implemented.
+  # Used to construct the SAMPLES table if appropriate when biota are measured
   tibble(
     SAMPLE_ID = character(),
     SITE_CODE = character(),
@@ -136,79 +138,8 @@ initialise_biota_tibble <- function() {
   )
 }
 
-#' @title Summarise biota data
-#' @description Creates a summary string of biota including species, tissues, and life stages
-#' @param biotaData The biota dataset
-#' @param SPECIES_GROUP Logical. Include species group summary?
-#' @param SAMPLE_SPECIES Logical. Include sample species summary?
-#' @param SAMPLE_TISSUE Logical. Include tissue type summary?
-#' @param SAMPLE_SPECIES_LIFESTAGE Logical. Include life stage summary?
-#' @param SAMPLE_SPECIES_GENDER Logical. Include gender summary?
-#' @return Character string summarising biota, or "Relevant data not found"
-#' @export
-summarise_biota <- function(
-  biotaData,
-  SPECIES_GROUP = FALSE,
-  SAMPLE_SPECIES = FALSE,
-  SAMPLE_TISSUE = FALSE,
-  SAMPLE_SPECIES_LIFESTAGE = FALSE,
-  SAMPLE_SPECIES_GENDER = FALSE
-) {
-  # Helper function to check if a dataset exists and has content ----
-  dataset_exists <- function(dataset) {
-    isTruthy(dataset) && !all(is.na(dataset))
-  }
 
-  if (!dataset_exists(biotaData)) {
-    return("Relevant data not found")
-  }
-
-  # Build summary components ----
-  summary_parts <- character(0)
-
-  # Always include number of biota samples
-  n_biota <- nrow(biotaData)
-  summary_parts <- c(summary_parts, glue("{n_biota} biota samples"))
-
-  # Conditional summaries ----
-  if (SPECIES_GROUP && "SPECIES_GROUP" %in% names(biotaData)) {
-    species_groups <- summarise_multiple(
-      biotaData$SPECIES_GROUP,
-      "Species groups"
-    )
-    summary_parts <- c(summary_parts, species_groups)
-  }
-
-  if (SAMPLE_SPECIES && "SAMPLE_SPECIES" %in% names(biotaData)) {
-    species <- summarise_multiple(biotaData$SAMPLE_SPECIES, "Species")
-    summary_parts <- c(summary_parts, species)
-  }
-
-  if (SAMPLE_TISSUE && "SAMPLE_TISSUE" %in% names(biotaData)) {
-    tissues <- summarise_multiple(biotaData$SAMPLE_TISSUE, "Tissue types")
-    summary_parts <- c(summary_parts, tissues)
-  }
-
-  if (
-    SAMPLE_SPECIES_LIFESTAGE && "SAMPLE_SPECIES_LIFESTAGE" %in% names(biotaData)
-  ) {
-    lifestages <- summarise_multiple(
-      biotaData$SAMPLE_SPECIES_LIFESTAGE,
-      "Life stages"
-    )
-    summary_parts <- c(summary_parts, lifestages)
-  }
-
-  if (SAMPLE_SPECIES_GENDER && "SAMPLE_SPECIES_GENDER" %in% names(biotaData)) {
-    genders <- summarise_multiple(biotaData$SAMPLE_SPECIES_GENDER, "Genders")
-    summary_parts <- c(summary_parts, genders)
-  }
-
-  # Combine all parts ----
-  paste(summary_parts, collapse = ". ")
-}
-
-#' Initialize Compartments Data Tibble
+#' Initialise Compartments Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for environmental
 #' compartment data. Compartments define the environmental matrix and measurement
@@ -219,7 +150,7 @@ summarise_biota <- function(
 #' @importFrom tibble tibble
 #' @export
 initialise_compartments_tibble <- function() {
-  # TODO: Implemented.
+  # Used to construct the SAMPLES table
   tibble(
     ENVIRON_COMPARTMENT = character(),
     ENVIRON_COMPARTMENT_SUB = character(),
@@ -227,7 +158,7 @@ initialise_compartments_tibble <- function() {
   )
 }
 
-#' Initialize Methods Data Tibble
+#' Initialise Methods Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for analytical
 #' methods data. Methods describe the protocols used for sampling, extraction,
@@ -237,9 +168,9 @@ initialise_compartments_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_methods_tibble <- function() {
-  # TODO: Implemented partially - not yet used in create_method_entry()
+  # METHODS table
   tibble(
-    PROTOCOL_ID = character(),
+    PROTOCOL_ID = character(), # Primary Key
     CAMPAIGN_NAME = character(),
     PROTOCOL_CATEGORY = character(),
     PROTOCOL_NAME = character(),
@@ -247,7 +178,7 @@ initialise_methods_tibble <- function() {
   )
 }
 
-#' Initialize Parameters Data Tibble
+#' Initialise Parameters Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for parameter data.
 #' Parameters define chemical substances, physical properties, or biological markers
@@ -258,12 +189,12 @@ initialise_methods_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_parameters_tibble <- function() {
-  # TODO: Implemented.
+  # PARAMETERS table
   tibble(
     PARAMETER_TYPE = character(),
     PARAMETER_TYPE_SUB = character(),
     MEASURED_TYPE = character(),
-    PARAMETER_NAME = character(),
+    PARAMETER_NAME = character(), # Primary Key
     PARAMETER_NAME_SUB = character(),
     INCHIKEY_SD = character(),
     PUBCHEM_CID = integer(),
@@ -273,7 +204,7 @@ initialise_parameters_tibble <- function() {
   )
 }
 
-#' Initialize References Data Tibble
+#' Initialise References Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for reference data.
 #' References provide bibliographic information for data sources including journals,
@@ -283,9 +214,9 @@ initialise_parameters_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_references_tibble <- function() {
-  # TODO: Not yet implemented.
+  # REFERENCES table
   tibble(
-    REFERENCE_ID = character(),
+    REFERENCE_ID = character(), # Primary Key
     REFERENCE_TYPE = character(),
     DATA_SOURCE = character(),
     AUTHOR = character(),
@@ -306,7 +237,7 @@ initialise_references_tibble <- function() {
   )
 }
 
-#' Initialize Samples Data Tibble
+#' Initialise Samples Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for sample data.
 #' Samples represent individual collections from sites with temporal, spatial,
@@ -316,7 +247,7 @@ initialise_references_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_samples_tibble <- function() {
-  # TODO: Implemented.
+  # Used to construct MEASUREMENTS table
   tibble(
     SITE_CODE = character(),
     SITE_NAME = character(),
@@ -328,11 +259,11 @@ initialise_samples_tibble <- function() {
     SAMPLING_DATE = character(),
     SUBSAMPLE = character(),
     SUBSAMPLE_ID = character(),
-    SAMPLE_ID = character()
+    SAMPLE_ID = character() # Key
   )
 }
 
-#' Initialize Sites Data Tibble
+#' Initialise Sites Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for site data.
 #' Sites represent sampling locations with geographic coordinates, administrative
@@ -342,9 +273,9 @@ initialise_samples_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_sites_tibble <- function() {
-  # TODO: Implemented
+  # Used to construct SITES table
   tibble(
-    SITE_CODE = character(),
+    SITE_CODE = character(), # Primary Key
     SITE_NAME = character(),
     SITE_GEOGRAPHIC_FEATURE = character(),
     SITE_GEOGRAPHIC_FEATURE_SUB = character(),
@@ -361,20 +292,20 @@ initialise_sites_tibble <- function() {
   )
 }
 
-#' Initialize Measurements Data Tibble
+#' Initialise Measurements Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for measurements data.
 #'
 #' @return A tibble with 0 rows and standardised measurement columns
 #' @importFrom tibble tibble
 #' @export
-## Initialize measurement combinations data frame ----
-# Fix: Not Implemented.
-
+## Initialise measurement combinations data frame ----
 initialise_measurements_tibble <- function() {
+  # Used to construct MEASURMENTS table
+  # Merges SAMPLES, COMPARTMENTS, BIOTA
   tibble(
-    SITE_CODE = character(),
-    PARAMETER_NAME = character(),
+    SITE_CODE = character(), # Foreign key
+    PARAMETER_NAME = character(), # Foreign key
     SAMPLING_DATE = character(),
     ENVIRON_COMPARTMENT_SUB = character(),
     SUBSAMPLE = character(),
@@ -389,11 +320,12 @@ initialise_measurements_tibble <- function() {
     LOQ_UNIT = character(),
     LOD_VALUE = numeric(),
     LOD_UNIT = character(),
-    SAMPLING_PROTOCOL = character(),
-    EXTRACTION_PROTOCOL = character(),
-    FRACTIONATION_PROTOCOL = character(),
-    ANALYTICAL_PROTOCOL = character(),
-    REFERENCE_ID = character(),
+    SAMPLING_PROTOCOL = character(), # Foreign key
+    EXTRACTION_PROTOCOL = character(), # Foreign key
+    FRACTIONATION_PROTOCOL = character(), # Foreign key
+    ANALYTICAL_PROTOCOL = character(), # Foreign key
+    # These variables are not immediately relevant to measurement entry, so we shuffle them to the back
+    REFERENCE_ID = character(), # Foreign key
     SAMPLE_ID = character(),
     ENVIRON_COMPARTMENT = character(),
     PARAMETER_TYPE = character(),
@@ -402,16 +334,15 @@ initialise_measurements_tibble <- function() {
   )
 }
 
-#' Initialize CREED Scores Tibble
+#' Initialise CREED Scores Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for CREED scores.
 #'
 #' @return A tibble with 0 rows and standardised CREED columns
 #' @importFrom tibble tibble
 #' @export
-# Fix: Not Implemented.
-
 initialise_CREED_scores_tibble <- function() {
+  # Used to construct CREED SCORES table
   tibble(
     REFERENCE_ID = character(),
     SILVER_RELIABILITY = character(),
@@ -743,7 +674,7 @@ species_names_vocabulary <- function() {
 }
 
 
-#' Initialize Tissue Types Controlled Vocabulary
+#' Initialise Tissue Types Controlled Vocabulary
 #'
 #' Returns controlled vocabulary options for sample tissue types.
 #'
@@ -782,7 +713,7 @@ tissue_types_vocabulary <- function() {
   )
 }
 
-#' Initialize Life Stages Controlled Vocabulary
+#' Initialise Life Stages Controlled Vocabulary
 #'
 #' Returns controlled vocabulary options for sample species life stages.
 #'
@@ -805,7 +736,7 @@ lifestage_vocabulary <- function() {
   )
 }
 
-#' Initialize Gender Controlled Vocabulary
+#' Initialise Gender Controlled Vocabulary
 #'
 #' Returns controlled vocabulary options for sample species gender.
 #'
