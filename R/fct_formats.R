@@ -655,8 +655,14 @@ measured_categories_vocabulary <- function() {
 #' @importFrom tibble tibble
 #' @importFrom arrow read_parquet
 species_names_vocabulary <- function() {
+  species_file <- system.file(
+    "data/clean/ecotox_2025_06_12_species.parquet",
+    package = "STOPeData", # replace with actual package name
+    mustWork = TRUE # throws error if file doesn't exist
+  )
+
   read_parquet(
-    "inst/data/clean/ecotox_2025_06_12_species.parquet"
+    "species_file"
   ) |>
     mutate(
       SPECIES_COMMON_NAME = common_name,
