@@ -11,3 +11,4 @@ rsconnect/
 cite.r
 .vscode/tasks.json
 *.pdf
+.env

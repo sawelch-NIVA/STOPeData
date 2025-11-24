@@ -1,0 +1,43 @@
+# Install pak
+install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))
+
+# Install all packages in one call for better dependency resolution
+pak::pkg_install(c(
+  "devtools",
+  "ISOcodes",
+  "dplyr",
+  "shiny",
+  "DT",
+  "arrow",
+  "bsicons",
+  "bslib",
+  "ellmer",
+  "ggplot2",
+  "glue",
+  "golem",
+  "googledrive",
+  "htmltools",
+  "httr",
+  "jsonlite",
+  "leaflet",
+  "openxlsx2",
+  "plotly",
+  "purrr",
+  "rcrossref",
+  "readr",
+  "rhandsontable",
+  "shinyWidgets",
+  "shinyjs",
+  "shinyvalidate",
+  "stringi",
+  "stringr",
+  "tibble",
+  "tidyr",
+  "xml2",
+  "yaml",
+  "zip",
+  "bib2df",
+  "lubridate",
+  "markdown",
+  "shinytest2"
+))

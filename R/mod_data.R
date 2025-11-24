@@ -351,9 +351,8 @@ mod_data_server <- function(id, parent_session) {
         # CHANGED: Use validation flag as primary check
         if (
           name == "Biota" &&
-            "Biota" %notin%
-              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT
-        ) {
+           !("Biota" %in% session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT))
+         {
           # No biota samples detected - auto-validate
           message <- "No biota samples detected - Auto-validated"
           ready <- TRUE
