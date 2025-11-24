@@ -280,36 +280,6 @@ mod_sites_server <- function(id) {
 
     iv$enable()
 
-    # 2. Helper functions ----
-
-    ## Create new site row with defaults ----
-    create_new_site <- function(site_number = 1, base_code = "", session) {
-      # Generate site code
-      if (base_code == "" || is.null(base_code)) {
-        site_code <- paste0("SITE_", sprintf("%03d", site_number))
-      } else {
-        site_code <- paste0(base_code, sprintf("%03d", site_number))
-      }
-
-      initialise_sites_tibble() |>
-        add_row(
-          SITE_CODE = site_code,
-          SITE_NAME = "",
-          SITE_GEOGRAPHIC_FEATURE = "Not reported",
-          SITE_GEOGRAPHIC_FEATURE_SUB = "Not reported",
-          SITE_COORDINATE_SYSTEM = "WGS 84",
-          LATITUDE = NA,
-          LONGITUDE = NA,
-          COUNTRY_ISO = "",
-          OCEAN_IHO = "",
-          ALTITUDE_VALUE = NA,
-          ALTITUDE_UNIT = "m",
-          ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
-          ENTERED_DATE = as.character(Sys.Date()),
-          SITE_COMMENT = ""
-        )
-    }
-
     # 3. Observers and Reactives ----
 
     ## observe: Track table row selection ----
@@ -342,7 +312,7 @@ mod_sites_server <- function(id) {
         create_new_site(
           site_number = i,
           base_code = base_code,
-          username = session$userData$reactiveValues$ENTERED_BY
+          session = session
         )
       })
 
@@ -423,11 +393,12 @@ mod_sites_server <- function(id) {
     observe({
       req(moduleState$clicked_coords)
 
+      browser()
       # Create new site with map coordinates
       new_site <- create_new_site(
         site_number = moduleState$next_site_id,
         base_code = input$base_site_code,
-        username = session$userData$reactiveValues$ENTERED_BY
+        session = session
       )
 
       # Set coordinates from map click
