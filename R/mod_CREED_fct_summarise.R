@@ -160,8 +160,8 @@ summarise_protocols <- function(methodsData, categories) {
 #' @title Summarise sites data
 #' @description Creates a summary string of sites including countries and areas
 #' @param sitesData The sites dataset
-#' @param COUNTRY Logical. Include country summary?
-#' @param AREA Logical. Include area summary?
+#' @param COUNTRY_ISO Logical. Include country summary?
+#' @param OCEAN_IHO Logical. Include area summary?
 #' @param SITE_GEOGRAPHIC_FEATURE Logical. Include geographic feature summary?
 #' @param SITE_GEOGRAPHIC_FEATURE_SUB Logical. Include geographic feature sub summary?
 #' @param PRECISION Logical. Include coordinate precision?
@@ -169,8 +169,8 @@ summarise_protocols <- function(methodsData, categories) {
 #' @export
 summarise_sites <- function(
   sitesData,
-  COUNTRY = FALSE,
-  AREA = FALSE,
+  COUNTRY_ISO = FALSE,
+  OCEAN_IHO = FALSE,
   SITE_GEOGRAPHIC_FEATURE = FALSE,
   SITE_GEOGRAPHIC_FEATURE_SUB = FALSE,
   PRECISION = FALSE
@@ -192,13 +192,13 @@ summarise_sites <- function(
   summary_parts <- c(summary_parts, glue("{n_sites} sites"))
 
   # Conditional summaries
-  if (COUNTRY && "COUNTRY" %in% names(sitesData)) {
-    countries <- summarise_multiple(sitesData$COUNTRY, "Countries")
+  if (COUNTRY_ISO && "COUNTRY_ISO" %in% names(sitesData)) {
+    countries <- summarise_multiple(sitesData$COUNTRY_ISO, "Countries")
     summary_parts <- c(summary_parts, countries)
   }
 
-  if (AREA && "AREA" %in% names(sitesData)) {
-    areas <- summarise_multiple(sitesData$AREA, "Areas")
+  if (OCEAN_IHO && "OCEAN_IHO" %in% names(sitesData)) {
+    areas <- summarise_multiple(sitesData$OCEAN_IHO, "Areas")
     summary_parts <- c(summary_parts, areas)
   }
 

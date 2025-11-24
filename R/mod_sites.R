@@ -300,8 +300,8 @@ mod_sites_server <- function(id) {
           SITE_COORDINATE_SYSTEM = "WGS 84",
           LATITUDE = NA,
           LONGITUDE = NA,
-          COUNTRY = "",
-          AREA = "",
+          COUNTRY_ISO = "",
+          OCEAN_IHO = "",
           ALTITUDE_VALUE = NA,
           ALTITUDE_UNIT = "m",
           ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
@@ -667,7 +667,7 @@ mod_sites_server <- function(id) {
           comment = "Longitude: The site's longitude (easting, x axis, in decimal degrees)"
         ) |>
         hot_col(
-          "COUNTRY",
+          "COUNTRY_ISO",
           type = "dropdown",
           source = countries_vocabulary(),
           strict = TRUE
@@ -675,10 +675,10 @@ mod_sites_server <- function(id) {
         hot_cell(
           1,
           8,
-          comment = 'Country: The country where the site was sampled.'
+          comment = 'Country (ISO): The country where the site was sampled, if relevant..'
         ) |>
         hot_col(
-          "AREA",
+          "OCEAN_IHO",
           type = "dropdown",
           source = areas_vocabulary(),
           strict = TRUE
@@ -686,7 +686,7 @@ mod_sites_server <- function(id) {
         hot_cell(
           1,
           9,
-          comment = 'Area: The region where the site was sampled.'
+          comment = 'Ocean (IHO): The IHO ocean or sea sampled, if relevant..'
         ) |>
         hot_col(
           "ALTITUDE_VALUE",

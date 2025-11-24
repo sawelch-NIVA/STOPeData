@@ -26,8 +26,11 @@ get_gateway_summaries <- function(module_data) {
     },
 
     location = if (!is.null(module_data$sites)) {
-      countries <- summarise_multiple(module_data$sites$COUNTRY, "Countries")
-      areas <- summarise_multiple(module_data$sites$AREA, "Areas")
+      countries <- summarise_multiple(
+        module_data$sites$COUNTRY_ISO,
+        "Countries"
+      )
+      areas <- summarise_multiple(module_data$sites$OCEAN_IHO, "Areas")
       paste(countries, areas, sep = "; ")
     } else {
       "Relevant data not found"
@@ -74,9 +77,13 @@ check_gateway_availability <- function(module_data) {
 
     location = !is.null(module_data$sites) &&
       (any(
-        !is.na(module_data$sites$COUNTRY) & module_data$sites$COUNTRY != ""
+        !is.na(module_data$sites$COUNTRY_ISO) &
+          module_data$sites$COUNTRY_ISO != ""
       ) ||
-        any(!is.na(module_data$sites$AREA) & module_data$sites$AREA != "")),
+        any(
+          !is.na(module_data$sites$OCEAN_IHO) &
+            module_data$sites$OCEAN_IHO != ""
+        )),
 
     year = !is.null(module_data$samples) &&
       any(!is.na(module_data$samples$SAMPLING_DATE)),
@@ -149,10 +156,10 @@ summarise_CREED_details <- function(sessionData) {
 
   study_area_value <- if (has_sites) {
     countries <- summarise_multiple(
-      sessionData$sitesData$COUNTRY,
+      sessionData$sitesData$COUNTRY_ISO,
       "Countries"
     )
-    areas <- summarise_multiple(sessionData$sitesData$AREA, "Areas")
+    areas <- summarise_multiple(sessionData$sitesData$OCEAN_IHO, "Areas")
     paste(countries, areas, sep = "; ")
   } else {
     "Relevant data not found"
@@ -597,8 +604,8 @@ summarise_CREED_reliability <- function(sessionData) {
   # RB4: Summary of all sites ----
   RB4_value <- summarise_sites(
     sessionData$sitesData,
-    COUNTRY = TRUE,
-    AREA = TRUE,
+    COUNTRY_ISO = TRUE,
+    OCEAN_IHO = TRUE,
     SITE_GEOGRAPHIC_FEATURE = TRUE,
     SITE_GEOGRAPHIC_FEATURE_SUB = TRUE,
     PRECISION = TRUE
@@ -729,8 +736,8 @@ summarise_CREED_relevance <- function(sessionData) {
   # RV3: Site number, country, area, lat/long precision
   RV3_value <- summarise_sites(
     sessionData$sitesData,
-    COUNTRY = TRUE,
-    AREA = TRUE,
+    COUNTRY_ISO = TRUE,
+    OCEAN_IHO = TRUE,
     PRECISION = TRUE
   )
 

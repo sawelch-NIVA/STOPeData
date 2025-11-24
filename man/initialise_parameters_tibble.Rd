@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_parameters_tibble}
 \alias{initialise_parameters_tibble}
-\title{Initialize Parameters Data Tibble}
+\title{Initialise Parameters Data Tibble}
 \usage{
 initialise_parameters_tibble()
 }

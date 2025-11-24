@@ -219,8 +219,8 @@ create_dummy_module_data <- function() {
 
     sites = tibble(
       SITE_ID = c("S1", "S2", "S3"),
-      COUNTRY = c("Norway", "Norway", "Sweden"),
-      AREA = c("Oslo", "Bergen", "Stockholm"),
+      COUNTRY_ISO = c("Norway", "Norway", "Sweden"),
+      OCEAN_IHO = c("Oslo", "Bergen", "Stockholm"),
       SITE_GEOGRAPHIC_FEATURE = c("Fjord", "Fjord", "Lake"),
       SITE_GEOGRAPHIC_FEATURE_SUB = c("Inner", "Outer", "Shallow"),
       LATITUDE = c(59.9139, 60.3913, 59.3293),

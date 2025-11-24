@@ -6,8 +6,8 @@
 \usage{
 summarise_sites(
   sitesData,
-  COUNTRY = FALSE,
-  AREA = FALSE,
+  COUNTRY_ISO = FALSE,
+  OCEAN_IHO = FALSE,
   SITE_GEOGRAPHIC_FEATURE = FALSE,
   SITE_GEOGRAPHIC_FEATURE_SUB = FALSE,
   PRECISION = FALSE
@@ -16,9 +16,9 @@ summarise_sites(
 \arguments{
 \item{sitesData}{The sites dataset}
 
-\item{COUNTRY}{Logical. Include country summary?}
+\item{COUNTRY_ISO}{Logical. Include country summary?}
 
-\item{AREA}{Logical. Include area summary?}
+\item{OCEAN_IHO}{Logical. Include area summary?}
 
 \item{SITE_GEOGRAPHIC_FEATURE}{Logical. Include geographic feature summary?}
 

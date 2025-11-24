@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_methods_tibble}
 \alias{initialise_methods_tibble}
-\title{Initialize Methods Data Tibble}
+\title{Initialise Methods Data Tibble}
 \usage{
 initialise_methods_tibble()
 }

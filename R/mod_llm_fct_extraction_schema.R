@@ -106,13 +106,15 @@ create_sites_schema <- function() {
         description = "Longitude in decimal degrees (-180 to 180) - ONLY if explicitly stated in document",
         required = FALSE
       ),
-      country = type_string(
-        description = "Country where site is located - ONLY if explicitly stated",
+      country_iso = type_string(
+        description = "Country where (terrestrial) site is located. 
+        In case of site at the land-sea interface, return both country and IHO ocean/sea. If a purely oceanic sampling site, return Not relevant",
         required = FALSE
       ),
-      area = type_string(
+      ocean_iho = type_string(
         description = as.character(glue(
-          "International ocean or sea, if relevant. For territorial waters, return Not relevant.: {paste(areas_vocabulary(), collapse = ', ')}"
+          "Ocean or sea where (marine) site is located. In case of site at the land-sea interface, return both country and IHO ocean/sea. 
+          If purely terrestrial, return Not relevant..: {paste(areas_vocabulary(), collapse = ', ')}"
         )),
         required = FALSE
       ),

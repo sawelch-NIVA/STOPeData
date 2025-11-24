@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_samples_tibble}
 \alias{initialise_samples_tibble}
-\title{Initialize Samples Data Tibble}
+\title{Initialise Samples Data Tibble}
 \usage{
 initialise_samples_tibble()
 }

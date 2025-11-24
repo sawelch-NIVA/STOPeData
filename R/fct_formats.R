@@ -279,8 +279,8 @@ initialise_sites_tibble <- function() {
     SITE_NAME = character(),
     SITE_GEOGRAPHIC_FEATURE = character(),
     SITE_GEOGRAPHIC_FEATURE_SUB = character(),
-    COUNTRY = character(),
-    AREA = character(),
+    COUNTRY_ISO = character(),
+    OCEAN_IHO = character(),
     LATITUDE = numeric(),
     LONGITUDE = numeric(),
     SITE_COORDINATE_SYSTEM = character(),
@@ -436,7 +436,6 @@ countries_vocabulary <- function() {
   c(
     "Not relevant",
     "Not reported",
-    "Other/Not a Country",
     ISOcodes::ISO_3166_1$Name
   )
 }

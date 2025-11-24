@@ -33,8 +33,8 @@ test_that("calculate_coordinate_precision returns N/A for all NA", {
 test_that("summarise_sites returns full summary with all parameters TRUE", {
   result <- summarise_sites(
     dummy$sites,
-    COUNTRY = TRUE,
-    AREA = TRUE,
+    COUNTRY_ISO = TRUE,
+    OCEAN_IHO = TRUE,
     SITE_GEOGRAPHIC_FEATURE = TRUE,
     SITE_GEOGRAPHIC_FEATURE_SUB = TRUE,
     PRECISION = TRUE
@@ -49,8 +49,8 @@ test_that("summarise_sites returns full summary with all parameters TRUE", {
 test_that("summarise_sites respects FALSE parameters", {
   result <- summarise_sites(
     dummy$sites,
-    COUNTRY = FALSE,
-    AREA = FALSE,
+    COUNTRY_ISO = FALSE,
+    OCEAN_IHO = FALSE,
     PRECISION = FALSE
   )
   expect_match(result, "3 sites")
@@ -63,8 +63,8 @@ test_that("summarise_sites handles coordinate precision correctly", {
   # Create custom test data with varying decimal places
   test_coords <- tibble(
     SITE_ID = c("S1", "S2", "S3"),
-    COUNTRY = c("Norway", "Norway", "Sweden"),
-    AREA = c("Oslo", "Bergen", "Stockholm"),
+    COUNTRY_ISO = c("Norway", "Norway", "Sweden"),
+    OCEAN_IHO = c("Oslo", "Bergen", "Stockholm"),
     SITE_GEOGRAPHIC_FEATURE = c("Fjord", "Fjord", "Lake"),
     SITE_GEOGRAPHIC_FEATURE_SUB = c("Inner", "Outer", "Shallow"),
     LATITUDE = c(60.1, 60.12, 60.123),

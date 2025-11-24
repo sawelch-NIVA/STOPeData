@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_sites_tibble}
 \alias{initialise_sites_tibble}
-\title{Initialize Sites Data Tibble}
+\title{Initialise Sites Data Tibble}
 \usage{
 initialise_sites_tibble()
 }

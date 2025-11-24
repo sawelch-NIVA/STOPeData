@@ -300,8 +300,8 @@ create_sites_from_llm <- function(
         "longitude",
         NA
       )),
-      COUNTRY = safe_extract_field(site, "country", "Not reported"),
-      AREA = safe_extract_field(site, "country", "Area"),
+      COUNTRY_ISO = safe_extract_field(site, "country_iso", "Not reported"),
+      OCEAN_IHO = safe_extract_field(site, "ocean_iho", "Not reported"),
       ALTITUDE_VALUE = 0, # not currently extracted
       ALTITUDE_UNIT = "m",
       ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",

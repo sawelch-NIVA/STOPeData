@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_campaign_tibble}
 \alias{initialise_campaign_tibble}
-\title{Initialize Campaign Data Tibble}
+\title{Initialise Campaign Data Tibble}
 \usage{
 initialise_campaign_tibble()
 }

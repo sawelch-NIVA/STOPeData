@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{lifestage_vocabulary}
 \alias{lifestage_vocabulary}
-\title{Initialize Life Stages Controlled Vocabulary}
+\title{Initialise Life Stages Controlled Vocabulary}
 \usage{
 lifestage_vocabulary()
 }

@@ -71,6 +71,19 @@ mod_llm_ui <- function(id) {
             placeholder = "sk-ant-...",
             width = "100%"
           ),
+          ### max_tokens input ----
+          numericInput(
+            inputId = ns("max_tokens"),
+            label = tooltip(
+              list("Max Tokens", bs_icon("info-circle-fill")),
+              "Defines the quantity of information the extraction returns. 6000 is a sensible default, but longer papers may need more. This will increase cost, so use sparingly."
+            ),
+            value = 6000,
+            min = 1000,
+            max = 20000,
+            step = 1000,
+            width = "100%"
+          )
         ),
 
         ## Prompt and Schema Configuration ----
@@ -337,7 +350,7 @@ mod_llm_server <- function(id) {
             incProgress(0.01, detail = "Preparing extraction...")
             chat <- chat_anthropic(
               model = "claude-sonnet-4-20250514",
-              params = params(max_tokens = 6000)
+              params = params(max_tokens = input$max_tokens) # Changed from 6000
             )
 
             extraction_schema <- create_extraction_schema()

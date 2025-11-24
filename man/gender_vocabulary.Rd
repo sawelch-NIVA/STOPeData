@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{gender_vocabulary}
 \alias{gender_vocabulary}
-\title{Initialize Gender Controlled Vocabulary}
+\title{Initialise Gender Controlled Vocabulary}
 \usage{
 gender_vocabulary()
 }

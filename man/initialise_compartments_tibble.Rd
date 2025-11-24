@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_compartments_tibble}
 \alias{initialise_compartments_tibble}
-\title{Initialize Compartments Data Tibble}
+\title{Initialise Compartments Data Tibble}
 \usage{
 initialise_compartments_tibble()
 }

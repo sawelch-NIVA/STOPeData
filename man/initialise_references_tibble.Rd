@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_references_tibble}
 \alias{initialise_references_tibble}
-\title{Initialize References Data Tibble}
+\title{Initialise References Data Tibble}
 \usage{
 initialise_references_tibble()
 }

@@ -1,10 +1,11 @@
 ##### Convenience
 - Download extracted/entered data as a .zip of CSVs, then reupload via the landing page to continue later.
 - The app should now crash less often, and return at least vaguely informative error notifications when something does go wrong.
-- Increased LLM token size limit. We can extract more data, but the cost per paper has doubled to $0.20.
+- Added a manual field for setting extraction token limit (i.e. maximum document size). Not tested a great deal, but for one paper (15 pages) I had to bump the limit up to 10,000 to get data out.
 
 ##### Sites
 - When adding sites from the map you can now choose what precision to report coordinates at.
+- Replaced COUNTRY with COUNTRY_ISO and AREA with OCEAN_IHO
 
 ##### Compartments
 - Added *Aquatic Sediment*, *Sludge*, and *Porewater* as subcompartments of *Aquatic*
