@@ -327,6 +327,7 @@ initialise_measurements_tibble <- function() {
     # These variables are not immediately relevant to measurement entry, so we shuffle them to the back
     REFERENCE_ID = character(), # Foreign key
     SAMPLE_ID = character(),
+    CAMPAIGN_NAME_SHORT = character(),
     ENVIRON_COMPARTMENT = character(),
     PARAMETER_TYPE = character(),
     MEASURED_TYPE = character(),

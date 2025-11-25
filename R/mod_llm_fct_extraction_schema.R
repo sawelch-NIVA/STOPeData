@@ -107,7 +107,7 @@ create_sites_schema <- function() {
         required = FALSE
       ),
       country_iso = type_string(
-        description = "Country where (terrestrial) site is located. 
+        description = "ISO Country where (terrestrial) site is located. Use full name (ISO 3166 and not codes (3166-2)) 
         In case of site at the land-sea interface, return both country and IHO ocean/sea. If a purely oceanic sampling site, return Not relevant",
         required = FALSE
       ),

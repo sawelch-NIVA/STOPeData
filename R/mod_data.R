@@ -457,10 +457,16 @@ mod_data_server <- function(id, parent_session) {
       # entering a username, our attempt to get a reference id will
       # fail. But this is a very unlikely chain of events, so we can
       # probably just slap a temporary patch on it.
-      reference_id <- if (nrow(reference_data == 0)) {
+      reference_id <- if (nrow(reference_data) == 0) {
         "UnknownReference"
       } else {
         reference_data$REFERENCE_ID
+      }
+
+      campaign <- if (nrow(campaign_data) == 0) {
+        "Unknown Campaign"
+      } else {
+        campaign_data$CAMPAIGN_NAME_SHORT
       }
 
       # Add campaign and reference info
@@ -486,6 +492,7 @@ mod_data_server <- function(id, parent_session) {
           ANALYTICAL_PROTOCOL = first_analytical[1],
 
           REFERENCE_ID = reference_id,
+          CAMPAIGN_NAME_SHORT = campaign,
         ) |>
         relocate(SAMPLE_ID, ENVIRON_COMPARTMENT, .after = REFERENCE_ID)
 

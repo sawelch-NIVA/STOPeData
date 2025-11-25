@@ -486,6 +486,10 @@ mod_methods_server <- function(id) {
         width = NULL
       ) |>
         hot_table(overflow = "visible", stretchH = "all") |>
+        hot_cols(
+          manualColumnResize = TRUE,
+          colWidths = c(100, 100, 100, 200, 600)
+        ) |>
         hot_col(
           "PROTOCOL_ID",
           readOnly = TRUE,

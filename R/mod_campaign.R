@@ -68,7 +68,7 @@ mod_campaign_ui <- function(id) {
             inputId = ns("CAMPAIGN_START_DATE"),
             label = tooltip(
               list("Campaign Start Date", bs_icon("info-circle-fill")),
-              "The official or actual data of first sampling."
+              "The official or actual date of first sampling. Use ISO date format (YYYY-MM-DD)."
             ),
             value = as.Date(NA),
             format = "yyyy-mm-dd",
@@ -81,7 +81,7 @@ mod_campaign_ui <- function(id) {
             inputId = ns("CAMPAIGN_END_DATE"),
             label = tooltip(
               list("Campaign End Date", bs_icon("info-circle-fill")),
-              "The latest date of sampling or analysis."
+              "The latest date of sampling or analysis. Use ISO date format (YYYY-MM-DD)."
             ),
             value = as.Date(NA),
             format = "yyyy-mm-dd",
@@ -125,7 +125,7 @@ mod_campaign_ui <- function(id) {
             inputId = ns("CONFIDENTIALITY_EXPIRY_DATE"),
             label = tooltip(
               list("Confidentiality Expiry Date", bs_icon("info-circle-fill")),
-              "The date at which the data leaves embargo or ceases to be confidential."
+              "The date at which the data leaves embargo or ceases to be confidential. Use ISO date format (YYYY-MM-DD)."
             ),
             value = NA,
             format = "yyyy-mm-dd",
@@ -149,7 +149,7 @@ mod_campaign_ui <- function(id) {
             inputId = ns("ENTERED_DATE"),
             label = tooltip(
               list("Entered Date", bs_icon("info-circle-fill")),
-              "The date you are entering this data into the app."
+              "The date you are entering this data into the app. Use ISO date format (YYYY-MM-DD)."
             ),
             value = Sys.Date(),
             format = "yyyy-mm-dd",
