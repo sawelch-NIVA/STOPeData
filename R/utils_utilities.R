@@ -83,7 +83,7 @@ printreactiveValues <- function(data) {
 #'
 #' @export
 #' @importFrom bslib card card_body accordion accordion_panel
-#' @importFrom htmltools includeMarkdown
+#' @importFrom htmltools includeMarkdown tags HTML
 #' @importFrom glue glue
 info_accordion <- function(title = "Instructions", content_file, ...) {
   accordion(
@@ -91,7 +91,16 @@ info_accordion <- function(title = "Instructions", content_file, ...) {
       title,
       icon = bs_icon("info-circle"),
       if (!is.null(content_file)) {
-        includeMarkdown(content_file)
+        tagList(
+          includeMarkdown(content_file),
+          tags$script(HTML(
+            "
+            $(document).ready(function() {
+              $('a').attr('target', '_blank').attr('rel', 'noopener noreferrer');
+            });
+          "
+          ))
+        )
       } else {
         p(glue("MD file {content_file} not found."))
       },
