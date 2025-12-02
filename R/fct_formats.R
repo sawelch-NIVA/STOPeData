@@ -43,8 +43,8 @@ initialise_userData <- function() {
 
     # CREED Data
     datasetDetails = tibble(NULL),
-    creedRelevance = tibble(NULL),
-    creedReliability = tibble(NULL),
+    creedRelevance = initialise_CREED_data_tibble(),
+    creedReliability = initialise_CREED_data_tibble(),
     creedScores = initialise_CREED_scores_tibble(),
     creedReport = "",
 
@@ -350,6 +350,27 @@ initialise_CREED_scores_tibble <- function() {
     SILVER_RELEVANCE = character(),
     GOLD_RELIABILITY = character(),
     GOLD_RELEVANCE = character()
+  )
+}
+
+#' Initialise CREED Scores Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for CREED
+#' criterion scores. Used by both reliability and relevance modules to ensure
+#' consistent data structure. This isn't a part of the externally-available
+#' table structure, but we want to make sure it's harmonised locally anyway
+#'
+#' @return A tibble with 0 rows and standardised CREED score columns
+#' @importFrom tibble tibble
+#' @export
+initialise_CREED_data_tibble <- function() {
+  tibble(
+    criterion_id = character(),
+    criterion_title = character(),
+    required_recommended = character(),
+    relevant_data = character(),
+    score = character(),
+    limitations = character()
   )
 }
 
@@ -1053,6 +1074,7 @@ measured_flags_vocabulary <- function() {
 #'
 #' @description Returns the standardised CREED assessment scoring options
 #' @return Named character vector with CREED scoring choices
+# FIXME: Why isn't "Not Relevant" showing up as an option?
 CREED_choices_vocabulary <- function() {
   c(
     "Not Met" = 4,

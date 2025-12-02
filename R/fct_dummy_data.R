@@ -1,5 +1,442 @@
 # Dummy Data Creation Functions ----
 # Functions for creating test/demonstration data
+# These functions depend on their initialise_* parents in fct_formats.R
+# to ensure column structure consistency
+
+# =========================================================================
+# DUMMY TIBBLE FUNCTIONS
+# =========================================================================
+# Each function creates a small tibble with realistic test data
+# using add_row() on the parent initialise_*_tibble() to ensure
+# column structure compatibility
+# =========================================================================
+
+#' Create Dummy Campaign Tibble
+#'
+#' @description Creates a 1-row campaign tibble with test data.
+#' Inherits column structure from initialise_campaign_tibble().
+#'
+#' @return A tibble with 1 row of dummy campaign data
+#' @importFrom tibble add_row
+#' @importFrom dplyr mutate across
+#' @importFrom tidyselect where
+#' @export
+dummy_campaign_tibble <- function() {
+  initialise_campaign_tibble() |>
+    add_row(
+      CAMPAIGN_NAME_SHORT = "TestCamp2023",
+      CAMPAIGN_NAME = "Test Campaign 2023: Heavy Metals in Coastal Sediments",
+      CAMPAIGN_START_DATE = as.Date("2023-01-15"),
+      CAMPAIGN_END_DATE = as.Date("2023-06-30"),
+      RELIABILITY_SCORE = NA_character_,
+      RELIABILITY_EVAL_SYS = NA_character_,
+      CONFIDENTIALITY_EXPIRY_DATE = as.Date(NA),
+      ORGANISATION = "NIVA",
+      ENTERED_BY = "test_user",
+      ENTERED_DATE = as.Date("2023-07-01"),
+      CAMPAIGN_COMMENT = "Dummy campaign for testing purposes"
+    )
+}
+
+#' Create Dummy References Tibble
+#'
+#' @description Creates a 1-row references tibble with test data.
+#' Inherits column structure from initialise_references_tibble().
+#'
+#' @return A tibble with 1 row of dummy reference data
+#' @importFrom tibble add_row
+#' @export
+dummy_references_tibble <- function() {
+  initialise_references_tibble() |>
+    add_row(
+      REFERENCE_ID = "REF-001",
+      REFERENCE_TYPE = "Journal Article",
+      DATA_SOURCE = "Primary",
+      AUTHOR = "Smith, J.; Jones, A.; Williams, B.",
+      TITLE = "Heavy metal contamination in Norwegian coastal sediments",
+      YEAR = 2023L,
+      ACCESS_DATE = as.Date(NA),
+      PERIODICAL_JOURNAL = "Environmental Science & Technology",
+      VOLUME = 57L,
+      ISSUE = 12L,
+      PUBLISHER = NA_character_,
+      INSTITUTION = NA_character_,
+      DOI = "10.1021/acs.est.2023.12345",
+      URL = NA_character_,
+      ISBN_ISSN = NA_character_,
+      EDITION = NA_character_,
+      DOCUMENT_NUMBER = NA_character_,
+      REF_COMMENT = "Dummy reference for testing"
+    )
+}
+
+#' Create Dummy Sites Tibble
+#'
+#' @description Creates a 2-row sites tibble with test data.
+#' Inherits column structure from initialise_sites_tibble().
+#'
+#' @return A tibble with 2 rows of dummy site data
+#' @importFrom tibble add_row
+#' @export
+dummy_sites_tibble <- function() {
+  initialise_sites_tibble() |>
+    add_row(
+      SITE_CODE = "SITE-001",
+      SITE_NAME = "Oslofjord Inner",
+      SITE_GEOGRAPHIC_FEATURE = "Coastal, fjord",
+      SITE_GEOGRAPHIC_FEATURE_SUB = "Water column",
+      COUNTRY_ISO = "NO",
+      OCEAN_IHO = "Skagerrak",
+      LATITUDE = 59.9139,
+      LONGITUDE = 10.7522,
+      SITE_COORDINATE_SYSTEM = "WGS84",
+      ALTITUDE_VALUE = NA_real_,
+      ALTITUDE_UNIT = NA_character_,
+      ENTERED_BY = "test_user",
+      ENTERED_DATE = "2023-07-01",
+      SITE_COMMENT = "Primary test site"
+    ) |>
+    add_row(
+      SITE_CODE = "SITE-002",
+      SITE_NAME = "Bergen Harbour",
+      SITE_GEOGRAPHIC_FEATURE = "Coastal, fjord",
+      SITE_GEOGRAPHIC_FEATURE_SUB = "Sediment",
+      COUNTRY_ISO = "NO",
+      OCEAN_IHO = "North Sea",
+      LATITUDE = 60.3913,
+      LONGITUDE = 5.3221,
+      SITE_COORDINATE_SYSTEM = "WGS84",
+      ALTITUDE_VALUE = NA_real_,
+      ALTITUDE_UNIT = NA_character_,
+      ENTERED_BY = "test_user",
+      ENTERED_DATE = "2023-07-01",
+      SITE_COMMENT = "Secondary test site"
+    )
+}
+
+#' Create Dummy Parameters Tibble
+#'
+#' @description Creates a 3-row parameters tibble with test data.
+#' Inherits column structure from initialise_parameters_tibble().
+#'
+#' @return A tibble with 3 rows of dummy parameter data
+#' @importFrom tibble add_row
+#' @export
+dummy_parameters_tibble <- function() {
+  initialise_parameters_tibble() |>
+    add_row(
+      PARAMETER_TYPE = "Stressor",
+      PARAMETER_TYPE_SUB = "Inorganic",
+      MEASURED_TYPE = "Total",
+      PARAMETER_NAME = "Copper",
+      PARAMETER_NAME_SUB = NA_character_,
+      INCHIKEY_SD = NA_character_,
+      PUBCHEM_CID = 23978L,
+      CAS_RN = "7440-50-8",
+      ENTERED_BY = "test_user",
+      PARAMETER_COMMENT = NA_character_
+    ) |>
+    add_row(
+      PARAMETER_TYPE = "Stressor",
+      PARAMETER_TYPE_SUB = "Inorganic",
+      MEASURED_TYPE = "Total",
+      PARAMETER_NAME = "Lead",
+      PARAMETER_NAME_SUB = NA_character_,
+      INCHIKEY_SD = NA_character_,
+      PUBCHEM_CID = 5352425L,
+      CAS_RN = "7439-92-1",
+      ENTERED_BY = "test_user",
+      PARAMETER_COMMENT = NA_character_
+    ) |>
+    add_row(
+      PARAMETER_TYPE = "Stressor",
+      PARAMETER_TYPE_SUB = "Inorganic",
+      MEASURED_TYPE = "Total",
+      PARAMETER_NAME = "Zinc",
+      PARAMETER_NAME_SUB = NA_character_,
+      INCHIKEY_SD = NA_character_,
+      PUBCHEM_CID = 23994L,
+      CAS_RN = "7440-66-6",
+      ENTERED_BY = "test_user",
+      PARAMETER_COMMENT = NA_character_
+    )
+}
+
+#' Create Dummy Compartments Tibble
+#'
+#' @description Creates a 2-row compartments tibble with test data.
+#' Inherits column structure from initialise_compartments_tibble().
+#'
+#' @return A tibble with 2 rows of dummy compartment data
+#' @importFrom tibble add_row
+#' @export
+dummy_compartments_tibble <- function() {
+  initialise_compartments_tibble() |>
+    add_row(
+      ENVIRON_COMPARTMENT = "Aquatic",
+      ENVIRON_COMPARTMENT_SUB = "Aquatic Sediment",
+      MEASURED_CATEGORY = "External"
+    ) |>
+    add_row(
+      ENVIRON_COMPARTMENT = "Biota",
+      ENVIRON_COMPARTMENT_SUB = "Biota, Aquatic",
+      MEASURED_CATEGORY = "Internal"
+    )
+}
+
+#' Create Dummy Methods Tibble
+#'
+#' @description Creates a 4-row methods tibble with test data (one per protocol category).
+#' Inherits column structure from initialise_methods_tibble().
+#'
+#' @return A tibble with 4 rows of dummy methods data
+#' @importFrom tibble add_row
+#' @export
+dummy_methods_tibble <- function() {
+  initialise_methods_tibble() |>
+    add_row(
+      PROTOCOL_ID = "PROT-001",
+      CAMPAIGN_NAME = "Test Campaign 2023: Heavy Metals in Coastal Sediments",
+      PROTOCOL_CATEGORY = "Sampling Protocol",
+      PROTOCOL_NAME = "Grab sampling",
+      PROTOCOL_COMMENT = "Surface sediment grab samples collected by Van Veen grab"
+    ) |>
+    add_row(
+      PROTOCOL_ID = "PROT-002",
+      CAMPAIGN_NAME = "Test Campaign 2023: Heavy Metals in Coastal Sediments",
+      PROTOCOL_CATEGORY = "Extraction Protocol",
+      PROTOCOL_NAME = "Acid digestion",
+      PROTOCOL_COMMENT = "HNO3/HCl microwave-assisted digestion"
+    ) |>
+    add_row(
+      PROTOCOL_ID = "PROT-003",
+      CAMPAIGN_NAME = "Test Campaign 2023: Heavy Metals in Coastal Sediments",
+      PROTOCOL_CATEGORY = "Fractionation Protocol",
+      PROTOCOL_NAME = "Total",
+      PROTOCOL_COMMENT = NA_character_
+    ) |>
+    add_row(
+      PROTOCOL_ID = "PROT-004",
+      CAMPAIGN_NAME = "Test Campaign 2023: Heavy Metals in Coastal Sediments",
+      PROTOCOL_CATEGORY = "Analytical Protocol",
+      PROTOCOL_NAME = "ICP-MS",
+      PROTOCOL_COMMENT = "Inductively coupled plasma mass spectrometry"
+    )
+}
+
+#' Create Dummy Samples Tibble
+#'
+#' @description Creates a 2-row samples tibble with test data.
+#' Inherits column structure from initialise_samples_tibble().
+#'
+#' @return A tibble with 2 rows of dummy sample data
+#' @importFrom tibble add_row
+#' @export
+dummy_samples_tibble <- function() {
+  initialise_samples_tibble() |>
+    add_row(
+      SITE_CODE = "SITE-001",
+      SITE_NAME = "Oslofjord Inner",
+      PARAMETER_NAME = "Copper",
+      PARAMETER_TYPE = "Stressor",
+      ENVIRON_COMPARTMENT = "Aquatic",
+      ENVIRON_COMPARTMENT_SUB = "Aquatic Sediment",
+      MEASURED_CATEGORY = "External",
+      SAMPLING_DATE = "2023-03-15",
+      SUBSAMPLE = "1",
+      SUBSAMPLE_ID = NA_character_,
+      SAMPLE_ID = "SAMP-001"
+    ) |>
+    add_row(
+      SITE_CODE = "SITE-002",
+      SITE_NAME = "Bergen Harbour",
+      PARAMETER_NAME = "Lead",
+      PARAMETER_TYPE = "Stressor",
+      ENVIRON_COMPARTMENT = "Aquatic",
+      ENVIRON_COMPARTMENT_SUB = "Aquatic Sediment",
+      MEASURED_CATEGORY = "External",
+      SAMPLING_DATE = "2023-04-20",
+      SUBSAMPLE = "1",
+      SUBSAMPLE_ID = NA_character_,
+      SAMPLE_ID = "SAMP-002"
+    )
+}
+
+#' Create Dummy Biota Tibble
+#'
+#' @description Creates a 1-row biota tibble with test data.
+#' Inherits column structure from initialise_biota_tibble().
+#'
+#' @return A tibble with 1 row of dummy biota data
+#' @importFrom tibble add_row
+#' @export
+dummy_biota_tibble <- function() {
+  initialise_biota_tibble() |>
+    add_row(
+      SAMPLE_ID = "SAMP-003",
+      SITE_CODE = "SITE-001",
+      PARAMETER_NAME = "Copper",
+      ENVIRON_COMPARTMENT = "Biota",
+      ENVIRON_COMPARTMENT_SUB = "Biota, Aquatic",
+      MEASURED_CATEGORY = "Internal",
+      SAMPLING_DATE = "2023-05-10",
+      SUBSAMPLE = "1",
+      SPECIES_GROUP = "Fish",
+      SAMPLE_SPECIES = "Gadus morhua",
+      SAMPLE_TISSUE = "Liver",
+      SAMPLE_SPECIES_LIFESTAGE = "Adult",
+      SAMPLE_SPECIES_GENDER = "Female",
+      BIOTA_COMMENT = "Atlantic cod liver sample"
+    )
+}
+
+#' Create Dummy Measurements Tibble
+#'
+#' @description Creates a 3-row measurements tibble with test data.
+#' Inherits column structure from initialise_measurements_tibble().
+#'
+#' @return A tibble with 3 rows of dummy measurement data
+#' @importFrom tibble add_row
+#' @export
+dummy_measurements_tibble <- function() {
+  initialise_measurements_tibble() |>
+    add_row(
+      SITE_CODE = "SITE-001",
+      PARAMETER_NAME = "Copper",
+      SAMPLING_DATE = "2023-03-15",
+      ENVIRON_COMPARTMENT_SUB = "Aquatic Sediment",
+      SUBSAMPLE = "1",
+      MEASURED_FLAG = NA_character_,
+      MEASURED_VALUE = 45.2,
+      UNCERTAINTY_TYPE = "SD",
+      UNCERTAINTY_UPPER = 3.1,
+      UNCERTAINTY_LOWER = 3.1,
+      MEASURED_UNIT = "mg/kg",
+      MEASURED_N = 3,
+      LOQ_VALUE = 0.5,
+      LOQ_UNIT = "mg/kg",
+      LOD_VALUE = 0.1,
+      LOD_UNIT = "mg/kg",
+      SAMPLING_PROTOCOL = "Grab sampling",
+      EXTRACTION_PROTOCOL = "Acid digestion",
+      FRACTIONATION_PROTOCOL = "Total",
+      ANALYTICAL_PROTOCOL = "ICP-MS",
+      REFERENCE_ID = "REF-001",
+      SAMPLE_ID = "SAMP-001",
+      CAMPAIGN_NAME_SHORT = "TestCamp2023",
+      ENVIRON_COMPARTMENT = "Aquatic",
+      PARAMETER_TYPE = "Stressor",
+      MEASURED_TYPE = "Total",
+      MEASUREMENT_COMMENT = NA_character_
+    ) |>
+    add_row(
+      SITE_CODE = "SITE-002",
+      PARAMETER_NAME = "Lead",
+      SAMPLING_DATE = "2023-04-20",
+      ENVIRON_COMPARTMENT_SUB = "Aquatic Sediment",
+      SUBSAMPLE = "1",
+      MEASURED_FLAG = NA_character_,
+      MEASURED_VALUE = 12.8,
+      UNCERTAINTY_TYPE = "SD",
+      UNCERTAINTY_UPPER = 1.2,
+      UNCERTAINTY_LOWER = 1.2,
+      MEASURED_UNIT = "mg/kg",
+      MEASURED_N = 3,
+      LOQ_VALUE = 1.0,
+      LOQ_UNIT = "mg/kg",
+      LOD_VALUE = 0.3,
+      LOD_UNIT = "mg/kg",
+      SAMPLING_PROTOCOL = "Grab sampling",
+      EXTRACTION_PROTOCOL = "Acid digestion",
+      FRACTIONATION_PROTOCOL = "Total",
+      ANALYTICAL_PROTOCOL = "ICP-MS",
+      REFERENCE_ID = "REF-001",
+      SAMPLE_ID = "SAMP-002",
+      CAMPAIGN_NAME_SHORT = "TestCamp2023",
+      ENVIRON_COMPARTMENT = "Aquatic",
+      PARAMETER_TYPE = "Stressor",
+      MEASURED_TYPE = "Total",
+      MEASUREMENT_COMMENT = NA_character_
+    ) |>
+    add_row(
+      SITE_CODE = "SITE-001",
+      PARAMETER_NAME = "Copper",
+      SAMPLING_DATE = "2023-05-10",
+      ENVIRON_COMPARTMENT_SUB = "Biota, Aquatic",
+      SUBSAMPLE = "1",
+      MEASURED_FLAG = "< LOQ",
+      MEASURED_VALUE = NA_real_,
+      UNCERTAINTY_TYPE = NA_character_,
+      UNCERTAINTY_UPPER = NA_real_,
+      UNCERTAINTY_LOWER = NA_real_,
+      MEASURED_UNIT = "mg/kg ww",
+      MEASURED_N = 1,
+      LOQ_VALUE = 0.05,
+      LOQ_UNIT = "mg/kg ww",
+      LOD_VALUE = 0.01,
+      LOD_UNIT = "mg/kg ww",
+      SAMPLING_PROTOCOL = "Grab sampling",
+      EXTRACTION_PROTOCOL = "Acid digestion",
+      FRACTIONATION_PROTOCOL = "Total",
+      ANALYTICAL_PROTOCOL = "ICP-MS",
+      REFERENCE_ID = "REF-001",
+      SAMPLE_ID = "SAMP-003",
+      CAMPAIGN_NAME_SHORT = "TestCamp2023",
+      ENVIRON_COMPARTMENT = "Biota",
+      PARAMETER_TYPE = "Stressor",
+      MEASURED_TYPE = "Total",
+      MEASUREMENT_COMMENT = "Below LOQ - biota sample"
+    )
+}
+
+
+# =========================================================================
+# SESSION DATA CREATION
+# =========================================================================
+
+#' Create Dummy Session Data
+#'
+#' @description Creates a complete userData-like list structure populated with
+#' dummy data from all dummy_*_tibble() functions. This mirrors the structure
+#' created by initialise_userData() but with test data instead of empty tibbles.
+#'
+#' Useful for testing outside of a reactive context.
+#'
+#' @return A list matching the structure of initialise_userData() with dummy data
+#' @export
+create_dummy_session_data <- function() {
+  # Start from the proper userData structure
+  userData <- initialise_userData()
+
+  # Populate with dummy data ----
+  userData$campaignData <- dummy_campaign_tibble()
+  userData$referenceData <- dummy_references_tibble()
+  userData$sitesData <- dummy_sites_tibble()
+  userData$parametersData <- dummy_parameters_tibble()
+  userData$compartmentsData <- dummy_compartments_tibble()
+  userData$methodsData <- dummy_methods_tibble()
+  userData$samplesData <- dummy_samples_tibble()
+  userData$biotaData <- dummy_biota_tibble()
+  userData$measurementsData <- dummy_measurements_tibble()
+
+  # Set validity flags to TRUE since we have data ----
+  userData$campaignDataValid <- TRUE
+  userData$referenceDataValid <- TRUE
+  userData$sitesDataValid <- TRUE
+  userData$parametersDataValid <- TRUE
+  userData$compartmentsDataValid <- TRUE
+  userData$methodsDataValid <- TRUE
+  userData$samplesDataValid <- TRUE
+  userData$biotaDataValid <- TRUE
+  userData$measurementsDataValid <- TRUE
+
+  userData
+}
+
+
+# =========================================================================
+# LEGACY FUNCTIONS (kept for backwards compatibility)
+# =========================================================================
 
 #' Create dummy data for testing and demonstration
 #'
@@ -189,108 +626,4 @@ populate_session_with_dummy_data <- function(
   }
 
   print_dev("Dummy data population complete")
-}
-
-# Setup: Create dummy data matching actual structure ----
-create_dummy_module_data <- function() {
-  list(
-    references = tibble(
-      AUTHOR = "Smith, J.; Jones, A.",
-      YEAR = 2023,
-      TITLE = "Heavy metal contamination in coastal sediments",
-      PERIODICAL_JOURNAL = "Environmental Science & Technology",
-      PUBLISHER = NA_character_,
-      DOI = "10.1234/est.2023.001"
-    ),
-
-    parameters = tibble(
-      PARAMETER_NAME = c("Copper", "Lead", "Zinc", "Cadmium")
-    ),
-
-    compartments = tibble(
-      ENVIRON_COMPARTMENT = c("Aquatic", "Aquatic", "Aquatic", "Terrestrial"),
-      ENVIRON_COMPARTMENT_SUB = c(
-        "Aquatic Sediment",
-        "Porewater",
-        "Wastewater",
-        "Biological Residue"
-      )
-    ),
-
-    sites = tibble(
-      SITE_ID = c("S1", "S2", "S3"),
-      COUNTRY_ISO = c("Norway", "Norway", "Sweden"),
-      OCEAN_IHO = c("Oslo", "Bergen", "Stockholm"),
-      SITE_GEOGRAPHIC_FEATURE = c("Fjord", "Fjord", "Lake"),
-      SITE_GEOGRAPHIC_FEATURE_SUB = c("Inner", "Outer", "Shallow"),
-      LATITUDE = c(59.9139, 60.3913, 59.3293),
-      LONGITUDE = c(10.7522, 5.3221, 18.0686)
-    ),
-
-    samples = tibble(
-      SAMPLING_DATE = as.Date(c(
-        "2023-01-15",
-        "2023-03-20",
-        "2023-06-10",
-        "2023-09-05"
-      ))
-    ),
-
-    measurements = tibble(
-      PARAMETER_NAME = c("Copper", "Lead", "Copper", "Zinc"),
-      MEASURED_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      MEASURED_VALUE = c(15.3, 8.45, 2.1, 12.678),
-      LOQ_VALUE = c(0.5, 1.0, 0.1, 0.8),
-      LOQ_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      LOD_VALUE = c(0.2, 0.4, 0.05, 0.3),
-      LOD_UNIT = c("mg/kg", "mg/kg", "µg/L", "mg/kg"),
-      UNCERTAINTY_TYPE = c("SD", "SD", "CI", "Range"),
-      MEASUREMENT_COMMENT = c(
-        "High quality measurement",
-        "Baseline sample",
-        NA_character_,
-        "Good precision"
-      )
-    ),
-
-    methods = tibble(
-      PROTOCOL_CATEGORY = c(
-        "Sampling Protocol",
-        "Sampling Protocol",
-        "Analytical Protocol",
-        "Analytical Protocol",
-        "Fractionation Protocol",
-        "Extraction Protocol"
-      ),
-      PROTOCOL_NAME = c(
-        "Surface sediment grab",
-        "Water column sampling",
-        "ICP-MS analysis",
-        "AAS analysis",
-        "Sequential extraction",
-        "Washing"
-      ),
-      PROTOCOL_COMMENT = c(
-        "I picked up sand with my bare hands.",
-        "Mouth pipetting.",
-        "Threw it at the wall to see what happens.",
-        "Set it on fire to see what happens.",
-        "Multi-step acid digestion process",
-        "Ran under the tap for ten minutes. Used non-organic dishsoap."
-      )
-    )
-  )
-}
-
-dummy_session_data <- function() {
-  dummy <- create_dummy_module_data()
-  list(
-    referenceData = dummy$references,
-    parametersData = dummy$parameters,
-    compartmentsData = dummy$compartments,
-    sitesData = dummy$sites,
-    samplesData = dummy$samples,
-    measurementsData = dummy$measurements,
-    methodsData = dummy$methods
-  )
 }

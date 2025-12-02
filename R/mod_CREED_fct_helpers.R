@@ -898,3 +898,71 @@ autopop_relevance_fields <- function(sessionData) {
 
   return(field_list)
 }
+
+#' Collect CREED Scores from Input
+#'
+#' @description Collects CREED criterion scores, relevant data, and limitations
+#' from Shiny inputs into a standardised tibble. Works for both reliability and
+#' relevance criteria.
+#'
+#' @param criteria_config Named list of criteria configurations. Each element
+#'   should be a list with `title` and `type` (Required/Recommended) fields.
+#' @param input Shiny input object containing score, relevant_data, and
+#'   limitations inputs for each criterion.
+#'
+#' @return A tibble with columns: criterion_id, criterion_title,
+#'   required_recommended, relevant_data, score, limitations
+#'
+#' @details
+#' Expects input IDs to follow the pattern:
+#' - `{criterion_id}_score`
+#' - `{criterion_id}_relevant_data`
+#' - `{criterion_id}_limitations`
+#'
+#' Special case: RB8 uses `_justification` instead of `_limitations`,
+#' and the value is prefixed with "Justification: " in the output.
+#'
+#' @importFrom tibble add_row
+#' @importFrom shiny isTruthy
+#' @export
+collect_CREED_data <- function(criteria_config, input) {
+  # Start from standardised empty structure
+  data <- initialise_CREED_data_tibble()
+
+  # Loop through all criteria ----
+  for (criterion_id in names(criteria_config)) {
+    golem::print_dev(criterion_id)
+    # if (stringr::str_detect(criterion_id, "RB")) {
+    #   browser()
+    # }
+
+    # Get input values ----
+    score_input <- input[[paste0(criterion_id, "_score")]]
+    relevant_data_input <- input[[paste0(criterion_id, "_relevant_data")]]
+
+    # Handle RB8 justification special case ----
+    if (criterion_id == "RB8") {
+      limitations_input <- input[[paste0(criterion_id, "_justification")]]
+      if (isTruthy(limitations_input) && limitations_input != "") {
+        limitations_input <- paste0("Justification: ", limitations_input)
+      }
+    } else {
+      limitations_input <- input[[paste0(criterion_id, "_limitations")]]
+    }
+
+    # Only add row if score is provided ----
+    if (isTruthy(score_input) && score_input != "") {
+      data <- data |>
+        add_row(
+          criterion_id = criterion_id,
+          criterion_title = criteria_config[[criterion_id]]$title,
+          required_recommended = criteria_config[[criterion_id]]$type,
+          relevant_data = relevant_data_input %||% "",
+          score = score_input,
+          limitations = limitations_input %||% ""
+        )
+    }
+  }
+
+  data
+}

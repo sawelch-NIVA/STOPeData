@@ -585,89 +585,33 @@ mod_CREED_relevance_server <- function(id) {
         ignoreInit = TRUE
       )
 
-    # FIXME: This list format absolutely sucks.
-    ## observe: Collect relevance scores ----
-    # upstream: button calc_scores
-    # downstream: relevance_scores, session$userData
+    ## observe: Collect relevance data ----
+    # upstream: input$calc_scores, session$userData$reactiveValues$creedCalculateScores
+    # downstream: session$userData$reactiveValues$creedRelevance
     observe({
-      # Define all relevance criteria with their properties
+      # Define relevance criteria configuration ----
       criteria_config <- list(
-        RV1 = list(
-          title = "Sample Medium/Matrix",
-          type = "Required"
-        ),
+        RV1 = list(title = "Sample Medium/Matrix", type = "Required"),
         RV2 = list(
           title = "Collection Method/Sample Type",
           type = "Recommended"
         ),
-        RV3 = list(
-          title = "Study Area",
-          type = "Required"
-        ),
-        RV4 = list(
-          title = "Site Type",
-          type = "Recommended"
-        ),
-        RV5 = list(
-          title = "Sampling Timespan",
-          type = "Required"
-        ),
-        RV6 = list(
-          title = "Sampling Frequency",
-          type = "Required"
-        ),
-        RV7 = list(
-          title = "Temporal Conditions",
-          type = "Recommended"
-        ),
-        RV8 = list(
-          title = "Analyte",
-          type = "Required"
-        ),
-        RV9 = list(
-          title = "Sensitivity/LOD/LOQ",
-          type = "Required"
-        ),
-        RV10 = list(
-          title = "Summary Statistics Type",
-          type = "Recommended"
-        ),
-        RV11 = list(
-          title = "Supporting Parameters",
-          type = "Recommended"
-        )
+        RV3 = list(title = "Study Area", type = "Required"),
+        RV4 = list(title = "Site Type", type = "Recommended"),
+        RV5 = list(title = "Sampling Timespan", type = "Required"),
+        RV6 = list(title = "Sampling Frequency", type = "Required"),
+        RV7 = list(title = "Temporal Conditions", type = "Recommended"),
+        RV8 = list(title = "Analyte", type = "Required"),
+        RV9 = list(title = "Sensitivity/LOD/LOQ", type = "Required"),
+        RV10 = list(title = "Summary Statistics Type", type = "Recommended"),
+        RV11 = list(title = "Supporting Parameters", type = "Recommended")
       )
 
-      # Collect scores for completed criteria
-      scores_data <- tibble(
-        criterion_id = character(0),
-        criterion_title = character(0),
-        required_recommended = character(0),
-        score = character(0),
-        limitations = character(0)
+      # Collect and store data ----
+      session$userData$reactiveValues$creedRelevance <- collect_CREED_data(
+        criteria_config = criteria_config,
+        input = input
       )
-
-      # Loop through all criteria
-      for (criterion_id in names(criteria_config)) {
-        score_input <- input[[paste0(criterion_id, "_score")]]
-        limitations_input <- input[[paste0(criterion_id, "_limitations")]]
-
-        if (isTruthy(score_input) && score_input != "") {
-          scores_data <- rbind(
-            scores_data,
-            tibble(
-              criterion_id = criterion_id,
-              criterion_title = criteria_config[[criterion_id]]$title,
-              required_recommended = criteria_config[[criterion_id]]$type,
-              score = score_input,
-              limitations = limitations_input %||% ""
-            )
-          )
-        }
-      }
-
-      # Store in session
-      session$userData$reactiveValues$creedRelevance <- scores_data
     }) |>
       bindEvent(
         input$calc_scores,

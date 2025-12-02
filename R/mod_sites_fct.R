@@ -19,7 +19,8 @@ create_new_site <- function(site_number = 1, base_code = "", session) {
       OCEAN_IHO = "",
       ALTITUDE_VALUE = NA,
       ALTITUDE_UNIT = "m",
-      ENTERED_BY = session$userData$reactiveValues$ENTERED_BY %|truthy|% "",
+      ENTERED_BY = session$userData$reactiveValues$campaignData$ENTERED_BY %|truthy|%
+        "",
       ENTERED_DATE = as.character(Sys.Date()),
       SITE_COMMENT = ""
     )

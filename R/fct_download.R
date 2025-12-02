@@ -117,6 +117,8 @@ get_dataset_display_name <- function(dataset_name) {
     schemaLLM = "LLM_Schema",
     promptLLM = "LLM_Prompt",
     rawLLM = "LLM_Raw_Response",
+    creedRelevance = "CREED_RV",
+    creedReliability = "CREED_RB",
     creedScores = "CREED_Score"
   )
 
@@ -280,6 +282,9 @@ downloadable_tabular_datasets <- function() {
     "samplesData",
     "biotaData",
     "measurementsData",
+    "creedRelevance",
+    "creedReliability",
+    # "creedDetails", # Fixme: Renable when needed
     "creedScores"
   )
 }
@@ -345,36 +350,59 @@ download_all_data <- function(session, moduleState = NULL) {
 
       # Export each dataset ----
       for (dataset_name in moduleState$available_datasets) {
-        data <- rv[[dataset_name]]
+        tryCatch(
+          {
+            if (stringr::str_detect(dataset_name, "CREED")) {
+              browser()
+            }
+            print_dev(glue("prepping {dataset_name} for export"))
 
-        display_name <- gsub(
-          " ",
-          "_",
-          get_dataset_display_name(dataset_name)
+            data <- rv[[dataset_name]]
+
+            display_name <- gsub(
+              " ",
+              "_",
+              get_dataset_display_name(dataset_name)
+            )
+            base_name <- glue("{campaign}_{display_name}_{timestamp}")
+
+            if (dataset_name %in% text_datasets) {
+              # Handle text/object data
+              if (!is.null(data)) {
+                txt_file <- file.path(temp_dir, glue("{base_name}.txt"))
+
+                # Convert object to text using helper function
+                text_content <- object_to_text(
+                  data,
+                  dataset_name = display_name
+                )
+                writeLines(text_content, txt_file)
+
+                all_files <- c(all_files, txt_file)
+              }
+            } else {
+              # Handle tabular data
+              if (!is.null(data) && nrow(data) > 0) {
+                csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
+
+                write_excel_csv(data, file = csv_file, na = "")
+
+                all_files <- c(all_files, csv_file)
+              }
+            }
+          },
+          error = function(e) {
+            showNotification(
+              paste0(
+                "Error creating download data: ",
+                e$message,
+                " (Code: download_all_data())"
+              ),
+              type = "error",
+              duration = NULL
+            )
+          }
         )
-        base_name <- glue("{campaign}_{display_name}_{timestamp}")
-
-        if (dataset_name %in% text_datasets) {
-          # Handle text/object data
-          if (!is.null(data)) {
-            txt_file <- file.path(temp_dir, glue("{base_name}.txt"))
-
-            # Convert object to text using helper function
-            text_content <- object_to_text(data, dataset_name = display_name)
-            writeLines(text_content, txt_file)
-
-            all_files <- c(all_files, txt_file)
-          }
-        } else {
-          # Handle tabular data
-          if (!is.null(data) && nrow(data) > 0) {
-            csv_file <- file.path(temp_dir, glue("{base_name}.csv"))
-
-            write_excel_csv(data, file = csv_file, na = "")
-
-            all_files <- c(all_files, csv_file)
-          }
-        }
       }
 
       # Export PDF if available ----
@@ -408,4 +436,91 @@ download_all_data <- function(session, moduleState = NULL) {
 
     contentType = "application/zip"
   )
+}
+
+#' Write CREED report as human-readable text file
+#'
+#' @description Merge CREED details, relevance, and reliability tibbles into
+#'   a single human-readable text file with section headers
+#' @param creed_details Tibble with field/value columns from summarise_CREED_details()
+#' @param creed_relevance Tibble with field/value columns from summarise_CREED_relevance()
+#' @param creed_reliability Tibble with field/value columns from summarise_CREED_reliability()
+#' @param file_path Character. Path where to write the report file
+#' @return NULL (invisibly). File is written to disk as a side effect.
+#' @export
+write_creed_report_txt <- function(
+  creed_details,
+  creed_relevance,
+  creed_reliability,
+  file_path
+) {
+  # Helper for string repetition
+  browser()
+  `%r%` <- function(string, times) {
+    paste(rep(string, times), collapse = "")
+  }
+
+  # Helper to format a tibble section
+  format_section <- function(tbl, section_title) {
+    if (
+      is.null(tbl) ||
+        !is.data.frame(tbl) ||
+        nrow(tbl) == 0 ||
+        !all(c("field", "value") %in% names(tbl))
+    ) {
+      return(c(
+        section_title,
+        "-" %r% nchar(section_title),
+        "No data available",
+        ""
+      ))
+    }
+
+    lines <- c(
+      section_title,
+      "-" %r% nchar(section_title),
+      ""
+    )
+
+    for (i in seq_len(nrow(tbl))) {
+      field <- tbl$field[i]
+      value <- tbl$value[i]
+      # Handle multi-line values by indenting continuation lines
+      value_lines <- strsplit(as.character(value), "\n")[[1]]
+      if (length(value_lines) == 1) {
+        lines <- c(lines, paste0(field, ": ", value_lines))
+      } else {
+        lines <- c(lines, paste0(field, ": ", value_lines[1]))
+        for (v in value_lines[-1]) {
+          lines <- c(
+            lines,
+            paste0(
+              "
+ ",
+              v
+            )
+          )
+        }
+      }
+    }
+
+    c(lines, "")
+  }
+
+  # Build content
+  content <- c(
+    "CREED Assessment Report",
+    "=" %r% 50,
+    glue("Generated: {format(Sys.time(), '%Y-%m-%d %H:%M:%S')}"),
+    "",
+    "",
+    format_section(creed_details, "Dataset Details"),
+    "",
+    format_section(creed_relevance, "Relevance Criteria"),
+    "",
+    format_section(creed_reliability, "Reliability Criteria")
+  )
+
+  writeLines(content, file_path)
+  invisible(NULL)
 }

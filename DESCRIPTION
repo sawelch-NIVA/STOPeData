@@ -25,6 +25,7 @@ Imports:
     htmltools,
     httr,
     ISOcodes,
+    jsonlite,
     leaflet,
     lubridate,
     markdown,
@@ -43,8 +44,12 @@ Imports:
     stringi,
     stringr,
     tibble,
+    tidyr,
+    tidyselect,
     tools,
-    xml2
+    xml2,
+    yaml,
+    zip
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3

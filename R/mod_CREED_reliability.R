@@ -350,11 +350,11 @@ mod_CREED_reliability_server <- function(id) {
         ignoreInit = TRUE
       )
 
-    ## observe: Collect reliability scores ----
-    # upstream: button calc_scores
-    # downstream: reliability_scores, session$userData
+    ## observe: Collect reliability data ----
+    # upstream: input$calc_scores, session$userData$reactiveValues$creedCalculateScores
+    # downstream: session$userData$reactiveValues$creedReliability
     observe({
-      # Define all reliability criteria with their properties
+      # Define reliability criteria configuration ----
       criteria_config <- list(
         RB1 = list(title = "Sample Medium/Matrix", type = "Required"),
         RB2 = list(
@@ -389,37 +389,11 @@ mod_CREED_reliability_server <- function(id) {
         RB19 = list(title = "Supporting Data Quality", type = "Recommended")
       )
 
-      # Collect scores for completed criteria
-      scores_data <- tibble(
-        criterion_id = character(0),
-        criterion_title = character(0),
-        required_recommended = character(0),
-        score = character(0),
-        justification = character(0)
+      # Collect and store data ----
+      session$userData$reactiveValues$creedReliability <- collect_CREED_data(
+        criteria_config = criteria_config,
+        input = input
       )
-
-      # Loop through all criteria
-      for (criterion_id in names(criteria_config)) {
-        score_input <- input[[paste0(criterion_id, "_score")]]
-        justification_input <- input[[paste0(criterion_id, "_justification")]]
-
-        if (isTruthy(score_input) && score_input != "") {
-          scores_data <- rbind(
-            scores_data,
-            tibble(
-              criterion_id = criterion_id,
-              criterion_title = criteria_config[[criterion_id]]$title,
-              required_recommended = criteria_config[[criterion_id]]$type,
-              score = score_input,
-              justification = justification_input %||% ""
-            )
-          )
-        }
-      }
-
-      # Store in reactiveValues and session
-      reliability_scores$data <- scores_data
-      session$userData$reactiveValues$creedReliability <- scores_data
     }) |>
       bindEvent(
         input$calc_scores,
