@@ -5,4 +5,4 @@
 - Numbers default to displaying 4 d.p., but full precision is retained (e.g. a lot more than 4 d.p.)
 - Columns can be sorted by clicking the column name (numeric, chronological, alphabetical order).
 - **Due to issues with data entry, I've disabled some visual validation feedback temporarily.**
-- **If summarised data are reported (averages, SDs, ranges, etc.), report these using the new MEASURED_UNCERTAINTY_\* and MEASURED_N columns.**
+- **If summarised data are reported (averages, SDs, ranges, etc.), report these using the new UNCERTAINTY_UPPER/_LOWER and MEASURED_N columns. Where MEASURED_N = 1 or otherwise too low for summary statistics, report UNCERTAINTY_TYPE as "Not Relevant".**
