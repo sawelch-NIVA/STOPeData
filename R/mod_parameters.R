@@ -426,8 +426,8 @@ mod_parameters_server <- function(id) {
       if (
         isTruthy(param_type) &&
           isTruthy(param_name) &&
-          param_name %notin%
-            session$userData$reactiveValues$parametersData$PARAMETER_NAME
+          !(param_name %in%
+            session$userData$reactiveValues$parametersData$PARAMETER_NAME)
       ) {
         new_param <- create_existing_parameter(
           param_type,

@@ -1,0 +1,9 @@
+# Ignore renv 
+renv/library/
+renv/staging/
+renv/cache/
+.Rprofile
+.Rhistory
+.RData
+.Rproj.user/
+renv.lock

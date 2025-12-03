@@ -11,7 +11,7 @@
 #' @importFrom tools file_ext
 #' @noRd
 options(shiny.maxRequestSize = 20 * 1024^2) # TODO: Move this to the run call.
-`%notin%` <- negate(`%in%`) # my belovéd.
+
 
 app_server <- function(input, output, session) {
   # 1. Setup ----
