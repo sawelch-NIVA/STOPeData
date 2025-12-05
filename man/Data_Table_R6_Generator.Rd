@@ -2,66 +2,69 @@
 % Please edit documentation in R/fct_R6.R
 \name{Data_Table_R6_Generator}
 \alias{Data_Table_R6_Generator}
-\title{Base Data Table Class}
+\title{Base Data Table R6 Generator}
 \description{
-Parent class for all eData table types providing standardised structure,
-validation, and metadata management. This is an R6 class that bundles:
-- A tibble containing the actual data
-- A schema defining column names, types, and mandatory status
-- Validation methods to ensure data integrity
-- Active bindings for querying metadata
+Abstract base class for all eData table types providing standardised structure,
+validation, and metadata management. This [R6][R6::R6Class] class bundles:
+* A tibble containing the actual data
+* A schema defining column names, types, and mandatory status
+* Validation methods to ensure data integrity
+* Active bindings for querying metadata
 
-Child classes must define:
-- `private$schema`: A tribble with columns (column_name, data_type, mandatory, description)
-- `private$schema_version`: A version string following semantic versioning (e.g., "1.0.0")
+Child classes must define in their private section:
+* `schema`: A [tibble][tibble::tibble] with columns (`column_name`, `data_type`, `mandatory`, `description`)
+* `schema_version`: A version string following semantic versioning (e.g., `"1.0.0"`)
 }
-\section{Public Methods}{
-
-\describe{
-  \item{`initialize()`}{
-    Creates a new instance with an empty tibble based on the schema.
-    Called automatically when using `$new()`.
-  }
-  \item{`add_rows(new_rows)`}{
-    Add rows to the data tibble with validation.
-    - Checks all mandatory columns are present
-    - Validates column types match schema
-    - Returns self invisibly for method chaining
-  }
-  \item{`validate_structure()`}{
-    Validate that the current data structure matches the schema.
-    - Checks column names match exactly
-    - Validates column types
-    - Returns TRUE if valid, stops with error if invalid
-  }
-}
-}
-
-\section{Active Bindings}{
-
-\describe{
-  \item{`metadata`}{Returns the schema as a tibble}
-  \item{`version`}{Returns the schema version string}
-  \item{`mandatory_fields`}{Returns character vector of mandatory column names}
-  \item{`optional_fields`}{Returns character vector of optional column names}
-  \item{`n_rows`}{Returns the number of rows in the data tibble}
-}
-}
-
-\section{Public Fields}{
-
-\describe{
-  \item{`data`}{A tibble containing the actual data. Can be modified directly
-    but prefer using `add_rows()` for validation.}
-}
-}
-
 \examples{
 \dontrun{
-# This is a parent class - use child classes instead
+# This is an abstract base class - use child classes instead
 # See CampaignData_Table_R6_Generator for concrete implementation
 }
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{schema}}{(`tbl_df`)\cr
+Tibble defining table structure with columns: column_name, data_type, mandatory, description.
+Must be defined in child classes.}
 
+\item{\code{schema_version}}{(`character(1)`)\cr
+Semantic version string (e.g., `"1.0.0"`).
+Must be defined in child classes.}
+
+\item{\code{data}}{(`tbl_df`)\cr
+The actual data tibble. Can be modified directly but prefer using `$add_rows()`
+for automatic validation.}
+}
+\if{html}{\out{</div>}}
+}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{schema}}{(`tbl_df`)\cr
+Tibble defining table structure with columns: column_name, data_type, mandatory, description.
+Must be defined in child classes.}
+
+\item{\code{schema_version}}{(`character(1)`)\cr
+Semantic version string (e.g., `"1.0.0"`).
+Must be defined in child classes.}
+
+\item{\code{metadata}}{(`tbl_df`)\cr
+Returns the schema as a tibble. Read-only.}
+
+\item{\code{version}}{(`character(1)`)\cr
+Returns the schema version string. Read-only.}
+
+\item{\code{mandatory_fields}}{(`character()`)\cr
+Returns a character vector of mandatory column names. Read-only.}
+
+\item{\code{optional_fields}}{(`character()`)\cr
+Returns a character vector of optional column names. Read-only.}
+
+\item{\code{n_rows}}{(`integer(1)`)\cr
+Returns the number of rows in the data tibble. Read-only.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -76,28 +79,64 @@ Child classes must define:
 \if{html}{\out{<a id="method-Data_Table_R6_Generator-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Data_Table_R6_Generator-new}{}}}
 \subsection{Method \code{new()}}{
+Build an empty tibble with appropriate column types based on the schema.
+This is an internal method called during initialization.
+
+
+Creates a new instance of this [R6][R6::R6Class] class.
+Initializes an empty data tibble based on the schema defined in the child class.
+This method is called automatically when using `$new()`.
+
+Note that this object is typically constructed via derived classes,
+e.g., [CampaignData_Table_R6_Generator].
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Data_Table_R6_Generator$new()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+(`tbl_df`)\cr
+An empty tibble with columns defined by the schema.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Data_Table_R6_Generator-add_rows"></a>}}
 \if{latex}{\out{\hypertarget{method-Data_Table_R6_Generator-add_rows}{}}}
 \subsection{Method \code{add_rows()}}{
+Add rows to the data tibble with validation.
+Validates that all mandatory columns are present and that column types match
+the schema. Returns self invisibly to allow method chaining.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Data_Table_R6_Generator$add_rows(new_rows)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{new_rows}}{(`tbl_df`)\cr
+A tibble containing the rows to add. Must include all mandatory columns
+and match the schema's column types.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Self, invisibly.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Data_Table_R6_Generator-validate_structure"></a>}}
 \if{latex}{\out{\hypertarget{method-Data_Table_R6_Generator-validate_structure}{}}}
 \subsection{Method \code{validate_structure()}}{
+Validate that the current data structure matches the schema.
+Checks that column names are correct and in the right order, and that
+column types match expectations. Stops with an error if validation fails.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Data_Table_R6_Generator$validate_structure()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+(`logical(1)`)\cr
+Returns `TRUE` if validation passes. Stops with error if validation fails.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Data_Table_R6_Generator-clone"></a>}}
