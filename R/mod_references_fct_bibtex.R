@@ -500,8 +500,8 @@ generate_reference_id <- function(date, author, title) {
     first_author <- trimws(strsplit(author, ";")[[1]][1])
     # Extract last name (part before first comma)
     author_part <- trimws(strsplit(first_author, ",")[[1]][1])
-    # Remove any non-alphanumeric characters and limit length
-    author_part <- gsub("[^A-Za-z0-9]", "", author_part)
+    # Remove any characters not valid for windows filepaths and limit length
+    author_part <- gsub('[<>:"/\\|?*]', "_", author_part)
     author_part <- substr(author_part, 1, 10) # Limit author part length
   }
 
