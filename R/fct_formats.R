@@ -507,7 +507,7 @@ altitude_units_vocabulary <- function() {
 #'
 #' @return A data frame of dummy parameter data
 #' @export
-#' @import dplyr
+#' @importFrom dplyr mutate arrange bind_rows case_when
 #' @importFrom arrow read_parquet
 # TODO: We call this "dummy" data for the simple reason that I've never looked for or made my own comprehensive list of quality parameters.
 dummy_parameters_vocabulary <- function() {
@@ -563,7 +563,7 @@ parameter_types_vocabulary <- function() {
 #'
 #' @return A character vector of parameter type subcategory options
 #' @export
-#' @import dplyr
+#' @importFrom dplyr select distinct arrange pull
 #' @importFrom arrow read_parquet
 parameter_types_sub_vocabulary <- function() {
   dummy_parameters <- dummy_parameters_vocabulary()
@@ -683,7 +683,7 @@ measured_categories_vocabulary <- function() {
 #'
 #' @return A character vector of parameter type subcategory options
 #' @export
-#' @import dplyr
+#' @importFrom dplyr mutate bind_rows
 #' @importFrom tibble tibble
 #' @importFrom arrow read_parquet
 species_names_vocabulary <- function() {
