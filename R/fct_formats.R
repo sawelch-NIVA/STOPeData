@@ -29,7 +29,7 @@ initialise_userData <- function() {
     compartmentsDataValid = FALSE,
     referenceData = initialise_references_tibble(),
     referenceDataValid = FALSE,
-    campaignData = initialise_campaign_tibble(),
+    campaignData = CampaignData_Table_R6_Generator$new()$data, # # New R6 object; just the tibble
     campaignDataValid = FALSE,
     methodsData = initialise_methods_tibble(),
     methodsDataValid = FALSE,
@@ -94,20 +94,31 @@ initialise_userData <- function() {
 #' @export
 initialise_campaign_tibble <- function() {
   # Creates the CAMAPIGN table
-  tibble(
-    CAMPAIGN_NAME_SHORT = character(),
-    CAMPAIGN_NAME = character(),
-    CAMPAIGN_START_DATE = as.Date(character()),
-    CAMPAIGN_END_DATE = as.Date(character()),
-    RELIABILITY_SCORE = character(),
-    RELIABILITY_EVAL_SYS = character(),
-    CONFIDENTIALITY_EXPIRY_DATE = as.Date(character()),
-    ORGANISATION = character(),
-    ENTERED_BY = character(),
-    ENTERED_DATE = as.Date(character()),
-    CAMPAIGN_COMMENT = character()
-  )
+  # FIXME: Currently a wrapper for our new R6 object
+  CampaignData_Table_R6_Generator$new()$data
+  # tibble(
+  #   CAMPAIGN_NAME_SHORT = character(),
+  #   CAMPAIGN_NAME = character(),
+  #   CAMPAIGN_START_DATE = as.Date(character()),
+  #   CAMPAIGN_END_DATE = as.Date(character()),
+  #   RELIABILITY_SCORE = character(),
+  #   RELIABILITY_EVAL_SYS = character(),
+  #   CONFIDENTIALITY_EXPIRY_DATE = as.Date(character()),
+  #   ORGANISATION = character(),
+  #   ENTERED_BY = character(),
+  #   ENTERED_DATE = as.Date(character()),
+  #   CAMPAIGN_COMMENT = character()
+  # )
 }
+
+
+add_campaign_rows <- function(existing_tibble, new_rows) {
+  validator <- CampaignData_Table_R6_Generator$new()
+  validator$data <- existing_tibble
+  validator$add_rows(new_rows) # Validation happens here
+  validator$data # Return validated tibble
+}
+
 
 #' Initialise Biota Data Tibble
 #'

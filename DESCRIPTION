@@ -33,6 +33,7 @@ Imports:
     pkgload,
     plotly,
     purrr,
+    R6,
     rcrossref (>= 1.2.0),
     readr,
     rhandsontable,

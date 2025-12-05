@@ -1,0 +1,311 @@
+#' Base Data Table Class
+#'
+#' @description
+#' Parent class for all eData table types providing standardised structure,
+#' validation, and metadata management. This is an R6 class that bundles:
+#' - A tibble containing the actual data
+#' - A schema defining column names, types, and mandatory status
+#' - Validation methods to ensure data integrity
+#' - Active bindings for querying metadata
+#'
+#' Child classes must define:
+#' - `private$schema`: A tribble with columns (column_name, data_type, mandatory, description)
+#' - `private$schema_version`: A version string following semantic versioning (e.g., "1.0.0")
+#'
+#' @section Public Methods:
+#' \describe{
+#'   \item{`initialize()`}{
+#'     Creates a new instance with an empty tibble based on the schema.
+#'     Called automatically when using `$new()`.
+#'   }
+#'   \item{`add_rows(new_rows)`}{
+#'     Add rows to the data tibble with validation.
+#'     - Checks all mandatory columns are present
+#'     - Validates column types match schema
+#'     - Returns self invisibly for method chaining
+#'   }
+#'   \item{`validate_structure()`}{
+#'     Validate that the current data structure matches the schema.
+#'     - Checks column names match exactly
+#'     - Validates column types
+#'     - Returns TRUE if valid, stops with error if invalid
+#'   }
+#' }
+#'
+#' @section Active Bindings:
+#' \describe{
+#'   \item{`metadata`}{Returns the schema as a tibble}
+#'   \item{`version`}{Returns the schema version string}
+#'   \item{`mandatory_fields`}{Returns character vector of mandatory column names}
+#'   \item{`optional_fields`}{Returns character vector of optional column names}
+#'   \item{`n_rows`}{Returns the number of rows in the data tibble}
+#' }
+#'
+#' @section Public Fields:
+#' \describe{
+#'   \item{`data`}{A tibble containing the actual data. Can be modified directly
+#'     but prefer using `add_rows()` for validation.}
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # This is a parent class - use child classes instead
+#' # See CampaignData_Table_R6_Generator for concrete implementation
+#' }
+#'
+#' @importFrom R6 R6Class
+#' @importFrom tibble tibble as_tibble
+#' @importFrom purrr map2 set_names
+#' @importFrom dplyr filter bind_rows pull
+#'
+#' @export
+Data_Table_R6_Generator <- R6Class(
+  "Data_Table_R6_Generator",
+
+  # Must be defined in child classes ----
+  private = list(
+    schema = NULL,
+    schema_version = NULL,
+
+    # Build empty tibble from schema ----
+    build_empty_tibble = function() {
+      schema <- private$schema
+
+      # Create appropriately-typed empty columns
+      cols <- map2(schema$column_name, schema$data_type, function(name, type) {
+        switch(
+          type,
+          "character" = character(),
+          "Date" = as.Date(character()),
+          "numeric" = numeric(),
+          "integer" = integer(),
+          "logical" = logical(),
+          stop("Unknown data type: ", type)
+        )
+      })
+
+      set_names(cols, schema$column_name) |>
+        as_tibble()
+    }
+  ),
+
+  # Available to all child classes ----
+  public = list(
+    # The actual data ----
+    data = NULL,
+
+    # Build empty tibble on creation ----
+    initialize = function() {
+      if (is.null(private$schema)) {
+        stop("Schema must be defined in child class")
+      }
+      if (is.null(private$schema_version)) {
+        stop("Schema version must be defined in child class")
+      }
+
+      self$data <- private$build_empty_tibble()
+    },
+
+    # Add rows with validation ----
+    add_rows = function(new_rows) {
+      # Check: All mandatory columns present?
+      mandatory <- self$mandatory_fields
+      missing <- setdiff(mandatory, names(new_rows))
+      if (length(missing) > 0) {
+        stop("Missing mandatory columns: ", paste(missing, collapse = ", "))
+      }
+
+      # Check: Column types match?
+      for (col in names(new_rows)) {
+        if (col %in% names(self$data)) {
+          expected_type <- class(self$data[[col]])[1]
+          actual_type <- class(new_rows[[col]])[1]
+
+          if (expected_type != actual_type) {
+            stop(paste0(
+              "Type mismatch for '",
+              col,
+              "': expected ",
+              expected_type,
+              ", got ",
+              actual_type
+            ))
+          }
+        }
+      }
+
+      # All good - add rows
+      self$data <- bind_rows(self$data, new_rows)
+      invisible(self)
+    },
+
+    # Validate structure matches schema ----
+    validate_structure = function() {
+      schema <- private$schema
+
+      # Check column names
+      if (!identical(names(self$data), schema$column_name)) {
+        stop("Column names don't match schema")
+      }
+
+      # Check data types
+      for (i in seq_along(schema$column_name)) {
+        col_name <- schema$column_name[i]
+        expected_type <- schema$data_type[i]
+        actual_type <- class(self$data[[col_name]])[1]
+
+        if (actual_type != expected_type) {
+          stop(paste0(
+            "Type mismatch for '",
+            col_name,
+            "': expected ",
+            expected_type,
+            ", got ",
+            actual_type
+          ))
+        }
+      }
+
+      TRUE
+    }
+  ),
+
+  # Computed properties ----
+  active = list(
+    # Schema metadata ----
+    metadata = function() {
+      private$schema
+    },
+
+    # Schema version ----
+    version = function() {
+      private$schema_version
+    },
+
+    # Mandatory field names ----
+    mandatory_fields = function() {
+      private$schema |>
+        filter(mandatory == TRUE) |>
+        pull(column_name)
+    },
+
+    # Optional field names ----
+    optional_fields = function() {
+      private$schema |>
+        filter(mandatory == FALSE) |>
+        pull(column_name)
+    },
+
+    # Row count ----
+    n_rows = function() {
+      nrow(self$data)
+    }
+  )
+)
+
+
+#' Campaign Data Table R6 Generator
+#'
+#' @description
+#' R6 class for managing campaign metadata in the eData format. Campaigns represent
+#' sampling projects or studies with metadata about timing, organization, data
+#' quality evaluation, and confidentiality.
+#'
+#' This class inherits from `Data_Table_R6_Generator` and provides:
+#' - Standardised column structure for campaign data
+#' - Validation of mandatory fields (CAMPAIGN_NAME_SHORT, CAMPAIGN_NAME,
+#'   CAMPAIGN_START_DATE, ORGANISATION, ENTERED_BY, ENTERED_DATE)
+#' - Type checking for all columns
+#' - Metadata access via active bindings
+#'
+#' @section Schema Version:
+#' Current version: 1.0.0
+#'
+#' @section Column Definitions:
+#' \describe{
+#'   \item{`CAMPAIGN_NAME_SHORT`}{character, mandatory. Short campaign identifier}
+#'   \item{`CAMPAIGN_NAME`}{character, mandatory. Full campaign name}
+#'   \item{`CAMPAIGN_START_DATE`}{Date, mandatory. Campaign start date}
+#'   \item{`CAMPAIGN_END_DATE`}{Date, optional. Campaign end date}
+#'   \item{`RELIABILITY_SCORE`}{character, optional. Data reliability score}
+#'   \item{`RELIABILITY_EVAL_SYS`}{character, optional. Reliability evaluation system}
+#'   \item{`CONFIDENTIALITY_EXPIRY_DATE`}{Date, optional. When data becomes public}
+#'   \item{`ORGANISATION`}{character, mandatory. Responsible organisation}
+#'   \item{`ENTERED_BY`}{character, mandatory. Data entry person}
+#'   \item{`ENTERED_DATE`}{Date, mandatory. Data entry date}
+#'   \item{`CAMPAIGN_COMMENT`}{character, optional. Additional comments}
+#' }
+#'
+#' @section Inherited Methods:
+#' See `Data_Table_R6_Generator` for details on:
+#' - `initialize()`
+#' - `add_rows(new_rows)`
+#' - `validate_structure()`
+#'
+#' @section Inherited Active Bindings:
+#' See `Data_Table_R6_Generator` for details on:
+#' - `metadata`
+#' - `version`
+#' - `mandatory_fields`
+#' - `optional_fields`
+#' - `n_rows`
+#'
+#' @examples
+#' # Create a new campaign data object
+#' campaign <- CampaignData_Table_R6_Generator$new()
+#'
+#' # Check the empty structure
+#' campaign$data
+#' campaign$metadata
+#' campaign$version  # "1.0.0"
+#'
+#' # Get mandatory fields
+#' campaign$mandatory_fields
+#'
+#' # Add a valid row
+#' new_campaign <- tibble(
+#'   CAMPAIGN_NAME_SHORT = "Arctic2025",
+#'   CAMPAIGN_NAME = "Arctic Copper Monitoring 2025",
+#'   CAMPAIGN_START_DATE = as.Date("2025-01-01"),
+#'   CAMPAIGN_END_DATE = as.Date("2025-12-05"),
+#'   ORGANISATION = "NIVA",
+#'   ENTERED_BY = "Sam",
+#'   ENTERED_DATE = Sys.Date(),
+#'   CAMPAIGN_COMMENT = "Annual monitoring campaign"
+#' )
+#'
+#' campaign$add_rows(new_campaign)
+#' campaign$n_rows  # 1
+#'
+#' # Validation prevents invalid data
+#' \dontrun{
+#' invalid <- tibble(CAMPAIGN_NAME_SHORT = "Test")  # Missing mandatory fields
+#' campaign$add_rows(invalid)  # Error: Missing mandatory columns
+#' }
+#'
+#' @seealso [Data_Table_R6_Generator] for the parent class documentation
+#'
+#' @export
+CampaignData_Table_R6_Generator <- R6Class(
+  "CampaignData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    schema = tribble(
+      ~column_name                  , ~data_type  , ~mandatory , ~description                    ,
+      "CAMPAIGN_NAME_SHORT"         , "character" , TRUE       , "Short campaign identifier"     ,
+      "CAMPAIGN_NAME"               , "character" , TRUE       , "Full campaign name"            ,
+      "CAMPAIGN_START_DATE"         , "Date"      , TRUE       , "Campaign start date"           ,
+      "CAMPAIGN_END_DATE"           , "Date"      , FALSE      , "Campaign end date"             ,
+      "RELIABILITY_SCORE"           , "character" , FALSE      , "Data reliability score"        ,
+      "RELIABILITY_EVAL_SYS"        , "character" , FALSE      , "Reliability evaluation system" ,
+      "CONFIDENTIALITY_EXPIRY_DATE" , "Date"      , FALSE      , "When data becomes public"      ,
+      "ORGANISATION"                , "character" , TRUE       , "Responsible organisation"      ,
+      "ENTERED_BY"                  , "character" , TRUE       , "Data entry person"             ,
+      "ENTERED_DATE"                , "Date"      , TRUE       , "Data entry date"               ,
+      "CAMPAIGN_COMMENT"            , "character" , FALSE      , "Additional comments"
+    )
+  )
+)

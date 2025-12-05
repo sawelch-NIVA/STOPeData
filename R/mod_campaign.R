@@ -271,60 +271,57 @@ mod_campaign_server <- function(id) {
     # 2. Observers and Reactives ----
 
     ## observe: check validation status and send to session$userData ----
-    # imports: fct_formats::initialise_campaign_tibble()
+    # imports: fct_formats::initialise_campaign_tibble(), add_campaign_rows()
     # upstream: iv
     # downstream: session$userData$reactiveValues$campaignData, campaignDataValid
     observe({
       tryCatch(
         {
-          # if (iv$is_valid()) {
-          # TODO: Strictly speaking this shouldn't be conditional on validity, because
-          # we claim that data is saved even when invalid. But CAMPAIGN is almost always valid
-          # and I don't want to disable it just yet
-          # Collect validated data
+          # Build new campaign row ----
+          new_campaign_row <- tibble(
+            CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
+            CAMPAIGN_NAME = input$CAMPAIGN_NAME,
+            CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE %|truthy|%
+              as.Date(NA),
+            CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|% as.Date(NA),
+            RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|%
+              NA_character_,
+            RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|%
+              NA_character_,
+            CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
+              as.Date(NA),
+            ORGANISATION = input$ORGANISATION %|truthy|%
+              NA_character_,
+            ENTERED_BY = input$ENTERED_BY %|truthy|%
+              NA_character_,
+            ENTERED_DATE = input$ENTERED_DATE %|truthy|% as.Date(NA),
+            CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA_character_
+          )
+
+          # Validate and collect data using R6 ----
           validated_data <- tryCatch(
             {
-              # uses standardised format from fct_formats, will fail if format/data types not respected
-              initialise_campaign_tibble() |>
-                add_row(
-                  CAMPAIGN_NAME_SHORT = input$CAMPAIGN_NAME_SHORT,
-                  CAMPAIGN_NAME = input$CAMPAIGN_NAME,
-                  CAMPAIGN_START_DATE = input$CAMPAIGN_START_DATE %|truthy|%
-                    as.Date(NA),
-                  CAMPAIGN_END_DATE = input$CAMPAIGN_END_DATE %|truthy|%
-                    as.Date(NA),
-                  RELIABILITY_SCORE = input$RELIABILITY_SCORE %|truthy|% NA,
-                  RELIABILITY_EVAL_SYS = input$RELIABILITY_EVAL_SYS %|truthy|%
-                    NA,
-                  CONFIDENTIALITY_EXPIRY_DATE = input$CONFIDENTIALITY_EXPIRY_DATE %|truthy|%
-                    as.Date(NA),
-                  ORGANISATION = input$ORGANISATION,
-                  ENTERED_BY = input$ENTERED_BY,
-                  ENTERED_DATE = input$ENTERED_DATE,
-                  CAMPAIGN_COMMENT = input$CAMPAIGN_COMMENT %|truthy|% NA
-                )
+              # Create R6 validator, add row with validation, extract tibble
+              campaign_validator <- CampaignData_Table_R6_Generator$new()
+              campaign_validator$add_rows(new_campaign_row)
+              campaign_validator$data
             },
             error = function(e) {
               stop(
-                "Column mismatch in campaign data collection: ",
+                "Campaign data validation failed: ",
                 e$message,
                 call. = FALSE
               )
             }
           )
 
-          # set module true at server level if validation passes
+          # Set module validation flag ----
           if (isTRUE(iv$is_valid())) {
             session$userData$reactiveValues$campaignDataValid <- TRUE
           }
 
-          # CHANGED: Store directly to userData
+          # Store validated data ----
           session$userData$reactiveValues$campaignData <- validated_data
-
-          # } else {
-          # CHANGED: Set validation flag to FALSE
-          # session$userData$reactiveValues$campaignDataValid <- FALSE
-          # }
         },
         error = function(e) {
           showNotification(
