@@ -4,18 +4,20 @@
 \alias{CampaignData_Table_R6_Generator}
 \title{Campaign Data Table R6 Generator}
 \description{
-[R6][R6::R6Class] class for managing campaign metadata in the eData format.
+\link[R6:R6Class]{R6} class for managing campaign metadata in the eData format.
 Campaigns represent sampling projects or studies with metadata about timing,
 organization, data quality evaluation, and confidentiality.
 
-This class inherits from [Data_Table_R6_Generator] and provides:
-* Standardised column structure for campaign data
-* Validation of mandatory fields
-* Type checking for all columns
-* Metadata access via active bindings
+This class inherits from \link{Data_Table_R6_Generator} and provides:
+\itemize{
+\item Standardised column structure for campaign data
+\item Validation of mandatory fields
+\item Type checking for all columns
+\item Metadata access via active bindings
+}
 
-Mandatory fields: `CAMPAIGN_NAME_SHORT`, `CAMPAIGN_NAME`, `CAMPAIGN_START_DATE`,
-`ORGANISATION`, `ENTERED_BY`, `ENTERED_DATE`.
+Mandatory fields: \code{CAMPAIGN_NAME_SHORT}, \code{CAMPAIGN_NAME}, \code{CAMPAIGN_START_DATE},
+\code{ORGANISATION}, \code{ENTERED_BY}, \code{ENTERED_DATE}.
 }
 \section{Schema Version}{
 
@@ -25,36 +27,40 @@ Current version: 1.0.0
 \section{Column Definitions}{
 
 \describe{
-  \item{`CAMPAIGN_NAME_SHORT`}{`character`, mandatory. Short campaign identifier.}
-  \item{`CAMPAIGN_NAME`}{`character`, mandatory. Full campaign name.}
-  \item{`CAMPAIGN_START_DATE`}{`Date`, mandatory. Campaign start date.}
-  \item{`CAMPAIGN_END_DATE`}{`Date`, optional. Campaign end date.}
-  \item{`RELIABILITY_SCORE`}{`character`, optional. Data reliability score.}
-  \item{`RELIABILITY_EVAL_SYS`}{`character`, optional. Reliability evaluation system.}
-  \item{`CONFIDENTIALITY_EXPIRY_DATE`}{`Date`, optional. When data becomes public.}
-  \item{`ORGANISATION`}{`character`, mandatory. Responsible organisation.}
-  \item{`ENTERED_BY`}{`character`, mandatory. Data entry person.}
-  \item{`ENTERED_DATE`}{`Date`, mandatory. Data entry date.}
-  \item{`CAMPAIGN_COMMENT`}{`character`, optional. Additional comments.}
+\item{\code{CAMPAIGN_NAME_SHORT}}{\code{character}, mandatory. Short campaign identifier.}
+\item{\code{CAMPAIGN_NAME}}{\code{character}, mandatory. Full campaign name.}
+\item{\code{CAMPAIGN_START_DATE}}{\code{Date}, mandatory. Campaign start date.}
+\item{\code{CAMPAIGN_END_DATE}}{\code{Date}, optional. Campaign end date.}
+\item{\code{RELIABILITY_SCORE}}{\code{character}, optional. Data reliability score.}
+\item{\code{RELIABILITY_EVAL_SYS}}{\code{character}, optional. Reliability evaluation system.}
+\item{\code{CONFIDENTIALITY_EXPIRY_DATE}}{\code{Date}, optional. When data becomes public.}
+\item{\code{ORGANISATION}}{\code{character}, mandatory. Responsible organisation.}
+\item{\code{ENTERED_BY}}{\code{character}, mandatory. Data entry person.}
+\item{\code{ENTERED_DATE}}{\code{Date}, mandatory. Data entry date.}
+\item{\code{CAMPAIGN_COMMENT}}{\code{character}, optional. Additional comments.}
 }
 }
 
 \section{Inherited Methods}{
 
-See [Data_Table_R6_Generator] for details on:
-* `$initialize()`
-* `$add_rows(new_rows)`
-* `$validate_structure()`
+See \link{Data_Table_R6_Generator} for details on:
+\itemize{
+\item \verb{$initialize()}
+\item \verb{$add_rows(new_rows)}
+\item \verb{$validate_structure()}
+}
 }
 
 \section{Inherited Active Bindings}{
 
-See [Data_Table_R6_Generator] for details on:
-* `$metadata`
-* `$version`
-* `$mandatory_fields`
-* `$optional_fields`
-* `$n_rows`
+See \link{Data_Table_R6_Generator} for details on:
+\itemize{
+\item \verb{$metadata}
+\item \verb{$version}
+\item \verb{$mandatory_fields}
+\item \verb{$optional_fields}
+\item \verb{$n_rows}
+}
 }
 
 \examples{
@@ -93,31 +99,10 @@ campaign$add_rows(invalid)  # Error: Missing mandatory columns
 \section{Super class}{
 \code{\link[STOPeData:Data_Table_R6_Generator]{STOPeData::Data_Table_R6_Generator}} -> \code{CampaignData_Table_R6_Generator}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{schema_version}}{(`character(1)`)\cr
-Schema version for campaign data table. Current: `"1.0.0"`.}
-
-\item{\code{schema}}{(`tbl_df`)\cr
-Schema defining campaign table structure with column specifications.}
-}
-\if{html}{\out{</div>}}
-}
-\section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{schema_version}}{(`character(1)`)\cr
-Schema version for campaign data table. Current: `"1.0.0"`.}
-
-\item{\code{schema}}{(`tbl_df`)\cr
-Schema defining campaign table structure with column specifications.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
+\item \href{#method-CampaignData_Table_R6_Generator-new}{\code{CampaignData_Table_R6_Generator$new()}}
 \item \href{#method-CampaignData_Table_R6_Generator-clone}{\code{CampaignData_Table_R6_Generator$clone()}}
 }
 }
@@ -125,11 +110,19 @@ Schema defining campaign table structure with column specifications.}
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="STOPeData" data-topic="Data_Table_R6_Generator" data-id="add_rows"><a href='../../STOPeData/html/Data_Table_R6_Generator.html#method-Data_Table_R6_Generator-add_rows'><code>STOPeData::Data_Table_R6_Generator$add_rows()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="STOPeData" data-topic="Data_Table_R6_Generator" data-id="initialize"><a href='../../STOPeData/html/Data_Table_R6_Generator.html#method-Data_Table_R6_Generator-initialize'><code>STOPeData::Data_Table_R6_Generator$initialize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="STOPeData" data-topic="Data_Table_R6_Generator" data-id="validate_structure"><a href='../../STOPeData/html/Data_Table_R6_Generator.html#method-Data_Table_R6_Generator-validate_structure'><code>STOPeData::Data_Table_R6_Generator$validate_structure()</code></a></span></li>
 </ul>
 </details>
 }}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-CampaignData_Table_R6_Generator-new"></a>}}
+\if{latex}{\out{\hypertarget{method-CampaignData_Table_R6_Generator-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{CampaignData_Table_R6_Generator$new()}\if{html}{\out{</div>}}
+}
+
+}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-CampaignData_Table_R6_Generator-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-CampaignData_Table_R6_Generator-clone}{}}}

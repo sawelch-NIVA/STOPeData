@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_formats.R
 \name{initialise_CREED_data_tibble}
 \alias{initialise_CREED_data_tibble}
-\title{Initialise CREED Scores Tibble}
+\title{Initialise CREED Data Tibble}
 \usage{
 initialise_CREED_data_tibble()
 }

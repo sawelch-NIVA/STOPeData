@@ -8,14 +8,14 @@ collect_CREED_data(criteria_config, input)
 }
 \arguments{
 \item{criteria_config}{Named list of criteria configurations. Each element
-should be a list with `title` and `type` (Required/Recommended) fields.}
+should be a list with \code{title} and \code{type} (Required/Recommended) fields.}
 
 \item{input}{Shiny input object containing score, relevant_data, and
 limitations inputs for each criterion.}
 }
 \value{
 A tibble with columns: criterion_id, criterion_title,
-  required_recommended, relevant_data, score, limitations
+required_recommended, relevant_data, score, limitations
 }
 \description{
 Collects CREED criterion scores, relevant data, and limitations
@@ -24,10 +24,12 @@ relevance criteria.
 }
 \details{
 Expects input IDs to follow the pattern:
-- `{criterion_id}_score`
-- `{criterion_id}_relevant_data`
-- `{criterion_id}_limitations`
+\itemize{
+\item \verb{\{criterion_id\}_score}
+\item \verb{\{criterion_id\}_relevant_data}
+\item \verb{\{criterion_id\}_limitations}
+}
 
-Special case: RB8 uses `_justification` instead of `_limitations`,
+Special case: RB8 uses \verb{_justification} instead of \verb{_limitations},
 and the value is prefixed with "Justification: " in the output.
 }

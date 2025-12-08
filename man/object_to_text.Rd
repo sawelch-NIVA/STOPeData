@@ -16,5 +16,5 @@ Character vector suitable for use with writeLines()
 }
 \description{
 Convert various R objects (character vectors, lists, S3/S4 objects) to
-  readable text format suitable for writing to .txt files
+readable text format suitable for writing to .txt files
 }

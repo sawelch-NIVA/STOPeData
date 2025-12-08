@@ -14,7 +14,7 @@ Should contain at least one row of BibTeX entry data.}
 }
 \value{
 A named list containing mapped field values for all reference input fields.
-  Values are NA for fields not present in the BibTeX entry.
+Values are NA for fields not present in the BibTeX entry.
 }
 \description{
 Converts parsed BibTeX data from bib2df format into a list of values
@@ -23,18 +23,22 @@ mapping between BibTeX conventions and the reference data structure.
 }
 \details{
 The function maps BibTeX reference types to the four supported reference types:
-- article → journal
-- book → book
-- techreport/report/manual → report
-- misc → dataset
-- Other types (inproceedings, incollection, theses, etc.) are mapped to closest equivalent
+\itemize{
+\item article → journal
+\item book → book
+\item techreport/report/manual → report
+\item misc → dataset
+\item Other types (inproceedings, incollection, theses, etc.) are mapped to closest equivalent
+}
 
 Field mappings follow standard BibTeX conventions:
-- JOURNAL/BOOKTITLE → PERIODICAL_JOURNAL
-- NUMBER → ISSUE
-- ADDRESS → PUBLISHED_PLACE
-- SCHOOL → INSTITUTION (for theses)
-- EDITOR → SERIES_EDITOR
+\itemize{
+\item JOURNAL/BOOKTITLE → PERIODICAL_JOURNAL
+\item NUMBER → ISSUE
+\item ADDRESS → PUBLISHED_PLACE
+\item SCHOOL → INSTITUTION (for theses)
+\item EDITOR → SERIES_EDITOR
+}
 }
 \examples{
 \dontrun{

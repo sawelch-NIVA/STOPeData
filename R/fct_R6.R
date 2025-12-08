@@ -300,25 +300,279 @@ CampaignData_Table_R6_Generator <- R6Class(
   inherit = Data_Table_R6_Generator,
 
   private = list(
-    #' @field schema_version (`character(1)`)\cr
-    #' Schema version for campaign data table. Current: `"1.0.0"`.
     schema_version = "1.0.0",
 
-    #' @field schema (`tbl_df`)\cr
-    #' Schema defining campaign table structure with column specifications.
-    schema = tribble(
-      ~column_name                  , ~data_type  , ~mandatory , ~description                    ,
-      "CAMPAIGN_NAME_SHORT"         , "character" , TRUE       , "Short campaign identifier"     ,
-      "CAMPAIGN_NAME"               , "character" , TRUE       , "Full campaign name"            ,
-      "CAMPAIGN_START_DATE"         , "Date"      , TRUE       , "Campaign start date"           ,
-      "CAMPAIGN_END_DATE"           , "Date"      , FALSE      , "Campaign end date"             ,
-      "RELIABILITY_SCORE"           , "character" , FALSE      , "Data reliability score"        ,
-      "RELIABILITY_EVAL_SYS"        , "character" , FALSE      , "Reliability evaluation system" ,
-      "CONFIDENTIALITY_EXPIRY_DATE" , "Date"      , FALSE      , "When data becomes public"      ,
-      "ORGANISATION"                , "character" , TRUE       , "Responsible organisation"      ,
-      "ENTERED_BY"                  , "character" , TRUE       , "Data entry person"             ,
-      "ENTERED_DATE"                , "Date"      , TRUE       , "Data entry date"               ,
-      "CAMPAIGN_COMMENT"            , "character" , FALSE      , "Additional comments"
-    )
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_campaign_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+# ---- Reference Data Table R6 Generator ----
+
+#' @title Reference Data Table R6 Generator
+#' @description R6 class for managing reference metadata
+#' @export
+ReferenceData_Table_R6_Generator <- R6Class(
+  "ReferenceData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_reference_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Sites Data Table R6 Generator ----
+
+#' @title Sites Data Table R6 Generator
+#' @description R6 class for managing site metadata
+#' @export
+SitesData_Table_R6_Generator <- R6Class(
+  "SitesData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_sites_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Biota Data Table R6 Generator ----
+
+#' @title Biota Data Table R6 Generator
+#' @description R6 class for managing biota metadata
+#' @export
+BiotaData_Table_R6_Generator <- R6Class(
+  "BiotaData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_biota_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Samples Data Table R6 Generator ----
+
+#' @title Samples Data Table R6 Generator
+#' @description R6 class for managing sample metadata
+#' @export
+SamplesData_Table_R6_Generator <- R6Class(
+  "SamplesData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_samples_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Parameters Data Table R6 Generator ----
+
+#' @title Parameters Data Table R6 Generator
+#' @description R6 class for managing parameter metadata
+#' @export
+ParametersData_Table_R6_Generator <- R6Class(
+  "ParametersData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_parameters_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Methods Data Table R6 Generator ----
+
+#' @title Methods Data Table R6 Generator
+#' @description R6 class for managing methods metadata
+#' @export
+MethodsData_Table_R6_Generator <- R6Class(
+  "MethodsData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_methods_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Compartments Data Table R6 Generator ----
+
+#' @title Compartments Data Table R6 Generator
+#' @description R6 class for managing compartment metadata
+#' @export
+CompartmentsData_Table_R6_Generator <- R6Class(
+  "CompartmentsData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_compartments_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- Measurements Data Table R6 Generator ----
+
+#' @title Measurements Data Table R6 Generator
+#' @description R6 class for managing measurement data
+#' @export
+MeasurementsData_Table_R6_Generator <- R6Class(
+  "MeasurementsData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    # This function gets called during initialize(), not at class definition
+    get_schema = function() {
+      get_measurements_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ============================================================================
+# CREED R6 Generators (add to fct_R6.R)
+# ============================================================================
+
+# ---- CREED Scores Data Table R6 Generator ----
+
+#' @title CREED Scores Data Table R6 Generator
+#' @description R6 class for managing CREED scores metadata
+#' @export
+CREEDScoresData_Table_R6_Generator <- R6Class(
+  "CREEDScoresData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    get_schema = function() {
+      get_creed_scores_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
+  )
+)
+
+# ---- CREED Data Table R6 Generator ----
+
+#' @title CREED Data Table R6 Generator
+#' @description R6 class for managing CREED criterion data (internal structure)
+#' @export
+CREEDData_Table_R6_Generator <- R6Class(
+  "CREEDData_Table_R6_Generator",
+  inherit = Data_Table_R6_Generator,
+
+  private = list(
+    schema_version = "1.0.0",
+
+    get_schema = function() {
+      get_creed_data_schema()
+    }
+  ),
+
+  public = list(
+    initialize = function() {
+      private$schema <- private$get_schema()
+      super$initialize()
+    }
   )
 )

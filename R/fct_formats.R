@@ -5,7 +5,7 @@
 # I also mention a bunch of database TABLES. These don't actually exist yet, but are
 # useful for understanding the structure of the data
 # eData DRF Version - Not Tracked
-# Last Updated 2025.11.17
+# Last Updated 2025.12.08 - R6 update
 
 # -----------------------
 # ---- userData ----
@@ -78,6 +78,257 @@ initialise_userData <- function() {
   )
 }
 
+# ---- Schema Definitions ----
+# These functions define the structure of each table and are used by R6 generators
+
+#' Get Campaign Data Schema
+#'
+#' @return A tibble with column specifications for campaign data
+#' @importFrom tibble tribble
+#' @export
+get_campaign_schema <- function() {
+  tribble(
+    ~column_name                  , ~data_type  , ~mandatory , ~description                    ,
+    "CAMPAIGN_NAME_SHORT"         , "character" , TRUE       , "Short campaign identifier"     ,
+    "CAMPAIGN_NAME"               , "character" , TRUE       , "Full campaign name"            ,
+    "CAMPAIGN_START_DATE"         , "Date"      , TRUE       , "Campaign start date"           ,
+    "CAMPAIGN_END_DATE"           , "Date"      , FALSE      , "Campaign end date"             ,
+    "RELIABILITY_SCORE"           , "character" , FALSE      , "Data reliability score"        ,
+    "RELIABILITY_EVAL_SYS"        , "character" , FALSE      , "Reliability evaluation system" ,
+    "CONFIDENTIALITY_EXPIRY_DATE" , "Date"      , FALSE      , "When data becomes public"      ,
+    "ORGANISATION"                , "character" , TRUE       , "Responsible organisation"      ,
+    "ENTERED_BY"                  , "character" , TRUE       , "Data entry person"             ,
+    "ENTERED_DATE"                , "Date"      , TRUE       , "Data entry date"               ,
+    "CAMPAIGN_COMMENT"            , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Reference Data Schema
+#'
+#' @return A tibble with column specifications for reference data
+#' @importFrom tibble tribble
+#' @export
+get_reference_schema <- function() {
+  tribble(
+    ~column_name         , ~data_type  , ~mandatory , ~description                  ,
+    "REFERENCE_ID"       , "character" , TRUE       , "Unique reference identifier" ,
+    "REFERENCE_TYPE"     , "character" , TRUE       , "Type of reference"           ,
+    "DATA_SOURCE"        , "character" , TRUE       , "Source of the data"          ,
+    "AUTHOR"             , "character" , TRUE       , "Author(s)"                   ,
+    "TITLE"              , "character" , TRUE       , "Title of reference"          ,
+    "YEAR"               , "integer"   , TRUE       , "Publication year"            ,
+    "ACCESS_DATE"        , "Date"      , FALSE      , "Date accessed"               ,
+    "PERIODICAL_JOURNAL" , "character" , FALSE      , "Journal or periodical name"  ,
+    "VOLUME"             , "integer"   , FALSE      , "Volume number"               ,
+    "ISSUE"              , "integer"   , FALSE      , "Issue number"                ,
+    "PUBLISHER"          , "character" , FALSE      , "Publisher name"              ,
+    "INSTITUTION"        , "character" , FALSE      , "Institution name"            ,
+    "DOI"                , "character" , FALSE      , "Digital Object Identifier"   ,
+    "URL"                , "character" , FALSE      , "URL"                         ,
+    "ISBN_ISSN"          , "character" , FALSE      , "ISBN or ISSN"                ,
+    "EDITION"            , "character" , FALSE      , "Edition"                     ,
+    "DOCUMENT_NUMBER"    , "character" , FALSE      , "Document number"             ,
+    "REF_COMMENT"        , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Sites Data Schema
+#'
+#' @return A tibble with column specifications for sites data
+#' @importFrom tibble tribble
+#' @export
+get_sites_schema <- function() {
+  tribble(
+    ~column_name                  , ~data_type  , ~mandatory , ~description                  ,
+    "SITE_CODE"                   , "character" , TRUE       , "Unique site identifier"      ,
+    "SITE_NAME"                   , "character" , TRUE       , "Site name"                   ,
+    "SITE_GEOGRAPHIC_FEATURE"     , "character" , TRUE       , "Geographic feature type"     ,
+    "SITE_GEOGRAPHIC_FEATURE_SUB" , "character" , TRUE       , "Geographic feature subtype"  ,
+    "COUNTRY_ISO"                 , "character" , TRUE       , "ISO country code"            ,
+    "OCEAN_IHO"                   , "character" , TRUE       , "IHO ocean designation"       ,
+    "LATITUDE"                    , "numeric"   , TRUE       , "Latitude (decimal degrees)"  ,
+    "LONGITUDE"                   , "numeric"   , TRUE       , "Longitude (decimal degrees)" ,
+    "SITE_COORDINATE_SYSTEM"      , "character" , TRUE       , "Coordinate reference system" ,
+    "ALTITUDE_VALUE"              , "numeric"   , TRUE       , "Altitude value"              ,
+    "ALTITUDE_UNIT"               , "character" , TRUE       , "Altitude unit"               ,
+    "ENTERED_BY"                  , "character" , TRUE       , "Data entry person"           ,
+    "ENTERED_DATE"                , "character" , TRUE       , "Data entry date"             ,
+    "SITE_COMMENT"                , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Biota Data Schema
+#'
+#' @return A tibble with column specifications for biota data
+#' @importFrom tibble tribble
+#' @export
+get_biota_schema <- function() {
+  tribble(
+    ~column_name               , ~data_type  , ~mandatory , ~description                    ,
+    "SAMPLE_ID"                , "character" , TRUE       , "Unique sample identifier"      ,
+    "SITE_CODE"                , "character" , TRUE       , "Site identifier"               ,
+    "PARAMETER_NAME"           , "character" , TRUE       , "Parameter name"                ,
+    "ENVIRON_COMPARTMENT"      , "character" , TRUE       , "Environmental compartment"     ,
+    "ENVIRON_COMPARTMENT_SUB"  , "character" , FALSE      , "Environmental compartment sub" ,
+    "MEASURED_CATEGORY"        , "character" , TRUE       , "Measured category"             ,
+    "SAMPLING_DATE"            , "character" , TRUE       , "Sampling date"                 ,
+    "SUBSAMPLE"                , "character" , TRUE       , "Subsample identifier"          ,
+    "SPECIES_GROUP"            , "character" , TRUE       , "Species group"                 ,
+    "SAMPLE_SPECIES"           , "character" , TRUE       , "Sample species"                ,
+    "SAMPLE_TISSUE"            , "character" , TRUE       , "Sample tissue type"            ,
+    "SAMPLE_SPECIES_LIFESTAGE" , "character" , TRUE       , "Species life stage"            ,
+    "SAMPLE_SPECIES_GENDER"    , "character" , TRUE       , "Species gender"                ,
+    "BIOTA_COMMENT"            , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Samples Data Schema
+#'
+#' @return A tibble with column specifications for samples data
+#' @importFrom tibble tribble
+#' @export
+get_samples_schema <- function() {
+  tribble(
+    ~column_name              , ~data_type  , ~mandatory , ~description                    ,
+    "SITE_CODE"               , "character" , TRUE       , "Site identifier"               ,
+    "SITE_NAME"               , "character" , TRUE       , "Site name"                     ,
+    "PARAMETER_NAME"          , "character" , TRUE       , "Parameter name"                ,
+    "PARAMETER_TYPE"          , "character" , TRUE       , "Parameter type"                ,
+    "ENVIRON_COMPARTMENT"     , "character" , TRUE       , "Environmental compartment"     ,
+    "ENVIRON_COMPARTMENT_SUB" , "character" , TRUE       , "Environmental compartment sub" ,
+    "MEASURED_CATEGORY"       , "character" , TRUE       , "Measured category"             ,
+    "SAMPLING_DATE"           , "character" , TRUE       , "Sampling date"                 ,
+    "SUBSAMPLE"               , "character" , TRUE       , "Subsample identifier"          ,
+    "SUBSAMPLE_ID"            , "character" , FALSE      , "Subsample ID"                  ,
+    "SAMPLE_ID"               , "character" , TRUE       , "Unique sample identifier"
+  )
+}
+
+#' Get Parameters Data Schema
+#'
+#' @return A tibble with column specifications for parameters data
+#' @importFrom tibble tribble
+#' @export
+get_parameters_schema <- function() {
+  tribble(
+    ~column_name         , ~data_type  , ~mandatory , ~description             ,
+    "PARAMETER_TYPE"     , "character" , TRUE       , "Parameter type"         ,
+    "PARAMETER_TYPE_SUB" , "character" , TRUE       , "Parameter subtype"      ,
+    "MEASURED_TYPE"      , "character" , TRUE       , "Measured type"          ,
+    "PARAMETER_NAME"     , "character" , TRUE       , "Unique parameter name"  ,
+    "PARAMETER_NAME_SUB" , "character" , FALSE      , "Parameter name subtype" ,
+    "INCHIKEY_SD"        , "character" , FALSE      , "Standard InChI key"     ,
+    "PUBCHEM_CID"        , "integer"   , FALSE      , "PubChem compound ID"    ,
+    "CAS_RN"             , "character" , FALSE      , "CAS Registry Number"    ,
+    "ENTERED_BY"         , "character" , TRUE       , "Data entry person"      ,
+    "PARAMETER_COMMENT"  , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Methods Data Schema
+#'
+#' @return A tibble with column specifications for methods data
+#' @importFrom tibble tribble
+#' @export
+get_methods_schema <- function() {
+  tribble(
+    ~column_name        , ~data_type  , ~mandatory , ~description                 ,
+    "PROTOCOL_ID"       , "character" , TRUE       , "Unique protocol identifier" ,
+    "CAMPAIGN_NAME"     , "character" , TRUE       , "Campaign name"              ,
+    "PROTOCOL_CATEGORY" , "character" , TRUE       , "Protocol category"          ,
+    "PROTOCOL_NAME"     , "character" , TRUE       , "Protocol name"              ,
+    "PROTOCOL_COMMENT"  , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get Compartments Data Schema
+#'
+#' @return A tibble with column specifications for compartments data
+#' @importFrom tibble tribble
+#' @export
+get_compartments_schema <- function() {
+  tribble(
+    ~column_name              , ~data_type  , ~mandatory , ~description                    ,
+    "ENVIRON_COMPARTMENT"     , "character" , TRUE       , "Environmental compartment"     ,
+    "ENVIRON_COMPARTMENT_SUB" , "character" , TRUE       , "Environmental compartment sub" ,
+    "MEASURED_CATEGORY"       , "character" , TRUE       , "Measured category"
+  )
+}
+
+#' Get Measurements Data Schema
+#'
+#' @return A tibble with column specifications for measurements data
+#' @importFrom tibble tribble
+#' @export
+get_measurements_schema <- function() {
+  tribble(
+    ~column_name              , ~data_type  , ~mandatory , ~description                    ,
+    "SITE_CODE"               , "character" , TRUE       , "Site identifier"               ,
+    "PARAMETER_NAME"          , "character" , TRUE       , "Parameter name"                ,
+    "SAMPLING_DATE"           , "character" , TRUE       , "Sampling date"                 ,
+    "ENVIRON_COMPARTMENT_SUB" , "character" , FALSE      , "Environmental compartment sub" ,
+    "SUBSAMPLE"               , "character" , FALSE      , "Subsample identifier"          ,
+    "MEASURED_FLAG"           , "character" , FALSE      , "Measurement flag"              ,
+    "MEASURED_VALUE"          , "numeric"   , TRUE       , "Measured value"                ,
+    "UNCERTAINTY_TYPE"        , "character" , TRUE       , "Uncertainty type"              ,
+    "UNCERTAINTY_UPPER"       , "numeric"   , FALSE      , "Upper uncertainty bound"       ,
+    "UNCERTAINTY_LOWER"       , "numeric"   , FALSE      , "Lower uncertainty bound"       ,
+    "MEASURED_UNIT"           , "character" , TRUE       , "Measurement unit"              ,
+    "MEASURED_N"              , "numeric"   , FALSE      , "Number of measurements"        ,
+    "LOQ_VALUE"               , "numeric"   , FALSE      , "Limit of quantification value" ,
+    "LOQ_UNIT"                , "character" , FALSE      , "Limit of quantification unit"  ,
+    "LOD_VALUE"               , "numeric"   , FALSE      , "Limit of detection value"      ,
+    "LOD_UNIT"                , "character" , FALSE      , "Limit of detection unit"       ,
+    "SAMPLING_PROTOCOL"       , "character" , TRUE       , "Sampling protocol"             ,
+    "EXTRACTION_PROTOCOL"     , "character" , TRUE       , "Extraction protocol"           ,
+    "FRACTIONATION_PROTOCOL"  , "character" , TRUE       , "Fractionation protocol"        ,
+    "ANALYTICAL_PROTOCOL"     , "character" , TRUE       , "Analytical protocol"           ,
+    "REFERENCE_ID"            , "character" , TRUE       , "Reference identifier"          ,
+    "SAMPLE_ID"               , "character" , FALSE      , "Sample identifier"             ,
+    "CAMPAIGN_NAME_SHORT"     , "character" , FALSE      , "Short campaign identifier"     ,
+    "ENVIRON_COMPARTMENT"     , "character" , FALSE      , "Environmental compartment"     ,
+    "PARAMETER_TYPE"          , "character" , FALSE      , "Parameter type"                ,
+    "MEASURED_TYPE"           , "character" , FALSE      , "Measured type"                 ,
+    "MEASUREMENT_COMMENT"     , "character" , FALSE      , "Additional comments"
+  )
+}
+
+#' Get CREED Scores Data Schema
+#'
+#' @return A tibble with column specifications for CREED scores data
+#' @importFrom tibble tribble
+#' @export
+get_creed_scores_schema <- function() {
+  tribble(
+    ~column_name         , ~data_type  , ~mandatory , ~description               ,
+    "REFERENCE_ID"       , "character" , TRUE       , "Reference identifier"     ,
+    "SILVER_RELIABILITY" , "character" , TRUE       , "Silver reliability score" ,
+    "SILVER_RELEVANCE"   , "character" , TRUE       , "Silver relevance score"   ,
+    "GOLD_RELIABILITY"   , "character" , TRUE       , "Gold reliability score"   ,
+    "GOLD_RELEVANCE"     , "character" , TRUE       , "Gold relevance score"
+  )
+}
+
+#' Get CREED Data Schema
+#'
+#' Schema for CREED criterion scores used by reliability and relevance modules.
+#' This is an internal data structure for consistency across CREED modules.
+#'
+#' @return A tibble with column specifications for CREED data
+#' @importFrom tibble tribble
+#' @export
+get_creed_data_schema <- function() {
+  tribble(
+    ~column_name           , ~data_type  , ~mandatory , ~description                ,
+    "criterion_id"         , "character" , TRUE       , "Criterion identifier"      ,
+    "criterion_title"      , "character" , TRUE       , "Criterion title"           ,
+    "required_recommended" , "character" , TRUE       , "Required or recommended"   ,
+    "relevant_data"        , "character" , TRUE       , "Relevant data description" ,
+    "score"                , "character" , TRUE       , "Score value"               ,
+    "limitations"          , "character" , FALSE      , "Limitations description"
+  )
+}
+
 
 # -----------------------
 # ---- TABLE FORMATS ----
@@ -119,6 +370,50 @@ add_campaign_rows <- function(existing_tibble, new_rows) {
   validator$data # Return validated tibble
 }
 
+# ---- Table Initialisation Functions ----
+# These are wrappers around R6 generators for backwards compatibility
+
+#' Initialise Campaign Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for campaign data.
+#' Campaigns represent sampling projects or studies with metadata about timing,
+#' organization, data quality evaluation, and confidentiality.
+#'
+#' @return A tibble with 0 rows and standardised campaign columns
+#' @importFrom tibble tibble
+#' @export
+initialise_campaign_tibble <- function() {
+  CampaignData_Table_R6_Generator$new()$data
+}
+
+
+#' Initialise Reference Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for reference data.
+#' References provide bibliographic information for data sources including journals,
+#' reports, datasets, and other published materials.
+#'
+#' @return A tibble with 0 rows and standardised reference columns
+#' @importFrom tibble tibble
+#' @export
+initialise_references_tibble <- function() {
+  ReferenceData_Table_R6_Generator$new()$data
+}
+
+
+#' Initialise Sites Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for site data.
+#' Sites represent sampling locations with geographic coordinates, administrative
+#' boundaries, and descriptive metadata about the sampling location.
+#'
+#' @return A tibble with 0 rows and standardised site columns
+#' @importFrom tibble tibble
+#' @export
+initialise_sites_tibble <- function() {
+  SitesData_Table_R6_Generator$new()$data
+}
+
 
 #' Initialise Biota Data Tibble
 #'
@@ -130,23 +425,50 @@ add_campaign_rows <- function(existing_tibble, new_rows) {
 #' @importFrom tibble tibble
 #' @export
 initialise_biota_tibble <- function() {
-  # Used to construct the SAMPLES table if appropriate when biota are measured
-  tibble(
-    SAMPLE_ID = character(),
-    SITE_CODE = character(),
-    PARAMETER_NAME = character(),
-    ENVIRON_COMPARTMENT = character(),
-    ENVIRON_COMPARTMENT_SUB = character(),
-    MEASURED_CATEGORY = character(),
-    SAMPLING_DATE = character(),
-    SUBSAMPLE = character(),
-    SPECIES_GROUP = character(),
-    SAMPLE_SPECIES = character(),
-    SAMPLE_TISSUE = character(),
-    SAMPLE_SPECIES_LIFESTAGE = character(),
-    SAMPLE_SPECIES_GENDER = character(),
-    BIOTA_COMMENT = character()
-  )
+  BiotaData_Table_R6_Generator$new()$data
+}
+
+
+#' Initialise Samples Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for sample data.
+#' Samples represent individual collections from sites with temporal, spatial,
+#' and methodological information linking sites, parameters, and compartments.
+#'
+#' @return A tibble with 0 rows and standardised sample columns
+#' @importFrom tibble tibble
+#' @export
+initialise_samples_tibble <- function() {
+  SamplesData_Table_R6_Generator$new()$data
+}
+
+
+#' Initialise Parameters Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for parameter data.
+#' Parameters define chemical substances, physical properties, or biological markers
+#' being measured, including classification and chemical identifiers.
+#' Two immediate children: create_new_parameter() and create_existing_parameter() in mod_parameters_fct.R
+#'
+#' @return A tibble with 0 rows and standardised parameter columns
+#' @importFrom tibble tibble
+#' @export
+initialise_parameters_tibble <- function() {
+  ParametersData_Table_R6_Generator$new()$data
+}
+
+
+#' Initialise Methods Data Tibble
+#'
+#' Creates an empty tibble with the standardised column structure for analytical
+#' methods data. Methods describe the protocols used for sampling, extraction,
+#' fractionation, and analysis procedures.
+#'
+#' @return A tibble with 0 rows and standardised methods columns
+#' @importFrom tibble tibble
+#' @export
+initialise_methods_tibble <- function() {
+  MethodsData_Table_R6_Generator$new()$data
 }
 
 
@@ -161,147 +483,9 @@ initialise_biota_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_compartments_tibble <- function() {
-  # Used to construct the SAMPLES table
-  tibble(
-    ENVIRON_COMPARTMENT = character(),
-    ENVIRON_COMPARTMENT_SUB = character(),
-    MEASURED_CATEGORY = character()
-  )
+  CompartmentsData_Table_R6_Generator$new()$data
 }
 
-#' Initialise Methods Data Tibble
-#'
-#' Creates an empty tibble with the standardised column structure for analytical
-#' methods data. Methods describe the protocols used for sampling, extraction,
-#' fractionation, and analysis procedures.
-#'
-#' @return A tibble with 0 rows and standardised methods columns
-#' @importFrom tibble tibble
-#' @export
-initialise_methods_tibble <- function() {
-  # METHODS table
-  tibble(
-    PROTOCOL_ID = character(), # Primary Key
-    CAMPAIGN_NAME = character(),
-    PROTOCOL_CATEGORY = character(),
-    PROTOCOL_NAME = character(),
-    PROTOCOL_COMMENT = character()
-  )
-}
-
-#' Initialise Parameters Data Tibble
-#'
-#' Creates an empty tibble with the standardised column structure for parameter data.
-#' Parameters define chemical substances, physical properties, or biological markers
-#' being measured, including classification and chemical identifiers.
-#' Two immediate children: create_new_parameter() and create_existing_parameter() in mod_parameters_fct.R
-#'
-#' @return A tibble with 0 rows and standardised parameter columns
-#' @importFrom tibble tibble
-#' @export
-initialise_parameters_tibble <- function() {
-  # PARAMETERS table
-  tibble(
-    PARAMETER_TYPE = character(),
-    PARAMETER_TYPE_SUB = character(),
-    MEASURED_TYPE = character(),
-    PARAMETER_NAME = character(), # Primary Key
-    PARAMETER_NAME_SUB = character(),
-    INCHIKEY_SD = character(),
-    PUBCHEM_CID = integer(),
-    CAS_RN = character(),
-    ENTERED_BY = character(),
-    PARAMETER_COMMENT = character()
-  )
-}
-
-#' Initialise References Data Tibble
-#'
-#' Creates an empty tibble with the standardised column structure for reference data.
-#' References provide bibliographic information for data sources including journals,
-#' reports, datasets, and other published materials.
-#'
-#' @return A tibble with 0 rows and standardised reference columns
-#' @importFrom tibble tibble
-#' @export
-initialise_references_tibble <- function() {
-  # REFERENCES table
-  tibble(
-    REFERENCE_ID = character(), # Primary Key
-    REFERENCE_TYPE = character(),
-    DATA_SOURCE = character(),
-    AUTHOR = character(),
-    TITLE = character(),
-    YEAR = integer(),
-    ACCESS_DATE = as.Date(character()),
-    PERIODICAL_JOURNAL = character(),
-    VOLUME = integer(),
-    ISSUE = integer(),
-    PUBLISHER = character(),
-    INSTITUTION = character(),
-    DOI = character(),
-    URL = character(),
-    ISBN_ISSN = character(),
-    EDITION = character(),
-    DOCUMENT_NUMBER = character(),
-    REF_COMMENT = character()
-  )
-}
-
-#' Initialise Samples Data Tibble
-#'
-#' Creates an empty tibble with the standardised column structure for sample data.
-#' Samples represent individual collections from sites with temporal, spatial,
-#' and methodological information linking sites, parameters, and compartments.
-#'
-#' @return A tibble with 0 rows and standardised sample columns
-#' @importFrom tibble tibble
-#' @export
-initialise_samples_tibble <- function() {
-  # Used to construct MEASUREMENTS table
-  tibble(
-    SITE_CODE = character(),
-    SITE_NAME = character(),
-    PARAMETER_NAME = character(),
-    PARAMETER_TYPE = character(),
-    ENVIRON_COMPARTMENT = character(),
-    ENVIRON_COMPARTMENT_SUB = character(),
-    MEASURED_CATEGORY = character(),
-    SAMPLING_DATE = character(),
-    SUBSAMPLE = character(),
-    SUBSAMPLE_ID = character(),
-    SAMPLE_ID = character() # Key
-  )
-}
-
-#' Initialise Sites Data Tibble
-#'
-#' Creates an empty tibble with the standardised column structure for site data.
-#' Sites represent sampling locations with geographic coordinates, administrative
-#' boundaries, and descriptive metadata about the sampling location.
-#'
-#' @return A tibble with 0 rows and standardised site columns
-#' @importFrom tibble tibble
-#' @export
-initialise_sites_tibble <- function() {
-  # Used to construct SITES table
-  tibble(
-    SITE_CODE = character(), # Primary Key
-    SITE_NAME = character(),
-    SITE_GEOGRAPHIC_FEATURE = character(),
-    SITE_GEOGRAPHIC_FEATURE_SUB = character(),
-    COUNTRY_ISO = character(),
-    OCEAN_IHO = character(),
-    LATITUDE = numeric(),
-    LONGITUDE = numeric(),
-    SITE_COORDINATE_SYSTEM = character(),
-    ALTITUDE_VALUE = numeric(),
-    ALTITUDE_UNIT = character(),
-    ENTERED_BY = character(),
-    ENTERED_DATE = character(),
-    SITE_COMMENT = character()
-  )
-}
 
 #' Initialise Measurements Data Tibble
 #'
@@ -310,40 +494,16 @@ initialise_sites_tibble <- function() {
 #' @return A tibble with 0 rows and standardised measurement columns
 #' @importFrom tibble tibble
 #' @export
-## Initialise measurement combinations data frame ----
 initialise_measurements_tibble <- function() {
-  # Used to construct MEASURMENTS table
-  # Merges SAMPLES, COMPARTMENTS, BIOTA
-  tibble(
-    SITE_CODE = character(), # Foreign key
-    PARAMETER_NAME = character(), # Foreign key
-    SAMPLING_DATE = character(),
-    ENVIRON_COMPARTMENT_SUB = character(),
-    SUBSAMPLE = character(),
-    MEASURED_FLAG = character(),
-    MEASURED_VALUE = numeric(),
-    UNCERTAINTY_TYPE = character(),
-    UNCERTAINTY_UPPER = numeric(),
-    UNCERTAINTY_LOWER = numeric(),
-    MEASURED_UNIT = character(),
-    MEASURED_N = numeric(),
-    LOQ_VALUE = numeric(),
-    LOQ_UNIT = character(),
-    LOD_VALUE = numeric(),
-    LOD_UNIT = character(),
-    SAMPLING_PROTOCOL = character(), # Foreign key
-    EXTRACTION_PROTOCOL = character(), # Foreign key
-    FRACTIONATION_PROTOCOL = character(), # Foreign key
-    ANALYTICAL_PROTOCOL = character(), # Foreign key
-    # These variables are not immediately relevant to measurement entry, so we shuffle them to the back
-    REFERENCE_ID = character(), # Foreign key
-    SAMPLE_ID = character(),
-    CAMPAIGN_NAME_SHORT = character(),
-    ENVIRON_COMPARTMENT = character(),
-    PARAMETER_TYPE = character(),
-    MEASURED_TYPE = character(),
-    MEASUREMENT_COMMENT = character()
-  )
+  MeasurementsData_Table_R6_Generator$new()$data
+}
+
+
+add_campaign_rows <- function(existing_tibble, new_rows) {
+  validator <- CampaignData_Table_R6_Generator$new()
+  validator$data <- existing_tibble
+  validator$add_rows(new_rows) # Validation happens here
+  validator$data # Return validated tibble
 }
 
 #' Initialise CREED Scores Tibble
@@ -354,17 +514,10 @@ initialise_measurements_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_CREED_scores_tibble <- function() {
-  # Used to construct CREED SCORES table
-  tibble(
-    REFERENCE_ID = character(),
-    SILVER_RELIABILITY = character(),
-    SILVER_RELEVANCE = character(),
-    GOLD_RELIABILITY = character(),
-    GOLD_RELEVANCE = character()
-  )
+  CREEDScoresData_Table_R6_Generator$new()$data
 }
 
-#' Initialise CREED Scores Tibble
+#' Initialise CREED Data Tibble
 #'
 #' Creates an empty tibble with the standardised column structure for CREED
 #' criterion scores. Used by both reliability and relevance modules to ensure
@@ -375,15 +528,9 @@ initialise_CREED_scores_tibble <- function() {
 #' @importFrom tibble tibble
 #' @export
 initialise_CREED_data_tibble <- function() {
-  tibble(
-    criterion_id = character(),
-    criterion_title = character(),
-    required_recommended = character(),
-    relevant_data = character(),
-    score = character(),
-    limitations = character()
-  )
+  CREEDData_Table_R6_Generator$new()$data
 }
+
 
 # ------------------------
 # ------ VOCABULARY ------

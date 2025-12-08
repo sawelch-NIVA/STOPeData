@@ -20,8 +20,7 @@ isTruthy switch operator
 \details{
 utilities
 
-
-A simple switch operator based on purrr's %||% that returns the first
+A simple switch operator based on purrr's \%||\% that returns the first
 argument if it isTruthy (exists, not NULL/NA/"", etc.), and otherwise the
 second argument.
 }

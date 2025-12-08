@@ -27,14 +27,16 @@ Will be abbreviated to first 10 alphanumeric characters. Defaults to "".}
 }
 \value{
 Character vector of protocol IDs with format:
-  `{TypeCode}{SequenceNumber}_{AbbreviatedName}_{CampaignAbbrev}`
+\verb{\{TypeCode\}\{SequenceNumber\}_\{AbbreviatedName\}_\{CampaignAbbrev\}}
 
-  Where:
-  - TypeCode: S (Sampling), F (Fractionation), E (Extraction),
-    A (Analytical), X (Unknown)
-  - SequenceNumber: Zero-padded 2-digit number
-  - AbbreviatedName: Up to 15 alphanumeric characters (optional)
-  - CampaignAbbrev: Up to 10 alphanumeric characters (optional)
+Where:
+\itemize{
+\item TypeCode: S (Sampling), F (Fractionation), E (Extraction),
+A (Analytical), X (Unknown)
+\item SequenceNumber: Zero-padded 2-digit number
+\item AbbreviatedName: Up to 15 alphanumeric characters (optional)
+\item CampaignAbbrev: Up to 10 alphanumeric characters (optional)
+}
 }
 \description{
 Generates a standardised protocol identifier based on protocol type, name,
@@ -43,10 +45,12 @@ handle multiple protocols simultaneously.
 }
 \details{
 The function handles edge cases gracefully:
-- NULL or empty values result in appropriate defaults
-- Invalid protocol types default to "X"
-- Names are cleaned of special characters and spaces
-- Empty components are omitted from the final ID
+\itemize{
+\item NULL or empty values result in appropriate defaults
+\item Invalid protocol types default to "X"
+\item Names are cleaned of special characters and spaces
+\item Empty components are omitted from the final ID
+}
 }
 \examples{
 # Single protocol

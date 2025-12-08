@@ -17,13 +17,13 @@ abbreviate_string(
 
 \item{case}{Character. Case style for the output. One of:
 \itemize{
-  \item "lower" - all lowercase, no separator (e.g., "dogsandcats")
-  \item "upper" - all uppercase, no separator (e.g., "DOGSANDCATS")
-  \item "sentence" - sentence case, no separator (e.g., "Dogsandcats")
-  \item "snake" - lowercase with underscores (e.g., "dogs_and_cats")
-  \item "title" - title case, no separator (e.g., "DogsAndCats")
-  \item "screamingsnake" - uppercase with underscores (e.g., "DOGS_AND_CATS")
-  \item "camel" - camel case (e.g., "dogsAndCats")
+\item "lower" - all lowercase, no separator (e.g., "dogsandcats")
+\item "upper" - all uppercase, no separator (e.g., "DOGSANDCATS")
+\item "sentence" - sentence case, no separator (e.g., "Dogsandcats")
+\item "snake" - lowercase with underscores (e.g., "dogs_and_cats")
+\item "title" - title case, no separator (e.g., "DogsAndCats")
+\item "screamingsnake" - uppercase with underscores (e.g., "DOGS_AND_CATS")
+\item "camel" - camel case (e.g., "dogsAndCats")
 }}
 }
 \value{

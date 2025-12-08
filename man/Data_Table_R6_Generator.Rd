@@ -5,15 +5,19 @@
 \title{Base Data Table R6 Generator}
 \description{
 Abstract base class for all eData table types providing standardised structure,
-validation, and metadata management. This [R6][R6::R6Class] class bundles:
-* A tibble containing the actual data
-* A schema defining column names, types, and mandatory status
-* Validation methods to ensure data integrity
-* Active bindings for querying metadata
+validation, and metadata management. This \link[R6:R6Class]{R6} class bundles:
+\itemize{
+\item A tibble containing the actual data
+\item A schema defining column names, types, and mandatory status
+\item Validation methods to ensure data integrity
+\item Active bindings for querying metadata
+}
 
 Child classes must define in their private section:
-* `schema`: A [tibble][tibble::tibble] with columns (`column_name`, `data_type`, `mandatory`, `description`)
-* `schema_version`: A version string following semantic versioning (e.g., `"1.0.0"`)
+\itemize{
+\item \code{schema}: A \link[tibble:tibble]{tibble} with columns (\code{column_name}, \code{data_type}, \code{mandatory}, \code{description})
+\item \code{schema_version}: A version string following semantic versioning (e.g., \code{"1.0.0"})
+}
 }
 \examples{
 \dontrun{
@@ -24,16 +28,16 @@ Child classes must define in their private section:
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{schema}}{(`tbl_df`)\cr
+\item{\code{schema}}{(\code{tbl_df})\cr
 Tibble defining table structure with columns: column_name, data_type, mandatory, description.
 Must be defined in child classes.}
 
-\item{\code{schema_version}}{(`character(1)`)\cr
-Semantic version string (e.g., `"1.0.0"`).
+\item{\code{schema_version}}{(\code{character(1)})\cr
+Semantic version string (e.g., \code{"1.0.0"}).
 Must be defined in child classes.}
 
-\item{\code{data}}{(`tbl_df`)\cr
-The actual data tibble. Can be modified directly but prefer using `$add_rows()`
+\item{\code{data}}{(\code{tbl_df})\cr
+The actual data tibble. Can be modified directly but prefer using \verb{$add_rows()}
 for automatic validation.}
 }
 \if{html}{\out{</div>}}
@@ -41,27 +45,27 @@ for automatic validation.}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{schema}}{(`tbl_df`)\cr
+\item{\code{schema}}{(\code{tbl_df})\cr
 Tibble defining table structure with columns: column_name, data_type, mandatory, description.
 Must be defined in child classes.}
 
-\item{\code{schema_version}}{(`character(1)`)\cr
-Semantic version string (e.g., `"1.0.0"`).
+\item{\code{schema_version}}{(\code{character(1)})\cr
+Semantic version string (e.g., \code{"1.0.0"}).
 Must be defined in child classes.}
 
-\item{\code{metadata}}{(`tbl_df`)\cr
+\item{\code{metadata}}{(\code{tbl_df})\cr
 Returns the schema as a tibble. Read-only.}
 
-\item{\code{version}}{(`character(1)`)\cr
+\item{\code{version}}{(\code{character(1)})\cr
 Returns the schema version string. Read-only.}
 
-\item{\code{mandatory_fields}}{(`character()`)\cr
+\item{\code{mandatory_fields}}{(\code{character()})\cr
 Returns a character vector of mandatory column names. Read-only.}
 
-\item{\code{optional_fields}}{(`character()`)\cr
+\item{\code{optional_fields}}{(\code{character()})\cr
 Returns a character vector of optional column names. Read-only.}
 
-\item{\code{n_rows}}{(`integer(1)`)\cr
+\item{\code{n_rows}}{(\code{integer(1)})\cr
 Returns the number of rows in the data tibble. Read-only.}
 }
 \if{html}{\out{</div>}}
@@ -83,18 +87,18 @@ Build an empty tibble with appropriate column types based on the schema.
 This is an internal method called during initialization.
 
 
-Creates a new instance of this [R6][R6::R6Class] class.
+Creates a new instance of this \link[R6:R6Class]{R6} class.
 Initializes an empty data tibble based on the schema defined in the child class.
-This method is called automatically when using `$new()`.
+This method is called automatically when using \verb{$new()}.
 
 Note that this object is typically constructed via derived classes,
-e.g., [CampaignData_Table_R6_Generator].
+e.g., \link{CampaignData_Table_R6_Generator}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Data_Table_R6_Generator$new()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-(`tbl_df`)\cr
+(\code{tbl_df})\cr
 An empty tibble with columns defined by the schema.
 }
 }
@@ -112,7 +116,7 @@ the schema. Returns self invisibly to allow method chaining.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{new_rows}}{(`tbl_df`)\cr
+\item{\code{new_rows}}{(\code{tbl_df})\cr
 A tibble containing the rows to add. Must include all mandatory columns
 and match the schema's column types.}
 }
@@ -134,8 +138,8 @@ column types match expectations. Stops with an error if validation fails.
 }
 
 \subsection{Returns}{
-(`logical(1)`)\cr
-Returns `TRUE` if validation passes. Stops with error if validation fails.
+(\code{logical(1)})\cr
+Returns \code{TRUE} if validation passes. Stops with error if validation fails.
 }
 }
 \if{html}{\out{<hr>}}

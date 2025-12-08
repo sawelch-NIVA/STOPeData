@@ -5,11 +5,19 @@
 \title{Initialise Campaign Data Tibble}
 \usage{
 initialise_campaign_tibble()
+
+initialise_campaign_tibble()
 }
 \value{
 A tibble with 0 rows and standardised campaign columns
+
+A tibble with 0 rows and standardised campaign columns
 }
 \description{
+Creates an empty tibble with the standardised column structure for campaign data.
+Campaigns represent sampling projects or studies with metadata about timing,
+organization, data quality evaluation, and confidentiality.
+
 Creates an empty tibble with the standardised column structure for campaign data.
 Campaigns represent sampling projects or studies with metadata about timing,
 organization, data quality evaluation, and confidentiality.

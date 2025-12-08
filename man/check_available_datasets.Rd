@@ -13,9 +13,11 @@ check_available_datasets(rv)
 }
 \value{
 List with three elements:
-  - available_datasets: character vector of dataset names with data
-  - dataset_dimensions: named list of lists with rows/cols for each available dataset
-  - export_ready: logical indicating if any datasets are available
+\itemize{
+\item available_datasets: character vector of dataset names with data
+\item dataset_dimensions: named list of lists with rows/cols for each available dataset
+\item export_ready: logical indicating if any datasets are available
+}
 }
 \description{
 Check which datasets contain data and get their dimensions

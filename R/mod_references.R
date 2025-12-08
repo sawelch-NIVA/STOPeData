@@ -13,6 +13,7 @@
 #' @importFrom bslib card card_body layout_column_wrap accordion accordion_panel tooltip
 #' @importFrom bsicons bs_icon
 #' @importFrom shinyjs useShinyjs enable disable
+#' @importFrom dplyr rename_with
 #' @importFrom rcrossref cr_works
 #' @importFrom httr GET content http_error
 #' @importFrom xml2 read_xml xml_find_first xml_text
