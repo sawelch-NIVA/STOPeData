@@ -508,9 +508,9 @@ create_conditional_criterion <- function(
       criterion_id,
       title,
       type,
-      description,
-      note,
-      is_conditional = TRUE
+      description
+      # note,
+      # is_conditional = TRUE
     )
   )
 }
@@ -519,7 +519,11 @@ create_conditional_criterion <- function(
 
 #' @importFrom yaml read_yaml
 copper_CREED_purpose_statement <- function() {
-  read_yaml("inst/app/www/md/CREED_Copper_Purpose.yml")
+  read_yaml(system.file(
+    "app/www/md/",
+    "CREED_Copper_Purpose.yml",
+    package = "STOPeData"
+  ))
 }
 
 
@@ -932,9 +936,6 @@ collect_CREED_data <- function(criteria_config, input) {
   # Loop through all criteria ----
   for (criterion_id in names(criteria_config)) {
     golem::print_dev(criterion_id)
-    # if (stringr::str_detect(criterion_id, "RB")) {
-    #   browser()
-    # }
 
     # Get input values ----
     score_input <- input[[paste0(criterion_id, "_score")]]

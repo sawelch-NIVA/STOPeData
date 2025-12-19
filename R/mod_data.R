@@ -14,6 +14,7 @@
 #' @importFrom bsicons bs_icon
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs show hide hidden
+#' @import eDataDRF
 #' @export
 mod_data_ui <- function(id) {
   ns <- NS(id)
@@ -119,7 +120,8 @@ mod_data_ui <- function(id) {
 #' @importFrom dplyr cross_join mutate select rename pull filter relocate left_join
 #' @importFrom tibble tibble
 #' @importFrom utils capture.output head
-#' @importFrom purrr is_empty
+#' @importFrom purrr is_empty map_lgl
+#' @import eDataDRF
 #' @export
 mod_data_server <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
@@ -129,15 +131,17 @@ mod_data_server <- function(id, parent_session) {
     ## ReactiveValues: moduleState ----
     # CHANGED: Keep only UI-specific transient state
     moduleState <- reactiveValues(
-      all_modules_valid = FALSE,
       data_entry_ready = FALSE,
       validation_message = ""
     )
 
     # reactive: are all the previous modules ready?
-    # CHANGED: Check validation flags instead of nrow
+    # check module$ready == TRUE in all cases
     modulesStatus <- reactive({
-      all(get_modules_status()$ready)
+      map_lgl(get_modules_status(), function(x) {
+        x$ready
+      }) |>
+        all()
     })
 
     ## Controlled vocabulary options ----
@@ -155,7 +159,7 @@ mod_data_server <- function(id, parent_session) {
     })
 
     # Rule 2: Check if measurement combinations exist
-    # CHANGED: Reference userData instead of moduleState
+    # this triggers all the time... except when we actually import data...
     iv$add_rule("measurement_table_validation", function(value) {
       if (nrow(session$userData$reactiveValues$measurementsData) == 0) {
         moduleState$validation_message <<- "No sample-parameter combinations available"
@@ -351,8 +355,9 @@ mod_data_server <- function(id, parent_session) {
         # CHANGED: Use validation flag as primary check
         if (
           name == "Biota" &&
-           !("Biota" %in% session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT))
-         {
+            !("Biota" %in%
+              session$userData$reactiveValues$samplesData$ENVIRON_COMPARTMENT)
+        ) {
           # No biota samples detected - auto-validate
           message <- "No biota samples detected - Auto-validated"
           ready <- TRUE
@@ -530,7 +535,7 @@ mod_data_server <- function(id, parent_session) {
     # upstream: all session$userData$reactiveValues validation flags
     # downstream: moduleState$data_entry_ready, session$userData$reactiveValues$measurementsData
     observe({
-      req(isFALSE(session$userData$reactiveValues$saveExtractionSuccessful)) # need to be a little careful here, as if we upload measurments data
+      # req(isFALSE(session$userData$reactiveValues$saveExtractionSuccessful)) # need to be a little careful here, as if we upload measurments data
       # the observer will create combinations and upload existing data, resulting in n new entries each time.
       if (modulesStatus()) {
         moduleState$data_entry_ready <- TRUE

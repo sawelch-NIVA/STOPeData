@@ -15,6 +15,7 @@
 #' @importFrom rhandsontable rHandsontableOutput
 #' @importFrom shinyjs useShinyjs
 #' @importFrom leaflet leafletOutput
+#' @import eDataDRF
 #' @export
 mod_sites_ui <- function(id) {
   ns <- NS(id)
@@ -205,6 +206,7 @@ mod_sites_ui <- function(id) {
 #' @import ISOcodes
 #' @importFrom dplyr pull
 #' @importFrom bslib update_task_button
+#' @import eDataDRF
 #' @export
 mod_sites_server <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -393,7 +395,6 @@ mod_sites_server <- function(id) {
     observe({
       req(moduleState$clicked_coords)
 
-      browser()
       # Create new site with map coordinates
       new_site <- create_new_site(
         site_number = moduleState$next_site_id,
