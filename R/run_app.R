@@ -17,13 +17,17 @@ run_app <- function(
   ...
 ) {
   # set up logger logging for gcp
+  # or don't, if we're on posit connect cloud, because it crashes
+  # on startup
 
-  logger::log_appender(logger::appender_stdout)
-  logger::log_layout(logger::layout_json())
-  logger::log_threshold(logger::INFO)
+  if (Sys.getenv("R_CONFIG_ACTIVE") != "connect_cloud") {
+    logger::log_appender(logger::appender_stdout)
+    logger::log_layout(logger::layout_json())
+    logger::log_threshold(logger::INFO)
 
-  logger::log_messages()
-  logger::log_warnings()
+    logger::log_messages()
+    logger::log_warnings()
+  }
 
   with_golem_options(
     app = shinyApp(
